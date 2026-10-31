@@ -41,11 +41,15 @@ export async function createSubmission(db: Db, input: SubmissionInput, ipHash: s
   return { status };
 }
 
-export type SubmissionFilters = { status: string; category?: string; from?: string | null; to?: string | null };
+export const statusFilters = ['new', 'approved', 'rejected', 'duplicate', 'all'] as const;
+export type StatusFilter = typeof statusFilters[number];
+export function isStatusFilter(value: string): value is StatusFilter { return (statusFilters as readonly string[]).includes(value); }
+
+export type SubmissionFilters = { status: StatusFilter; category?: string; from?: string | null; to?: string | null };
 
 export async function listSubmissions(db: Db, filters: SubmissionFilters): Promise<Submission[]> {
   const conditions = [];
-  if (filters.status !== 'all') conditions.push(eq(submissions.status, filters.status as Submission['status']));
+  if (filters.status !== 'all') conditions.push(eq(submissions.status, filters.status));
   if (filters.category) conditions.push(eq(submissions.category, filters.category));
   if (filters.from) conditions.push(gte(submissions.createdAt, new Date(`${filters.from}T00:00:00.000Z`)));
   if (filters.to) {

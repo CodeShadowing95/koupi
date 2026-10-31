@@ -52,3 +52,12 @@ describe('propositions', () => {
     expect(await moderateSubmission(db, '00000000-0000-0000-0000-000000000000', 'reject', null)).toBeNull();
   });
 });
+
+describe('filtre de statut', () => {
+  it('accepte les statuts connus et refuse le reste', async () => {
+    const { isStatusFilter } = await import('./submissions');
+    expect(['new', 'approved', 'rejected', 'duplicate', 'all'].every(isStatusFilter)).toBe(true);
+    expect(isStatusFilter('xyz')).toBe(false);
+    expect(isStatusFilter("new' or 1=1")).toBe(false);
+  });
+});
