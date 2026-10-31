@@ -44,7 +44,4 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Audit production dependencies
-        # Non-blocking until Next.js is upgraded off 14.x (known critical advisories).
-        # Remove continue-on-error once that upgrade is merged.
-        continue-on-error: true
         run: npm audit --omit=dev --audit-level=high

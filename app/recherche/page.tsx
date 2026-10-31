@@ -2,8 +2,9 @@ import Link from 'next/link';
 import { Search } from '@/components/search';
 import { searchTools } from '@/lib/data';
 
-export default function SearchResults({ searchParams }: { searchParams: { q?: string } }) {
-  const query = searchParams.q || '';
+export default async function SearchResults({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  const { q } = await searchParams;
+  const query = q || '';
   const results = searchTools(query);
   return (
     <main className="page">
