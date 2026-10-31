@@ -1,7 +1,5 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
-import './globals.css';
-import { Header, Footer } from '@/components/shell';
 
 // Polices hébergées dans app/fonts (voir app/fonts/README.md) : le build ne dépend pas de Google Fonts
 // et le visiteur ne fait aucun appel à Google.
@@ -15,10 +13,12 @@ export const metadata: Metadata = {
   icons: { icon: '/koupi-icone-512.png' },
 };
 
+// Mise en page racine : seulement les polices. Le site public (app/(site)) et le back-office (app/admin)
+// ont chacun leur propre en-tête et leur propre feuille de style.
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="fr" className={`${bricolage.variable} ${inter.variable} ${jetbrains.variable}`}>
-      <body><Header />{children}<Footer /></body>
+      <body>{children}</body>
     </html>
   );
 }
