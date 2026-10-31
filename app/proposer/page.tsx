@@ -1,12 +1,17 @@
 'use client';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
+import { Turnstile, type TurnstileHandle } from '@/components/turnstile';
 import { categories } from '@/lib/data';
+
+const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
 
 export default function Proposer() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
   const [sending, setSending] = useState(false);
+  const [token, setToken] = useState('');
+  const turnstile = useRef<TurnstileHandle>(null);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -17,14 +22,15 @@ export default function Proposer() {
       const response = await fetch('/api/submissions', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ toolName: form.get('tool'), creatorName: form.get('creator'), code: form.get('code'), discountLabel: form.get('discount'), sourceUrl: form.get('source'), category: form.get('category'), comment: form.get('comment') }),
+        body: JSON.stringify({ toolName: form.get('tool'), creatorName: form.get('creator'), code: form.get('code'), discountLabel: form.get('discount'), sourceUrl: form.get('source'), category: form.get('category'), comment: form.get('comment'), turnstileToken: token }),
       });
       const body = await response.json() as { error?: string };
-      if (!response.ok) { setError(body.error || 'La proposition n’a pas pu être envoyée.'); setSending(false); return; }
+      if (!response.ok) { setError(body.error || 'La proposition n’a pas pu être envoyée.'); setSending(false); turnstile.current?.reset(); return; }
       setSent(true);
     } catch {
       setError('La proposition n’a pas pu être envoyée. Vérifie ta connexion et réessaie.');
       setSending(false);
+      turnstile.current?.reset();
     }
   }
 
@@ -63,8 +69,9 @@ export default function Proposer() {
           <div className="field"><label htmlFor="category">Catégorie</label><select id="category" name="category" defaultValue=""><option value="">Je ne sais pas</option>{categories.map(category => <option key={category.slug} value={category.name}>{category.name}</option>)}</select></div>
           <div className="field"><label htmlFor="source">Lien de la vidéo ou du post</label><input id="source" name="source" type="url" required placeholder="https://…" /><small>Idéalement avec le moment où le code est donné.</small></div>
           <div className="field"><label htmlFor="comment">Commentaire (facultatif)</label><textarea id="comment" name="comment" rows={3} /></div>
+          {turnstileSiteKey && <Turnstile ref={turnstile} siteKey={turnstileSiteKey} onToken={setToken} />}
           {error && <div className="notice notice-error" role="alert">{error}</div>}
-          <button className="btn b-ink" type="submit" disabled={sending}>{sending ? 'Envoi…' : 'Envoyer pour vérification'}</button>
+          <button className="btn b-ink" type="submit" disabled={sending || (Boolean(turnstileSiteKey) && !token)}>{sending ? 'Envoi…' : 'Envoyer pour vérification'}</button>
         </form>
       </div>
     </main>
