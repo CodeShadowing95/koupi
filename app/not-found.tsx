@@ -1,0 +1,1 @@
+import Link from 'next/link';export default function NotFound(){return <main className="page"><div className="container"><span className="eyebrow">404</span><h1>Cette page n’existe pas.</h1><p className="hero-copy">Retourne à l’accueil pour chercher un outil ou découvrir les catégories.</p><Link className="submit" href="/">Retour à l’accueil</Link></div></main>}
