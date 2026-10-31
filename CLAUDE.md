@@ -33,8 +33,25 @@ Avant chaque commit : `npm run typecheck && npm test && npm run build` doivent p
 ## Façon de travailler
 
 - **Branches** : on part de `develop`. Chaque branche s'appelle `dev-<sujet>` (ex. `dev-votes`). La PR vise `develop`, jamais `main`. `develop` est fusionnée dans `main` pour les mises en production.
-- **Titre de PR** : commence par le nom de la branche, ex. `dev-votes: add vote buttons`.
-- **Commits** : Conventional Commits, en anglais (`feat(scope): …`, `fix: …`, `chore: …`, `docs: …`, `test: …`).
+- **Titre de PR** : `dev-<sujet>: <type>(<scope>): <description>`, ex. `dev-votes: feat(votes): add vote buttons`.
+- **Commits** : Conventional Commits, en anglais : `<type>(<scope>): <description>`, ex. `fix(admin): sign the session cookie`. Le scope est facultatif. Un changement cassant prend un `!` (`feat(api)!: …`).
+- **Types** (pour les commits et les PR) :
+
+  | Type | Quand l'utiliser |
+  | --- | --- |
+  | `feat` | Nouvelle fonctionnalité visible |
+  | `fix` | Correction de bug |
+  | `style` | Mise en forme du code sans changement de comportement (indentation, espaces, points-virgules) |
+  | `refactor` | Réorganisation du code sans changer le comportement ni corriger de bug |
+  | `perf` | Amélioration des performances |
+  | `test` | Ajout ou correction de tests |
+  | `docs` | Documentation uniquement (README, ADR, CLAUDE.md, commentaires) |
+  | `build` | Dépendances, build, configuration Next.js ou npm |
+  | `ci` | CI et déploiement (GitHub Actions, `vercel.json`) |
+  | `chore` | Maintenance qui ne touche ni le code de l'app ni les tests |
+  | `revert` | Annulation d'un commit précédent |
+
+  Un changement d'apparence de l'interface (CSS, design) est un `feat` ou un `fix`, pas un `style`.
 - **Seul `README.md`** peut être poussé directement. Tout le reste passe par une PR que Vastolorde relit et fusionne.
 - **Une PR = une étape** : petite, avec une description de ce qui change et comment le tester (voir `.github/pull_request_template.md`).
 - **Décision d'architecture** (nouvelle dépendance importante, changement de service, de schéma ou de flux) : ajouter un ADR dans `docs/decisions/`.

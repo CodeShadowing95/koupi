@@ -1,3 +1,20 @@
+## Type
+
+<!-- Coche le type principal. Il apparaît aussi dans le titre : dev-<sujet>: <type>(<scope>): <description> -->
+
+- [ ] `feat` : nouvelle fonctionnalité
+- [ ] `fix` : correction de bug
+- [ ] `style` : mise en forme du code, sans changement de comportement
+- [ ] `refactor` : réorganisation du code, sans changement de comportement
+- [ ] `perf` : performances
+- [ ] `test` : tests
+- [ ] `docs` : documentation
+- [ ] `build` : dépendances, build
+- [ ] `ci` : CI, déploiement
+- [ ] `chore` : maintenance
+- [ ] `revert` : annulation
+- [ ] Changement cassant (`!`)
+
 ## Résumé
 
 <!-- Ce qui change et pourquoi, en quelques lignes. -->
@@ -8,7 +25,7 @@
 
 ## Checklist
 
-- [ ] Branche `dev-*`, PR vers `develop`, titre qui commence par le nom de la branche
+- [ ] Branche `dev-*`, PR vers `develop`, titre au format `dev-<sujet>: <type>(<scope>): <description>`
 - [ ] Commits au format Conventional Commits, en anglais
 - [ ] `npm run typecheck`, `npm test` et `npm run build` passent
 - [ ] Tests ajoutés ou mis à jour pour la logique modifiée
