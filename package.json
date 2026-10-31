@@ -7,11 +7,14 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
-    "db:seed": "tsx scripts/seed.ts"
+    "db:seed": "tsx scripts/seed.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/migrate.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.3.8",
-    "@supabase/supabase-js": "^2.118.0",
+    "@neondatabase/serverless": "^1.2.0",
+    "drizzle-orm": "^0.45.4",
     "next": "^14.2.15",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
@@ -20,6 +23,7 @@
     "@types/node": "^20.16.5",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
+    "drizzle-kit": "^0.31.11",
     "tsx": "^4.19.1",
     "typescript": "^5.6.2",
     "vitest": "^2.1.1"
