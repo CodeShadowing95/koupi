@@ -3,11 +3,13 @@ const isDev = process.env.NODE_ENV !== 'production';
 // Next.js injecte des scripts inline : 'unsafe-inline' reste nécessaire tant qu'on n'utilise pas de nonce.
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://challenges.cloudflare.com`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
   "font-src 'self' data:",
-  "connect-src 'self'",
+  "connect-src 'self' https://challenges.cloudflare.com",
+  // Le widget anti-robot Turnstile s'affiche dans une iframe Cloudflare.
+  "frame-src https://challenges.cloudflare.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
