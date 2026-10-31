@@ -24,9 +24,11 @@ Avant chaque commit : `npm run typecheck && npm test && npm run build` doivent p
 ## Organisation du code
 
 - `app/` : pages et routes API (App Router). `app/api/admin/*` est protégé par `middleware.ts`.
+  - `app/(site)/` : site public, adresses en anglais (`/tools/[slug]`, `/creators/[slug]`, `/search`, `/submit`…), style `site.css` (classes `k-` sous `.kp`). Les anciennes adresses françaises redirigent (`lib/legacy-redirects.mjs`).
+  - `app/admin/` : back-office, interface claire d'origine (`admin.css`, `components/admin-shell.tsx`).
 - `lib/` : logique métier, testée à côté du fichier (`x.ts` → `x.test.ts`).
 - `db/` : schéma Drizzle, connexion (`getDb()`), migrations.
-- `components/` : composants partagés.
+- `components/` : composants partagés. `components/site/` pour le site public (coupon détachable, recherche, animations GSAP via `lib/gsap.ts`).
 - `scripts/` : seed et migrations.
 - `docs/decisions/` : décisions d'architecture (ADR).
 

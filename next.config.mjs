@@ -1,3 +1,5 @@
+import { legacyRedirects } from './lib/legacy-redirects.mjs';
+
 const isDev = process.env.NODE_ENV !== 'production';
 
 // Next.js injecte des scripts inline : 'unsafe-inline' reste nécessaire tant qu'on n'utilise pas de nonce.
@@ -29,6 +31,9 @@ const securityHeaders = [
 const nextConfig = {
   poweredByHeader: false,
   images: { unoptimized: true },
+  async redirects() {
+    return legacyRedirects.map(redirect => ({ ...redirect, permanent: true }));
+  },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },
