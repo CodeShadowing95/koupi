@@ -14,3 +14,6 @@ vitest.config.mts.timestamp-*.mjs
 vitest.config.cts.timestamp-*.mjs
 .env*.local
 .next/
+
+# Strix security scan reports (may contain exploit details)
+strix_runs/
