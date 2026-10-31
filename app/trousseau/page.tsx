@@ -1,1 +1,20 @@
-import Link from 'next/link';export default function Trousseau(){return <main className="page"><div className="container" style={{maxWidth:820}}><span className="eyebrow">Ton espace local</span><h1>Ton trousseau</h1><p className="hero-copy">Garde tes créateurs favoris à portée de main. Ils restent dans ton navigateur, sans compte.</p><div className="feature-panel" style={{marginTop:38}}><h2>Ton trousseau est vide</h2><p className="muted">Ajoute un créateur depuis sa page pour retrouver ses derniers codes ici.</p><Link className="submit" href="/createurs/tutorial-stack">Découvrir un créateur</Link></div></div></main>}
+import Link from 'next/link';
+
+export default function Trousseau() {
+  return (
+    <main className="page">
+      <div className="container split">
+        <div className="page-head" style={{ marginBottom: 0 }}>
+          <span className="eyebrow">Sans compte</span>
+          <h1>Ton trousseau</h1>
+          <p className="hero-copy">Garde les créateurs que tu suis à portée de main. On mettra leurs codes en premier. Tout reste dans ton navigateur, sur cet ordinateur.</p>
+        </div>
+        <div className="card card-strong">
+          <h2>Ton trousseau est vide</h2>
+          <p>Ouvre la page d&apos;un créateur et ajoute-le pour retrouver ses codes ici.</p>
+          <Link className="btn b-ink" href="/categories">Trouver un créateur</Link>
+        </div>
+      </div>
+    </main>
+  );
+}

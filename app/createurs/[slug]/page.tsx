@@ -1,1 +1,45 @@
-import Link from 'next/link';import {codes,tools} from '@/lib/data';import {CopyButton} from '@/components/copy-button';export default function Creator({params}:{params:{slug:string}}){const creator=codes.find(c=>c.creator.toLowerCase().replace(/[^a-z0-9]+/g,'-')===params.slug)?.creator||'Créateur';const creatorCodes=codes.filter(c=>c.creator===creator);return <main className="page"><div className="container"><span className="eyebrow">Créateur</span><h1>{creator}</h1><p className="hero-copy">Les codes partagés par {creator}, avec leur source et les retours de la communauté.</p><button className="submit" style={{marginTop:20}}>Ajouter à mon trousseau</button><div className="code-list" style={{marginTop:48}}>{creatorCodes.map(code=>{const tool=tools.find(t=>t.name===code.tool);return <article className="code-card" key={code.id}><div><span className="tag">{code.tool}</span><h3 style={{marginTop:12}}>{code.discount}</h3><p>Source : <a className="text-link" href={code.source} target="_blank" rel="noopener noreferrer">{code.sourceTitle} ↗</a></p></div><div><span className="code-pill">{code.code}</span><p className="verified">{code.success}% de réussite · {code.votes} votes</p></div><CopyButton code={code.code} link={code.creatorLink||tool?.website||'#'}/></article>})}</div></div></main>}
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { codes, tools } from '@/lib/data';
+import { CopyButton } from '@/components/copy-button';
+import { avatarClass, creatorSlug, initials, plural } from '@/lib/ui';
+
+export default function Creator({ params }: { params: { slug: string } }) {
+  const creator = codes.find(code => creatorSlug(code.creator) === params.slug)?.creator;
+  if (!creator) notFound();
+  const creatorCodes = codes.filter(code => code.creator === creator && code.status !== 'pending');
+  return (
+    <main className="page">
+      <div className="container">
+        <Link className="back" href="/">← Accueil</Link>
+        <div className="creator-head">
+          <span className={`av av-lg ${avatarClass(creator)}`} aria-hidden="true">{initials(creator)}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: '1 1 320px' }}>
+            <span className="eyebrow">Créateur</span>
+            <h1 style={{ margin: 0 }}>{creator}</h1>
+            <p className="hero-copy">{plural(creatorCodes.length, 'code partagé', 'codes partagés')}, avec la vidéo ou le post d&apos;où il vient.</p>
+          </div>
+          <Link className="btn b-out" href="/trousseau">Ajouter à mon trousseau</Link>
+        </div>
+        <div className="code-list">
+          {creatorCodes.map(code => {
+            const tool = tools.find(item => item.name === code.tool);
+            return (
+              <article className="code-card" key={code.id}>
+                <div>
+                  <h3>{tool ? <Link href={`/outils/${tool.slug}`} style={{ color: 'var(--ink)' }}>{code.tool}</Link> : code.tool} · {code.discount}</h3>
+                  <p>Source : <a href={code.source} target="_blank" rel="noopener noreferrer">{code.sourceTitle} ↗</a></p>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>
+                  <span className="code-pill">{code.code}</span>
+                  {code.status === 'verified' ? <span className="status status-ok">Vérifié</span> : <span className="status status-warn">À tester</span>}
+                </div>
+                <CopyButton code={code.code} link={code.creatorLink || tool?.website || '#'} />
+              </article>
+            );
+          })}
+        </div>
+      </div>
+    </main>
+  );
+}

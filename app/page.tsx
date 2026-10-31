@@ -1,4 +1,89 @@
 import Link from 'next/link';
 import { Search } from '@/components/search';
 import { categories, codes, tools } from '@/lib/data';
-export default function Home(){const popular=tools.slice(0,8);return <><main><section className="hero"><div className="container"><div className="trust-strip"><span>Pas de pub</span><span>Le lien du créateur, toujours</span><span>Des codes vérifiés par des humains</span></div><div className="hero-grid"><div><div className="eyebrow">Koupi · 100 % pro-créateurs</div><h1>Le code du créateur, <span>vérifié.</span></h1><p className="hero-copy">Trouve les codes promo partagés dans les vidéos que tu regardes. La source est toujours là. Le lien reste celui du créateur.</p><Search/></div><div className="hero-art"><div className="art-top"><span>CODE DU JOUR</span><span>VÉRIFIÉ</span></div><div><div className="art-code">AKDEV10</div><div className="art-meta"><span className="dot"/> -10 % sur o2switch · Antony Klinger</div></div><div className="art-meta">18 votes · 94 % de réussite</div></div></div></div></section><section className="section"><div className="container"><div className="section-head"><div><h2>Outils populaires</h2><p className="section-intro">Des services suivis par la communauté Koupi.</p></div><Link className="text-link" href="/categories">Voir toutes les catégories</Link></div><div className="tool-grid">{popular.map(tool=><Link className="tool-card" href={`/outils/${tool.slug}`} key={tool.slug}><div className="tool-logo">{tool.name.slice(0,1)}</div><h3>{tool.name}</h3><p>{tool.codes} code{tool.codes>1?'s':''} disponible{tool.codes>1?'s':''}</p></Link>)}</div></div></section><section className="section section-soft"><div className="container"><div className="section-head"><div><h2>Derniers codes vérifiés</h2><p className="section-intro">Des codes sourcés, testés, puis vérifiés par les votes.</p></div></div><div className="code-list">{codes.slice(0,4).map(code=><article className="code-card" key={code.id}><div className="code-main"><div className="creator-avatar">{code.creator.slice(0,1)}</div><div><h3>{code.creator}</h3><p>{code.tool} · {code.discount}</p></div></div><div><span className="code-pill">{code.code}</span><div className="verified">✓ {code.success}% de réussite · {code.votes} votes</div></div><Link className="text-link" href={`/outils/${tools.find(t=>t.name===code.tool)?.slug}`}>Voir le code</Link></article>)}</div></div></section><section className="section"><div className="container"><div className="section-head"><div><h2>Explore par catégorie</h2><p className="section-intro">Des outils pour travailler, créer et apprendre.</p></div></div><div className="category-grid">{categories.map(category=><Link className="category-card" href={`/categories/${category.slug}`} key={category.slug}><strong>{category.name}</strong><span>{category.count} outils suivis</span></Link>)}</div></div></section></main></>}
+import { avatarClass, initials } from '@/lib/ui';
+
+const tilts = ['tilt-a', 'tilt-b', 'tilt-c'];
+
+export default function Home() {
+  const popular = tools.slice(0, 8);
+  const latest = codes.filter(code => code.status === 'verified').slice(0, 3);
+  const slugOf = (name: string) => tools.find(tool => tool.name === name)?.slug ?? '';
+  return (
+    <main>
+      <section className="hero">
+        <div className="container hero-grid">
+          <div className="hero-text">
+            <h1>Tu vas payer<br />quel outil ?</h1>
+            <p className="hero-copy">Tape son nom. On te sort le code du créateur qui en a parlé, vérifié à la main. Pas de compte, pas de pub.</p>
+            <Search />
+            <div className="chips">
+              <span className="chips-label">Populaires :</span>
+              {tools.slice(0, 4).map(tool => <Link className="chip" href={`/outils/${tool.slug}`} key={tool.slug}>{tool.name}</Link>)}
+            </div>
+          </div>
+          <section className="hero-tickets" aria-labelledby="tickets-title">
+            <span className="eyebrow" id="tickets-title">Derniers codes vérifiés</span>
+            {latest.map((code, index) => (
+              <Link className={`tk ${tilts[index % tilts.length]}`} href={`/outils/${slugOf(code.tool)}`} key={code.id}>
+                <div className="tk-main">
+                  <span className={`av ${avatarClass(code.creator)}`} aria-hidden="true">{initials(code.creator)}</span>
+                  <span style={{ display: 'flex', flexDirection: 'column' }}>
+                    <strong style={{ color: 'var(--ink)', fontSize: 16 }}>{code.tool}, {code.discount}</strong>
+                    <span>le code de {code.creator}</span>
+                  </span>
+                </div>
+                <div className="tk-code">{code.code}</div>
+              </Link>
+            ))}
+          </section>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container">
+          <div className="section-head">
+            <div>
+              <h2>Les outils les plus suivis</h2>
+              <p className="section-intro">Chaque fiche affiche le code du créateur, sa source et sa date de vérification.</p>
+            </div>
+            <Link className="text-link" href="/categories">Tout voir</Link>
+          </div>
+          <div className="tool-grid">
+            {popular.map(tool => (
+              <Link className="tool-card" href={`/outils/${tool.slug}`} key={tool.slug}>
+                <div className="tool-card-top">
+                  <span className="tool-logo" aria-hidden="true">{tool.name.slice(0, 1).toUpperCase()}</span>
+                  <div><h3>{tool.name}</h3><p>{tool.category}</p></div>
+                </div>
+                <div className="tool-card-foot">
+                  <span className="muted">{tool.codes} code{tool.codes > 1 ? 's' : ''}</span>
+                  <span className="text-link" aria-hidden="true">Voir →</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container">
+          <div className="section-head"><h2>Parcourir par catégorie</h2></div>
+          <div className="category-grid">
+            {categories.map(category => (
+              <Link className="category-card" href={`/categories/${category.slug}`} key={category.slug}>{category.name} <span>{category.count}</span></Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container promise-grid">
+          <div className="promise"><strong>Le code reste celui du créateur</strong><span>On ne le remplace jamais par un code à nous. Sa commission lui revient.</span></div>
+          <div className="promise"><strong>Testé, daté, voté</strong><span>Chaque code affiche sa source, sa dernière vérification et l&apos;avis de ceux qui l&apos;ont utilisé.</span></div>
+          <div className="promise"><strong>Zéro pub, zéro faux bouton</strong><span>On t&apos;explique comment on gagne de l&apos;argent. <Link href="/transparence">Lire la page transparence</Link></span></div>
+        </div>
+      </section>
+    </main>
+  );
+}
