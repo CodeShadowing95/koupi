@@ -17,7 +17,7 @@ Site web qui réunit les codes promo donnés par les créateurs (YouTube, podcas
 - Tests : `npm test`
 - Build : `npm run build`
 - Générer une migration après un changement de `db/schema.ts` : `npm run db:generate`
-- Appliquer les migrations : `npm run db:migrate` (besoin de `DATABASE_URL`)
+- Appliquer les migrations : `npm run db:migrate` (besoin de `DATABASE_URL`). Sur Vercel, elles sont appliquées automatiquement avant chaque build (`buildCommand` dans `vercel.json`, voir ADR-0005).
 
 Avant chaque commit : `npm run typecheck && npm test && npm run build` doivent passer. La CI (`.github/workflows/ci.yml`) refait ces vérifications sur chaque PR.
 
