@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { check, index, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { check, index, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 // Propositions de codes envoyées par le public, en attente de modération.
 export const submissions = pgTable('submissions', {
@@ -44,6 +44,15 @@ export const moderationLogs = pgTable('moderation_logs', {
 }, table => [
   index('moderation_logs_created_idx').on(table.createdAt.desc()),
   check('moderation_logs_action_valid', sql`${table.action} in ('approve','reject','mark_duplicate','restore')`),
+]);
+
+// Compteurs pour limiter les essais (connexion admin, propositions). La clé contient un hash d'IP, jamais l'IP.
+export const rateLimits = pgTable('rate_limits', {
+  key: text('key').primaryKey(),
+  count: integer('count').notNull(),
+  windowStart: timestamp('window_start', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  index('rate_limits_window_start_idx').on(table.windowStart),
 ]);
 
 export type Submission = typeof submissions.$inferSelect;
