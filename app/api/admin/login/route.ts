@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
+import { readJsonBody } from '@/lib/http';
 import { ADMIN_COOKIE, ADMIN_SESSION_SECONDS, createAdminToken, safeEqual } from '@/lib/admin-session';
 
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => ({})) as { password?: unknown };
+  const parsed = await readJsonBody(request, 2_000);
+  if (!parsed.ok) return NextResponse.json({ error: 'invalid request' }, { status: parsed.status });
+  const body = parsed.data as { password?: unknown };
   const expected = process.env.ADMIN_PASSWORD;
   const secret = process.env.SESSION_SECRET;
   if (!expected || !secret) {
