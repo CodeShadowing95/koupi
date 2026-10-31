@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/db';
+import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-session';
 import { listSubmissions, moderateSubmission, moderationActions, type ModerationAction } from '@/lib/submissions';
 
-function authorized(request: NextRequest): boolean { return request.cookies.get('koupi_admin')?.value === 'authenticated'; }
+function authorized(request: NextRequest): Promise<boolean> { return verifyAdminToken(request.cookies.get(ADMIN_COOKIE)?.value, process.env.SESSION_SECRET); }
 function validDate(value: string | null): boolean { return !value || /^\d{4}-\d{2}-\d{2}$/.test(value); }
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function GET(request: NextRequest) {
-  if (!authorized(request)) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+  if (!(await authorized(request))) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   try {
     const params = request.nextUrl.searchParams;
     const from = params.get('from');
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  if (!authorized(request)) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+  if (!(await authorized(request))) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   try {
     const body = await request.json() as { id?: string; action?: string; note?: string };
     if (!body.id || !uuidPattern.test(body.id) || !moderationActions.includes(body.action as ModerationAction)) return NextResponse.json({ error: 'Action invalide.' }, { status: 400 });
