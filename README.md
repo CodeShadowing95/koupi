@@ -20,7 +20,7 @@ V0 en préparation. Pas encore de site en ligne.
 | Interface | Tailwind CSS + coss UI | Composants accessibles, restylés aux couleurs de Koupi |
 | Base de données | Neon (Postgres) + Drizzle | Postgres serverless gratuit au départ, schéma typé |
 | Recherche | `pg_trgm` dans Postgres | Recherche tolérante aux fautes sans service en plus |
-| Hébergement | Vercel | Déploiement à chaque PR, aperçu automatique |
+| Hébergement | Vercel | Déploiement automatique de `develop` (pré-production) et `main` (production) |
 | E-mails | Resend + React Email | Alertes et confirmation d'inscription |
 | Sourcing des codes | YouTube Data API v3 + extraction par IA | Lecture des descriptions de vidéos publiques |
 | Anti-abus | Cloudflare Turnstile | Protège les formulaires sans captcha pénible |

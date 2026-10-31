@@ -4,7 +4,7 @@
 
 ## Comment tester
 
-<!-- Étapes pour vérifier, sur l'aperçu Vercel ou en local. -->
+<!-- Étapes pour vérifier en local (`npm run dev`). Les branches dev-* ne sont pas déployées sur Vercel. -->
 
 ## Checklist
 

@@ -15,10 +15,12 @@ Le projet est développé avec l'aide de Claude, et Vastolorde veut relire et va
 - Titre de PR : `dev-<sujet>: …`. Commits : Conventional Commits, en anglais.
 - Seul `README.md` peut être poussé directement.
 - `develop` est fusionnée dans `main` pour mettre en ligne.
+- Vercel ne déploie que `develop` (pré-production) et `main` (production). Les branches `dev-*` ne sont pas déployées (`git.deploymentEnabled` dans `vercel.json`).
 
 ## Alternatives envisagées
 - **Tout sur `main` avec PR** : plus simple, mais chaque fusion part en production. Écartée.
 
 ## Conséquences
 - La CI tourne sur les PR vers `develop` et `main`.
-- Vercel crée un aperçu pour chaque branche `dev-*`.
+- Pas d'aperçu Vercel par PR : on vérifie en local et sur le déploiement de `develop` après fusion.
+- Moins de builds Vercel consommés, et aucune branche de travail exposée en ligne.
