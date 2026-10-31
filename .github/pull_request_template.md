@@ -1,6 +1,6 @@
 ## Type
 
-<!-- Coche le type principal. Il apparaît aussi dans le titre : dev-<sujet>: <type>(<scope>): <description> -->
+<!-- Coche le type principal. Il apparaît aussi dans le titre : <type>(<scope>): <description> -->
 
 - [ ] `feat` : nouvelle fonctionnalité
 - [ ] `fix` : correction de bug
@@ -25,8 +25,8 @@
 
 ## Checklist
 
-- [ ] Branche `dev-*`, PR vers `develop`, titre au format `dev-<sujet>: <type>(<scope>): <description>`
-- [ ] Commits au format Conventional Commits, en anglais
+- [ ] Branche `dev-*`, PR vers `develop`, titre au format `<type>(<scope>): <description>`
+- [ ] Commits au format `<type>(<scope>): <description>`, en anglais
 - [ ] `npm run typecheck`, `npm test` et `npm run build` passent
 - [ ] Tests ajoutés ou mis à jour pour la logique modifiée
 - [ ] Aucun secret ajouté, nouvelles variables listées dans `.env.example`
