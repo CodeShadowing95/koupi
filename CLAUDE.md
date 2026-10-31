@@ -61,7 +61,7 @@ Suivre les phases du plugin agent-skills quand il est disponible :
 
 1. **Définir** : clarifier le besoin et écrire une courte spec (`spec-driven-development`).
 2. **Planifier** : découper en tâches livrables une par une (`planning-and-task-breakdown`).
-3. **Construire** : petits incréments, test d'abord pour la logique métier (`incremental-implementation`, `test-driven-development`). Vérifier la doc à jour des librairies avec Context7.
+3. **Construire** : petits incréments, test d'abord pour la logique métier (`incremental-implementation`, `test-driven-development`). Vérifier la doc à jour des librairies avec Context7. Pour les animations, utiliser GSAP en suivant les skills du plugin `gsap-skills` (`gsap-react` avec `useGSAP`, `gsap-scrolltrigger`, `gsap-performance`) et respecter `prefers-reduced-motion`.
 4. **Vérifier** : typecheck, tests et build (CI), puis test en local avec `npm run dev`. Après fusion, vérifier le déploiement de `develop`.
 5. **Relire** : qualité et sécurité (`code-review-and-quality`, `security-and-hardening`).
 6. **Livrer** : PR vers `develop`, puis checklist de mise en ligne (`shipping-and-launch`).

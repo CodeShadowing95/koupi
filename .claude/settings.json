@@ -6,9 +6,16 @@
         "source": "github",
         "repo": "addyosmani/agent-skills"
       }
+    },
+    "gsap-skills": {
+      "source": {
+        "source": "github",
+        "repo": "greensock/gsap-skills"
+      }
     }
   },
   "enabledPlugins": {
-    "agent-skills@addy-agent-skills": true
+    "agent-skills@addy-agent-skills": true,
+    "gsap-skills@gsap-skills": true
   }
 }
