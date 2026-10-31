@@ -1,13 +1,13 @@
 import type { Metadata } from 'next';
-import { Bricolage_Grotesque, Inter, JetBrains_Mono } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 import { Header, Footer } from '@/components/shell';
 
-// next/font télécharge les polices au build et les sert depuis notre domaine :
-// aucun appel à Google côté visiteur.
-const bricolage = Bricolage_Grotesque({ subsets: ['latin'], weight: ['700', '800'], variable: '--font-bricolage', display: 'swap' });
-const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-inter', display: 'swap' });
-const jetbrains = JetBrains_Mono({ subsets: ['latin'], weight: ['500', '700'], variable: '--font-jetbrains', display: 'swap' });
+// Polices hébergées dans app/fonts (voir app/fonts/README.md) : le build ne dépend pas de Google Fonts
+// et le visiteur ne fait aucun appel à Google.
+const bricolage = localFont({ src: './fonts/bricolage-grotesque-latin.woff2', weight: '700 800', variable: '--font-bricolage', display: 'swap' });
+const inter = localFont({ src: './fonts/inter-latin.woff2', weight: '400 700', variable: '--font-inter', display: 'swap' });
+const jetbrains = localFont({ src: './fonts/jetbrains-mono-latin.woff2', weight: '500 700', variable: '--font-jetbrains', display: 'swap' });
 
 export const metadata: Metadata = {
   title: 'Koupi · Le code du créateur, vérifié.',
