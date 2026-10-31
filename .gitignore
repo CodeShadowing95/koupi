@@ -17,3 +17,4 @@ vitest.config.cts.timestamp-*.mjs
 
 # Strix security scan reports (may contain exploit details)
 strix_runs/
+*.tsbuildinfo

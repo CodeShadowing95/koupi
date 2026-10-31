@@ -20,7 +20,7 @@ V0 en préparation. Pas encore de site en ligne.
 | Interface | Tailwind CSS + coss UI | Composants accessibles, restylés aux couleurs de Koupi |
 | Base de données | Neon (Postgres) + Drizzle | Postgres serverless gratuit au départ, schéma typé |
 | Recherche | `pg_trgm` dans Postgres | Recherche tolérante aux fautes sans service en plus |
-| Hébergement | Vercel | Déploiement à chaque PR, aperçu automatique |
+| Hébergement | Vercel | Déploiement automatique de `develop` (pré-production) et `main` (production) |
 | E-mails | Resend + React Email | Alertes et confirmation d'inscription |
 | Sourcing des codes | YouTube Data API v3 + extraction par IA | Lecture des descriptions de vidéos publiques |
 | Anti-abus | Cloudflare Turnstile | Protège les formulaires sans captcha pénible |
@@ -39,6 +39,8 @@ V0 en préparation. Pas encore de site en ligne.
 
 ## Comment on travaille
 
-- Tout changement passe par une **pull request** relue et validée avant fusion dans `main`.
+- Chaque changement part de `develop` sur une branche `dev-<sujet>` et passe par une **pull request** relue et validée avant fusion dans `develop`. `develop` est ensuite fusionnée dans `main` pour la mise en ligne.
+- La CI (GitHub Actions) vérifie les types, les tests et le build sur chaque PR.
+- Les décisions d'architecture sont notées dans [`docs/decisions/`](docs/decisions/README.md). Les règles pour Claude sont dans [`CLAUDE.md`](CLAUDE.md).
 - Une PR = une étape ou une fonctionnalité, avec une description de ce qui change et comment le tester.
 - Aucune clé ni secret dans le dépôt : ils vont dans les variables d'environnement (`.env.local` en local, réglages Vercel en ligne).
