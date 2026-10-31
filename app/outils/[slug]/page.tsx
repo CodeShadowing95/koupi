@@ -13,8 +13,9 @@ function votesLabel(code: Code) {
   return code.votes < 3 ? 'Pas encore assez de votes' : `Marche pour ${code.success} % des ${code.votes} personnes qui ont voté.`;
 }
 
-export default function ToolPage({ params }: { params: { slug: string } }) {
-  const tool = findTool(params.slug);
+export default async function ToolPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const tool = findTool(slug);
   if (!tool) notFound();
   const active = toolCodes(tool.name).filter(code => code.status !== 'pending');
   const sorted = [...active].sort((a, b) => (a.status === 'verified' ? 0 : 1) - (b.status === 'verified' ? 0 : 1) || b.success - a.success);

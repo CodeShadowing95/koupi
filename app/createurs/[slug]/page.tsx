@@ -4,8 +4,9 @@ import { codes, tools } from '@/lib/data';
 import { CopyButton } from '@/components/copy-button';
 import { avatarClass, creatorSlug, initials, plural } from '@/lib/ui';
 
-export default function Creator({ params }: { params: { slug: string } }) {
-  const creator = codes.find(code => creatorSlug(code.creator) === params.slug)?.creator;
+export default async function Creator({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const creator = codes.find(code => creatorSlug(code.creator) === slug)?.creator;
   if (!creator) notFound();
   const creatorCodes = codes.filter(code => code.creator === creator && code.status !== 'pending');
   return (

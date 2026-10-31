@@ -6,5 +6,6 @@ Chaque décision importante est notée ici dans un fichier numéroté. On ne sup
 | --- | --- | --- |
 | [0001](0001-neon-drizzle.md) | Neon + Drizzle à la place de Supabase | Acceptée |
 | [0002](0002-branches-develop.md) | Branches `dev-*` vers `develop`, puis `main` | Acceptée |
+| [0003](0003-next-15.md) | Passage à Next.js 15.5 et React 19 | Acceptée |
 
 Modèle : copier [`template.md`](template.md).

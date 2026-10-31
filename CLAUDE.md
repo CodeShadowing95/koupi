@@ -4,7 +4,7 @@ Site web qui réunit les codes promo donnés par les créateurs (YouTube, podcas
 
 ## Stack
 
-- Next.js 14 (App Router) + TypeScript strict, React 18
+- Next.js 15.5 (App Router) + TypeScript strict, React 19. Dans les pages, `params` et `searchParams` sont des Promises : `const { slug } = await params`.
 - Neon (Postgres serverless) + Drizzle ORM (`db/schema.ts`, migrations dans `db/migrations/`)
 - Tests : Vitest. Les tests de base de données tournent sur PGlite (Postgres en mémoire) avec les vraies migrations.
 - Hébergement : Vercel. Seules `develop` (pré-production) et `main` (production) sont déployées, jamais les branches `dev-*` (voir `vercel.json`).
@@ -71,5 +71,6 @@ Suivre les phases du plugin agent-skills quand il est disponible :
 - Jamais de secret dans le dépôt (le repo est public). Les clés vont dans `.env.local` en local, dans les réglages Vercel en ligne. `.env.example` liste les noms sans valeurs.
 - Demander avant de modifier le schéma de base de données ou d'ajouter une dépendance.
 - Ne jamais désactiver ni sauter un test pour faire passer la CI.
+- La CI bloque si une dépendance de production a une faille de niveau high ou critical (`npm audit --omit=dev`). On corrige en mettant à jour, pas en désactivant le contrôle.
 - Toute entrée utilisateur est validée côté serveur. Les formulaires publics sont protégés (Turnstile, limite de débit).
 - Le texte de l'interface est en français.

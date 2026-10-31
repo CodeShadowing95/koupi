@@ -2,8 +2,9 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { categories, codes, tools } from '@/lib/data';
 
-export default function Category({ params }: { params: { slug: string } }) {
-  const category = categories.find(item => item.slug === params.slug);
+export default async function Category({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const category = categories.find(item => item.slug === slug);
   if (!category) notFound();
   const categoryTools = tools.filter(tool => tool.category === category.name);
   return (
