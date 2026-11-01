@@ -89,7 +89,7 @@ export function Hero() {
             <span className="k-line"><span>prends le code.</span></span>
           </h1>
           <p className="k-hero-copy" data-hero-fade>Koupi retrouve le code promo que <strong>ton créateur préféré</strong> a donné en vidéo. Vérifié à la main, crédité au créateur. Pas de compte, pas de pub.</p>
-          <div style={{ width: '100%' }} data-hero-fade><SearchBar /></div>
+          <div className="k-hero-search" data-hero-fade><SearchBar /></div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }} data-hero-fade>
             <span className="k-muted" style={{ fontSize: 14, marginRight: 4 }}>Populaires :</span>
             {tools.slice(0, 4).map(tool => <Link className="k-chip" href={routes.tool(tool.slug)} key={tool.slug}>{tool.name}</Link>)}
