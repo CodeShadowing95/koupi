@@ -1,1 +1,55 @@
-import {codes} from '@/lib/data';export default function AdminCodes(){return <main className="page"><div className="container"><span className="eyebrow">Modération</span><h1>Codes</h1><p className="hero-copy">Vérifie la source, complète la réduction, puis publie uniquement les codes fiables.</p><div className="code-list" style={{marginTop:38}}>{codes.map(code=><article className="code-card" key={code.id}><div><span className="tag">{code.status}</span><h3 style={{marginTop:10}}>{code.code} · {code.tool}</h3><p>{code.creator}</p></div><a className="text-link" href={code.source} target="_blank" rel="noopener noreferrer">Ouvrir la source ↗</a><button className="submit">Modifier</button></article>)}</div></div></main>}
+'use client';
+import { useState } from 'react';
+import { codes, type Code } from '@/lib/data';
+import { matchesSearch } from '@/lib/admin-search';
+
+const statusLabel: Record<Code['status'], { label: string; className: string }> = {
+  verified: { label: 'Vérifié', className: 'adm-pill adm-pill-ok' },
+  to_test: { label: 'À tester', className: 'adm-pill adm-pill-warn' },
+  pending: { label: 'En attente', className: 'adm-pill' },
+};
+const filters: { value: 'all' | Code['status']; label: string }[] = [
+  { value: 'all', label: 'Tous' }, { value: 'verified', label: 'Vérifiés' }, { value: 'to_test', label: 'À tester' }, { value: 'pending', label: 'En attente' },
+];
+
+export default function AdminCodes() {
+  const [query, setQuery] = useState('');
+  const [status, setStatus] = useState<'all' | Code['status']>('all');
+  const visible = codes.filter(code => (status === 'all' || code.status === status) && matchesSearch([code.code, code.tool, code.creator, code.discount, code.sourceTitle], query));
+  return (
+    <main className="adm-page">
+      <div className="container">
+        <div className="adm-head">
+          <div>
+            <span className="eyebrow">Modération</span>
+            <h1>Codes</h1>
+            <p>Vérifie la source, complète la réduction, puis publie uniquement les codes fiables.</p>
+          </div>
+        </div>
+        <div className="adm-toolbar">
+          <label htmlFor="code-search" className="sr-only">Rechercher un code</label>
+          <input id="code-search" className="adm-search" type="search" placeholder="Rechercher un code, un outil, un créateur…" value={query} onChange={event => setQuery(event.target.value)} />
+          <div className="adm-filters">
+            {filters.map(filter => <button key={filter.value} type="button" className="adm-filter" aria-pressed={status === filter.value} onClick={() => setStatus(filter.value)}>{filter.label}</button>)}
+          </div>
+          <span className="adm-count" role="status">{visible.length} sur {codes.length}</span>
+        </div>
+        {visible.length === 0 ? <div className="adm-empty">Aucun code ne correspond à cette recherche.</div> : (
+          <div className="adm-grid">
+            {visible.map(code => (
+              <article className="adm-card" key={code.id}>
+                <div className="adm-card-top"><span className="mono">{code.code}</span><span className={statusLabel[code.status].className}>{statusLabel[code.status].label}</span></div>
+                <h3>{code.tool} · {code.discount}</h3>
+                <p>{code.creator} · {code.votes} votes, {code.success} % de réussite</p>
+                <div className="adm-card-foot">
+                  <a href={code.source} target="_blank" rel="noopener noreferrer">Source ↗</a>
+                  <button type="button" className="adm-btn" style={{ marginLeft: 'auto' }}>Modifier</button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
