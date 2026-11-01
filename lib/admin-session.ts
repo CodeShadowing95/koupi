@@ -2,7 +2,7 @@
 // Sans le secret, impossible de fabriquer un cookie valide. Web Crypto marche dans le middleware (Edge) et dans Node.
 
 export const ADMIN_COOKIE = 'koupi_admin';
-export const ADMIN_SESSION_SECONDS = 60 * 60 * 24 * 7;
+export const ADMIN_SESSION_SECONDS = 60 * 60 * 12;
 
 const encoder = new TextEncoder();
 

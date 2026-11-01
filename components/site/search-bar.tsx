@@ -1,0 +1,124 @@
+'use client';
+import { useEffect, useId, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { searchTools, type Tool } from '@/lib/data';
+import { routes } from '@/lib/routes';
+import { plural } from '@/lib/ui';
+import { ToolLogo } from './tool-logo';
+
+type Props = {
+  /** Outils publiés, passés par la page (lus en base côté serveur). */
+  tools: Tool[];
+  placeholder?: string;
+  autoFocusShortcut?: boolean;
+  initial?: string;
+  /** « palette » : dans la fenêtre de recherche, la liste reste affichée et montre les outils populaires quand le champ est vide. */
+  variant?: 'bar' | 'palette';
+  /** Appelé quand on part vers une fiche ou vers la recherche (pour fermer la fenêtre). */
+  onNavigate?: () => void;
+  /** Appelé sur Échap en mode palette : ferme la fenêtre d'un coup, même si le champ n'est pas vide. */
+  onDismiss?: () => void;
+};
+
+// Barre de recherche façon « palette de commandes » : autocomplétion au clavier (flèches, Entrée, Échap),
+// raccourci « / » pour la rejoindre depuis n'importe où sur la page.
+export function SearchBar({ tools, placeholder = 'Hostinger, NordVPN, ElevenLabs…', autoFocusShortcut = true, initial = '', variant = 'bar', onNavigate, onDismiss }: Props) {
+  const router = useRouter();
+  const [query, setQuery] = useState(initial);
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const input = useRef<HTMLInputElement>(null);
+  const listId = useId();
+  const palette = variant === 'palette';
+  const typed = query.trim().length >= 1;
+  const suggestions = typed ? searchTools(tools, query).slice(0, palette ? 8 : 6) : palette ? tools.slice(0, 6) : [];
+  const showList = palette || (open && typed);
+
+  useEffect(() => {
+    if (!autoFocusShortcut) return;
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement;
+      if (event.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) && !target.isContentEditable) {
+        event.preventDefault();
+        input.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [autoFocusShortcut]);
+
+  // Sans barre de défilement visible, l'outil choisi aux flèches doit rester à l'écran.
+  useEffect(() => {
+    if (!palette) return;
+    document.getElementById(`${listId}-${active}`)?.scrollIntoView({ block: 'nearest' });
+  }, [active, palette, listId]);
+
+  function go(index: number) {
+    const tool = suggestions[index];
+    if (tool) router.push(routes.tool(tool.slug));
+    else if (query.trim()) router.push(routes.search(query.trim()));
+    else return;
+    setOpen(false);
+    onNavigate?.();
+  }
+
+  function onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'ArrowDown') { event.preventDefault(); setOpen(true); setActive(i => Math.min(i + 1, suggestions.length - 1)); }
+    else if (event.key === 'ArrowUp') { event.preventDefault(); setActive(i => Math.max(i - 1, 0)); }
+    else if (event.key === 'Escape') {
+      if (palette) { event.preventDefault(); onDismiss?.(); }
+      else setOpen(false);
+    }
+  }
+
+  return (
+    <div className="k-search">
+      <form className={`k-search-box${palette ? ' is-compact' : ''}`} role="search" onSubmit={event => { event.preventDefault(); go(active); }}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+        <label htmlFor={`${listId}-input`} className="k-sr">Nom de l&apos;outil</label>
+        <input
+          ref={input}
+          id={`${listId}-input`}
+          type="search"
+          role="combobox"
+          aria-expanded={showList}
+          aria-controls={listId}
+          aria-autocomplete="list"
+          aria-activedescendant={showList && suggestions[active] ? `${listId}-${active}` : undefined}
+          autoComplete="off"
+          spellCheck={false}
+          value={query}
+          placeholder={placeholder}
+          onChange={event => { setQuery(event.target.value); setOpen(true); setActive(0); }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => { if (!palette) setTimeout(() => setOpen(false), 120); }}
+          autoFocus={palette}
+          onKeyDown={onKeyDown}
+        />
+        {autoFocusShortcut && !query && <kbd className="k-kbd" aria-hidden="true">/</kbd>}
+        {/* Dans la fenêtre, la recherche se fait à la frappe : pas de bouton, Entrée suffit. */}
+        {!palette && <button className="k-btn k-btn-primary" type="submit">Trouver le code</button>}
+      </form>
+      {showList && (
+        <ul className={`k-suggest${palette ? ' is-inline' : ''}`} id={listId} role="listbox" aria-label={typed ? 'Outils suggérés' : 'Outils populaires'}>
+          {palette && !typed && <li className="k-suggest-head" role="presentation">Populaires</li>}
+          {suggestions.length === 0 && <li className="k-suggest-empty" role="option" aria-selected="false" aria-disabled="true">Pas encore suivi. Entrée pour chercher « {query.trim()} ».</li>}
+          {suggestions.map((tool, index) => (
+            <li
+              key={tool.slug}
+              id={`${listId}-${index}`}
+              role="option"
+              aria-selected={index === active}
+              onMouseEnter={() => setActive(index)}
+              onMouseDown={event => { event.preventDefault(); go(index); }}
+            >
+              <ToolLogo tool={tool.slug} name={tool.name} />
+              <span><strong>{tool.name}</strong><span>{tool.category}</span></span>
+              <em>{plural(tool.codes, 'code', 'codes')}</em>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,128 @@
+{
+  "abby": {
+    "src": "/logos/abby.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "babbel": {
+    "src": "/logos/babbel.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "brevo": {
+    "src": "/logos/brevo.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "brilliant": {
+    "src": "/logos/brilliant.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "elevenlabs": {
+    "src": "/logos/elevenlabs.svg",
+    "bg": "#000000",
+    "kind": "glyph",
+    "source": "Simple Icons (CC0) : https://elevenlabs.io/brand"
+  },
+  "framer": {
+    "src": "/logos/framer.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "incogni": {
+    "src": "/logos/incogni.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "indy": {
+    "src": "/logos/indy.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "infomaniak": {
+    "src": "/logos/infomaniak.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "nordvpn": {
+    "src": "/logos/nordvpn.svg",
+    "bg": "#4687FF",
+    "kind": "glyph",
+    "source": "Simple Icons (CC0) : https://nordvpn.com/press-area/"
+  },
+  "o2switch": {
+    "src": "/logos/o2switch.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "opus-clip": {
+    "src": "/logos/opus-clip.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "pennylane": {
+    "src": "/logos/pennylane.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "planethoster": {
+    "src": "/logos/planethoster.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "qonto": {
+    "src": "/logos/qonto.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "riverside": {
+    "src": "/logos/riverside.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "runway": {
+    "src": "/logos/runway.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "shine": {
+    "src": "/logos/shine.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "shopify": {
+    "src": "/logos/shopify.svg",
+    "bg": "#7AB55C",
+    "kind": "glyph",
+    "source": "Simple Icons (CC0) : https://www.shopify.com/brand-assets"
+  },
+  "storyblocks": {
+    "src": "/logos/storyblocks.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "surfshark": {
+    "src": "/logos/surfshark.svg",
+    "bg": "#1EBFBF",
+    "kind": "glyph",
+    "source": "Simple Icons (CC0) : https://surfshark.com/press/assets"
+  }
+}

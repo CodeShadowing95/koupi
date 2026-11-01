@@ -1,1 +1,13 @@
-import {codes} from '@/lib/data';export default function AdminCodes(){return <main className="page"><div className="container"><span className="eyebrow">Modération</span><h1>Codes</h1><p className="hero-copy">Vérifie la source, complète la réduction, puis publie uniquement les codes fiables.</p><div className="code-list" style={{marginTop:38}}>{codes.map(code=><article className="code-card" key={code.id}><div><span className="tag">{code.status}</span><h3 style={{marginTop:10}}>{code.code} · {code.tool}</h3><p>{code.creator}</p></div><a className="text-link" href={code.source} target="_blank" rel="noopener noreferrer">Ouvrir la source ↗</a><button className="submit">Modifier</button></article>)}</div></div></main>}
+import { getDb } from '@/db';
+import { loadCatalog } from '@/lib/catalog-db';
+import { toolOptions } from '@/lib/codes-admin';
+import { CodesView } from './codes-view';
+
+export const dynamic = 'force-dynamic';
+
+// Lecture directe (sans cache) : l'admin voit tout de suite ses changements, archives comprises.
+export default async function Page() {
+  const db = getDb();
+  const [catalog, tools] = await Promise.all([loadCatalog(db, { includeArchived: true }), toolOptions(db)]);
+  return <CodesView codes={catalog.codes} tools={tools} categories={catalog.categories} />;
+}

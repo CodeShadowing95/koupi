@@ -1,0 +1,62 @@
+name: Release PR
+
+# When develop receives a new version (merge of a dev-release-vX.Y.Z PR),
+# opens or updates the release PR develop -> main. See docs/release.md.
+
+on:
+  push:
+    branches: [develop]
+    paths: [package.json]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: release-pr
+  cancel-in-progress: false
+
+jobs:
+  release-pr:
+    name: Open the release PR to main
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compare versions
+        id: version
+        run: |
+          develop=$(node -p "require('./package.json').version")
+          main=$(git show origin/main:package.json | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).version")
+          echo "develop=$develop main=$main"
+          echo "version=$develop" >> "$GITHUB_OUTPUT"
+          if [ "$develop" = "$main" ] || git rev-parse -q --verify "refs/tags/v$develop" >/dev/null; then
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open or update the PR
+        if: steps.version.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          {
+            echo "Met en production la version **$VERSION**."
+            echo
+            echo "Merge avec **Create a merge commit** (jamais Squash). Au merge : déploiement Production sur Vercel, puis tag \`v$VERSION\` et GitHub Release."
+            echo
+            node scripts/release-notes.mjs "$VERSION"
+          } > body.md
+          title="chore(release): v$VERSION"
+          existing=$(gh pr list --base main --head develop --state open --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh pr edit "$existing" --title "$title" --body-file body.md
+            echo "Updated PR #$existing"
+          else
+            gh pr create --base main --head develop --title "$title" --body-file body.md
+          fi
