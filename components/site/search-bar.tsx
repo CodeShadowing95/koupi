@@ -65,7 +65,7 @@ export function SearchBar({ placeholder = 'Hostinger, NordVPN, ElevenLabs…', a
 
   return (
     <div className="k-search">
-      <form className="k-search-box" role="search" onSubmit={event => { event.preventDefault(); go(active); }}>
+      <form className={`k-search-box${palette ? ' is-compact' : ''}`} role="search" onSubmit={event => { event.preventDefault(); go(active); }}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
         <label htmlFor={`${listId}-input`} className="k-sr">Nom de l&apos;outil</label>
         <input
@@ -88,7 +88,8 @@ export function SearchBar({ placeholder = 'Hostinger, NordVPN, ElevenLabs…', a
           onKeyDown={onKeyDown}
         />
         {autoFocusShortcut && !query && <kbd className="k-kbd" aria-hidden="true">/</kbd>}
-        <button className="k-btn k-btn-primary" type="submit">Trouver le code</button>
+        {/* Dans la fenêtre, la recherche se fait à la frappe : pas de bouton, Entrée suffit. */}
+        {!palette && <button className="k-btn k-btn-primary" type="submit">Trouver le code</button>}
       </form>
       {showList && (
         <ul className={`k-suggest${palette ? ' is-inline' : ''}`} id={listId} role="listbox" aria-label={typed ? 'Outils suggérés' : 'Outils populaires'}>

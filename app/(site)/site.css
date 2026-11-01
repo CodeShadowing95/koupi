@@ -455,6 +455,11 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-palette-foot .k-kbd{margin:0}
 @media(max-width:640px){
   .k-palette{margin-top:16px}
-  .k-palette .k-search-box .k-btn{padding:0 14px}
   .k-palette-foot{display:none}
 }
+
+/* Champ compact de la fenêtre de recherche : loupe + texte, sans bouton ni halo */
+.k-search-box.is-compact{padding:0 4px 0 6px;border:0;border-bottom:1px solid var(--line-2);border-radius:0;background:transparent;box-shadow:none}
+.k-search-box.is-compact::before{display:none}
+.k-search-box.is-compact:focus-within{border-bottom-color:var(--blue-soft);box-shadow:none}
+.k-search-box.is-compact input{height:48px;font-size:17px}
