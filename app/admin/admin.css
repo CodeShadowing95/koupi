@@ -548,3 +548,7 @@ a.tool-card:hover{color:var(--ink);border-color:var(--ink);box-shadow:var(--shad
 }
 .adm-mini-n{font-family:var(--font-display);font-size:26px!important;line-height:1.1;margin-bottom:2px}
 .adm-hint{font-size:14px;color:var(--ink-soft);background:var(--blue-soft);border-radius:10px;padding:10px 14px;margin:-4px 0 14px}
+.adm-dialog-sm{width:min(560px,calc(100vw - 32px))}
+.adm-cat-cover{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-soft);min-width:160px}
+.adm-cat-cover .adm-track{flex:1;min-width:80px}
+.adm-cat-cover .adm-track>span{display:block;height:100%;background:var(--chart-1);border-radius:inherit}
