@@ -28,7 +28,7 @@ export default async function Home() {
 
       <div aria-hidden="true" style={{ position: 'relative', paddingBlock: 20 }}>
         <Marquee items={[...tools.map(tool => tool.name), ...tools.map(tool => tool.name)]} />
-        <Marquee className="k-band-2" reverse items={[...creators, ...creators].map(name => `de ${name}`)} />
+        <Marquee className="k-band-2" reverse speed={330} items={[...creators, ...creators].map(name => `de ${name}`)} />
       </div>
 
       <section className="k-section">

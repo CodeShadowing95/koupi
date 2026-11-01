@@ -1,1 +1,8 @@
-'use client';import {useState} from 'react';import {useRouter} from 'next/navigation';export default function AdminLogin(){const [password,setPassword]=useState('');const [error,setError]=useState('');const router=useRouter();async function submit(e:React.FormEvent){e.preventDefault();const response=await fetch('/api/admin/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password})});if(response.ok)router.push('/admin');else setError(response.status===429?'Trop d’essais. Réessaie dans 15 minutes.':response.status===503?'Connexion admin indisponible : configuration ou base de données manquante sur le serveur.':'Mot de passe incorrect.')}return <main className="adm-page"><div className="container" style={{maxWidth:460}}><span className="eyebrow">Koupi</span><h1>Accès admin</h1><form className="form-grid" onSubmit={submit}><div className="field"><label htmlFor="password">Mot de passe</label><input id="password" type="password" value={password} onChange={e=>setPassword(e.target.value)} required/></div>{error&&<div className="notice notice-error" role="alert">{error}</div>}<button className="submit">Entrer</button></form></div></main>}
+import type { Metadata } from 'next';
+import { LoginPortal } from './login-portal';
+
+export const metadata: Metadata = { title: 'Connexion admin · Koupi', robots: { index: false, follow: false } };
+
+export default function AdminLogin() {
+  return <LoginPortal />;
+}

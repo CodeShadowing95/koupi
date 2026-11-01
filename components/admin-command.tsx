@@ -3,6 +3,7 @@
 // Flèches pour choisir, Entrée pour ouvrir, Échap pour fermer. L'index est rechargé à chaque ouverture.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { afterDialogClose } from '@/lib/admin-dialog';
 import { ADMIN_PAGES, COMMAND_KIND_LABELS, searchCommands, type CommandItem } from '@/lib/admin-command';
 
 export function CommandPalette() {
@@ -64,7 +65,7 @@ export function CommandPalette() {
         <span className="adm-cmd-trigger-text">Rechercher</span>
         <kbd suppressHydrationWarning>{mac ? '⌘' : 'Ctrl'} K</kbd>
       </button>
-      <dialog ref={dialog} className="adm-dialog adm-cmd" aria-label="Recherche globale" onClose={() => setOpen(false)}
+      <dialog ref={dialog} className="adm-dialog adm-cmd" aria-label="Recherche globale" onClose={() => afterDialogClose(() => { if (!dialog.current?.open) setOpen(false); })}
         onClick={event => { if (event.target === dialog.current) dialog.current?.close(); }}>
         {open && (
           <div className="adm-cmd-body">

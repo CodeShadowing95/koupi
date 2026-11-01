@@ -7,6 +7,10 @@ import { matchesSearch } from '@/lib/admin-search';
 import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { Pagination, usePagination } from '@/components/admin-pagination';
 import { FormDialog, sendJson } from '@/components/admin-form-dialog';
+import { AdminSelect } from '@/components/admin-select';
+import { InfoTip } from '@/components/admin-info-tip';
+import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
+import { AdminToolName } from '@/components/admin-tool-logo';
 
 type Filter = 'all' | 'published' | 'empty' | 'archived';
 const filters: { value: Filter; label: string }[] = [
@@ -14,6 +18,13 @@ const filters: { value: Filter; label: string }[] = [
 ];
 const matches = (tool: AdminTool, filter: Filter) => filter === 'archived' ? tool.archived : !tool.archived && (filter === 'all' || (filter === 'published' ? tool.visible > 0 : tool.visible === 0));
 const priorityLabel: Record<number, string> = { 1: '1 · haute', 2: '2', 3: '3 · normale', 4: '4', 5: '5 · basse' };
+
+const sortFields: SortField<AdminTool>[] = [
+  { key: 'priority', label: 'Priorité', value: tool => tool.priority },
+  { key: 'name', label: 'Nom', value: tool => tool.name, text: true },
+  { key: 'category', label: 'Catégorie', value: tool => tool.category, text: true },
+  { key: 'codes', label: 'Nombre de codes', value: tool => tool.codes },
+];
 
 type Form = { name: string; categorySlug: string; website: string; description: string; priority: number };
 
@@ -26,8 +37,10 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
   const [view, setView] = useAdminView();
   const [editing, setEditing] = useState<AdminTool | 'new' | null>(null);
   const [form, setForm] = useState<Form>({ name: '', categorySlug: categories[0]?.slug ?? '', website: '', description: '', priority: 3 });
-  const visible = tools.filter(tool => matches(tool, filter) && matchesSearch([tool.name, tool.category, tool.website, tool.description], query));
-  const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${filter}|${query}`);
+  const filtered = tools.filter(tool => matches(tool, filter) && matchesSearch([tool.name, tool.category, tool.website, tool.description], query));
+  const sort = useAdminSort(filtered, sortFields, 'name');
+  const visible = sort.items;
+  const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${filter}|${query}|${sort.resetKey}`);
   const countOf = (value: Filter) => tools.filter(tool => matches(tool, value)).length;
 
   function open(target: AdminTool | 'new') {
@@ -66,18 +79,20 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
         <div className="adm-toolbar">
           <label htmlFor="tool-search" className="sr-only">Rechercher un outil</label>
           <input id="tool-search" className="adm-search" type="search" placeholder="Rechercher un outil, une catégorie…" value={query} onChange={event => setQuery(event.target.value)} />
+          {view !== 'table' && <SortControl sort={sort} id="tool-sort" />}
           <span className="adm-count" role="status">{visible.length} sur {countOf(filter)}</span>
           <ViewToggle view={view} onChange={setView} />
         </div>
+        <LetterBar sort={sort} />
         <div ref={topRef} className="adm-list-top" />
         {visible.length === 0 ? <div className="adm-empty">Aucun outil ne correspond.</div> : view === 'table' ? (
           <div className="adm-table-wrap adm-page-enter" key={`table-${current.page}`}>
             <table className="adm-table">
-              <thead><tr><th scope="col">Outil</th><th scope="col">Catégorie</th><th scope="col">Codes</th><th scope="col">Priorité</th><th scope="col">Statut</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
+              <thead><tr><SortHeader sort={sort} field="name">Outil</SortHeader><SortHeader sort={sort} field="category">Catégorie</SortHeader><SortHeader sort={sort} field="codes">Codes</SortHeader><SortHeader sort={sort} field="priority">Priorité</SortHeader><th scope="col">Statut</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
               <tbody>
                 {current.items.map(tool => (
                   <tr key={tool.id}>
-                    <td className="adm-cell-nowrap"><b>{tool.name}</b></td>
+                    <td className="adm-cell-nowrap"><AdminToolName slug={tool.slug} name={tool.name} /></td>
                     <td className="adm-cell-wrap">{tool.category}</td>
                     <td className="adm-cell-nowrap">{codesLink(tool)}</td>
                     <td className="adm-cell-muted">{tool.priority}</td>
@@ -92,7 +107,7 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
           <div className="adm-grid adm-page-enter" key={`grid-${current.page}`}>
             {current.items.map(tool => (
               <article className="adm-card" key={tool.id}>
-                <div className="adm-card-top"><b>{tool.name}</b>{status(tool)}</div>
+                <div className="adm-card-top"><AdminToolName slug={tool.slug} name={tool.name} />{status(tool)}</div>
                 <h3>{tool.category}</h3>
                 <p>Codes : {codesLink(tool)} · priorité {tool.priority}</p>
                 {tool.description && <p className="adm-note">{tool.description}</p>}
@@ -114,9 +129,9 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
           onSubmit={() => editing === 'new' ? sendJson('/api/admin/tools', 'POST', form) : sendJson(`/api/admin/tools/${(editing as AdminTool).id}`, 'PATCH', form)}
           extra={editing && editing !== 'new' ? <button type="button" className="adm-btn adm-btn-danger" onClick={() => archive(editing)}>{editing.archived ? 'Restaurer' : 'Archiver'}</button> : null}>
           <div className="field"><label htmlFor="tool-name">Nom</label><input id="tool-name" value={form.name} onChange={set('name')} required maxLength={120} /></div>
-          <div className="field"><label htmlFor="tool-cat">Catégorie</label><select id="tool-cat" value={form.categorySlug} onChange={set('categorySlug')} required>{categories.map(category => <option key={category.slug} value={category.slug}>{category.name}</option>)}</select></div>
+          <div className="field"><label htmlFor="tool-cat">Catégorie</label><AdminSelect id="tool-cat" value={form.categorySlug} onChange={categorySlug => setForm(value => ({ ...value, categorySlug }))} options={categories.map(category => ({ value: category.slug, label: category.name }))} placeholder="Choisir une catégorie…" searchPlaceholder="Rechercher une catégorie…" required /></div>
           <div className="field"><label htmlFor="tool-site">Site officiel</label><input id="tool-site" value={form.website} onChange={set('website')} required maxLength={300} placeholder="exemple.com" /></div>
-          <div className="field"><label htmlFor="tool-priority">Priorité</label><select id="tool-priority" value={form.priority} onChange={set('priority')}>{[1, 2, 3, 4, 5].map(value => <option key={value} value={value}>{priorityLabel[value]}</option>)}</select></div>
+          <div className="field"><div className="adm-label-row"><label htmlFor="tool-priority">Priorité</label><InfoTip id="tool-priority-help" label="À quoi sert la priorité ?">Sert à classer les outils. 1 : à couvrir en premier, affiché en tête dans l’admin et sur le site. 5 : peut attendre. Par défaut : 3.</InfoTip></div><select id="tool-priority" value={form.priority} onChange={set('priority')}>{[1, 2, 3, 4, 5].map(value => <option key={value} value={value}>{priorityLabel[value]}</option>)}</select></div>
           <div className="field adm-span-2"><label htmlFor="tool-desc">Description (facultative)</label><textarea id="tool-desc" rows={2} value={form.description} onChange={set('description')} maxLength={300} placeholder="Une phrase pour la fiche de l’outil" /><small>Vide : « Les codes promo donnés par les créateurs pour … ».</small></div>
         </FormDialog>
       </div>

@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { PendingBadge } from '@/app/admin/pending-count';
 import { ThemeToggle } from '@/components/admin-theme';
 import { CommandPalette } from '@/components/admin-command';
+import { AdminCouponTear } from '@/components/admin-coupon-tear';
 
 type Item = { href: string; label: string; icon: React.ReactNode; badge?: React.ReactNode };
 
@@ -66,16 +67,19 @@ export function AdminShell({ children, toTest = 0 }: { children: React.ReactNode
   const pathname = usePathname();
   const groups = navGroups(toTest);
   if (pathname.startsWith('/admin/login')) {
+    // Portail de connexion : plein écran, sans barre du haut ; seul le bouton clair / sombre reste, en haut à droite.
     return (
       <>
-        <header className="adm-top"><Link className="adm-brand" href="/" aria-label="Koupi"><Logo /><span className="admin-badge">Admin</span></Link><div className="adm-top-right"><ThemeToggle /></div></header>
+        <div className="lp-theme"><ThemeToggle /></div>
         {children}
+        <AdminCouponTear key="coupon-tear" />
       </>
     );
   }
   const current = Object.keys(titles).filter(href => isActive(pathname, href)).sort((a, b) => b.length - a.length)[0];
   const today = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   return (
+    <>
     <div className="adm-shell">
       <nav className="adm-side" aria-label="Navigation admin">
         <Link className="adm-brand" href="/admin" aria-label="Koupi, accueil admin"><Logo /><span className="admin-badge">Admin</span></Link>
@@ -108,5 +112,7 @@ export function AdminShell({ children, toTest = 0 }: { children: React.ReactNode
         {children}
       </div>
     </div>
+    <AdminCouponTear key="coupon-tear" />
+    </>
   );
 }

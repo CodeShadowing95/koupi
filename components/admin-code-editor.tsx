@@ -3,8 +3,10 @@
 // Tout est enregistré en base par /api/admin/codes, puis la page est rechargée côté serveur (router.refresh).
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { afterDialogClose } from '@/lib/admin-dialog';
 import type { Category, Code, CodeStatus } from '@/lib/data';
 import type { ToolOption } from '@/lib/codes-admin';
+import { AdminSelect } from '@/components/admin-select';
 
 export type EditorTarget =
   | { kind: 'create' }
@@ -57,7 +59,8 @@ export function CodeEditor({ target, tools, categories, creators, onClose, onSav
     if (!dialog.current?.open) dialog.current?.showModal();
   }, [target, tools, categories]);
 
-  if (!target) return <dialog ref={dialog} className="adm-dialog" onClose={onClose} />;
+  const closed = () => afterDialogClose(() => { if (!dialog.current?.open) onClose(); });
+  if (!target) return <dialog ref={dialog} className="adm-dialog" onClose={closed} />;
 
   const set = <K extends keyof Initial>(key: K) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setValues(current => ({ ...current, [key]: event.target.value }));
   const title = target.kind === 'create' ? 'Nouveau code' : target.kind === 'edit' ? `Modifier ${target.code.code}` : 'Valider la proposition';
@@ -99,7 +102,7 @@ export function CodeEditor({ target, tools, categories, creators, onClose, onSav
   }
 
   return (
-    <dialog ref={dialog} className="adm-dialog" aria-labelledby="code-editor-title" onClose={onClose}>
+    <dialog ref={dialog} className="adm-dialog" aria-labelledby="code-editor-title" onClose={closed}>
       <form className="adm-form" onSubmit={submit}>
         <div className="adm-dialog-head">
           <h2 id="code-editor-title">{title}</h2>
@@ -110,11 +113,11 @@ export function CodeEditor({ target, tools, categories, creators, onClose, onSav
         <div className="adm-form-grid">
           <div className="field">
             <label htmlFor="ce-tool">Outil</label>
-            <select id="ce-tool" value={values.toolSlug} onChange={set('toolSlug')} required>
-              <option value="" disabled>Choisir un outil…</option>
-              {tools.map(tool => <option key={tool.slug} value={tool.slug}>{tool.name} · {tool.category}</option>)}
-              <option value={NEW_TOOL}>+ Nouvel outil</option>
-            </select>
+            <AdminSelect
+              id="ce-tool" value={values.toolSlug} onChange={toolSlug => setValues(current => ({ ...current, toolSlug }))} required
+              placeholder="Choisir un outil…" searchPlaceholder="Rechercher un outil ou une catégorie…"
+              options={[...tools.map(tool => ({ value: tool.slug, label: tool.name, hint: tool.category })), { value: NEW_TOOL, label: '+ Nouvel outil', pinned: true }]}
+            />
           </div>
           <div className="field">
             <label htmlFor="ce-creator">Créateur</label>
@@ -125,7 +128,7 @@ export function CodeEditor({ target, tools, categories, creators, onClose, onSav
             <fieldset className="adm-fieldset">
               <legend>Nouvel outil</legend>
               <div className="field"><label htmlFor="ce-tool-name">Nom</label><input id="ce-tool-name" value={values.newToolName} onChange={set('newToolName')} required maxLength={120} /></div>
-              <div className="field"><label htmlFor="ce-tool-cat">Catégorie</label><select id="ce-tool-cat" value={values.newToolCategory} onChange={set('newToolCategory')} required>{categories.map(category => <option key={category.slug} value={category.slug}>{category.name}</option>)}</select></div>
+              <div className="field"><label htmlFor="ce-tool-cat">Catégorie</label><AdminSelect id="ce-tool-cat" value={values.newToolCategory} onChange={newToolCategory => setValues(current => ({ ...current, newToolCategory }))} options={categories.map(category => ({ value: category.slug, label: category.name }))} placeholder="Choisir une catégorie…" searchPlaceholder="Rechercher une catégorie…" required /></div>
               <div className="field"><label htmlFor="ce-tool-site">Site officiel</label><input id="ce-tool-site" value={values.newToolWebsite} onChange={set('newToolWebsite')} required placeholder="exemple.com" maxLength={300} /></div>
             </fieldset>
           )}
