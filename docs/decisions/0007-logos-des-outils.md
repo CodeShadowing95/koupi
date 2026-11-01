@@ -20,7 +20,7 @@ Les coupons affichaient l'initiale du créateur. On veut le logo de l'outil (Nor
 ## Alternatives envisagées
 - **Afficher les logos à la volée** (`img.logo.dev`, Google, DuckDuckGo) : rien à stocker, mais chaque visite envoie l'adresse IP du visiteur à un tiers, ce qui contredit la promesse « pas de suivi », et il faudrait ouvrir la CSP. On garde Logo.dev, mais seulement dans le script.
 - **Paquet npm `simple-icons` en dépendance** : il pèse plusieurs Mo pour une dizaine d'icônes utilisées. Le script lit le paquet ou le CDN seulement au moment de la récupération.
-- **Colonne `logo` dans la base** : utile quand les outils seront en base. Ce sera un changement de schéma à valider plus tard ; pour l'instant, les outils sont dans `lib/data.ts`.
+- **Colonne `logo` dans la base** : utile quand les outils seront en base. Ce sera un changement de schéma à valider plus tard ; pour l'instant, les outils sont dans `lib/catalog.json` (généré par `npm run catalog`).
 
 ## Conséquences
 - Il faut relancer `npm run logos` quand on ajoute un outil. Le script garde les logos déjà présents (`--force` pour tout refaire).
