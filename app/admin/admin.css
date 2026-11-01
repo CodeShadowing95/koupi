@@ -731,3 +731,26 @@ html:has(> body > .ct){overflow:hidden}
 .adm-th-sort:hover .adm-th-arrow,.adm-th-sort:focus-visible .adm-th-arrow{opacity:.8}
 .adm-th-sort.is-active .adm-th-arrow{opacity:1;color:var(--blue)}
 @media(max-width:700px){.adm-letters-row{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;max-width:100%}.adm-letters{flex-wrap:nowrap;flex-direction:column;align-items:flex-start}}
+
+/* Champs raffinés : même trait, hauteur et rayon que les boutons, sur toutes les pages admin. */
+.admin-root{--field-h:38px;--field-border:var(--line-strong);--field-hover:var(--muted);--field-ring:0 0 0 3px rgba(42,59,214,.16)}
+.adm-search,.adm-combo-trigger,.adm-combo-filter .adm-combo-trigger,.adm-form .field input:where(:not([type=radio],[type=checkbox],.adm-combo-native,[role=combobox])),.adm-form .field select,.adm-form .field textarea,.adm-pager-size select{
+  min-height:var(--field-h);border:1.5px solid var(--field-border);border-radius:9px;background-color:var(--card);color:var(--ink);font-size:14px;
+  transition:border-color .15s,box-shadow .15s}
+.adm-search{height:var(--field-h);padding:0 12px 0 34px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238E92A3' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:11px 50%;background-size:15px}
+.adm-search[type="date"]{padding:0 10px;background-image:none;color:var(--ink-soft)}
+.adm-search::placeholder,.adm-form .field input:where(:not([type=radio],[type=checkbox],.adm-combo-native,[role=combobox]))::placeholder,.adm-form .field textarea::placeholder{color:var(--muted);opacity:.85}
+.adm-combo-trigger{padding:0 10px 0 12px}
+.adm-form .field input:where(:not([type=radio],[type=checkbox],.adm-combo-native,[role=combobox])),.adm-form .field select{padding:0 12px}
+.adm-form .field textarea{padding:9px 12px;line-height:1.45}
+.adm-form .field select,.adm-pager-size select{appearance:none;-webkit-appearance:none;padding-right:32px;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238E92A3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;background-size:14px}
+.adm-pager-size select{height:32px;min-height:32px;font-size:13px;padding-left:10px}
+.adm-search:hover,.adm-combo-trigger:hover,.adm-form .field input:where(:not([type=radio],[type=checkbox],.adm-combo-native,[role=combobox])):hover,.adm-form .field select:hover,.adm-form .field textarea:hover,.adm-pager-size select:hover{border-color:var(--field-hover)}
+.adm-search:focus,.adm-combo-trigger:focus-visible,.adm-combo-trigger[aria-expanded="true"],.adm-form .field input:where(:not([type=radio],[type=checkbox],.adm-combo-native,[role=combobox])):focus,.adm-form .field select:focus,.adm-form .field textarea:focus,.adm-pager-size select:focus{border-color:var(--blue);box-shadow:var(--field-ring);outline:0}
+.adm-sort-dir{width:var(--field-h);min-height:var(--field-h)}
+.adm-cmd-trigger{min-height:var(--field-h);border-color:var(--field-border)}
+@media (prefers-reduced-motion:reduce){.adm-search,.adm-combo-trigger,.adm-form .field input:where(:not([type=radio],[type=checkbox],.adm-combo-native,[role=combobox])),.adm-form .field select,.adm-form .field textarea{transition:none}}
