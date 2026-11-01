@@ -31,6 +31,8 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
     setItems(body.submissions || []); setLoading(false);
   }
   useEffect(() => { void load(); }, [status, category, from, to]);
+  // La recherche globale ouvre la liste déjà filtrée (?q=CODE).
+  useEffect(() => { const q = new URLSearchParams(window.location.search).get('q'); if (q) setQuery(q); }, []);
   async function decide(id: string, action: string) {
     const note = action === 'reject' ? window.prompt('Note de refus (facultative)') || '' : '';
     const response = await fetch('/api/admin/submissions', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id, action, note }) });
@@ -60,6 +62,7 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
             <h1>Propositions</h1>
             <p>Vérifie la source et décide ce qui peut entrer dans le catalogue public.</p>
           </div>
+          <div className="adm-head-actions"><a className="adm-btn" href="/api/admin/export?type=propositions" download>Exporter en CSV</a></div>
         </div>
         <div className="adm-toolbar">
           <div className="adm-filters">
