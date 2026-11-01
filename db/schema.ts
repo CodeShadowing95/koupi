@@ -136,6 +136,23 @@ export const codes = pgTable('codes', {
   check('codes_votes_positive', sql`${table.votesUp} >= 0 and ${table.votesDown} >= 0`),
 ]);
 
+export const CODE_ACTIONS = ['create', 'edit', 'verify', 'reject', 'to_test', 'pending', 'archive', 'restore'] as const;
+
+// Journal des actions de l'admin sur les codes (on n'y supprime rien).
+export const codeLogs = pgTable('code_logs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  codeId: uuid('code_id').notNull().references(() => codes.id),
+  action: text('action', { enum: CODE_ACTIONS }).notNull(),
+  previousStatus: text('previous_status'),
+  nextStatus: text('next_status').notNull(),
+  note: text('note'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  index('code_logs_code_idx').on(table.codeId, table.createdAt.desc()),
+  index('code_logs_created_idx').on(table.createdAt.desc()),
+  check('code_logs_action_valid', sql`${table.action} in ('create','edit','verify','reject','to_test','pending','archive','restore')`),
+]);
+
 export type Submission = typeof submissions.$inferSelect;
 export type CategoryRow = typeof categories.$inferSelect;
 export type ToolRow = typeof tools.$inferSelect;

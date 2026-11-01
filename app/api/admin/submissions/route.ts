@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
       id: row.id, tool_name: row.toolName, creator_name: row.creatorName, category: row.category, code: row.code,
       discount_label: row.discountLabel, source_url: row.sourceUrl, creator_link: row.creatorLink, comment: row.comment,
       submitter_email: row.submitterEmail, status: row.status, admin_note: row.adminNote, created_at: row.createdAt.toISOString(),
+      created_code_id: row.createdCodeId,
     }));
     return NextResponse.json({ submissions });
   } catch (error) {

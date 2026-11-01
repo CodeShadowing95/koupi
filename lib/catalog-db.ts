@@ -6,13 +6,14 @@ import { isPublic, successRate, type Catalog, type Category, type Code, type Too
 
 export function defaultDescription(name: string) { return `Les codes promo donnés par les créateurs pour ${name}.`; }
 
-export async function loadCatalog(db: Db): Promise<Catalog> {
+/** includeArchived : l'admin voit aussi les codes archivés (pour les restaurer). Le site, jamais. */
+export async function loadCatalog(db: Db, options: { includeArchived?: boolean } = {}): Promise<Catalog> {
   const [categoryRows, toolRows, codeRows] = await Promise.all([
     db.select().from(categoriesTable).orderBy(asc(categoriesTable.createdAt), asc(categoriesTable.name)),
     db.select().from(toolsTable).where(isNull(toolsTable.archivedAt)),
     db.select({ code: codesTable, tool: { name: toolsTable.name, slug: toolsTable.slug }, creator: { name: creatorsTable.name, slug: creatorsTable.slug } })
       .from(codesTable).innerJoin(toolsTable, eq(codesTable.toolId, toolsTable.id)).innerJoin(creatorsTable, eq(codesTable.creatorId, creatorsTable.id))
-      .where(and(isNull(codesTable.archivedAt), isNull(toolsTable.archivedAt)))
+      .where(options.includeArchived ? isNull(toolsTable.archivedAt) : and(isNull(codesTable.archivedAt), isNull(toolsTable.archivedAt)))
       .orderBy(asc(codesTable.createdAt), asc(codesTable.code)),
   ]);
 
@@ -33,11 +34,13 @@ export async function loadCatalog(db: Db): Promise<Catalog> {
     ...(code.note ? { note: code.note } : {}),
     lastTestedAt: code.lastTestedAt?.toISOString() ?? null,
     createdAt: code.createdAt.toISOString(),
+    ...(code.archivedAt ? { archived: true } : {}),
   }));
+  const live = codes.filter(code => !code.archived);
 
   const categoryName = new Map(categoryRows.map(row => [row.slug, row.name]));
   const publicCount = new Map<string, number>();
-  for (const code of codes) if (isPublic(code)) publicCount.set(code.toolSlug, (publicCount.get(code.toolSlug) ?? 0) + 1);
+  for (const code of live) if (isPublic(code)) publicCount.set(code.toolSlug, (publicCount.get(code.toolSlug) ?? 0) + 1);
 
   const tools: Tool[] = toolRows
     .filter(row => publicCount.has(row.slug))

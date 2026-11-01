@@ -9,6 +9,8 @@ export type Code = {
   /** Date ISO du dernier test par l'admin, null s'il n'a jamais été testé. */
   lastTestedAt: string | null;
   createdAt: string;
+  /** Seulement dans l'admin : code retiré du site et des statistiques. */
+  archived?: boolean;
 };
 export type Catalog = {
   categories: Category[];
