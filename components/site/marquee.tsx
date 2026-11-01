@@ -26,7 +26,7 @@ export function Marquee({ items, reverse = false, className = '' }: { items: str
 
   const group = (hidden: boolean) => (
     <div className="k-marquee-group" aria-hidden={hidden || undefined}>
-      {items.map(item => <span className="k-marquee-item" key={item}>{item}<Scissors /></span>)}
+      {items.map((item, index) => <span className="k-marquee-item" key={`item-${index}`}>{item}<Scissors /></span>)}
     </div>
   );
   return (
