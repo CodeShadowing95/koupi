@@ -29,7 +29,7 @@ Avant chaque commit : `npm run typecheck && npm test && npm run build` doivent p
 - `lib/` : logique métier, testée à côté du fichier (`x.ts` → `x.test.ts`).
 - `db/` : schéma Drizzle, connexion (`getDb()`), migrations.
 - `components/` : composants partagés. `components/site/` pour le site public (coupon détachable, recherche, animations GSAP via `lib/gsap.ts`).
-- `scripts/` : seed et migrations.
+- `scripts/` : seed, migrations et récupération des logos des outils (`npm run logos`, voir ADR-0007).
 - `docs/decisions/` : décisions d'architecture (ADR).
 
 ## Façon de travailler

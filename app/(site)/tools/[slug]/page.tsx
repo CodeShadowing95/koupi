@@ -4,6 +4,7 @@ import { findTool, toolCodes, type Code } from '@/lib/data';
 import { routes } from '@/lib/routes';
 import { avatarClass, creatorSlug, initials } from '@/lib/ui';
 import { MiniCoupon, TearTicket } from '@/components/site/coupon';
+import { ToolSeal } from '@/components/site/tool-logo';
 
 function StatusBadge({ status, dark = false }: { status: Code['status']; dark?: boolean }) {
   if (status === 'verified') return <span className={`k-status k-status-ok${dark ? ' is-dark' : ''}`}>✓ Vérifié</span>;
@@ -40,7 +41,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
           <section>
             <div className="k-tool-head">
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <span className="k-tool-logo" aria-hidden="true">{tool.name.slice(0, 1).toUpperCase()}</span>
+                <ToolSeal tool={tool.slug} name={tool.name} />
                 <span className="k-eyebrow">Code promo {tool.name}</span>
               </div>
               {best ? (
@@ -52,7 +53,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
             </div>
 
             {best ? (
-              <TearTicket code={best.code} link={best.creatorLink || tool.website} creator={best.creator} discount={best.discount} tool={tool.name}>
+              <TearTicket code={best.code} link={best.creatorLink || tool.website} creator={best.creator} discount={best.discount} tool={tool.name} seal={<ToolSeal tool={tool.slug} name={tool.name} size="lg" />}>
                 <div className="k-ticket-who">
                   <span className={`k-av k-${avatarClass(best.creator)}`} style={{ width: 52, height: 52 }} aria-hidden="true">{initials(best.creator)}</span>
                   <span>

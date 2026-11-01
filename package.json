@@ -10,7 +10,8 @@
     "test": "vitest run",
     "db:seed": "tsx scripts/seed.ts",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx scripts/migrate.ts"
+    "db:migrate": "tsx scripts/migrate.ts",
+    "logos": "node scripts/fetch-logos.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.3.8",

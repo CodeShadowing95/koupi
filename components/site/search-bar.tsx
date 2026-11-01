@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { searchTools } from '@/lib/data';
 import { routes } from '@/lib/routes';
 import { plural } from '@/lib/ui';
+import { ToolLogo } from './tool-logo';
 
 // Barre de recherche façon « palette de commandes » : autocomplétion au clavier (flèches, Entrée, Échap),
 // raccourci « / » pour la rejoindre depuis n'importe où sur la page.
@@ -81,7 +82,7 @@ export function SearchBar({ placeholder = 'Hostinger, NordVPN, ElevenLabs…', a
               onMouseEnter={() => setActive(index)}
               onMouseDown={event => { event.preventDefault(); go(index); }}
             >
-              <span className="k-tool-logo" aria-hidden="true">{tool.name.slice(0, 1).toUpperCase()}</span>
+              <ToolLogo tool={tool.slug} name={tool.name} />
               <span><strong>{tool.name}</strong><span>{tool.category}</span></span>
               <em>{plural(tool.codes, 'code', 'codes')}</em>
             </li>
