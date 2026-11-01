@@ -7,6 +7,7 @@ import { routes } from '@/lib/routes';
 import { SearchBar } from './search-bar';
 import { MiniCoupon } from './coupon';
 import { ToolSeal } from './tool-logo';
+import { withLogosFirst } from '@/lib/tool-logos';
 
 const rotating = ['NordVPN', 'o2switch', 'ElevenLabs', 'Shopify', 'Qonto', 'Babbel'];
 
@@ -16,7 +17,8 @@ const Check = () => (
 
 export function Hero() {
   const root = useRef<HTMLElement>(null);
-  const latest = codes.filter(code => code.status === 'verified').slice(0, 3);
+  // Le hero montre de préférence des outils dont on a le logo.
+  const latest = withLogosFirst(codes.filter(code => code.status === 'verified'), code => code.tool).slice(0, 3);
   const slugOf = (name: string) => tools.find(tool => tool.name === name)?.slug ?? '';
   const verified = codes.filter(code => code.status === 'verified');
   const verifiedCount = verified.length;

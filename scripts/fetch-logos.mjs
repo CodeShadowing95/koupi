@@ -3,11 +3,12 @@
 // depuis le navigateur des visiteurs (voir ADR-0007).
 //
 // Ordre de recherche pour chaque outil :
-//   1. Simple Icons (licence CC0) : glyphe SVG + couleur officielle de la marque ;
-//   2. l'icône déclarée par le site officiel (apple-touch-icon, puis icon, puis /favicon.ico).
+//   1. Logo.dev, si LOGO_DEV_TOKEN est défini (clé publishable, dans .env.local, jamais dans le dépôt) ;
+//   2. Simple Icons (licence CC0) : glyphe SVG + couleur officielle de la marque ;
+//   3. l'icône déclarée par le site officiel (apple-touch-icon, puis icon, puis /favicon.ico).
 // Sans logo trouvé, le site affiche l'initiale (repli).
 //
-// Usage : node scripts/fetch-logos.mjs [--force] [--only slug1,slug2]
+// Usage : npm run logos -- [--force] [--only slug1,slug2]
 //   SIMPLE_ICONS_DIR=/chemin/vers/simple-icons  pour lire un paquet simple-icons déjà extrait.
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -20,6 +21,7 @@ const MANIFEST = path.join(ROOT, 'lib', 'tool-logos.json');
 const SIMPLE_ICONS_VERSION = '16.36.0';
 const SIMPLE_ICONS_CDN = `https://cdn.jsdelivr.net/npm/simple-icons@${SIMPLE_ICONS_VERSION}`;
 const MAX_BYTES = 200_000;
+const LOGO_DEV_TOKEN = process.env.LOGO_DEV_TOKEN?.trim();
 const args = process.argv.slice(2);
 const force = args.includes('--force');
 const onlyIndex = args.indexOf('--only');
@@ -104,14 +106,40 @@ async function fromWebsite(tool) {
   throw new Error('aucune icône exploitable');
 }
 
+/** Logo.dev : l'icône carrée de la marque, en PNG 128 px. 404 si la marque est inconnue (pas de monogramme). */
+async function fromLogoDev(tool) {
+  const domain = new URL(tool.website).hostname.replace(/^www\./, '');
+  const url = `https://img.logo.dev/${encodeURIComponent(domain)}?token=${encodeURIComponent(LOGO_DEV_TOKEN)}&size=128&format=png&retina=true&fallback=404`;
+  // On n'affiche jamais l'URL : elle contient la clé.
+  const response = await fetch(url).catch(() => null);
+  if (!response) throw new Error('Logo.dev injoignable');
+  if (!response.ok) throw new Error(`Logo.dev ${response.status}`);
+  const type = (response.headers.get('content-type') ?? '').split(';')[0].trim();
+  const body = Buffer.from(await response.arrayBuffer());
+  if (!EXT[type] || body.length === 0 || body.length > MAX_BYTES) throw new Error('Logo.dev : réponse inattendue');
+  return { ext: EXT[type], body };
+}
+
 async function main() {
   await mkdir(OUT_DIR, { recursive: true });
   const manifest = existsSync(MANIFEST) ? JSON.parse(await readFile(MANIFEST, 'utf8')) : {};
   const tools = (await readTools()).filter(tool => !only || only.has(tool.slug));
   const icons = await loadSimpleIcons();
+  if (!LOGO_DEV_TOKEN) console.log('LOGO_DEV_TOKEN absent : Logo.dev est ignoré.');
 
   for (const tool of tools) {
     if (manifest[tool.slug] && !force) { console.log(`= ${tool.slug} (déjà là)`); continue; }
+    if (LOGO_DEV_TOKEN) {
+      try {
+        const found = await fromLogoDev(tool);
+        await writeFile(path.join(OUT_DIR, `${tool.slug}.${found.ext}`), found.body);
+        manifest[tool.slug] = { src: `/logos/${tool.slug}.${found.ext}`, bg: '#ffffff', kind: 'image', source: 'Logo.dev' };
+        console.log(`✓ ${tool.slug} : Logo.dev`);
+        continue;
+      } catch (error) {
+        console.log(`· ${tool.slug} : ${error.message}, on essaie la suite`);
+      }
+    }
     const wanted = new Set([simpleIconsSlug(tool.name), tool.slug.replace(/-/g, '')]);
     const icon = icons.list.find(item => wanted.has(item.slug ?? simpleIconsSlug(item.title)));
     const glyph = icon ? await icons.svg(icon.slug ?? simpleIconsSlug(icon.title)) : null;
