@@ -3,11 +3,14 @@ import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { gsap, MOTION_OK, MOTION_REDUCED, useGSAP } from '@/lib/gsap';
 import { copyText, openCreatorLink } from '@/lib/copy';
+import { track } from '@/lib/track';
 import { playCouponSnip, playCouponTear } from '@/lib/coupon-sound';
 import { resist, tearDecision } from '@/lib/tear';
 
 type TicketProps = {
   code: string;
+  /** Id du code en base, pour la mesure d'audience anonyme (copies, liens ouverts). */
+  codeId?: string;
   link: string;
   creator: string;
   discount: string;
@@ -18,7 +21,7 @@ type TicketProps = {
 };
 
 /** Le grand coupon de la fiche outil : on détache le talon pour copier le code. */
-export function TearTicket({ code, link, creator, discount, tool, seal, children }: TicketProps) {
+export function TearTicket({ code, codeId, link, creator, discount, tool, seal, children }: TicketProps) {
   const root = useRef<HTMLDivElement>(null);
   const stub = useRef<HTMLButtonElement>(null);
   const drag = useRef<{ start: number; t: number; d: number; v: number; moved: boolean; vertical: boolean } | null>(null);
@@ -72,19 +75,21 @@ export function TearTicket({ code, link, creator, discount, tool, seal, children
     if (torn) {
       // Talon déjà détaché : on recopie simplement le code.
       playCouponSnip();
+      track('copy', codeId);
       const ok = await copyText(code);
       setFailed(!ok);
       gsap.fromTo(stub.current, { rotation: '+=0' }, { rotation: '+=3', duration: 0.08, yoyo: true, repeat: 3 });
       return;
     }
     const copying = copyText(code);
+    track('copy', codeId);
     playCouponTear();
     setTorn(true);
     animateTear(vertical);
     const ok = await copying;
     setFailed(!ok);
     // Le temps de voir le coupon se détacher, puis on ouvre le lien du créateur.
-    window.setTimeout(() => openCreatorLink(link), 850);
+    window.setTimeout(() => { track('open', codeId); openCreatorLink(link); }, 850);
   });
 
   const isVertical = () => window.matchMedia('(max-width: 640px)').matches;
@@ -171,7 +176,7 @@ export function TearTicket({ code, link, creator, discount, tool, seal, children
             <div>
               <p><strong>{failed ? `Copie le code ${code} à la main.` : `Code ${code} copié.`}</strong> {creator} touche sa commission, toi tu gardes ta réduction ({discount}).</p>
               <div className="k-receipt">
-                <a className="k-btn k-btn-primary k-btn-sm" href={link} target="_blank" rel="noopener noreferrer">Ouvrir {tool} ↗</a>
+                <a className="k-btn k-btn-primary k-btn-sm" href={link} target="_blank" rel="noopener noreferrer" onClick={() => track('open', codeId)}>Ouvrir {tool} ↗</a>
               </div>
             </div>
           </div>
@@ -183,6 +188,7 @@ export function TearTicket({ code, link, creator, discount, tool, seal, children
 
 type MiniProps = {
   code: string;
+  codeId?: string;
   title: React.ReactNode;
   subtitle: React.ReactNode;
   avatar?: React.ReactNode;
@@ -190,7 +196,7 @@ type MiniProps = {
 } & ({ href: string; link?: never } | { link: string; href?: never });
 
 /** Petit coupon : soit un lien vers la fiche (href), soit une copie rapide du code (link). */
-export function MiniCoupon({ code, title, subtitle, avatar, className = '', href, link }: MiniProps) {
+export function MiniCoupon({ code, codeId, title, subtitle, avatar, className = '', href, link }: MiniProps) {
   const root = useRef<HTMLDivElement>(null);
   const stubRef = useRef<HTMLButtonElement>(null);
   const [copied, setCopied] = useState(false);
@@ -198,6 +204,7 @@ export function MiniCoupon({ code, title, subtitle, avatar, className = '', href
 
   const copy = contextSafe(async () => {
     const copying = copyText(code);
+    track('copy', codeId);
     playCouponSnip();
     const mm = gsap.matchMedia();
     mm.add(MOTION_OK, () => {
@@ -207,7 +214,7 @@ export function MiniCoupon({ code, title, subtitle, avatar, className = '', href
     });
     setCopied(true);
     await copying;
-    window.setTimeout(() => openCreatorLink(link ?? ''), 450);
+    window.setTimeout(() => { if (link && link !== '#') track('open', codeId); openCreatorLink(link ?? ''); }, 450);
     window.setTimeout(() => setCopied(false), 2400);
   });
 

@@ -6,6 +6,7 @@ import { routes } from '@/lib/routes';
 import { MiniCoupon, TearTicket } from '@/components/site/coupon';
 import { ToolSeal } from '@/components/site/tool-logo';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
+import { VoteButtons } from '@/components/site/vote-buttons';
 
 function StatusBadge({ status, dark = false }: { status: Code['status']; dark?: boolean }) {
   if (status === 'verified') return <span className={`k-status k-status-ok${dark ? ' is-dark' : ''}`}>✓ Vérifié</span>;
@@ -55,7 +56,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
             </div>
 
             {best ? (
-              <TearTicket code={best.code} link={best.creatorLink || tool.website} creator={best.creator} discount={best.discount} tool={tool.name} seal={<ToolSeal tool={tool.slug} name={tool.name} size="lg" />}>
+              <TearTicket code={best.code} codeId={best.id} link={best.creatorLink || tool.website} creator={best.creator} discount={best.discount} tool={tool.name} seal={<ToolSeal tool={tool.slug} name={tool.name} size="lg" />}>
                 <div className="k-ticket-who">
                   <CreatorAvatar name={best.creator} style={{ width: 52, height: 52 }} />
                   <span>
@@ -68,6 +69,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                 <div className="k-ticket-votes">
                   <span style={{ fontSize: 14, fontWeight: 600 }}>{votesLabel(best)}</span>
                   {best.votes >= 3 && <div className="k-meter"><span style={{ width: `${best.success}%` }} /></div>}
+                  <VoteButtons codeId={best.id} code={best.code} />
                 </div>
               </TearTicket>
             ) : (
@@ -85,6 +87,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                   {others.map(code => (
                     <div className="k-coupon-card" key={code.id} data-reveal>
                       <MiniCoupon
+                        codeId={code.id}
                         className="k-row-coupon"
                         code={code.code}
                         link={code.creatorLink || tool.website}
@@ -95,6 +98,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                       <div className="k-coupon-meta">
                         <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}><StatusBadge status={code.status} dark />{votesLabel(code)}</span>
                         <a href={code.source} target="_blank" rel="noopener noreferrer">Source ↗</a>
+                        <VoteButtons codeId={code.id} code={code.code} />
                       </div>
                     </div>
                   ))}

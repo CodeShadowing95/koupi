@@ -39,6 +39,7 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
             return (
               <div className="k-coupon-card" key={code.id} data-reveal>
                 <MiniCoupon
+                  codeId={code.id}
                   className="k-row-coupon"
                   code={code.code}
                   link={code.creatorLink || tool?.website || '#'}

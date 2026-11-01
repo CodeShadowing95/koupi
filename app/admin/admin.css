@@ -17,7 +17,7 @@
   --bad:#A3261C;--bad-bg:#FBE9E7;
   --shadow:4px 4px 0 var(--ink);
   --on-ink:#FFFFFF;--on-blue:#FFFFFF;--badge:#C2410C;
-  --chart-1:#2A78D6;--chart-track:#EEF0F6;--chart-grid:#E7E4DA;
+  --chart-1:#2A78D6;--chart-2:#EB6834;--chart-track:#EEF0F6;--chart-grid:#E7E4DA;
   --st-pending:#8E92A3;--st-test:#E08A00;--st-ok:#0B6B43;--st-rejected:#D6D2C4;
   --rel-low:#E34948;--rel-mid:#EDA100;--rel-high:#0B6B43;
   --font-display:var(--font-bricolage),'Bricolage Grotesque',system-ui,sans-serif;
@@ -330,7 +330,7 @@ a.tool-card:hover{color:var(--ink);border-color:var(--ink);box-shadow:var(--shad
     --line:#2C2C35;--line-strong:#3A3A45;--blue:#8C97FF;--blue-dark:#B4BBFF;--blue-soft:#232850;--coral:#FF8A63;
     --ok:#5DD39E;--ok-bg:#12321F;--warn:#F5B860;--warn-bg:#3A2A0A;--bad:#F28B82;--bad-bg:#3D1A17;
     --shadow:4px 4px 0 #000;--on-ink:#111114;--on-blue:#111114;
-    --chart-1:#3987E5;--chart-track:#2A2A33;--chart-grid:#2C2C35;
+    --chart-1:#3987E5;--chart-2:#D95926;--chart-track:#2A2A33;--chart-grid:#2C2C35;
     --st-pending:#6E7283;--st-test:#C98500;--st-ok:#2EA36F;--st-rejected:#4A4A57;
     --rel-low:#E66767;--rel-mid:#C98500;--rel-high:#2EA36F;
   }
@@ -341,7 +341,7 @@ a.tool-card:hover{color:var(--ink);border-color:var(--ink);box-shadow:var(--shad
   --line:#2C2C35;--line-strong:#3A3A45;--blue:#8C97FF;--blue-dark:#B4BBFF;--blue-soft:#232850;--coral:#FF8A63;
   --ok:#5DD39E;--ok-bg:#12321F;--warn:#F5B860;--warn-bg:#3A2A0A;--bad:#F28B82;--bad-bg:#3D1A17;
   --shadow:4px 4px 0 #000;--on-ink:#111114;--on-blue:#111114;
-  --chart-1:#3987E5;--chart-track:#2A2A33;--chart-grid:#2C2C35;
+  --chart-1:#3987E5;--chart-2:#D95926;--chart-track:#2A2A33;--chart-grid:#2C2C35;
   --st-pending:#6E7283;--st-test:#C98500;--st-ok:#2EA36F;--st-rejected:#4A4A57;
   --rel-low:#E66767;--rel-mid:#C98500;--rel-high:#2EA36F;
 }
@@ -546,3 +546,4 @@ a.tool-card:hover{color:var(--ink);border-color:var(--ink);box-shadow:var(--shad
   .adm-form-grid,.adm-fieldset{grid-template-columns:1fr}
   .adm-status-choice{grid-template-columns:1fr 1fr}
 }
+.adm-mini-n{font-family:var(--font-display);font-size:26px!important;line-height:1.1;margin-bottom:2px}

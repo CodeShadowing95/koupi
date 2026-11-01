@@ -55,6 +55,7 @@ export default async function Home() {
               return (
                 <div className="k-coupon-card" key={code.id} data-reveal>
                   <MiniCoupon
+                    codeId={code.id}
                     key={code.id}
                     code={code.code}
                     link={code.creatorLink || tool?.website || '#'}
