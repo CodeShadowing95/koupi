@@ -8,6 +8,7 @@ import { coverageByCategory, overview, TARGETS, todos } from '@/lib/admin-stats'
 import type { Insights } from '@/lib/admin-insights';
 import type { Audience } from '@/lib/audience';
 import { SUBMISSIONS_CHANGED } from './pending-count';
+import { tipOfDay } from '@/lib/admin-tips';
 
 
 const actionLabel: Record<string, string> = { approved: 'validée', rejected: 'refusée', duplicate: 'marquée en doublon', new: 'remise à traiter' };
@@ -64,6 +65,7 @@ export function DashboardView({ catalog }: { catalog: Catalog }) {
   const coverage = coverageByCategory(catalog.categories);
   const { insights, failed } = useInsights();
   const list = todos(catalog, insights?.pending ?? null);
+  const [tip] = useState(() => tipOfDay());
   const delay = insights?.medianDelayHours ?? null;
   const verifiedOk = (stats.verifiedRate ?? 0) >= TARGETS.verified;
   const coverageOk = (stats.coverage ?? 0) >= TARGETS.coverage;
@@ -83,6 +85,16 @@ export function DashboardView({ catalog }: { catalog: Catalog }) {
             <p>{list.length === 0 ? 'Rien d’urgent aujourd’hui. Profite-en pour chercher de nouveaux créateurs.' : <>Aujourd’hui : <b>{list.length} action{list.length > 1 ? 's' : ''}</b> pour rendre le catalogue plus fiable. Commence par la première, elle a le plus d’impact.</>}</p>
           </div>
         </div>
+
+        {/* Conseil du jour : en haut, pour l'appliquer aux tâches qui suivent. */}
+        <aside className="adm-tip adm-tip-band" aria-labelledby="tip-title">
+          <div>
+            <span>Le conseil du jour</span>
+            <h2 id="tip-title">{tip.title}</h2>
+            <p>{tip.text}</p>
+          </div>
+          <Link href={tip.href}>{tip.cta}</Link>
+        </aside>
 
         <div className="adm-row">
           <section className="adm-panel adm-span-2" aria-labelledby="todo-title" style={{ gap: 0 }}>
@@ -176,8 +188,8 @@ export function DashboardView({ catalog }: { catalog: Catalog }) {
           </section>
         </div>
 
-        <div className="adm-row">
-          <section className="adm-panel adm-span-2" aria-labelledby="activity-title" style={{ gap: 0 }}>
+        <div className="adm-row adm-row-1">
+          <section className="adm-panel" aria-labelledby="activity-title" style={{ gap: 0 }}>
             <div className="adm-panel-head" style={{ marginBottom: 6 }}><h2 id="activity-title">Activité récente</h2><span className="adm-panel-sub">Propositions et codes</span></div>
             {insights?.recent.length ? insights.recent.map(item => (
               <div className="adm-activity" key={item.id}>
@@ -190,12 +202,6 @@ export function DashboardView({ catalog }: { catalog: Catalog }) {
             )) : <p className="adm-panel-sub" style={{ paddingTop: 10, borderTop: '1px solid var(--line)' }}>{insights ? 'Aucune décision pour l’instant.' : 'Chargement…'}</p>}
             <Link href="/admin/propositions" style={{ marginTop: 10, fontSize: 13, fontWeight: 600 }}>Toutes les propositions →</Link>
           </section>
-          <aside className="adm-tip" aria-labelledby="tip-title">
-            <span>Le conseil du jour</span>
-            <h2 id="tip-title">Un code testé vaut mieux que dix codes trouvés.</h2>
-            <p>Les sites de codes promo perdent leurs visiteurs à cause des codes morts. Ta différence, c’est la vérification : 10 minutes de tests par jour suffisent pour faire grimper « Codes vérifiés ».</p>
-            <Link href="/admin/guide">Lire le guide de l’admin →</Link>
-          </aside>
         </div>
       </div>
     </main>
