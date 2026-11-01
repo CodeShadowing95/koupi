@@ -4,6 +4,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { gsap, MOTION_OK, MOTION_REDUCED, SplitText, useGSAP } from '@/lib/gsap';
+import { primeSound } from '@/lib/coupon-sound';
+import { ADMIN_ENTER_EVENT, type CouponOrigin } from '@/components/admin-coupon-tear';
 
 // Codes décoratifs du fond : ils évoquent le catalogue sans en montrer un vrai.
 const ROWS = [
@@ -23,6 +25,14 @@ function errorMessage(status: number) {
   if (status === 429) return 'Trop d’essais. Réessaie dans 15 minutes.';
   if (status === 503) return 'Connexion admin indisponible : configuration ou base de données manquante sur le serveur.';
   return 'Mot de passe incorrect.';
+}
+
+// Centre et rayon du coupon (le « o » du logo) : mesurés sur l'image du logo affichée (1100 × 480).
+function couponOrigin(): CouponOrigin {
+  const logo = [...document.querySelectorAll<HTMLImageElement>('.lp-logo')].find(img => img.getBoundingClientRect().width > 0);
+  if (!logo) return { x: window.innerWidth / 2, y: window.innerHeight / 2, r: 20 };
+  const box = logo.getBoundingClientRect();
+  return { x: box.left + box.width * (417 / 1100), y: box.top + box.height * (258 / 480), r: box.height * (110 / 480) };
 }
 
 export function LoginPortal() {
@@ -89,24 +99,24 @@ export function LoginPortal() {
       .to('.lp-stamp-bad', { autoAlpha: 0, duration: 0.4, delay: 1.1 });
   });
 
-  // Entrée validée : tampon, le talon se détache, le rideau bleu passe, puis l'accueil admin.
+  // Entrée validée : tampon, le talon se détache, puis le coupon du logo prend tout l'écran
+  // et se déchire sur l'accueil admin (AdminCouponTear, dans la coque admin).
   const enter = contextSafe(() => {
     if (window.matchMedia(MOTION_REDUCED).matches) { router.push('/admin'); return; }
     clearRefusal();
-    gsap.timeline({ onComplete: () => router.push('/admin') })
+    gsap.timeline({ onComplete: () => window.dispatchEvent(new CustomEvent<CouponOrigin>(ADMIN_ENTER_EVENT, { detail: couponOrigin() })) })
       .fromTo('.lp-stamp-ok', { autoAlpha: 0, scale: 3, rotate: 8 }, { autoAlpha: 1, scale: 1, rotate: -10, duration: 0.32, ease: 'power4.in' })
       .to('.lp-pass', { scale: 0.97, duration: 0.08, yoyo: true, repeat: 1 }, '>-0.02')
       .to('.lp-stub', { rotate: 22, x: 40, y: 260, autoAlpha: 0, duration: 0.8, ease: 'power2.in', transformOrigin: 'top left' }, '+=0.15')
       .to('.lp-row-track', { timeScale: 4, duration: 0.6 }, '<')
       .to(document.querySelector('.lp-theme'), { autoAlpha: 0, duration: 0.2 }, '<')
-      .fromTo('.lp-curtain', { clipPath: 'circle(0% at 50% 50%)' }, { clipPath: 'circle(150% at 50% 50%)', duration: 0.75, ease: 'power3.inOut' }, '-=0.35')
-      .to('.lp-curtain-text', { duration: 0.6, scrambleText: { text: 'Bienvenue dans la place.', chars: 'KOUPI', speed: 0.8 } }, '-=0.25')
-      .to({}, { duration: 0.35 });
+      .to('.lp-logo', { scale: 1.12, duration: 0.25, yoyo: true, repeat: 1, ease: 'power2.inOut', transformOrigin: '38% 54%' }, '-=0.35');
   });
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (status === 'checking' || status === 'success') return;
+    primeSound(); // geste de l'utilisateur : le son de la déchirure pourra jouer ensuite
     setStatus('checking');
     setError('');
     try {
@@ -184,7 +194,6 @@ export function LoginPortal() {
         <span className="lp-stamp lp-stamp-bad" aria-hidden="true">Refusé</span>
       </section>
 
-      <div className="lp-curtain" aria-hidden="true"><span className="lp-curtain-text" /></div>
     </main>
   );
 }

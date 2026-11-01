@@ -50,8 +50,13 @@ function grain(ctx: AudioContext, out: AudioNode, at: number, duration: number, 
   source.start(at, Math.random() * 0.4, duration + 0.02);
 }
 
-/** Déchirure d'un talon perforé (~0,32 s) suivie du coup de tampon. */
-export function playCouponTear(): void {
+/** Prépare le son pendant un geste de l'utilisateur (clic, Entrée), pour pouvoir le jouer un peu plus tard. */
+export function primeSound(): void {
+  if (isSoundEnabled()) audio();
+}
+
+/** Déchirure d'un talon perforé (~0,32 s) suivie du coup de tampon (sans tampon : { stamp: false }). */
+export function playCouponTear({ stamp = true }: { stamp?: boolean } = {}): void {
   if (!isSoundEnabled()) return;
   const ctx = audio();
   if (!ctx) return;
@@ -73,6 +78,7 @@ export function playCouponTear(): void {
   // 2. Le dernier point de perforation qui lâche.
   grain(ctx, master, now + tearLength, 0.04, 2600, 0.9, 0.9);
 
+  if (!stamp) return;
   // 3. Le tampon « COPIÉ » : un coup sourd et un petit claquement.
   const stampAt = now + tearLength + 0.11;
   const thump = ctx.createOscillator();
