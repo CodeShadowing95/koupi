@@ -1,6 +1,18 @@
 {
+  "abby": {
+    "src": "/logos/abby.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
   "babbel": {
     "src": "/logos/babbel.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "brevo": {
+    "src": "/logos/brevo.png",
     "bg": "#ffffff",
     "kind": "image",
     "source": "Logo.dev"
@@ -17,6 +29,12 @@
     "kind": "glyph",
     "source": "Simple Icons (CC0) : https://elevenlabs.io/brand"
   },
+  "framer": {
+    "src": "/logos/framer.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
   "incogni": {
     "src": "/logos/incogni.png",
     "bg": "#ffffff",
@@ -25,6 +43,12 @@
   },
   "indy": {
     "src": "/logos/indy.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "infomaniak": {
+    "src": "/logos/infomaniak.png",
     "bg": "#ffffff",
     "kind": "image",
     "source": "Logo.dev"
@@ -47,8 +71,38 @@
     "kind": "image",
     "source": "Logo.dev"
   },
+  "pennylane": {
+    "src": "/logos/pennylane.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "planethoster": {
+    "src": "/logos/planethoster.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
   "qonto": {
     "src": "/logos/qonto.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "riverside": {
+    "src": "/logos/riverside.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "runway": {
+    "src": "/logos/runway.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "shine": {
+    "src": "/logos/shine.png",
     "bg": "#ffffff",
     "kind": "image",
     "source": "Logo.dev"
@@ -58,6 +112,12 @@
     "bg": "#7AB55C",
     "kind": "glyph",
     "source": "Simple Icons (CC0) : https://www.shopify.com/brand-assets"
+  },
+  "storyblocks": {
+    "src": "/logos/storyblocks.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
   },
   "surfshark": {
     "src": "/logos/surfshark.svg",
