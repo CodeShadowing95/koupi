@@ -1,12 +1,14 @@
 'use client';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { searchTools, tools } from '@/lib/data';
+import { searchTools, type Tool } from '@/lib/data';
 import { routes } from '@/lib/routes';
 import { plural } from '@/lib/ui';
 import { ToolLogo } from './tool-logo';
 
 type Props = {
+  /** Outils publiés, passés par la page (lus en base côté serveur). */
+  tools: Tool[];
   placeholder?: string;
   autoFocusShortcut?: boolean;
   initial?: string;
@@ -20,7 +22,7 @@ type Props = {
 
 // Barre de recherche façon « palette de commandes » : autocomplétion au clavier (flèches, Entrée, Échap),
 // raccourci « / » pour la rejoindre depuis n'importe où sur la page.
-export function SearchBar({ placeholder = 'Hostinger, NordVPN, ElevenLabs…', autoFocusShortcut = true, initial = '', variant = 'bar', onNavigate, onDismiss }: Props) {
+export function SearchBar({ tools, placeholder = 'Hostinger, NordVPN, ElevenLabs…', autoFocusShortcut = true, initial = '', variant = 'bar', onNavigate, onDismiss }: Props) {
   const router = useRouter();
   const [query, setQuery] = useState(initial);
   const [open, setOpen] = useState(false);
@@ -29,7 +31,7 @@ export function SearchBar({ placeholder = 'Hostinger, NordVPN, ElevenLabs…', a
   const listId = useId();
   const palette = variant === 'palette';
   const typed = query.trim().length >= 1;
-  const suggestions = typed ? searchTools(query).slice(0, palette ? 8 : 6) : palette ? tools.slice(0, 6) : [];
+  const suggestions = typed ? searchTools(tools, query).slice(0, palette ? 8 : 6) : palette ? tools.slice(0, 6) : [];
   const showList = palette || (open && typed);
 
   useEffect(() => {

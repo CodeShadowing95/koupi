@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
 import { SearchBar } from './search-bar';
+import type { Tool } from '@/lib/data';
 
 const Icon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
@@ -12,7 +13,7 @@ const Icon = () => (
  * (<dialog> natif : focus gardé dedans, Échap pour fermer, clic à côté pour fermer).
  * Raccourcis : « / » ou Ctrl/Cmd + K depuis n'importe où sur la page.
  */
-export function SearchDialog({ placeholder = 'Hostinger, NordVPN, ElevenLabs…' }: { placeholder?: string }) {
+export function SearchDialog({ tools, placeholder = 'Hostinger, NordVPN, ElevenLabs…' }: { tools: Tool[]; placeholder?: string }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
   const { contextSafe } = useGSAP({ scope: dialog });
@@ -63,7 +64,7 @@ export function SearchDialog({ placeholder = 'Hostinger, NordVPN, ElevenLabs…'
             <button type="button" className="k-palette-close" onClick={close} aria-label="Fermer la recherche">Échap</button>
           </div>
           {/* Monté seulement à l'ouverture : le champ prend le focus et repart vide à chaque fois. */}
-          {open && <SearchBar variant="palette" autoFocusShortcut={false} placeholder={placeholder} onNavigate={close} onDismiss={close} />}
+          {open && <SearchBar tools={tools} variant="palette" autoFocusShortcut={false} placeholder={placeholder} onNavigate={close} onDismiss={close} />}
           <p className="k-palette-foot"><kbd className="k-kbd">↑</kbd><kbd className="k-kbd">↓</kbd> pour choisir · <kbd className="k-kbd">Entrée</kbd> pour ouvrir</p>
         </div>
       </dialog>

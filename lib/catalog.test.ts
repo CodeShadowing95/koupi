@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { buildCatalog, discountFromExcerpt, parseCsv, statusFromProposal } from '../scripts/build-catalog.mjs';
 import catalog from './catalog.json';
-import { codes, isPublic } from './data';
+import { isPublic } from './data';
 
 const toolsCsv = 'outil,categorie,site,recherche_youtube,priorite\nAbby,Finance et freelance,abby.fr,"Abby code promo",2\nRunway,IA,runwayml.com,"Runway promo",2\nDivi,E-commerce et site,elegantthemes.com,"Divi code promo",2\n';
 const head = 'outil,categorie,code,chaine,titre_video,url_video,date_video,vues,extrait,lien,statut,proposition,raison\n';
@@ -66,6 +66,6 @@ describe('data', () => {
     expect(isPublic({ status: 'to_test' })).toBe(true);
     expect(isPublic({ status: 'pending' })).toBe(false);
     expect(isPublic({ status: 'rejected' })).toBe(false);
-    expect(codes.some(code => code.status === 'rejected')).toBe(true);
+    expect(catalog.codes.some(code => code.status === 'rejected')).toBe(true);
   });
 });

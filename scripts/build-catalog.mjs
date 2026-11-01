@@ -5,7 +5,8 @@
 // - data/candidats-tous.csv : les codes trouvés sur YouTube, avec le premier tri (colonne « proposition »).
 // - data/catalogue-manuel.json : ce qui a été saisi à la main (descriptions d'outils, statut, réduction, votes).
 //
-// Sortie : lib/catalog.json, lu par lib/data.ts (site public et admin).
+// Sortie : lib/catalog.json, lu par les scripts des logos et des avatars.
+// Le site et l'admin lisent la base : `npm run db:import` y ajoute ce qui manque (lib/catalog-import.ts).
 // Usage : npm run catalog
 import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';

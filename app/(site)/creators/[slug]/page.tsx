@@ -1,6 +1,7 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { codes, isPublic, tools } from '@/lib/data';
+import { notFound, permanentRedirect } from 'next/navigation';
+import { isPublic } from '@/lib/data';
+import { getCatalog } from '@/lib/catalog-server';
 import { routes } from '@/lib/routes';
 import { creatorSlug, plural } from '@/lib/ui';
 import { ToolSeal } from '@/components/site/tool-logo';
@@ -9,9 +10,16 @@ import { CreatorAvatar } from '@/components/site/creator-avatar';
 
 export default async function Creator({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const creator = codes.find(code => creatorSlug(code.creator) === slug)?.creator;
-  if (!creator) notFound();
-  const creatorCodes = codes.filter(code => code.creator === creator && isPublic(code));
+  const { codes, tools } = await getCatalog();
+  const match = codes.find(code => code.creatorSlug === slug);
+  if (!match) {
+    // Anciennes adresses (avant le passage en base, le slug gardait accents et tirets en trop).
+    const legacy = codes.find(code => creatorSlug(code.creator) === slug);
+    if (legacy) permanentRedirect(routes.creator(legacy.creatorSlug));
+    notFound();
+  }
+  const creator = match.creator;
+  const creatorCodes = codes.filter(code => code.creatorSlug === match.creatorSlug && isPublic(code));
   return (
     <main className="k-page">
       <div className="k-wrap">

@@ -1,7 +1,7 @@
 'use client';
 import { useRef } from 'react';
 import { gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
-import { codes, tools } from '@/lib/data';
+import type { Code, Tool } from '@/lib/data';
 import { routes } from '@/lib/routes';
 import { SearchDialog } from './search-dialog';
 import { MiniCoupon } from './coupon';
@@ -15,7 +15,7 @@ const Check = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg>
 );
 
-export function Hero() {
+export function Hero({ codes, tools }: { codes: Code[]; tools: Tool[] }) {
   const root = useRef<HTMLElement>(null);
   // Quatre coupons, un par outil, de préférence des outils dont on a le logo. Ils remplacent l'ancienne ligne « Populaires ».
   const onePerTool = codes.filter((code, index, all) => code.status === 'verified' && all.findIndex(other => other.status === 'verified' && other.tool === code.tool) === index);
@@ -90,7 +90,7 @@ export function Hero() {
             <span className="k-line"><span>prends le code.</span></span>
           </h1>
           <p className="k-hero-copy" data-hero-fade>Koupi retrouve le code promo que <strong>ton créateur préféré</strong> a donné en vidéo. Vérifié à la main, crédité au créateur. Pas de compte, pas de pub.</p>
-          <div className="k-hero-search" data-hero-fade><SearchDialog /></div>
+          <div className="k-hero-search" data-hero-fade><SearchDialog tools={tools} /></div>
           <div className="k-trust" data-hero-fade>
             <span><Check />Le code reste celui du créateur</span>
             <span><Check />Testé et daté</span>

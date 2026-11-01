@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { findTool, isPublic, toolCodes, type Code } from '@/lib/data';
+import { isPublic, type Code } from '@/lib/data';
+import { getCatalog } from '@/lib/catalog-server';
 import { routes } from '@/lib/routes';
-import { creatorSlug } from '@/lib/ui';
 import { MiniCoupon, TearTicket } from '@/components/site/coupon';
 import { ToolSeal } from '@/components/site/tool-logo';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
@@ -18,15 +18,16 @@ function votesLabel(code: Code) {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const tool = findTool(slug);
+  const tool = (await getCatalog()).tools.find(item => item.slug === slug);
   return tool ? { title: `Code promo ${tool.name} · Koupi` } : {};
 }
 
 export default async function ToolPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const tool = findTool(slug);
+  const { tools, codes } = await getCatalog();
+  const tool = tools.find(item => item.slug === slug);
   if (!tool) notFound();
-  const active = toolCodes(tool.name).filter(isPublic);
+  const active = codes.filter(code => code.toolSlug === tool.slug && isPublic(code));
   const sorted = [...active].sort((a, b) => (a.status === 'verified' ? 0 : 1) - (b.status === 'verified' ? 0 : 1) || b.success - a.success);
   const [best, ...others] = sorted;
 
@@ -58,7 +59,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                 <div className="k-ticket-who">
                   <CreatorAvatar name={best.creator} style={{ width: 52, height: 52 }} />
                   <span>
-                    <strong><Link href={routes.creator(creatorSlug(best.creator))}>{best.creator}</Link></strong>
+                    <strong><Link href={routes.creator(best.creatorSlug)}>{best.creator}</Link></strong>
                     <span>l&apos;a donné dans « {best.sourceTitle} » · <a href={best.source} target="_blank" rel="noopener noreferrer">voir la vidéo ↗</a></span>
                   </span>
                 </div>

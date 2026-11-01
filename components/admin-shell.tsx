@@ -5,8 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { PendingBadge } from '@/app/admin/pending-count';
 import { ThemeToggle } from '@/components/admin-theme';
-import { statusCounts } from '@/lib/admin-stats';
-import { codes } from '@/lib/data';
 
 type Item = { href: string; label: string; icon: React.ReactNode; badge?: React.ReactNode };
 
@@ -21,9 +19,8 @@ const icons = {
   logout: icon(<><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4" /><path d="M10 16l-4-4 4-4" /><path d="M6 12h10" /></>),
 };
 
-const toTest = statusCounts(codes).to_test;
-
-const groups: { label: string; items: Item[] }[] = [
+function navGroups(toTest: number): { label: string; items: Item[] }[] {
+  return [
   { label: 'Pilotage', items: [
     { href: '/admin', label: 'Accueil', icon: icons.home },
     { href: '/admin/stats', label: 'Statistiques', icon: icons.stats },
@@ -35,9 +32,10 @@ const groups: { label: string; items: Item[] }[] = [
   { label: 'Apprendre', items: [
     { href: '/admin/guide', label: 'Guide de l’admin', icon: icons.book },
   ] },
-];
+  ];
+}
 
-const titles: Record<string, string> = Object.fromEntries(groups.flatMap(group => group.items.map(item => [item.href, item.label])));
+const titles: Record<string, string> = Object.fromEntries(navGroups(0).flatMap(group => group.items.map(item => [item.href, item.label])));
 
 function isActive(pathname: string, href: string) {
   return href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
@@ -54,8 +52,10 @@ function Logo() {
   );
 }
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
+/** toTest : nombre de codes à tester, lu en base par le layout (badge du menu Codes). */
+export function AdminShell({ children, toTest = 0 }: { children: React.ReactNode; toTest?: number }) {
   const pathname = usePathname();
+  const groups = navGroups(toTest);
   if (pathname.startsWith('/admin/login')) {
     return (
       <>
