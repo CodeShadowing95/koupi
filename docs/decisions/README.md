@@ -14,5 +14,6 @@ Chaque décision importante est notée ici dans un fichier numéroté. On ne sup
 | [0008](0008-chartjs-admin.md) | Chart.js pour les graphiques du back-office | Proposée |
 | [0009](0009-catalogue-en-base.md) | Outils, créateurs et codes stockés dans Neon | Proposée |
 | [0010](0010-audience-anonyme.md) | Votes et mesure d'audience anonymes, dans notre base | Proposée |
+| [0011](0011-processus-de-release.md) | Releases par PR de release, version calculée depuis les commits | Proposée |
 
 Modèle : copier [`template.md`](template.md).

@@ -13,6 +13,8 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "db:import": "tsx scripts/import-catalog.ts",
     "logos": "node --env-file-if-exists=.env.local scripts/fetch-logos.mjs",
+    "release": "node scripts/release.mjs",
+    "bump": "node scripts/release.mjs",
     "catalog": "node scripts/build-catalog.mjs",
     "avatars": "node --env-file-if-exists=.env.local scripts/fetch-avatars.mjs"
   },

@@ -20,6 +20,8 @@ Site web qui réunit les codes promo donnés par les créateurs (YouTube, podcas
 - Importer dans la base les outils et codes de `data/` qui n'y sont pas encore : `npm run db:import` (n'écrase jamais une ligne existante, lancé aussi à chaque déploiement)
 - Appliquer les migrations : `npm run db:migrate` (besoin de `DATABASE_URL`). Sur Vercel, elles sont appliquées automatiquement avant chaque build (`buildCommand` dans `vercel.json`, voir ADR-0005).
 
+- Préparer une mise en production : `npm run release` (alias `npm run bump`, `-- --dry-run` pour voir sans rien changer). Voir `docs/release.md`.
+
 Avant chaque commit : `npm run typecheck && npm test && npm run build` doivent passer. La CI (`.github/workflows/ci.yml`) refait ces vérifications sur chaque PR.
 
 ## Organisation du code
@@ -35,7 +37,7 @@ Avant chaque commit : `npm run typecheck && npm test && npm run build` doivent p
 
 ## Façon de travailler
 
-- **Branches** : on part de `develop`. Chaque branche s'appelle `dev-<sujet>` (ex. `dev-votes`). La PR vise `develop`, jamais `main`. `develop` est fusionnée dans `main` pour les mises en production.
+- **Branches** : on part de `develop`. Chaque branche s'appelle `dev-<sujet>` (ex. `dev-votes`). La PR vise `develop`, jamais `main`. `develop` part en production par une PR de release vers `main` (merge commit, jamais squash), préparée par `npm run release` (voir `docs/release.md`).
 - **Titres de PR et commits** : strictement `<type>(<scope>): <description>`, en anglais, ex. `feat(votes): add vote buttons`. Le scope est obligatoire. Pas de préfixe de branche dans le titre. Un changement cassant prend un `!` (`feat(api)!: …`).
 - **Types** (pour les commits et les PR) :
 
