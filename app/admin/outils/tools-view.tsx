@@ -10,6 +10,7 @@ import { FormDialog, sendJson } from '@/components/admin-form-dialog';
 import { AdminSelect } from '@/components/admin-select';
 import { InfoTip } from '@/components/admin-info-tip';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
+import { AdminToolName } from '@/components/admin-tool-logo';
 
 type Filter = 'all' | 'published' | 'empty' | 'archived';
 const filters: { value: Filter; label: string }[] = [
@@ -91,7 +92,7 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
               <tbody>
                 {current.items.map(tool => (
                   <tr key={tool.id}>
-                    <td className="adm-cell-nowrap"><b>{tool.name}</b></td>
+                    <td className="adm-cell-nowrap"><AdminToolName slug={tool.slug} name={tool.name} /></td>
                     <td className="adm-cell-wrap">{tool.category}</td>
                     <td className="adm-cell-nowrap">{codesLink(tool)}</td>
                     <td className="adm-cell-muted">{tool.priority}</td>
@@ -106,7 +107,7 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
           <div className="adm-grid adm-page-enter" key={`grid-${current.page}`}>
             {current.items.map(tool => (
               <article className="adm-card" key={tool.id}>
-                <div className="adm-card-top"><b>{tool.name}</b>{status(tool)}</div>
+                <div className="adm-card-top"><AdminToolName slug={tool.slug} name={tool.name} />{status(tool)}</div>
                 <h3>{tool.category}</h3>
                 <p>Codes : {codesLink(tool)} · priorité {tool.priority}</p>
                 {tool.description && <p className="adm-note">{tool.description}</p>}
