@@ -449,6 +449,9 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-palette-close:hover{color:#fff;border-color:var(--blue-soft)}
 .k-palette .k-search{max-width:none}
 .k-suggest.is-inline{position:static;margin-top:10px;max-height:min(52vh,440px);overflow:auto;box-shadow:none;backdrop-filter:none;background:transparent;border:0;padding:0}
+/* Pas de barre de défilement visible : la liste défile à la molette, au doigt ou aux flèches, et un fondu en bas montre qu'il y a la suite. */
+.k-suggest.is-inline{scrollbar-width:none;-webkit-mask:linear-gradient(#000 calc(100% - 36px),transparent);mask:linear-gradient(#000 calc(100% - 36px),transparent);padding-bottom:36px;scroll-padding-bottom:40px}
+.k-suggest.is-inline::-webkit-scrollbar{display:none}
 .k-suggest-head{padding:6px 12px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);cursor:default}
 .k-suggest-head:hover{background:none!important}
 .k-palette-foot{margin:0;padding:10px 4px 0;border-top:1px solid var(--line);font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
