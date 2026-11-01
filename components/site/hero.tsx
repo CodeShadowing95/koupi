@@ -46,7 +46,7 @@ export function Hero() {
         cycle
           .to(rotator ?? {}, { width: () => next.offsetWidth, duration: 0.6, ease: 'power3.inOut' }, '+=1.7')
           .to(word, { yPercent: -110, opacity: 0, duration: 0.5, ease: 'power3.in' }, '<')
-          .fromTo(next, { yPercent: 110, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.6, ease: 'power3.out' }, '<0.25');
+          .fromTo(next, { yPercent: 110, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.6, ease: 'power3.out', immediateRender: false }, '<0.25');
       });
 
       // Les coupons flottent doucement…

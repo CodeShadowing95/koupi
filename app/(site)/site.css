@@ -139,6 +139,7 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-hero h1 .k-line>span{display:inline-block}
 .k-rotator{position:relative;display:inline-grid;vertical-align:bottom;color:var(--blue-soft);font-style:normal}
 .k-rotator>span{grid-area:1/1;white-space:nowrap;justify-self:start}
+.k-rotator>span:not(:first-child){opacity:0}
 .k-rotator::after{content:"";position:absolute;left:0;right:0;bottom:.02em;height:.09em;background:repeating-linear-gradient(90deg,var(--coral) 0 .22em,transparent .22em .34em);border-radius:2px}
 .k-hero-copy{font-size:19px;line-height:1.55;color:var(--text-soft);max-width:540px}
 .k-hero-copy strong{color:#fff;font-weight:600}
