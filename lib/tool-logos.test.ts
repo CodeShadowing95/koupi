@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { sealText, toolLogo, usesLogoDev } from './tool-logos';
+import { sealText, toolLogo, usesLogoDev, withLogosFirst } from './tool-logos';
 import manifest from './tool-logos.json';
 
 describe('toolLogo', () => {
@@ -29,5 +29,12 @@ describe('usesLogoDev', () => {
   it('suit la source des logos enregistrés', () => {
     const fromLogoDev = Object.values(manifest as Record<string, { source?: string }>).some(logo => logo.source === 'Logo.dev');
     expect(usesLogoDev()).toBe(fromLogoDev);
+  });
+});
+
+describe('withLogosFirst', () => {
+  it("place d'abord les outils qui ont un logo, en gardant l'ordre", () => {
+    const items = ['outil-inconnu', 'NordVPN', 'autre-inconnu', 'Shopify'];
+    expect(withLogosFirst(items, name => name)).toEqual(['NordVPN', 'Shopify', 'outil-inconnu', 'autre-inconnu']);
   });
 });

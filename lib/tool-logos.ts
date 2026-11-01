@@ -19,6 +19,12 @@ export function usesLogoDev(): boolean {
   return Object.values(logos).some(logo => logo.source === 'Logo.dev');
 }
 
+/** Met en premier les éléments dont l'outil a un vrai logo, sans changer l'ordre à l'intérieur de chaque groupe. */
+export function withLogosFirst<T>(items: T[], toolOf: (item: T) => string): T[] {
+  const withLogo = items.filter(item => toolLogo(toolOf(item)));
+  return [...withLogo, ...items.filter(item => !withLogo.includes(item))];
+}
+
 /** Le texte qui tourne autour du sceau : le nom répété jusqu'à faire le tour. */
 export function sealText(name: string, minLength = 26): string {
   const unit = `${name.toUpperCase()} · CODE CRÉATEUR · `;
