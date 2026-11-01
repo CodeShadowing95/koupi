@@ -45,6 +45,12 @@ export function SearchBar({ placeholder = 'Hostinger, NordVPN, ElevenLabs…', a
     return () => window.removeEventListener('keydown', onKey);
   }, [autoFocusShortcut]);
 
+  // Sans barre de défilement visible, l'outil choisi aux flèches doit rester à l'écran.
+  useEffect(() => {
+    if (!palette) return;
+    document.getElementById(`${listId}-${active}`)?.scrollIntoView({ block: 'nearest' });
+  }, [active, palette, listId]);
+
   function go(index: number) {
     const tool = suggestions[index];
     if (tool) router.push(routes.tool(tool.slug));
