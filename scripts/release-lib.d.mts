@@ -17,3 +17,4 @@ export const CHANGELOG_HEADER: string;
 export function prependSection(changelog: string | null | undefined, section: string): string;
 export function extractSection(changelog: string, version: string): string | null;
 export function repoUrlFromRemote(remote: string, fallback: string): string;
+export function updateReadmeVersion(readme: string, version: string): string;

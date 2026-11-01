@@ -11,7 +11,7 @@ Une release passe par deux PR : une vers `develop` qui fixe la version et le cha
    npm run release                # ou npm run bump
    ```
 
-   Le script récupère `origin/develop`, lit les commits depuis le dernier tag `vX.Y.Z`, calcule la nouvelle version, met à jour `package.json`, `package-lock.json` et `CHANGELOG.md` sur une branche `dev-release-vX.Y.Z`, commite `chore(release): vX.Y.Z`, pousse et ouvre la PR vers `develop` (avec `gh` si il est installé et connecté, sinon il affiche le lien pour l'ouvrir).
+   Le script récupère `origin/develop`, lit les commits depuis le dernier tag `vX.Y.Z`, calcule la nouvelle version, met à jour `package.json`, `package-lock.json`, la version affichée dans `README.md` et `CHANGELOG.md` sur une branche `dev-release-vX.Y.Z`, commite `chore(release): vX.Y.Z`, pousse et ouvre la PR vers `develop` (avec `gh` si il est installé et connecté, sinon il affiche le lien pour l'ouvrir).
 2. **Relire et merger la PR vers `develop`** : relis le changelog, la CI doit être verte. `develop` est déployée en Preview sur Vercel : c'est la recette.
 3. **PR de release** : l'Action `Release PR` (`.github/workflows/release-pr.yml`) ouvre toute seule la PR `chore(release): vX.Y.Z` de `develop` vers `main`, avec les notes de version. Si d'autres corrections arrivent sur `develop` avant le merge, elles partent avec.
 4. **Mettre en production** : merge la PR de release avec **Create a merge commit**, jamais Squash ni Rebase. Un squash casse l'historique commun de `develop` et `main`, et la release suivante affiche de faux conflits.

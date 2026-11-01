@@ -8,6 +8,7 @@ import {
   releaseLevel,
   renderSection,
   repoUrlFromRemote,
+  updateReadmeVersion,
   CHANGELOG_HEADER,
   type Commit,
 } from '../scripts/release-lib.mjs';
@@ -113,5 +114,19 @@ describe('repoUrlFromRemote', () => {
     expect(repoUrlFromRemote('git@github.com:CodeShadowing95/koupi.git', 'x')).toBe(repoUrl);
     expect(repoUrlFromRemote('https://github.com/CodeShadowing95/koupi', 'x')).toBe(repoUrl);
     expect(repoUrlFromRemote('http://proxy/local/koupi', 'fallback')).toBe('fallback');
+  });
+});
+
+describe('updateReadmeVersion', () => {
+  it('updates the badge and the marked text, nothing else', () => {
+    const readme = [
+      '[![Version](https://img.shields.io/badge/version-0.1.0-2f3fe0)](CHANGELOG.md)',
+      '**Version actuelle : <!-- koupi:version -->0.1.0<!-- /koupi:version -->**',
+      'Node.js 22, Next.js 15.5, exemple 0.1.0',
+    ].join('\n');
+    const out = updateReadmeVersion(readme, '0.2.0');
+    expect(out).toContain('badge/version-0.2.0-2f3fe0');
+    expect(out).toContain('<!-- koupi:version -->0.2.0<!-- /koupi:version -->');
+    expect(out).toContain('exemple 0.1.0');
   });
 });

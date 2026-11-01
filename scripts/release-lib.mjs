@@ -101,3 +101,10 @@ export function repoUrlFromRemote(remote, fallback) {
   const match = /github\.com[/:]([^/]+)\/([^/]+?)(?:\.git)?\/?$/.exec(remote.trim());
   return match ? `https://github.com/${match[1]}/${match[2]}` : fallback;
 }
+
+/** Writes the version into the README: the version badge and the text between the koupi:version markers. */
+export function updateReadmeVersion(readme, version) {
+  return readme
+    .replace(/(img\.shields\.io\/badge\/version-)\d+\.\d+\.\d+(-)/g, `$1${version}$2`)
+    .replace(/(<!-- koupi:version -->)[^<]*(<!-- \/koupi:version -->)/g, `$1${version}$2`);
+}
