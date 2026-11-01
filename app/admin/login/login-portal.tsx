@@ -99,7 +99,7 @@ export function LoginPortal() {
       .to('.lp-stamp-bad', { autoAlpha: 0, duration: 0.4, delay: 1.1 });
   });
 
-  // Entrée validée : tampon, le talon se détache, puis le coupon du logo prend tout l'écran
+  // Entrée validée : tampon, puis le coupon du logo prend tout l'écran
   // et se déchire sur l'accueil admin (AdminCouponTear, dans la coque admin).
   const enter = contextSafe(() => {
     if (window.matchMedia(MOTION_REDUCED).matches) { router.push('/admin'); return; }
@@ -107,10 +107,9 @@ export function LoginPortal() {
     gsap.timeline({ onComplete: () => window.dispatchEvent(new CustomEvent<CouponOrigin>(ADMIN_ENTER_EVENT, { detail: couponOrigin() })) })
       .fromTo('.lp-stamp-ok', { autoAlpha: 0, scale: 3, rotate: 8 }, { autoAlpha: 1, scale: 1, rotate: -10, duration: 0.32, ease: 'power4.in' })
       .to('.lp-pass', { scale: 0.97, duration: 0.08, yoyo: true, repeat: 1 }, '>-0.02')
-      .to('.lp-stub', { rotate: 22, x: 40, y: 260, autoAlpha: 0, duration: 0.8, ease: 'power2.in', transformOrigin: 'top left' }, '+=0.15')
-      .to('.lp-row-track', { timeScale: 4, duration: 0.6 }, '<')
+      .to('.lp-row-track', { timeScale: 4, duration: 0.6 }, '+=0.1')
       .to(document.querySelector('.lp-theme'), { autoAlpha: 0, duration: 0.2 }, '<')
-      .to('.lp-logo', { scale: 1.12, duration: 0.25, yoyo: true, repeat: 1, ease: 'power2.inOut', transformOrigin: '38% 54%' }, '-=0.35');
+      .to('.lp-logo', { scale: 1.12, duration: 0.25, yoyo: true, repeat: 1, ease: 'power2.inOut', transformOrigin: '38% 54%' }, '<0.1');
   });
 
   async function submit(event: React.FormEvent) {

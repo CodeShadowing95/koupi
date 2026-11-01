@@ -659,6 +659,8 @@ a.adm-btn{display:inline-flex;align-items:center;text-decoration:none}
 @media(prefers-reduced-motion:reduce){.lp-submit,.lp-submit svg,.lp-field{transition:none}}
 
 /* Passage connexion → accueil : le coupon du logo couvre l'écran puis se déchire (admin-coupon-tear.tsx). */
+/* Pendant le passage, aucune barre de défilement ne passe par-dessus le coupon. */
+html:has(> body > .ct){overflow:hidden}
 .ct{position:fixed;left:0;top:0;z-index:80;visibility:hidden;opacity:0;pointer-events:none;transform-origin:50% 50%}
 .ct[data-phase]{visibility:visible;opacity:1}
 .ct[data-phase="growing"],.ct[data-phase="covered"]{pointer-events:auto}
