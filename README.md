@@ -10,7 +10,7 @@
 Les codes promo que les créateurs donnent en vidéo, réunis au même endroit,<br>
 reliés à leur source, crédités à leur créateur et testés par la communauté.
 
-[![Version](https://img.shields.io/badge/version-0.1.0-2f3fe0)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.2.0-2f3fe0)](CHANGELOG.md)
 [![CI](https://github.com/CodeShadowing95/koupi/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/CodeShadowing95/koupi/actions/workflows/ci.yml)
 [![Next.js](https://img.shields.io/badge/Next.js-15.5-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
@@ -32,7 +32,7 @@ Avant de payer un abonnement à un outil en ligne (hébergement, VPN, IA, logici
 
 Koupi part de la source : chaque code est rattaché à la vidéo ou au post qui l'a donné, crédite le créateur qui l'a négocié, et affiche son taux de réussite selon les votes des visiteurs. Pas de compte, pas de publicité.
 
-**Version actuelle : <!-- koupi:version -->0.1.0<!-- /koupi:version -->** · voir le [changelog](CHANGELOG.md) · statut : V0 en préparation, pas encore ouverte au public.
+**Version actuelle : <!-- koupi:version -->0.2.0<!-- /koupi:version -->** · voir le [changelog](CHANGELOG.md) · statut : V0 en préparation, pas encore ouverte au public.
 
 ## Fonctionnalités
 
