@@ -8,6 +8,7 @@ import { matchesSearch } from '@/lib/admin-search';
 import { RETEST_DAYS, staleCodes } from '@/lib/admin-stats';
 import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { Pagination, usePagination } from '@/components/admin-pagination';
+import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
 
 const statusLabel: Record<Code['status'], { label: string; className: string }> = {
   verified: { label: 'Vérifié', className: 'adm-pill adm-pill-ok' },
@@ -21,6 +22,15 @@ const filters: { value: Filter; label: string }[] = [
 ];
 const matchesFilter = (code: Code, filter: Filter, stale: Set<string>) => filter === 'archived' ? Boolean(code.archived) : filter === 'retest' ? stale.has(code.id) : !code.archived && (filter === 'all' || code.status === filter);
 const testedLabel = (iso: string | null) => iso ? `Testé le ${new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}` : 'Jamais testé';
+const sortFields: SortField<Code>[] = [
+  { key: 'created', label: 'Date d’ajout', value: code => code.createdAt },
+  { key: 'code', label: 'Code', value: code => code.code, text: true },
+  { key: 'tool', label: 'Outil', value: code => code.tool, text: true },
+  { key: 'creator', label: 'Créateur', value: code => code.creator, text: true },
+  { key: 'votes', label: 'Votes', value: code => code.votes },
+  { key: 'success', label: 'Réussite', value: code => code.success },
+  { key: 'tested', label: 'Dernier test', value: code => code.lastTestedAt },
+];
 const isFilter = (value: string | null): value is Filter => filters.some(filter => filter.value === value);
 
 export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: ToolOption[]; categories: Category[] }) {
@@ -53,8 +63,10 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
     if (isFilter(fromUrl)) setStatus(fromUrl);
     if (params.get('q')) setQuery(params.get('q') ?? '');
   }, []);
-  const visible = codes.filter(code => matchesFilter(code, status, stale) && matchesSearch([code.code, code.tool, code.creator, code.discount, code.sourceTitle, code.note ?? ''], query));
-  const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${status}|${query}`);
+  const filtered = codes.filter(code => matchesFilter(code, status, stale) && matchesSearch([code.code, code.tool, code.creator, code.discount, code.sourceTitle, code.note ?? ''], query));
+  const sort = useAdminSort(filtered, sortFields, 'tool');
+  const visible = sort.items;
+  const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${status}|${query}|${sort.resetKey}`);
   return (
     <main className="adm-page">
       <div className="container">
@@ -73,15 +85,17 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
         <div className="adm-toolbar">
           <label htmlFor="code-search" className="sr-only">Rechercher un code</label>
           <input id="code-search" className="adm-search" type="search" placeholder="Rechercher un code, un outil, un créateur…" value={query} onChange={event => setQuery(event.target.value)} />
+          {view !== 'table' && <SortControl sort={sort} id="code-sort" />}
           <span className="adm-count" role="status">{visible.length} sur {countOf(status)}</span>
           <ViewToggle view={view} onChange={setView} />
         </div>
+        <LetterBar sort={sort} />
         <div ref={topRef} className="adm-list-top" />
         {visible.length === 0 ? <div className="adm-empty">Aucun code ne correspond à cette recherche.</div> : view === 'table' ? (
           <div className="adm-table-wrap adm-page-enter" key={`table-${current.page}`}>
             <table className="adm-table">
               <thead>
-                <tr><th scope="col">Code</th><th scope="col">Outil</th><th scope="col">Réduction</th><th scope="col">Créateur</th><th scope="col">Votes</th><th scope="col">Réussite</th><th scope="col">Statut</th><th scope="col">Test</th><th scope="col"><span className="sr-only">Actions</span></th></tr>
+                <tr><SortHeader sort={sort} field="code">Code</SortHeader><SortHeader sort={sort} field="tool">Outil</SortHeader><th scope="col">Réduction</th><SortHeader sort={sort} field="creator">Créateur</SortHeader><SortHeader sort={sort} field="votes">Votes</SortHeader><SortHeader sort={sort} field="success">Réussite</SortHeader><th scope="col">Statut</th><SortHeader sort={sort} field="tested">Test</SortHeader><th scope="col"><span className="sr-only">Actions</span></th></tr>
               </thead>
               <tbody>
                 {current.items.map(code => (

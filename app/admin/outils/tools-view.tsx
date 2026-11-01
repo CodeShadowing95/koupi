@@ -9,6 +9,7 @@ import { Pagination, usePagination } from '@/components/admin-pagination';
 import { FormDialog, sendJson } from '@/components/admin-form-dialog';
 import { AdminSelect } from '@/components/admin-select';
 import { InfoTip } from '@/components/admin-info-tip';
+import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
 
 type Filter = 'all' | 'published' | 'empty' | 'archived';
 const filters: { value: Filter; label: string }[] = [
@@ -16,6 +17,13 @@ const filters: { value: Filter; label: string }[] = [
 ];
 const matches = (tool: AdminTool, filter: Filter) => filter === 'archived' ? tool.archived : !tool.archived && (filter === 'all' || (filter === 'published' ? tool.visible > 0 : tool.visible === 0));
 const priorityLabel: Record<number, string> = { 1: '1 · haute', 2: '2', 3: '3 · normale', 4: '4', 5: '5 · basse' };
+
+const sortFields: SortField<AdminTool>[] = [
+  { key: 'priority', label: 'Priorité', value: tool => tool.priority },
+  { key: 'name', label: 'Nom', value: tool => tool.name, text: true },
+  { key: 'category', label: 'Catégorie', value: tool => tool.category, text: true },
+  { key: 'codes', label: 'Nombre de codes', value: tool => tool.codes },
+];
 
 type Form = { name: string; categorySlug: string; website: string; description: string; priority: number };
 
@@ -28,8 +36,10 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
   const [view, setView] = useAdminView();
   const [editing, setEditing] = useState<AdminTool | 'new' | null>(null);
   const [form, setForm] = useState<Form>({ name: '', categorySlug: categories[0]?.slug ?? '', website: '', description: '', priority: 3 });
-  const visible = tools.filter(tool => matches(tool, filter) && matchesSearch([tool.name, tool.category, tool.website, tool.description], query));
-  const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${filter}|${query}`);
+  const filtered = tools.filter(tool => matches(tool, filter) && matchesSearch([tool.name, tool.category, tool.website, tool.description], query));
+  const sort = useAdminSort(filtered, sortFields, 'name');
+  const visible = sort.items;
+  const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${filter}|${query}|${sort.resetKey}`);
   const countOf = (value: Filter) => tools.filter(tool => matches(tool, value)).length;
 
   function open(target: AdminTool | 'new') {
@@ -68,14 +78,16 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
         <div className="adm-toolbar">
           <label htmlFor="tool-search" className="sr-only">Rechercher un outil</label>
           <input id="tool-search" className="adm-search" type="search" placeholder="Rechercher un outil, une catégorie…" value={query} onChange={event => setQuery(event.target.value)} />
+          {view !== 'table' && <SortControl sort={sort} id="tool-sort" />}
           <span className="adm-count" role="status">{visible.length} sur {countOf(filter)}</span>
           <ViewToggle view={view} onChange={setView} />
         </div>
+        <LetterBar sort={sort} />
         <div ref={topRef} className="adm-list-top" />
         {visible.length === 0 ? <div className="adm-empty">Aucun outil ne correspond.</div> : view === 'table' ? (
           <div className="adm-table-wrap adm-page-enter" key={`table-${current.page}`}>
             <table className="adm-table">
-              <thead><tr><th scope="col">Outil</th><th scope="col">Catégorie</th><th scope="col">Codes</th><th scope="col">Priorité</th><th scope="col">Statut</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
+              <thead><tr><SortHeader sort={sort} field="name">Outil</SortHeader><SortHeader sort={sort} field="category">Catégorie</SortHeader><SortHeader sort={sort} field="codes">Codes</SortHeader><SortHeader sort={sort} field="priority">Priorité</SortHeader><th scope="col">Statut</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
               <tbody>
                 {current.items.map(tool => (
                   <tr key={tool.id}>
