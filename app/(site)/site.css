@@ -146,12 +146,13 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-trust{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:14px;color:var(--muted)}
 .k-trust span{display:inline-flex;align-items:center;gap:8px}
 .k-trust svg{color:var(--mint)}
-.k-hero-stage{position:relative;height:520px;perspective:1400px}
+.k-hero-stage{position:relative;height:580px;perspective:1400px}
 .k-hero-stack{position:absolute;inset:0;transform-style:preserve-3d}
 .k-float{position:absolute;width:min(430px,100%);will-change:transform}
-.k-float-1{top:30px;left:4%;transform:rotate(-6deg)}
-.k-float-2{top:190px;right:0;transform:rotate(4deg)}
-.k-float-3{top:350px;left:10%;transform:rotate(-2deg)}
+.k-float-1{top:0;left:4%;transform:rotate(-6deg)}
+.k-float-2{top:130px;right:0;transform:rotate(4deg)}
+.k-float-3{top:260px;left:8%;transform:rotate(-2deg)}
+.k-float-4{top:390px;right:4%;transform:rotate(3deg)}
 .k-stage-badge{position:absolute;z-index:3;right:2%;bottom:0;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;background:rgba(13,15,43,.8);border:1px solid var(--line-2);backdrop-filter:blur(10px);font-size:13px;color:var(--text-soft)}
 .k-stage-badge strong{color:#fff;font-size:15px}
 
@@ -368,7 +369,7 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 
 @media(max-width:1020px){
   .k-hero-grid,.k-tool-layout,.k-split,.k-cta{grid-template-columns:1fr}
-  .k-hero-stage{height:460px;max-width:560px}
+  .k-hero-stage{height:540px;max-width:560px}
   .k-aside{position:static}
   .k-bento{grid-template-columns:repeat(2,minmax(0,1fr))}
   .k-tile-a,.k-tile-b,.k-tile-c,.k-tile-d,.k-tile-e{grid-column:span 2;grid-row:auto}
@@ -384,7 +385,15 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
   .k-nav-link{display:none}
   .k-header .k-btn{display:none}
   .k-hero{padding:24px 0 80px}
-  .k-hero-stage{height:420px}
+  .k-hero-stage{height:610px}
+  .k-hero-grid>*{min-width:0}
+  .k-float{width:calc(100% - 16px)}
+  .k-float-1,.k-float-3{left:0}
+  .k-float-2,.k-float-4{right:0}
+  .k-float-2{top:140px}.k-float-3{top:280px}.k-float-4{top:420px}
+  .k-hero-stack .k-seal{--seal:54px}
+  .k-hero-stack .k-coupon-stub{min-width:104px;padding:12px}
+  .k-stage-badge{bottom:-12px}
   .k-section{padding:84px 0}
   .k-ticket{grid-template-columns:1fr}
   .k-ticket-main{border-radius:22px 22px 0 0;-webkit-mask:radial-gradient(circle at 50% 100%,#0000 4px,#000 4.5px) bottom/15px 100% repeat-x;mask:radial-gradient(circle at 50% 100%,#0000 4px,#000 4.5px) bottom/15px 100% repeat-x}

@@ -1,5 +1,4 @@
 'use client';
-import Link from 'next/link';
 import { useRef } from 'react';
 import { gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
 import { codes, tools } from '@/lib/data';
@@ -17,8 +16,9 @@ const Check = () => (
 
 export function Hero() {
   const root = useRef<HTMLElement>(null);
-  // Le hero montre de préférence des outils dont on a le logo.
-  const latest = withLogosFirst(codes.filter(code => code.status === 'verified'), code => code.tool).slice(0, 3);
+  // Quatre coupons, un par outil, de préférence des outils dont on a le logo. Ils remplacent l'ancienne ligne « Populaires ».
+  const onePerTool = codes.filter((code, index, all) => code.status === 'verified' && all.findIndex(other => other.status === 'verified' && other.tool === code.tool) === index);
+  const latest = withLogosFirst(onePerTool, code => code.tool).slice(0, 4);
   const slugOf = (name: string) => tools.find(tool => tool.name === name)?.slug ?? '';
   const verified = codes.filter(code => code.status === 'verified');
   const verifiedCount = verified.length;
@@ -32,7 +32,7 @@ export function Hero() {
       intro
         .from('.k-line > span', { yPercent: 110, duration: 1, stagger: 0.1 })
         .from('[data-hero-fade]', { y: 24, opacity: 0, duration: 0.8, stagger: 0.08 }, '-=0.6')
-        .from('.k-float', { y: 120, opacity: 0, rotation: (i: number) => [-16, 12, -10][i] ?? 0, duration: 1.1, stagger: 0.12, ease: 'expo.out' }, 0.25)
+        .from('.k-float', { y: 120, opacity: 0, rotation: (i: number) => [-16, 12, -10, 14][i] ?? 0, duration: 1.1, stagger: 0.12, ease: 'expo.out' }, 0.25)
         .from('.k-stage-badge', { scale: 0.6, opacity: 0, duration: 0.6, ease: 'back.out(2)' }, '-=0.5');
 
       // Le nom de l'outil change dans le titre.
@@ -90,10 +90,6 @@ export function Hero() {
           </h1>
           <p className="k-hero-copy" data-hero-fade>Koupi retrouve le code promo que <strong>ton créateur préféré</strong> a donné en vidéo. Vérifié à la main, crédité au créateur. Pas de compte, pas de pub.</p>
           <div className="k-hero-search" data-hero-fade><SearchBar /></div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }} data-hero-fade>
-            <span className="k-muted" style={{ fontSize: 14, marginRight: 4 }}>Populaires :</span>
-            {tools.slice(0, 4).map(tool => <Link className="k-chip" href={routes.tool(tool.slug)} key={tool.slug}>{tool.name}</Link>)}
-          </div>
           <div className="k-trust" data-hero-fade>
             <span><Check />Le code reste celui du créateur</span>
             <span><Check />Testé et daté</span>
