@@ -2,8 +2,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { categories, codes, tools } from '@/lib/data';
 import { routes } from '@/lib/routes';
-import { avatarClass, initials } from '@/lib/ui';
 import { MiniCoupon } from '@/components/site/coupon';
+import { ToolSeal } from '@/components/site/tool-logo';
 import { ToolCard } from '@/components/site/tool-card';
 
 export default async function Category({ params }: { params: Promise<{ slug: string }> }) {
@@ -34,7 +34,7 @@ export default async function Category({ params }: { params: Promise<{ slug: str
                       <MiniCoupon
                         code={code.code}
                         link={code.creatorLink || tool?.website || '#'}
-                        avatar={<span className={`k-av k-${avatarClass(code.creator)}`} aria-hidden="true">{initials(code.creator)}</span>}
+                        avatar={<ToolSeal tool={tool?.slug ?? code.tool} name={code.tool} />}
                         title={<>{code.tool} · {code.discount}</>}
                         subtitle={<>le code de {code.creator}</>}
                       />

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { codes, tools } from '@/lib/data';
 import { routes } from '@/lib/routes';
 import { avatarClass, creatorSlug, initials, plural } from '@/lib/ui';
+import { ToolSeal } from '@/components/site/tool-logo';
 import { MiniCoupon } from '@/components/site/coupon';
 
 export default async function Creator({ params }: { params: Promise<{ slug: string }> }) {
@@ -32,7 +33,7 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
                   className="k-row-coupon"
                   code={code.code}
                   link={code.creatorLink || tool?.website || '#'}
-                  avatar={<span className="k-tool-logo" aria-hidden="true">{code.tool.slice(0, 1).toUpperCase()}</span>}
+                  avatar={<ToolSeal tool={tool?.slug ?? code.tool} name={code.tool} />}
                   title={<>{code.tool} · {code.discount}</>}
                   subtitle={code.sourceTitle}
                 />

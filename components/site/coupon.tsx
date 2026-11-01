@@ -12,11 +12,13 @@ type TicketProps = {
   creator: string;
   discount: string;
   tool: string;
+  /** Le sceau de l'outil, posé dans le coin du coupon. */
+  seal?: React.ReactNode;
   children: React.ReactNode;
 };
 
 /** Le grand coupon de la fiche outil : on détache le talon pour copier le code. */
-export function TearTicket({ code, link, creator, discount, tool, children }: TicketProps) {
+export function TearTicket({ code, link, creator, discount, tool, seal, children }: TicketProps) {
   const root = useRef<HTMLDivElement>(null);
   const stub = useRef<HTMLButtonElement>(null);
   const drag = useRef<{ start: number; t: number; d: number; v: number; moved: boolean; vertical: boolean } | null>(null);
@@ -132,6 +134,7 @@ export function TearTicket({ code, link, creator, discount, tool, children }: Ti
     <div>
       <div className="k-ticket" ref={root} onPointerMove={onMove}>
         <div className="k-ticket-main k-paper">
+          {seal && <span className="k-ticket-seal">{seal}</span>}
           {children}
           <div className="k-stamp" aria-hidden="true"><span>Copié</span></div>
         </div>

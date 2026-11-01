@@ -25,6 +25,8 @@ export default function Transparency() {
           </div>
           <h2>Ce qu&apos;on fait de tes données</h2>
           <p>Pas de compte, pas de cookie publicitaire. Le trousseau reste dans ton navigateur. Un e-mail sert uniquement aux alertes que tu demandes. Les adresses IP ne sont jamais stockées en clair.</p>
+          <h2>Les logos des outils</h2>
+          <p>Les logos servent seulement à reconnaître chaque outil et restent la propriété de leurs marques. Ils viennent de Simple Icons (licence CC0) ou du site officiel de l&apos;outil, et sont servis par Koupi : ton navigateur ne contacte aucun service tiers pour les afficher.</p>
           <h2>Tu es créateur ?</h2>
           <p>Tu veux confirmer, corriger ou retirer un code ? Écris-nous à <strong>[Adresse de contact]</strong>.</p>
         </div>

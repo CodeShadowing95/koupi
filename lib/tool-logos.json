@@ -1,0 +1,26 @@
+{
+  "elevenlabs": {
+    "src": "/logos/elevenlabs.svg",
+    "bg": "#000000",
+    "kind": "glyph",
+    "source": "Simple Icons (CC0) : https://elevenlabs.io/brand"
+  },
+  "nordvpn": {
+    "src": "/logos/nordvpn.svg",
+    "bg": "#4687FF",
+    "kind": "glyph",
+    "source": "Simple Icons (CC0) : https://nordvpn.com/press-area/"
+  },
+  "shopify": {
+    "src": "/logos/shopify.svg",
+    "bg": "#7AB55C",
+    "kind": "glyph",
+    "source": "Simple Icons (CC0) : https://www.shopify.com/brand-assets"
+  },
+  "surfshark": {
+    "src": "/logos/surfshark.svg",
+    "bg": "#1EBFBF",
+    "kind": "glyph",
+    "source": "Simple Icons (CC0) : https://surfshark.com/press/assets"
+  }
+}

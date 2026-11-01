@@ -4,9 +4,9 @@ import { useRef } from 'react';
 import { gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
 import { codes, tools } from '@/lib/data';
 import { routes } from '@/lib/routes';
-import { avatarClass, initials } from '@/lib/ui';
 import { SearchBar } from './search-bar';
 import { MiniCoupon } from './coupon';
+import { ToolSeal } from './tool-logo';
 
 const rotating = ['NordVPN', 'o2switch', 'ElevenLabs', 'Shopify', 'Qonto', 'Babbel'];
 
@@ -111,7 +111,7 @@ export function Hero() {
                 className={`k-float k-float-${index + 1}`}
                 href={routes.tool(slugOf(code.tool))}
                 code={code.code}
-                avatar={<span className={`k-av k-${avatarClass(code.creator)}`} aria-hidden="true">{initials(code.creator)}</span>}
+                avatar={<ToolSeal tool={slugOf(code.tool)} name={code.tool} />}
                 title={<>{code.tool}, {code.discount}</>}
                 subtitle={<>le code de {code.creator}</>}
               />

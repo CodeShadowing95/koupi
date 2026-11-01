@@ -6,6 +6,7 @@ import { Hero } from '@/components/site/hero';
 import { Marquee } from '@/components/site/marquee';
 import { HowItWorks } from '@/components/site/how-it-works';
 import { MiniCoupon } from '@/components/site/coupon';
+import { ToolSeal } from '@/components/site/tool-logo';
 import { Counter } from '@/components/site/counter';
 
 const Arrow = () => (
@@ -55,7 +56,7 @@ export default function Home() {
                     key={code.id}
                     code={code.code}
                     link={code.creatorLink || tool?.website || '#'}
-                    avatar={<span className={`k-av k-${avatarClass(code.creator)}`} aria-hidden="true">{initials(code.creator)}</span>}
+                    avatar={<ToolSeal tool={tool?.slug ?? code.tool} name={code.tool} />}
                     title={<>{code.tool} · {code.discount}</>}
                     subtitle={<>le code de {code.creator}</>}
                   />
