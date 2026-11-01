@@ -469,3 +469,13 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-search-box.is-compact::before{display:none}
 .k-search-box.is-compact:focus-within{border-bottom-color:var(--blue-soft);box-shadow:none}
 .k-search-box.is-compact input{height:48px;font-size:17px}
+
+/* Vote « Ça a marché ? » : hérite de la couleur du texte (coupon papier ou fond sombre). */
+.k-vote{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:14px;font-weight:600}
+.k-vote-btn{min-height:34px;padding:0 12px;border-radius:999px;border:1.5px solid currentColor;background:transparent;color:inherit;font:inherit;font-size:13px;cursor:pointer;opacity:.85;transition:opacity .15s,transform .15s}
+.k-vote-btn:hover{opacity:1;transform:translateY(-1px)}
+.k-vote-btn:focus-visible{outline:2px solid var(--blue,#8C9BFF);outline-offset:2px}
+.k-vote-btn:disabled{opacity:.4;cursor:wait}
+.k-vote-done{font-size:13px;opacity:.8;margin:0}
+.k-vote-error{font-size:13px;color:#E5484D}
+@media (prefers-reduced-motion:reduce){.k-vote-btn{transition:none}.k-vote-btn:hover{transform:none}}

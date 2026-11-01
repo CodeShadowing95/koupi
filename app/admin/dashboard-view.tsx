@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import type { Catalog } from '@/lib/data';
 import { coverageByCategory, overview, TARGETS, todos } from '@/lib/admin-stats';
 import type { Insights } from '@/lib/admin-insights';
+import type { Audience } from '@/lib/audience';
 import { SUBMISSIONS_CHANGED } from './pending-count';
 
 
@@ -28,6 +29,18 @@ function useInsights() {
   return { insights, failed };
 }
 
+function useAudience() {
+  const [audience, setAudience] = useState<Audience | null>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    fetch('/api/admin/audience?period=7')
+      .then(response => (response.ok ? response.json() : Promise.reject(new Error(String(response.status)))))
+      .then((body: Audience) => setAudience(body))
+      .catch(() => setFailed(true));
+  }, []);
+  return { audience, audienceFailed: failed };
+}
+
 function Kpi({ label, value, detail, rate, target, targetLabel, tone, note, children }: {
   label: string; value: string; detail: string; rate: number | null; target: number | null; targetLabel: string; tone: 'ok' | 'bad' | 'neutral'; note?: string; children: React.ReactNode;
 }) {
@@ -47,6 +60,7 @@ function Kpi({ label, value, detail, rate, target, targetLabel, tone, note, chil
 
 export function DashboardView({ catalog }: { catalog: Catalog }) {
   const stats = overview(catalog);
+  const { audience, audienceFailed } = useAudience();
   const coverage = coverageByCategory(catalog.categories);
   const { insights, failed } = useInsights();
   const list = todos(catalog, insights?.pending ?? null);
@@ -145,15 +159,20 @@ export function DashboardView({ catalog }: { catalog: Catalog }) {
             <Link href="/admin/stats" style={{ fontSize: 13, fontWeight: 600 }}>Voir toutes les statistiques →</Link>
           </section>
 
-          <section className="adm-panel adm-panel-dashed" aria-labelledby="audience-title">
-            <div className="adm-panel-head"><h2 id="audience-title">Audience</h2><span className="adm-soon">À brancher</span></div>
-            <p style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Ces chiffres disent si Koupi est utile. Ils arriveront avec des compteurs anonymes dans notre propre base, sans cookie ni service tiers.</p>
-            <div className="adm-mini-grid">
-              <div className="adm-mini"><b>Codes copiés</b><span>Le geste clé : un visiteur a trouvé ce qu’il cherchait.</span></div>
-              <div className="adm-mini"><b>Clics vers l’outil</b><span>Ce que tu montreras plus tard aux marques.</span></div>
-              <div className="adm-mini"><b>Recherches sans résultat</b><span>Les outils que les gens veulent et que tu n’as pas.</span></div>
-              <div className="adm-mini"><b>Visiteurs</b><span>La taille de ton audience, semaine après semaine.</span></div>
-            </div>
+          <section className="adm-panel" aria-labelledby="audience-title">
+            <div className="adm-panel-head"><h2 id="audience-title">Audience</h2><span className="adm-panel-sub">7 derniers jours · anonyme</span></div>
+            {audience ? (
+              <>
+                <div className="adm-mini-grid">
+                  <div className="adm-mini"><b className="adm-mini-n">{audience.totals.copies}</b><b>Codes copiés</b><span>Le geste clé : un visiteur a trouvé ce qu’il cherchait.</span></div>
+                  <div className="adm-mini"><b className="adm-mini-n">{audience.totals.opens}</b><b>Liens ouverts</b><span>Vers le créateur ou l’outil : ce que tu montreras aux marques.</span></div>
+                  <div className="adm-mini"><b className="adm-mini-n">{audience.totals.emptySearches}</b><b>Recherches sans résultat</b><span>{audience.emptySearches[0] ? <>La plus demandée : « {audience.emptySearches[0].query} ».</> : 'Les outils que les gens veulent et que tu n’as pas.'}</span></div>
+                  <div className="adm-mini"><b className="adm-mini-n">{audience.topCodes[0]?.code ?? '–'}</b><b>Code le plus copié</b><span>{audience.topCodes[0] ? `${audience.topCodes[0].tool}, ${audience.topCodes[0].copies} copie${audience.topCodes[0].copies > 1 ? 's' : ''}.` : 'Pas encore de copie cette semaine.'}</span></div>
+                </div>
+                <p style={{ fontSize: 12, color: 'var(--muted)' }}>Des totaux par jour, sans cookie ni service tiers : on ne compte pas les visiteurs, pour tenir la promesse « zéro pistage ».</p>
+              </>
+            ) : <p className="adm-panel-sub">{audienceFailed ? 'L’audience n’a pas pu être chargée.' : 'Chargement…'}</p>}
+            <Link href="/admin/stats#audience" style={{ fontSize: 13, fontWeight: 600 }}>Voir l’audience en détail →</Link>
           </section>
         </div>
 

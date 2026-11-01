@@ -8,6 +8,10 @@ export type RateLimitResult = { allowed: boolean; retryAfterSeconds: number };
 // 5 essais de connexion admin par IP et par quart d'heure, 5 propositions par IP et par heure.
 export const LOGIN_RULE: RateLimitRule = { limit: 5, windowSeconds: 15 * 60 };
 export const SUBMISSION_RULE: RateLimitRule = { limit: 5, windowSeconds: 60 * 60 };
+// Un vote par code et par IP sur 24 h, 30 votes par IP et par heure, 120 mesures d'audience par IP et par heure.
+export const VOTE_PER_CODE_RULE: RateLimitRule = { limit: 1, windowSeconds: 24 * 60 * 60 };
+export const VOTE_RULE: RateLimitRule = { limit: 30, windowSeconds: 60 * 60 };
+export const EVENT_RULE: RateLimitRule = { limit: 120, windowSeconds: 60 * 60 };
 
 // Compte un essai pour cette clé, en une seule requête atomique (pas de course entre deux requêtes simultanées).
 // La fenêtre est fixe : elle s'ouvre au premier essai et dure windowSeconds.

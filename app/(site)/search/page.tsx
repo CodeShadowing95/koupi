@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { searchTools } from '@/lib/data';
 import { getCatalog } from '@/lib/catalog-server';
+import { getDb } from '@/db';
+import { bumpCounter, normalizeQuery } from '@/lib/audience';
 import { routes } from '@/lib/routes';
 import { SearchBar } from '@/components/site/search-bar';
 import { ToolCard } from '@/components/site/tool-card';
@@ -10,6 +12,9 @@ export default async function SearchResults({ searchParams }: { searchParams: Pr
   const query = q || '';
   const { tools } = await getCatalog();
   const results = searchTools(tools, query);
+  // Recherche sans résultat : on compte la demande (anonyme), elle dit quel outil suivre ensuite.
+  const counted = normalizeQuery(query);
+  if (results.length === 0 && counted.length >= 2) await bumpCounter(getDb(), 'search_empty', counted).catch(error => console.error('search counter failed', error));
   return (
     <main className="k-page">
       <div className="k-wrap">

@@ -13,5 +13,6 @@ Chaque décision importante est notée ici dans un fichier numéroté. On ne sup
 | [0007](0007-logos-des-outils.md) | Logos des outils servis par Koupi (Simple Icons puis site officiel, initiale en repli) | Proposée |
 | [0008](0008-chartjs-admin.md) | Chart.js pour les graphiques du back-office | Proposée |
 | [0009](0009-catalogue-en-base.md) | Outils, créateurs et codes stockés dans Neon | Proposée |
+| [0010](0010-audience-anonyme.md) | Votes et mesure d'audience anonymes, dans notre base | Proposée |
 
 Modèle : copier [`template.md`](template.md).

@@ -34,6 +34,7 @@ export default async function Category({ params }: { params: Promise<{ slug: str
                   return (
                     <div className="k-coupon-card" key={code.id} data-reveal>
                       <MiniCoupon
+                        codeId={code.id}
                         code={code.code}
                         link={code.creatorLink || tool?.website || '#'}
                         avatar={<ToolSeal tool={tool?.slug ?? code.tool} name={code.tool} />}

@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { check, index, integer, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { check, date, index, integer, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 
 // Propositions de codes envoyées par le public, en attente de modération.
 export const submissions = pgTable('submissions', {
@@ -151,6 +151,22 @@ export const codeLogs = pgTable('code_logs', {
   index('code_logs_code_idx').on(table.codeId, table.createdAt.desc()),
   index('code_logs_created_idx').on(table.createdAt.desc()),
   check('code_logs_action_valid', sql`${table.action} in ('create','edit','verify','reject','to_test','pending','archive','restore')`),
+]);
+
+export const COUNTER_METRICS = ['copy', 'open', 'search_empty'] as const;
+
+// Mesure d'audience anonyme : un simple total par jour, par mesure et par clé (id du code, ou recherche sans résultat).
+// Ni cookie, ni IP, ni identifiant de visiteur : on ne peut pas suivre une personne, seulement compter.
+export const dailyCounters = pgTable('daily_counters', {
+  day: date('day').notNull(),
+  metric: text('metric', { enum: COUNTER_METRICS }).notNull(),
+  key: text('key').notNull(),
+  count: integer('count').notNull().default(0),
+}, table => [
+  primaryKey({ columns: [table.day, table.metric, table.key] }),
+  index('daily_counters_metric_day_idx').on(table.metric, table.day),
+  check('daily_counters_metric_valid', sql`${table.metric} in ('copy','open','search_empty')`),
+  check('daily_counters_key_len', sql`char_length(${table.key}) between 1 and 80`),
 ]);
 
 export type Submission = typeof submissions.$inferSelect;

@@ -106,6 +106,7 @@ export function Hero({ codes, tools }: { codes: Code[]; tools: Tool[] }) {
           <div className="k-hero-stack">
             {latest.map((code, index) => (
               <MiniCoupon
+                codeId={code.id}
                 key={code.id}
                 className={`k-float k-float-${index + 1}`}
                 href={routes.tool(slugOf(code.tool))}

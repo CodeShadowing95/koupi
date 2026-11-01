@@ -7,6 +7,7 @@ import { BarChart, ChartCard, Legend, type Series } from '@/components/admin-cha
 import type { Catalog } from '@/lib/data';
 import { coverageByCategory, overview, reliabilityBuckets, topTools } from '@/lib/admin-stats';
 import { PERIODS, type Insights, type Period } from '@/lib/admin-insights';
+import { AUDIENCE_PERIODS, type Audience, type AudiencePeriod } from '@/lib/audience';
 
 const weeklyKeys = [
   { key: 'approved', label: 'Validées', color: '--st-ok' },
@@ -17,6 +18,84 @@ const periodLabel: Record<Period, string> = { 7: '7 jours', 30: '30 jours', 90: 
 
 function shortDate(iso: string) {
   return new Date(`${iso}T00:00:00Z`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+}
+
+const audienceKeys = [
+  { key: 'copies', label: 'Codes copiés', color: '--chart-1' },
+  { key: 'opens', label: 'Liens ouverts', color: '--chart-2' },
+] as const;
+
+/** Audience anonyme : totaux par jour, sans cookie ni service tiers (lib/audience.ts). */
+function AudienceSection() {
+  const [period, setPeriod] = useState<AudiencePeriod>(30);
+  const [audience, setAudience] = useState<Audience | null>(null);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    let active = true;
+    setError('');
+    fetch(`/api/admin/audience?period=${period}`)
+      .then(response => (response.ok ? response.json() : Promise.reject(new Error(String(response.status)))))
+      .then((body: Audience) => { if (active) setAudience(body); })
+      .catch(() => { if (active) setError('L’audience n’a pas pu être chargée.'); });
+    return () => { active = false; };
+  }, [period]);
+
+  const daily = audience?.daily ?? [];
+  const labels = useMemo(() => daily.map(day => shortDate(day.day)), [daily]);
+  const series = useMemo<Series[]>(() => audienceKeys.map(item => ({ label: item.label, color: item.color, data: daily.map(day => day[item.key]) })), [daily]);
+  const topLabels = useMemo(() => (audience?.topCodes ?? []).map(item => `${item.code} · ${item.tool}`), [audience]);
+  const topSeries = useMemo<Series[]>(() => [{ label: 'Copies', color: '--chart-1', data: (audience?.topCodes ?? []).map(item => item.copies) }], [audience]);
+  const switcher = <div className="adm-period" role="group" aria-label="Période de l’audience">{AUDIENCE_PERIODS.map(value => <button key={value} type="button" aria-pressed={period === value} onClick={() => setPeriod(value)}>{value} jours</button>)}</div>;
+  const empty = (text: string) => <div className="adm-chart-empty">{error || (!audience ? 'Chargement…' : text)}</div>;
+
+  return (
+    <>
+      <div className="adm-head" style={{ marginTop: 32 }} id="audience">
+        <div>
+          <span className="eyebrow">Audience · anonyme</span>
+          <h2 style={{ fontSize: 26 }}>Ce que font les visiteurs</h2>
+          <p>De simples totaux par jour, comptés dans notre base : pas de cookie, pas de service tiers, aucun visiteur reconnaissable. On ne compte donc pas les « visiteurs », seulement les gestes utiles.</p>
+        </div>
+        {switcher}
+      </div>
+      <div className="adm-row adm-row-4" style={{ marginTop: 0 }}>
+        <div className="adm-stat-tile"><span>Codes copiés</span><strong>{audience?.totals.copies ?? '–'}</strong><span>sur {period} jours</span></div>
+        <div className="adm-stat-tile"><span>Liens ouverts</span><strong>{audience?.totals.opens ?? '–'}</strong><span>vers le créateur ou l’outil</span></div>
+        <div className="adm-stat-tile"><span>Recherches sans résultat</span><strong>{audience?.totals.emptySearches ?? '–'}</strong><span>outils demandés, pas suivis</span></div>
+        <div className="adm-stat-tile"><span>Copies → ouvertures</span><strong>{audience && audience.totals.copies ? `${Math.round((audience.totals.opens / audience.totals.copies) * 100)} %` : '–'}</strong><span>des copies mènent au lien</span></div>
+      </div>
+      <div className="adm-row adm-row-2" style={{ gridTemplateColumns: '1fr' }}>
+        <ChartCard id="audience-daily" title="Copies et liens ouverts par jour"
+          table={{ head: ['Jour', ...audienceKeys.map(item => item.label)], rows: daily.map(day => [shortDate(day.day), day.copies, day.opens]) }}
+          learn="Une copie, c’est un visiteur qui a trouvé un code. Si les copies montent après l’ajout de codes vérifiés, ton travail de modération paie.">
+          {!audience || error || audience.totals.copies + audience.totals.opens === 0
+            ? empty('Pas encore de copie sur cette période. Les chiffres apparaîtront dès que des visiteurs copieront des codes.')
+            : <><BarChart labels={labels} series={series} summary={daily.map(day => `${shortDate(day.day)} : ${day.copies} copies, ${day.opens} liens ouverts`).join('. ')} /><Legend series={series} /></>}
+        </ChartCard>
+      </div>
+      <div className="adm-row adm-row-2">
+        <ChartCard id="audience-codes" title="Codes les plus copiés" sub={`Sur ${period} jours`}
+          table={{ head: ['Code', 'Outil', 'Copies'], rows: (audience?.topCodes ?? []).map(item => [item.code, item.tool, item.copies]) }}
+          learn="Les codes les plus copiés méritent d’être testés en priorité : s’ils ne marchent plus, beaucoup de monde est déçu.">
+          {audience && audience.topCodes.length > 0
+            ? <BarChart className="adm-chart adm-chart-tall" horizontal labels={topLabels} series={topSeries} summary={(audience.topCodes).map(item => `${item.code} ${item.copies}`).join(', ')} />
+            : empty('Aucun code copié sur cette période.')}
+        </ChartCard>
+        <section className="adm-panel" aria-labelledby="audience-searches">
+          <div className="adm-panel-head"><h2 id="audience-searches">Recherches sans résultat</h2><span className="adm-panel-sub">Sur {period} jours</span></div>
+          {audience && audience.emptySearches.length > 0 ? (
+            <div className="adm-table-wrap">
+              <table className="adm-table">
+                <thead><tr><th scope="col">Recherche</th><th scope="col">Fois</th></tr></thead>
+                <tbody>{audience.emptySearches.map(item => <tr key={item.query}><td>{item.query}</td><td>{item.count}</td></tr>)}</tbody>
+              </table>
+            </div>
+          ) : empty('Aucune recherche sans résultat : les visiteurs trouvent ce qu’ils cherchent.')}
+          <p className="adm-learn"><b>Ce que ça t’apprend :</b> chaque recherche vide est un outil que les gens veulent. Le plus demandé est ton prochain outil à suivre.</p>
+        </section>
+      </div>
+    </>
+  );
 }
 
 export function StatsView({ catalog }: { catalog: Catalog }) {
@@ -123,15 +202,7 @@ export function StatsView({ catalog }: { catalog: Catalog }) {
           </ChartCard>
         </div>
 
-        <section className="adm-panel adm-panel-dashed" aria-labelledby="audience" style={{ marginTop: 16 }}>
-          <div className="adm-panel-head"><h2 id="audience">Audience du site</h2><span className="adm-soon">À brancher · compteurs anonymes</span></div>
-          <div className="adm-row" style={{ marginTop: 0 }}>
-            <div className="adm-mini"><b>Codes copiés par jour</b><span>Le visiteur a trouvé ce qu’il cherchait.</span></div>
-            <div className="adm-mini"><b>Clics vers l’outil, par outil</b><span>Ce que tu montreras aux marques plus tard.</span></div>
-            <div className="adm-mini"><b>Recherches sans résultat</b><span>Les prochains outils à suivre.</span></div>
-          </div>
-          <p style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Ces graphiques arriveront avec des compteurs anonymes dans notre propre base, sans cookie ni service tiers, pour tenir la promesse « zéro pistage ».</p>
-        </section>
+        <AudienceSection />
       </div>
     </main>
   );
