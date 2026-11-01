@@ -43,9 +43,9 @@ describe('build-catalog', () => {
     expect(result.tools.map(tool => tool.slug)).toEqual(['abby']);
     expect(result.tools[0]).toMatchObject({ description: 'Facturation simple.', website: 'https://abby.fr', codes: 1 });
     expect(result.categories).toEqual([
-      { slug: 'finance-et-freelance', name: 'Finance et freelance', count: 1 },
-      { slug: 'ia', name: 'IA', count: 0 },
-      { slug: 'e-commerce-et-site', name: 'E-commerce et site', count: 0 },
+      { slug: 'finance-et-freelance', name: 'Finance et freelance', count: 1, tracked: 1 },
+      { slug: 'ia', name: 'IA', count: 0, tracked: 1 },
+      { slug: 'e-commerce-et-site', name: 'E-commerce et site', count: 0, tracked: 1 },
     ]);
     expect(result.tracked).toBe(3);
   });

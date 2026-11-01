@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { codes, type Code } from '@/lib/data';
 import { matchesSearch } from '@/lib/admin-search';
 import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
@@ -12,15 +12,24 @@ const statusLabel: Record<Code['status'], { label: string; className: string }> 
   rejected: { label: 'Rejeté', className: 'adm-pill adm-pill-bad' },
 };
 const filters: { value: 'all' | Code['status']; label: string }[] = [
-  { value: 'all', label: 'Tous' }, { value: 'verified', label: 'Vérifiés' }, { value: 'to_test', label: 'À tester' }, { value: 'pending', label: 'En attente' }, { value: 'rejected', label: 'Rejetés' },
+  { value: 'all', label: 'Tous' }, { value: 'to_test', label: 'À tester' }, { value: 'pending', label: 'En attente' }, { value: 'verified', label: 'Vérifiés' }, { value: 'rejected', label: 'Rejetés' },
 ];
+const countOf = (value: 'all' | Code['status']) => value === 'all' ? codes.length : codes.filter(code => code.status === value).length;
+const isFilter = (value: string | null): value is 'all' | Code['status'] => filters.some(filter => filter.value === value);
 
 export default function AdminCodes() {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<'all' | Code['status']>('all');
   const [view, setView] = useAdminView();
+  // Les liens de l'accueil ouvrent la liste déjà filtrée (?status=to_test, ?q=CODE).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = params.get('status');
+    if (isFilter(fromUrl)) setStatus(fromUrl);
+    if (params.get('q')) setQuery(params.get('q') ?? '');
+  }, []);
   const visible = codes.filter(code => (status === 'all' || code.status === status) && matchesSearch([code.code, code.tool, code.creator, code.discount, code.sourceTitle, code.note ?? ''], query));
-  const { current, goTo, topRef } = usePagination(visible, `${status}|${query}`);
+  const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${status}|${query}`);
   return (
     <main className="adm-page">
       <div className="container">
@@ -31,12 +40,12 @@ export default function AdminCodes() {
             <p>Vérifie la source, complète la réduction, puis publie uniquement les codes fiables. Seuls les codes vérifiés et à tester sont visibles sur le site.</p>
           </div>
         </div>
+        <div className="adm-tabs" role="group" aria-label="Statut">
+          {filters.map(filter => <button key={filter.value} type="button" className="adm-tab" aria-pressed={status === filter.value} onClick={() => setStatus(filter.value)}>{filter.label} {filter.value === 'to_test' && countOf('to_test') > 0 && status !== 'to_test' ? <span className="adm-count-badge">{countOf('to_test')}</span> : <span className="adm-tab-n">{countOf(filter.value)}</span>}</button>)}
+        </div>
         <div className="adm-toolbar">
           <label htmlFor="code-search" className="sr-only">Rechercher un code</label>
           <input id="code-search" className="adm-search" type="search" placeholder="Rechercher un code, un outil, un créateur…" value={query} onChange={event => setQuery(event.target.value)} />
-          <div className="adm-filters">
-            {filters.map(filter => <button key={filter.value} type="button" className="adm-filter" aria-pressed={status === filter.value} onClick={() => setStatus(filter.value)}>{filter.label}</button>)}
-          </div>
           <span className="adm-count" role="status">{visible.length} sur {codes.length}</span>
           <ViewToggle view={view} onChange={setView} />
         </div>
@@ -80,7 +89,7 @@ export default function AdminCodes() {
             ))}
           </div>
         )}
-        <Pagination current={current} onChange={goTo} label="codes" />
+        <Pagination current={current} onChange={goTo} label="codes" size={size} onSizeChange={changeSize} />
       </div>
     </main>
   );

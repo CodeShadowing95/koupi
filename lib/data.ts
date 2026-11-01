@@ -1,7 +1,7 @@
 import catalog from './catalog.json';
 
 // Le catalogue est généré par `npm run catalog` (scripts/build-catalog.mjs) à partir de data/.
-export type Category = { slug:string; name:string; count:number };
+export type Category = { slug:string; name:string; count:number; tracked:number };
 export type Tool = { slug:string; name:string; category:string; website:string; description:string; priority:number; codes:number };
 export type CodeStatus = 'verified'|'to_test'|'pending'|'rejected';
 export type Code = { id:string; tool:string; creator:string; code:string; discount:string; status:CodeStatus; source:string; sourceTitle:string; creatorLink?:string; votes:number; success:number; note?:string };

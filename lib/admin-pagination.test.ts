@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ADMIN_PAGE_SIZE, pageNumbers, paginate } from './admin-pagination';
+import { ADMIN_PAGE_SIZE, pageNumbers, paginate, parsePageSize } from './admin-pagination';
 
 const list = Array.from({ length: 76 }, (_, index) => index + 1);
 
@@ -35,5 +35,16 @@ describe('pageNumbers', () => {
   });
   it('affiche la page plutôt qu’un « … » pour un trou d’une seule page', () => {
     expect(pageNumbers(4, 10)).toEqual([1, 2, 3, 4, 5, 'gap', 10]);
+  });
+});
+
+describe('parsePageSize', () => {
+  it('garde une taille proposée et revient à 24 sinon', () => {
+    expect(parsePageSize('48')).toBe(48);
+    expect(parsePageSize('13')).toBe(24);
+    expect(parsePageSize(null)).toBe(24);
+  });
+  it('découpe selon la taille choisie', () => {
+    expect(paginate(Array.from({ length: 76 }, (_, i) => i), 7, 12)).toMatchObject({ page: 7, pageCount: 7, from: 73, to: 76 });
   });
 });

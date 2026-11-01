@@ -121,9 +121,10 @@ export function buildCatalog({ toolsCsv, candidatesCsv, manual }) {
     })
     .sort((a, b) => a.priority - b.priority || a.name.localeCompare(b.name, 'fr'));
 
-  // Toutes les catégories suivies, avec le nombre d'outils publiés dans chacune.
+  // Toutes les catégories suivies, avec le nombre d'outils publiés (count) et suivis (tracked) dans chacune.
   const categories = [...new Set(toolRows.map(row => row.categorie))].map(name => ({
     slug: slugify(name), name, count: tools.filter(tool => tool.category === name).length,
+    tracked: toolRows.filter(row => row.categorie === name).length,
   }));
 
   return { categories, tools, codes, tracked: toolRows.length };

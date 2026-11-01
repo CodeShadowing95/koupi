@@ -1,54 +1,102 @@
 'use client';
-// En-tête et pied de page du back-office (interface claire d'origine).
-// La navigation mène aux pages admin : plus besoin de taper /admin dans l'adresse.
+// Coque du back-office : menu latéral groupé, barre du haut avec le fil d'Ariane et le bouton clair / sombre.
+// La page de connexion garde un affichage simple, sans menu.
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { PendingBadge } from '@/app/admin/pending-count';
+import { ThemeToggle } from '@/components/admin-theme';
+import { statusCounts } from '@/lib/admin-stats';
+import { codes } from '@/lib/data';
 
-const links = [
-  { href: '/admin', label: 'Tableau de bord' },
-  { href: '/admin/codes', label: 'Codes' },
-  { href: '/admin/propositions', label: 'Propositions', badge: true },
+type Item = { href: string; label: string; icon: React.ReactNode; badge?: React.ReactNode };
+
+const icon = (path: React.ReactNode) => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{path}</svg>;
+const icons = {
+  home: icon(<><path d="M3 10.5 12 3l9 7.5V21H3z" /><path d="M9 21v-6h6v6" /></>),
+  stats: icon(<><path d="M4 20V10" /><path d="M10 20V4" /><path d="M16 20v-7" /><path d="M22 20H2" /></>),
+  inbox: icon(<><path d="M22 12h-6l-2 3h-4l-2-3H2" /><path d="M5.5 5h13L22 12v7H2v-7z" /></>),
+  ticket: icon(<path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4z" />),
+  book: icon(<><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v16H5.5A1.5 1.5 0 0 0 4 20.5z" /><path d="M4 20.5A1.5 1.5 0 0 0 5.5 22H20" /></>),
+  external: icon(<><path d="M14 4h6v6" /><path d="M20 4 10 14" /><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></>),
+  logout: icon(<><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4" /><path d="M10 16l-4-4 4-4" /><path d="M6 12h10" /></>),
+};
+
+const toTest = statusCounts(codes).to_test;
+
+const groups: { label: string; items: Item[] }[] = [
+  { label: 'Pilotage', items: [
+    { href: '/admin', label: 'Accueil', icon: icons.home },
+    { href: '/admin/stats', label: 'Statistiques', icon: icons.stats },
+  ] },
+  { label: 'Modération', items: [
+    { href: '/admin/propositions', label: 'Propositions', icon: icons.inbox, badge: <PendingBadge /> },
+    { href: '/admin/codes', label: 'Codes', icon: icons.ticket, badge: toTest ? <span className="adm-count-badge" aria-label={`${toTest} à tester`}>{toTest}</span> : null },
+  ] },
+  { label: 'Apprendre', items: [
+    { href: '/admin/guide', label: 'Guide de l’admin', icon: icons.book },
+  ] },
 ];
 
-export function Header() {
-  const pathname = usePathname();
-  const isLogin = pathname.startsWith('/admin/login');
+const titles: Record<string, string> = Object.fromEntries(groups.flatMap(group => group.items.map(item => [item.href, item.label])));
+
+function isActive(pathname: string, href: string) {
+  return href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
+}
+
+function Logo() {
   return (
-    <header className="site-header admin-header">
-      <div className="container header-inner">
-        <Link className="header-logo" href={isLogin ? '/' : '/admin'} aria-label="Koupi, tableau de bord admin">
-          <Image className="logo" src="/koupi-logo.png" alt="Koupi" width={1100} height={480} priority />
-          <span className="admin-badge">Admin</span>
-        </Link>
-        <nav className="nav" aria-label="Navigation admin">
-          {!isLogin && links.map(link => {
-            const active = link.href === '/admin' ? pathname === '/admin' : pathname.startsWith(link.href);
-            return <Link key={link.href} href={link.href} className={active ? 'nav-strong admin-active' : undefined} aria-current={active ? 'page' : undefined}>{link.label}{link.badge && <PendingBadge />}</Link>;
-          })}
-          <Link href="/" target="_blank" rel="noopener noreferrer">Voir le site ↗</Link>
-          {!isLogin && (
-            <form method="post" action="/api/admin/logout">
-              <button className="nav-cta" type="submit">Se déconnecter</button>
-            </form>
-          )}
-        </nav>
-      </div>
-    </header>
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="adm-logo-light" src="/koupi-logo.png" alt="Koupi" width={1100} height={480} />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="adm-logo-dark" src="/koupi-logo-dark.png" alt="" width={1100} height={480} />
+    </>
   );
 }
 
-export function Footer() {
+export function AdminShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  if (pathname.startsWith('/admin/login')) {
+    return (
+      <>
+        <header className="adm-top"><Link className="adm-brand" href="/" aria-label="Koupi"><Logo /><span className="admin-badge">Admin</span></Link><div className="adm-top-right"><ThemeToggle /></div></header>
+        {children}
+      </>
+    );
+  }
+  const current = Object.keys(titles).filter(href => isActive(pathname, href)).sort((a, b) => b.length - a.length)[0];
+  const today = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   return (
-    <footer className="footer">
-      <div className="container footer-inner">
-        <p>Koupi · back-office</p>
-        <nav className="footer-links" aria-label="Liens du pied de page">
-          <Link href="/">Site public</Link>
-          <Link href="/legal">Mentions légales</Link>
-        </nav>
+    <div className="adm-shell">
+      <nav className="adm-side" aria-label="Navigation admin">
+        <Link className="adm-brand" href="/admin" aria-label="Koupi, accueil admin"><Logo /><span className="admin-badge">Admin</span></Link>
+        {groups.map(group => (
+          <div className="adm-side-group" key={group.label}>
+            <span className="adm-side-label">{group.label}</span>
+            {group.items.map(item => (
+              <Link key={item.href} href={item.href} className="adm-side-link" aria-current={item.href === current ? 'page' : undefined}>
+                {item.icon}<span className="adm-side-text">{item.label}</span>{item.badge}
+              </Link>
+            ))}
+          </div>
+        ))}
+        <div className="adm-side-group adm-side-foot">
+          <Link className="adm-side-link" href="/" target="_blank" rel="noopener noreferrer">{icons.external}<span className="adm-side-text">Voir le site</span></Link>
+          <form method="post" action="/api/admin/logout"><button className="adm-side-link" type="submit">{icons.logout}<span className="adm-side-text">Se déconnecter</span></button></form>
+        </div>
+      </nav>
+      <div className="adm-main">
+        <header className="adm-top">
+          <nav className="adm-crumbs" aria-label="Fil d’Ariane">
+            {current && current !== '/admin' ? <><Link href="/admin">Accueil</Link> / <b>{titles[current]}</b></> : <b>Accueil</b>}
+          </nav>
+          <div className="adm-top-right">
+            <span className="adm-today" suppressHydrationWarning>{today.charAt(0).toUpperCase() + today.slice(1)}</span>
+            <ThemeToggle />
+          </div>
+        </header>
+        {children}
       </div>
-    </footer>
+    </div>
   );
 }

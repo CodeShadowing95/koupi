@@ -3,62 +3,74 @@
   {
    "slug": "hebergement-web",
    "name": "Hébergement web",
-   "count": 3
+   "count": 3,
+   "tracked": 9
   },
   {
    "slug": "noms-de-domaine",
    "name": "Noms de domaine",
-   "count": 0
+   "count": 0,
+   "tracked": 1
   },
   {
    "slug": "vpn-et-securite",
    "name": "VPN et sécurité",
-   "count": 3
+   "count": 3,
+   "tracked": 11
   },
   {
    "slug": "ia",
    "name": "IA",
-   "count": 1
+   "count": 1,
+   "tracked": 15
   },
   {
    "slug": "productivite",
    "name": "Productivité",
-   "count": 0
+   "count": 0,
+   "tracked": 6
   },
   {
    "slug": "formation",
    "name": "Formation",
-   "count": 0
+   "count": 0,
+   "tracked": 9
   },
   {
    "slug": "e-commerce-et-site",
    "name": "E-commerce et site",
-   "count": 1
+   "count": 1,
+   "tracked": 11
   },
   {
    "slug": "creation-et-design",
    "name": "Création et design",
-   "count": 1
+   "count": 1,
+   "tracked": 11
   },
   {
    "slug": "outils-createurs",
    "name": "Outils créateurs",
-   "count": 1
+   "count": 1,
+   "tracked": 9
   },
   {
    "slug": "marketing-et-e-mail",
    "name": "Marketing et e-mail",
-   "count": 1
+   "count": 1,
+   "tracked": 8
   },
   {
    "slug": "finance-et-freelance",
    "name": "Finance et freelance",
-   "count": 5
+   "count": 5,
+   "tracked": 9
   },
   {
    "slug": "developpement",
    "name": "Développement",
-   "count": 0
+   "count": 0,
+   "tracked": 8
   }
  ],
  "tools": [

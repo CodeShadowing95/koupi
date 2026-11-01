@@ -1,6 +1,14 @@
 // Pagination des listes du back-office : 24 éléments par page,
 // soit 6 rangées complètes de la grille de cartes (4, 2 ou 1 colonne selon l'écran).
 export const ADMIN_PAGE_SIZE = 24;
+export const ADMIN_PAGE_SIZES = [12, 24, 48, 96] as const;
+export const ADMIN_PAGE_SIZE_KEY = 'koupi-admin-page-size';
+
+/** Taille de page enregistrée, ramenée à une valeur proposée (24 par défaut). */
+export function parsePageSize(value: string | null | undefined): number {
+  const size = Number(value);
+  return (ADMIN_PAGE_SIZES as readonly number[]).includes(size) ? size : ADMIN_PAGE_SIZE;
+}
 
 export type Page<T> = { items: T[]; page: number; pageCount: number; from: number; to: number; total: number };
 
