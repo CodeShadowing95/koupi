@@ -643,8 +643,6 @@ a.adm-btn{display:inline-flex;align-items:center;text-decoration:none}
 .lp-stamp-ok{color:var(--ok)}
 .lp-stamp-bad{color:var(--bad)}
 
-.lp-curtain{position:fixed;inset:0;z-index:70;display:grid;place-items:center;background:var(--blue);color:var(--on-blue);clip-path:circle(0% at 50% 50%);pointer-events:none}
-.lp-curtain-text{font-family:var(--font-display);font-weight:800;font-size:clamp(30px,5vw,56px);letter-spacing:-.04em;padding:0 16px;text-align:center}
 
 @media(max-width:720px){
   .lp{padding:72px 16px 32px}
@@ -659,3 +657,16 @@ a.adm-btn{display:inline-flex;align-items:center;text-decoration:none}
   .lp-tag{font-size:13px;padding:8px 12px}
 }
 @media(prefers-reduced-motion:reduce){.lp-submit,.lp-submit svg,.lp-field{transition:none}}
+
+/* Passage connexion → accueil : le coupon du logo couvre l'écran puis se déchire (admin-coupon-tear.tsx). */
+/* Pendant le passage, aucune barre de défilement ne passe par-dessus le coupon. */
+html:has(> body > .ct){overflow:hidden}
+.ct{position:fixed;left:0;top:0;z-index:80;visibility:hidden;opacity:0;pointer-events:none;transform-origin:50% 50%}
+.ct[data-phase]{visibility:visible;opacity:1}
+.ct[data-phase="growing"],.ct[data-phase="covered"]{pointer-events:auto}
+.ct[data-phase="covered"] .ct-text{visibility:visible;opacity:1}
+.ct-half{position:absolute;inset:0;border-radius:50%;will-change:transform;
+  background:repeating-linear-gradient(to bottom,#fff 0 calc(var(--ct-dash) * .6),transparent calc(var(--ct-dash) * .6) var(--ct-dash)) 50% calc(var(--ct-dash) * .7)/var(--ct-dash-w) calc(100% - var(--ct-dash) * 1.2) no-repeat,#2A3BD6;
+  -webkit-mask:radial-gradient(circle var(--ct-notch) at 0 50%,#0000 97%,#000 100%),radial-gradient(circle var(--ct-notch) at 100% 50%,#0000 97%,#000 100%);
+  -webkit-mask-composite:source-in;mask-composite:intersect}
+.ct-text{position:absolute;left:50%;top:50%;translate:-50% -50%;padding:.15em .45em;border-radius:.3em;background:#2A3BD6;color:#fff;font-family:var(--font-display);font-weight:800;font-size:clamp(28px,4.6vw,56px);letter-spacing:-.04em;white-space:nowrap;visibility:hidden;opacity:0}
