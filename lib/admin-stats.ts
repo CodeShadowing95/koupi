@@ -1,4 +1,4 @@
-// Indicateurs du back-office calculés à partir du catalogue (lib/catalog.json).
+// Indicateurs du back-office calculés à partir du catalogue lu en base (lib/catalog-db.ts).
 // Fonctions pures : l'accueil, la page Statistiques et les tests les partagent.
 import type { Category, Code, CodeStatus, Tool } from './data';
 

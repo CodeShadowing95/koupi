@@ -1,11 +1,12 @@
 import Link from 'next/link';
-import { categories, tools } from '@/lib/data';
+import { getCatalog } from '@/lib/catalog-server';
 import { routes } from '@/lib/routes';
 import { ToolCard } from '@/components/site/tool-card';
 
 export const metadata = { title: 'Catégories · Koupi' };
 
-export default function Categories() {
+export default async function Categories() {
+  const { categories, tools } = await getCatalog();
   return (
     <main className="k-page">
       <div className="k-wrap">

@@ -17,6 +17,7 @@ Site web qui réunit les codes promo donnés par les créateurs (YouTube, podcas
 - Tests : `npm test`
 - Build : `npm run build`
 - Générer une migration après un changement de `db/schema.ts` : `npm run db:generate`
+- Importer dans la base les outils et codes de `data/` qui n'y sont pas encore : `npm run db:import` (n'écrase jamais une ligne existante, lancé aussi à chaque déploiement)
 - Appliquer les migrations : `npm run db:migrate` (besoin de `DATABASE_URL`). Sur Vercel, elles sont appliquées automatiquement avant chaque build (`buildCommand` dans `vercel.json`, voir ADR-0005).
 
 Avant chaque commit : `npm run typecheck && npm test && npm run build` doivent passer. La CI (`.github/workflows/ci.yml`) refait ces vérifications sur chaque PR.
@@ -27,7 +28,7 @@ Avant chaque commit : `npm run typecheck && npm test && npm run build` doivent p
   - `app/(site)/` : site public, adresses en anglais (`/tools/[slug]`, `/creators/[slug]`, `/search`, `/submit`…), style `site.css` (classes `k-` sous `.kp`). Les anciennes adresses françaises redirigent (`lib/legacy-redirects.mjs`).
   - `app/admin/` : back-office, interface claire d'origine (`admin.css`, `components/admin-shell.tsx`).
 - `lib/` : logique métier, testée à côté du fichier (`x.ts` → `x.test.ts`).
-- `db/` : schéma Drizzle, connexion (`getDb()`), migrations.
+- `db/` : schéma Drizzle, connexion (`getDb()`), migrations. Les outils, créateurs et codes sont en base ; les pages les lisent avec `getCatalog()` (`lib/catalog-server.ts`).
 - `components/` : composants partagés. `components/site/` pour le site public (coupon détachable, recherche, animations GSAP via `lib/gsap.ts`).
 - `scripts/` : seed, migrations et récupération des logos des outils (`npm run logos`, voir ADR-0007).
 - `docs/decisions/` : décisions d'architecture (ADR).

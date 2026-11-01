@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { categories, codes, isPublic, tools } from '@/lib/data';
+import { isPublic } from '@/lib/data';
+import { getCatalog } from '@/lib/catalog-server';
 import { routes } from '@/lib/routes';
-import { creatorSlug } from '@/lib/ui';
 import { Hero } from '@/components/site/hero';
 import { Marquee } from '@/components/site/marquee';
 import { HowItWorks } from '@/components/site/how-it-works';
@@ -14,7 +14,8 @@ const Arrow = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
 );
 
-export default function Home() {
+export default async function Home() {
+  const { categories, codes, tools } = await getCatalog();
   const live = codes.filter(isPublic);
   const featured = live.filter(code => code.status === 'verified').slice(0, 6);
   const creators = new Set(live.map(code => code.creator));
@@ -23,7 +24,7 @@ export default function Home() {
 
   return (
     <main>
-      <Hero />
+      <Hero codes={codes} tools={tools} />
 
       <div aria-hidden="true" style={{ position: 'relative', paddingBlock: 20 }}>
         <Marquee items={[...tools.map(tool => tool.name), ...tools.map(tool => tool.name)]} />
@@ -145,7 +146,7 @@ export default function Home() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
               <Link className="k-btn k-btn-paper k-btn-ticket" href={routes.submit()} style={{ minHeight: 56, fontSize: 16, padding: '0 28px' }}>Proposer un code <Arrow /></Link>
-              <Link className="k-link" href={routes.creator(creatorSlug(best.creator))}>ou découvre les codes de {best.creator} →</Link>
+              <Link className="k-link" href={routes.creator(best.creatorSlug)}>ou découvre les codes de {best.creator} →</Link>
             </div>
           </div>
         </div>

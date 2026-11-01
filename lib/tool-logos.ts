@@ -1,5 +1,4 @@
 import manifest from './tool-logos.json';
-import { tools } from './data';
 
 // Logos des outils, servis depuis public/logos/ (générés par scripts/fetch-logos.mjs).
 export type ToolLogo = { src: string; bg: string; kind: 'glyph' | 'image' };
@@ -12,7 +11,8 @@ function slugify(value: string) {
 
 /** Le logo d'un outil, par son slug ou son nom. null s'il faut afficher l'initiale. */
 export function toolLogo(slugOrName: string): ToolLogo | null {
-  const slug = logos[slugOrName] ? slugOrName : tools.find(tool => tool.name === slugOrName)?.slug ?? slugify(slugOrName);
+  // Le slug d'un outil est toujours son nom passé dans slugify (scripts/build-catalog.mjs).
+  const slug = logos[slugOrName] ? slugOrName : slugify(slugOrName);
   const logo = slug ? logos[slug] : undefined;
   if (!logo || !logo.src.startsWith('/logos/')) return null;
   return { src: logo.src, bg: logo.bg, kind: logo.kind };

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { searchTools } from '@/lib/data';
+import { getCatalog } from '@/lib/catalog-server';
 import { routes } from '@/lib/routes';
 import { SearchBar } from '@/components/site/search-bar';
 import { ToolCard } from '@/components/site/tool-card';
@@ -7,14 +8,15 @@ import { ToolCard } from '@/components/site/tool-card';
 export default async function SearchResults({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q } = await searchParams;
   const query = q || '';
-  const results = searchTools(query);
+  const { tools } = await getCatalog();
+  const results = searchTools(tools, query);
   return (
     <main className="k-page">
       <div className="k-wrap">
         <div className="k-page-head">
           <span className="k-eyebrow">Recherche</span>
           <h1>Résultats pour « {query} »</h1>
-          <SearchBar initial={query} />
+          <SearchBar tools={tools} initial={query} />
         </div>
         {results.length === 0 ? (
           <div className="k-empty">

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { categories, codes, isPublic, tools } from '@/lib/data';
+import { isPublic } from '@/lib/data';
+import { getCatalog } from '@/lib/catalog-server';
 import { routes } from '@/lib/routes';
 import { MiniCoupon } from '@/components/site/coupon';
 import { ToolSeal } from '@/components/site/tool-logo';
@@ -8,6 +9,7 @@ import { ToolCard } from '@/components/site/tool-card';
 
 export default async function Category({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const { categories, codes, tools } = await getCatalog();
   const category = categories.find(item => item.slug === slug);
   if (!category) notFound();
   const categoryTools = tools.filter(tool => tool.category === category.name);

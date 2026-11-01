@@ -3,8 +3,8 @@ import type { Category, Code } from './data';
 import { coverageByCategory, flaggedCodes, overview, reliabilityBuckets, todos, topTools, weightedSuccess } from './admin-stats';
 
 const code = (over: Partial<Code>): Code => ({
-  id: over.code ?? 'X', tool: 'Abby', creator: 'Créa', code: 'X', discount: '-10 %', status: 'to_test',
-  source: 'https://youtube.com/watch?v=x', sourceTitle: 'Vidéo', votes: 0, success: 0, ...over,
+  id: over.code ?? 'X', tool: 'Abby', toolSlug: 'abby', creator: 'Créa', creatorSlug: 'crea', code: 'X', discount: '-10 %', status: 'to_test',
+  source: 'https://youtube.com/watch?v=x', sourceTitle: 'Vidéo', votes: 0, success: 0, lastTestedAt: null, createdAt: '2026-11-01T00:00:00.000Z', ...over,
 });
 
 const codes: Code[] = [

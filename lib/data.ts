@@ -1,23 +1,34 @@
-import catalog from './catalog.json';
-
-// Le catalogue est généré par `npm run catalog` (scripts/build-catalog.mjs) à partir de data/.
-export type Category = { slug:string; name:string; count:number; tracked:number };
-export type Tool = { slug:string; name:string; category:string; website:string; description:string; priority:number; codes:number };
-export type CodeStatus = 'verified'|'to_test'|'pending'|'rejected';
-export type Code = { id:string; tool:string; creator:string; code:string; discount:string; status:CodeStatus; source:string; sourceTitle:string; creatorLink?:string; votes:number; success:number; note?:string };
-
-export const tools: Tool[] = catalog.tools;
-export const codes: Code[] = catalog.codes as Code[];
-/** Nombre d'outils suivis par le sourcing, même sans code publié. */
-export const trackedTools: number = catalog.tracked;
+// Types du catalogue (outils, codes, catégories) et fonctions pures pour les lire.
+// Les données viennent de la base (lib/catalog-db.ts), chargées côté serveur par getCatalog() (lib/catalog-server.ts).
+export type Category = { slug: string; name: string; count: number; tracked: number };
+export type Tool = { slug: string; name: string; category: string; website: string; description: string; priority: number; codes: number };
+export type CodeStatus = 'verified' | 'to_test' | 'pending' | 'rejected';
+export type Code = {
+  id: string; tool: string; toolSlug: string; creator: string; creatorSlug: string; code: string; discount: string; status: CodeStatus;
+  source: string; sourceTitle: string; creatorLink?: string; votes: number; success: number; note?: string;
+  /** Date ISO du dernier test par l'admin, null s'il n'a jamais été testé. */
+  lastTestedAt: string | null;
+  createdAt: string;
+};
+export type Catalog = {
+  categories: Category[];
+  /** Outils publiés : au moins un code visible sur le site. */
+  tools: Tool[];
+  /** Tous les codes non archivés, quel que soit leur statut. */
+  codes: Code[];
+  /** Nombre d'outils suivis, même sans code publié. */
+  tracked: number;
+};
 
 /** Un code est visible sur le site s'il est vérifié ou à tester. En attente et rejeté restent dans l'admin. */
-export function isPublic(code: Pick<Code,'status'>){return code.status==='verified'||code.status==='to_test'}
+export function isPublic(code: Pick<Code, 'status'>) { return code.status === 'verified' || code.status === 'to_test'; }
 
-/** Toutes les catégories suivies (formulaire de proposition, filtres admin), y compris celles sans outil publié. */
-export const categories: Category[] = catalog.categories;
+/** Taux de réussite en % à partir des votes « ça marche » et « ça ne marche pas ». */
+export function successRate(up: number, down: number) { return up + down === 0 ? 0 : Math.round((up / (up + down)) * 100); }
 
-export function findTool(slug:string){return tools.find(tool=>tool.slug===slug)}
-export function findCode(id:string){return codes.find(code=>code.id===id)}
-export function toolCodes(tool:string){return codes.filter(code=>code.tool.toLowerCase()===tool.toLowerCase())}
-export function searchTools(query:string){const q=query.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s/g,'');return tools.filter(t=>t.name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s/g,'').includes(q))}
+function normalize(value: string) { return value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s/g, ''); }
+
+export function searchTools(tools: Tool[], query: string) {
+  const q = normalize(query);
+  return tools.filter(tool => normalize(tool.name).includes(q));
+}
