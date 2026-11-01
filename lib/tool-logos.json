@@ -1,15 +1,57 @@
 {
+  "babbel": {
+    "src": "/logos/babbel.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "brilliant": {
+    "src": "/logos/brilliant.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
   "elevenlabs": {
     "src": "/logos/elevenlabs.svg",
     "bg": "#000000",
     "kind": "glyph",
     "source": "Simple Icons (CC0) : https://elevenlabs.io/brand"
   },
+  "incogni": {
+    "src": "/logos/incogni.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "indy": {
+    "src": "/logos/indy.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
   "nordvpn": {
     "src": "/logos/nordvpn.svg",
     "bg": "#4687FF",
     "kind": "glyph",
     "source": "Simple Icons (CC0) : https://nordvpn.com/press-area/"
+  },
+  "o2switch": {
+    "src": "/logos/o2switch.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "opus-clip": {
+    "src": "/logos/opus-clip.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "qonto": {
+    "src": "/logos/qonto.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
   },
   "shopify": {
     "src": "/logos/shopify.svg",
