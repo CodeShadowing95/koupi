@@ -11,6 +11,17 @@ export const FLAG_MIN_VOTES = 2;
 export const FLAG_MAX_SUCCESS = 50;
 
 /** Objectifs affichés à côté des indicateurs (en %). */
+/** Un code vérifié est à retester après ce délai : les offres changent, les codes expirent. */
+export const RETEST_DAYS = 30;
+
+/** Codes vérifiés jamais testés depuis l'import, ou testés il y a plus de RETEST_DAYS jours. Les plus anciens d'abord. */
+export function staleCodes(codes: Code[], now = new Date()): Code[] {
+  const limit = now.getTime() - RETEST_DAYS * 86_400_000;
+  return codes
+    .filter(code => !code.archived && code.status === 'verified' && (!code.lastTestedAt || new Date(code.lastTestedAt).getTime() < limit))
+    .sort((a, b) => (a.lastTestedAt ?? '').localeCompare(b.lastTestedAt ?? ''));
+}
+
 export const TARGETS = { coverage: 50, verified: 60, success: 80, delayHours: 48 } as const;
 
 export function isVisible(code: Pick<Code, 'status'>): boolean {
@@ -91,7 +102,7 @@ export function reliabilityBuckets(codes: Code[]): { low: number; mid: number; h
 export type Todo = { id: string; tone: 'warn' | 'bad' | 'info'; title: string; why: string; cta: string; href: string };
 
 /** Les actions du jour, de la plus utile à la moins utile. */
-export function todos(catalog: CatalogInput, pendingSubmissions: number | null): Todo[] {
+export function todos(catalog: CatalogInput, pendingSubmissions: number | null, now = new Date()): Todo[] {
   const stats = overview(catalog);
   const list: Todo[] = [];
   if (pendingSubmissions) list.push({
@@ -105,6 +116,13 @@ export function todos(catalog: CatalogInput, pendingSubmissions: number | null):
     title: `Revoir ${code.code} (${code.tool}) : ${code.votes} votes, ${code.success} % de réussite`,
     why: 'Les visiteurs signalent qu’il ne marche pas. Teste-le : s’il est mort, passe-le en Rejeté.',
     cta: 'Voir le code', href: `/admin/codes?q=${encodeURIComponent(code.code)}`,
+  });
+  const stale = staleCodes(catalog.codes, now);
+  if (stale.length) list.push({
+    id: 'retest', tone: 'warn',
+    title: `Retester ${stale.length} code${stale.length > 1 ? 's' : ''} vérifié${stale.length > 1 ? 's' : ''} : test de plus de ${RETEST_DAYS} jours ou jamais daté`,
+    why: 'Une offre peut changer ou expirer. Un « Vérifié » trop ancien promet quelque chose qu’on ne sait plus.',
+    cta: 'Voir les codes à retester', href: '/admin/codes?status=retest',
   });
   if (stats.counts.to_test) list.push({
     id: 'to-test', tone: 'warn',

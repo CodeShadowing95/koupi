@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Category, Code } from './data';
-import { coverageByCategory, flaggedCodes, overview, reliabilityBuckets, todos, topTools, weightedSuccess } from './admin-stats';
+import { coverageByCategory, flaggedCodes, overview, reliabilityBuckets, staleCodes, todos, topTools, weightedSuccess } from './admin-stats';
 
 const code = (over: Partial<Code>): Code => ({
   id: over.code ?? 'X', tool: 'Abby', toolSlug: 'abby', creator: 'Créa', creatorSlug: 'crea', code: 'X', discount: '-10 %', status: 'to_test',
@@ -58,7 +58,7 @@ describe('indicateurs du catalogue', () => {
 
 describe('actions du jour', () => {
   it('met les propositions et les codes signalés en premier', () => {
-    expect(todos(catalog, 3).map(todo => todo.id)).toEqual(['submissions', 'flag-A2', 'to-test', 'pending', 'empty-categories']);
+    expect(todos(catalog, 3).map(todo => todo.id)).toEqual(['submissions', 'flag-A2', 'retest', 'to-test', 'pending', 'empty-categories']);
   });
 
   it('ne parle pas des propositions quand la file est vide ou inconnue', () => {
@@ -69,5 +69,20 @@ describe('actions du jour', () => {
   it('accorde les phrases au singulier', () => {
     expect(todos(catalog, 1)[0].title).toBe('Répondre à 1 proposition de visiteurs');
     expect(todos(catalog, 1).find(todo => todo.id === 'pending')?.title).toBe('Trancher 1 code en attente');
+  });
+});
+
+describe('codes à retester', () => {
+  const now = new Date('2026-12-15T12:00:00Z');
+  it('garde les vérifiés jamais testés ou testés il y a plus de 30 jours, les plus anciens d’abord', () => {
+    const list = [
+      code({ code: 'OLD', status: 'verified', lastTestedAt: '2026-10-01T00:00:00.000Z' }),
+      code({ code: 'NEVER', status: 'verified', lastTestedAt: null }),
+      code({ code: 'FRESH', status: 'verified', lastTestedAt: '2026-12-01T00:00:00.000Z' }),
+      code({ code: 'TOTEST', status: 'to_test', lastTestedAt: null }),
+      code({ code: 'ARCH', status: 'verified', lastTestedAt: null, archived: true }),
+    ];
+    expect(staleCodes(list, now).map(item => item.code)).toEqual(['NEVER', 'OLD']);
+    expect(todos({ ...catalog, codes: list }, null, now).find(todo => todo.id === 'retest')?.title).toBe('Retester 2 codes vérifiés : test de plus de 30 jours ou jamais daté');
   });
 });
