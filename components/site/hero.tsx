@@ -112,7 +112,7 @@ export function Hero() {
                 code={code.code}
                 avatar={<ToolSeal tool={slugOf(code.tool)} name={code.tool} />}
                 title={<>{code.tool}, {code.discount}</>}
-                subtitle={<span className="k-by"><CreatorAvatar name={code.creator} size="xs" />le code de {code.creator}</span>}
+                subtitle={<span className="k-by"><CreatorAvatar name={code.creator} size="xs" />de {code.creator}</span>}
               />
             ))}
           </div>

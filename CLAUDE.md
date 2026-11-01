@@ -49,7 +49,7 @@ Avant chaque commit : `npm run typecheck && npm test && npm run build` doivent p
   | `docs` | Documentation uniquement (README, ADR, CLAUDE.md, commentaires) |
   | `build` | Dépendances, build, configuration Next.js ou npm |
   | `ci` | CI et déploiement (GitHub Actions, `vercel.json`) |
-  | `chore` | Maintenance qui ne touche ni le code de l'app ni les tests |
+  | `chore` | Maintenance qui ne touche ni de l'app ni les tests |
   | `revert` | Annulation d'un commit précédent |
 
   Un changement d'apparence de l'interface (CSS, design) est un `feat` ou un `fix`, pas un `style`.

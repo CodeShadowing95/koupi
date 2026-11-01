@@ -36,7 +36,7 @@ export default async function Category({ params }: { params: Promise<{ slug: str
                         link={code.creatorLink || tool?.website || '#'}
                         avatar={<ToolSeal tool={tool?.slug ?? code.tool} name={code.tool} />}
                         title={<>{code.tool} · {code.discount}</>}
-                        subtitle={<>le code de {code.creator}</>}
+                        subtitle={<>de {code.creator}</>}
                       />
                       <div className="k-coupon-meta">
                         <span className={`k-status ${code.status === 'verified' ? 'k-status-ok' : 'k-status-warn'} is-dark`}>{code.status === 'verified' ? '✓ Vérifié' : '◷ À tester'}</span>

@@ -27,7 +27,7 @@ export default function Home() {
 
       <div aria-hidden="true" style={{ position: 'relative', paddingBlock: 20 }}>
         <Marquee items={[...tools.map(tool => tool.name), ...tools.map(tool => tool.name)]} />
-        <Marquee className="k-band-2" reverse items={[...creators, ...creators].map(name => `le code de ${name}`)} />
+        <Marquee className="k-band-2" reverse items={[...creators, ...creators].map(name => `de ${name}`)} />
       </div>
 
       <section className="k-section">
@@ -59,7 +59,7 @@ export default function Home() {
                     link={code.creatorLink || tool?.website || '#'}
                     avatar={<ToolSeal tool={tool?.slug ?? code.tool} name={code.tool} />}
                     title={<>{code.tool} · {code.discount}</>}
-                    subtitle={<span className="k-by"><CreatorAvatar name={code.creator} size="xs" />le code de {code.creator}</span>}
+                    subtitle={<span className="k-by"><CreatorAvatar name={code.creator} size="xs" />de {code.creator}</span>}
                   />
                   <div className="k-coupon-meta">
                     <span className="k-status k-status-ok is-dark">✓ Vérifié · {code.success} % de réussite</span>
@@ -103,7 +103,7 @@ export default function Home() {
             </article>
             <article className="k-tile k-tile-d" data-reveal>
               <h3>Testé, daté, voté</h3>
-              <p>Le code de {best.creator} pour {best.tool} marche pour {best.success} % des {best.votes} personnes qui ont voté.</p>
+              <p>de {best.creator} pour {best.tool} marche pour {best.success} % des {best.votes} personnes qui ont voté.</p>
               <div className="k-meter" style={{ marginTop: 'auto' }}><span style={{ width: `${best.success}%` }} /></div>
             </article>
             <article className="k-tile k-tile-e" data-reveal>

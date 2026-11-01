@@ -59,7 +59,7 @@ export function SearchDialog({ placeholder = 'Hostinger, NordVPN, ElevenLabs…'
       >
         <div className="k-palette-panel">
           <div className="k-palette-head">
-            <span className="k-eyebrow">Trouve le code de ton outil</span>
+            <span className="k-eyebrow">Trouve de ton outil</span>
             <button type="button" className="k-palette-close" onClick={close} aria-label="Fermer la recherche">Échap</button>
           </div>
           {/* Monté seulement à l'ouverture : le champ prend le focus et repart vide à chaque fois. */}

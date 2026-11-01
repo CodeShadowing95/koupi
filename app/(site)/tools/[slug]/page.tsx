@@ -46,7 +46,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                 <span className="k-eyebrow">Code promo {tool.name}</span>
               </div>
               {best ? (
-                <h1>Le code de {best.creator}<br />{best.status === 'verified' ? <em>marche.</em> : <em className="is-warn">est à tester.</em>}</h1>
+                <h1>de {best.creator}<br />{best.status === 'verified' ? <em>marche.</em> : <em className="is-warn">est à tester.</em>}</h1>
               ) : (
                 <h1>Pas encore de code<br />pour {tool.name}.</h1>
               )}
