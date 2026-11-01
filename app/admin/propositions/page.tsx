@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { categories } from '@/lib/data';
 import { matchesSearch } from '@/lib/admin-search';
 import { SUBMISSIONS_CHANGED } from '../pending-count';
+import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 type Submission = { id: string; tool_name: string; creator_name: string; code: string; discount_label: string; source_url: string; creator_link: string | null; comment: string | null; submitter_email: string | null; status: string; admin_note: string | null; created_at: string };
 export default function Propositions() {
   const [items, setItems] = useState<Submission[]>([]);
@@ -13,6 +14,7 @@ export default function Propositions() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
+  const [view, setView] = useAdminView();
   async function load(nextStatus = status, nextCategory = category, nextFrom = from, nextTo = to) {
     setLoading(true); setError('');
     const params = new URLSearchParams({ status: nextStatus });
@@ -35,6 +37,13 @@ export default function Propositions() {
   function resetFilters() { setCategory(''); setFrom(''); setTo(''); }
   const statusPill: Record<string, string> = { new: 'adm-pill', duplicate: 'adm-pill adm-pill-warn', approved: 'adm-pill adm-pill-ok', rejected: 'adm-pill adm-pill-bad' };
   const statusName: Record<string, string> = { new: 'À traiter', duplicate: 'Doublon', approved: 'Validée', rejected: 'Refusée' };
+  function decisionButtons(item: Submission) {
+    return item.status === 'new' ? <>
+      <button type="button" className="adm-btn adm-btn-pri" onClick={() => decide(item.id, 'approve')}>Valider</button>
+      <button type="button" className="adm-btn" onClick={() => decide(item.id, 'mark_duplicate')}>Doublon</button>
+      <button type="button" className="adm-btn" onClick={() => decide(item.id, 'reject')}>Refuser</button>
+    </> : <button type="button" className="adm-btn" onClick={() => decide(item.id, 'restore')}>Remettre à traiter</button>;
+  }
   const visible = items.filter(item => matchesSearch([item.code, item.tool_name, item.creator_name, item.discount_label, item.comment, item.submitter_email], query));
   return (
     <main className="adm-page">
@@ -50,6 +59,7 @@ export default function Propositions() {
           <div className="adm-filters">
             {['new', 'duplicate', 'approved', 'rejected', 'all'].map(option => <button key={option} type="button" className="adm-filter" aria-pressed={status === option} onClick={() => setStatus(option)}>{option === 'new' ? 'À traiter' : option === 'duplicate' ? 'Doublons' : option === 'approved' ? 'Validées' : option === 'rejected' ? 'Refusées' : 'Toutes'}</button>)}
           </div>
+          <ViewToggle view={view} onChange={setView} />
         </div>
         <div className="adm-toolbar">
           <label htmlFor="proposal-search" className="sr-only">Rechercher une proposition</label>
@@ -64,7 +74,31 @@ export default function Propositions() {
           {!loading && <span className="adm-count" role="status">{visible.length} sur {items.length}</span>}
         </div>
         {error && <div className="notice notice-error" role="alert" style={{ marginBottom: 12 }}>{error}</div>}
-        {loading ? <p className="muted">Chargement de la file…</p> : visible.length === 0 ? <div className="adm-empty">{items.length === 0 ? 'Aucune proposition ici. Modifie les filtres ou la période.' : 'Aucune proposition ne correspond à cette recherche.'}</div> : (
+        {loading ? <p className="muted">Chargement de la file…</p> : visible.length === 0 ? <div className="adm-empty">{items.length === 0 ? 'Aucune proposition ici. Modifie les filtres ou la période.' : 'Aucune proposition ne correspond à cette recherche.'}</div> : view === 'table' ? (
+          <div className="adm-table-wrap">
+            <table className="adm-table">
+              <thead>
+                <tr><th scope="col">Code</th><th scope="col">Outil</th><th scope="col">Réduction</th><th scope="col">Créateur</th><th scope="col">Reçue le</th><th scope="col">E-mail</th><th scope="col">Commentaire</th><th scope="col">Statut</th><th scope="col">Liens</th><th scope="col"><span className="sr-only">Décision</span></th></tr>
+              </thead>
+              <tbody>
+                {visible.map(item => (
+                  <tr key={item.id}>
+                    <td className="mono">{item.code}</td>
+                    <td className="adm-cell-wrap">{item.tool_name}</td>
+                    <td className="adm-cell-wrap">{item.discount_label}</td>
+                    <td className="adm-cell-wrap">{item.creator_name}</td>
+                    <td className="adm-cell-muted adm-cell-nowrap">{new Date(item.created_at).toLocaleDateString('fr-FR')}</td>
+                    <td className="adm-cell-muted adm-cell-clip" title={item.submitter_email ?? undefined}>{item.submitter_email || '—'}</td>
+                    <td className="adm-cell-muted adm-cell-wrap">{item.comment || '—'}</td>
+                    <td><span className={statusPill[item.status] || 'adm-pill'}>{statusName[item.status] || item.status}</span></td>
+                    <td className="adm-cell-nowrap"><a href={item.source_url} target="_blank" rel="noopener noreferrer">Source ↗</a>{item.creator_link && <> · <a href={item.creator_link} target="_blank" rel="noopener noreferrer">Lien ↗</a></>}</td>
+                    <td><div className="adm-cell-actions">{decisionButtons(item)}</div></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
           <div className="adm-grid">
             {visible.map(item => (
               <article className="adm-card" key={item.id}>
@@ -77,11 +111,7 @@ export default function Propositions() {
                   {item.creator_link && <a href={item.creator_link} target="_blank" rel="noopener noreferrer">Lien ↗</a>}
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {item.status === 'new' ? <>
-                    <button type="button" className="adm-btn adm-btn-pri" onClick={() => decide(item.id, 'approve')}>Valider</button>
-                    <button type="button" className="adm-btn" onClick={() => decide(item.id, 'mark_duplicate')}>Doublon</button>
-                    <button type="button" className="adm-btn" onClick={() => decide(item.id, 'reject')}>Refuser</button>
-                  </> : <button type="button" className="adm-btn" onClick={() => decide(item.id, 'restore')}>Remettre à traiter</button>}
+                  {decisionButtons(item)}
                 </div>
               </article>
             ))}

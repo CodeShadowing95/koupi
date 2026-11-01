@@ -283,3 +283,22 @@ a.tool-card:hover{color:var(--ink);border-color:var(--ink);box-shadow:var(--shad
 .admin-root>.adm-page{min-height:0}
 .adm-count-badge{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;margin-left:6px;padding:0 6px;border-radius:999px;background:var(--bad);color:#fff;font-size:12px;font-weight:700;line-height:1;vertical-align:middle;font-variant-numeric:tabular-nums}
 .adm-action .adm-count-badge{font-size:12px;color:#fff}
+/* Bascule Cartes / Tableau et vue tableau des listes admin */
+.adm-view{display:inline-flex;margin-left:auto;padding:3px;gap:2px;border:1.5px solid var(--line);border-radius:10px;background:var(--card)}
+.adm-view button{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:0 10px;border:0;border-radius:7px;background:transparent;font-size:13px;font-weight:600;color:var(--ink-soft)}
+.adm-view button:hover{color:var(--ink)}
+.adm-view button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.adm-table-wrap{overflow-x:auto;background:var(--card);border:1.5px solid var(--line);border-radius:12px}
+.adm-table{width:100%;border-collapse:collapse;font-size:14px}
+.adm-table th{position:sticky;top:0;text-align:left;padding:10px 12px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--card);border-bottom:1.5px solid var(--line);white-space:nowrap}
+.adm-table td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+.adm-table tbody tr:last-child td{border-bottom:0}
+.adm-table tbody tr:hover td{background:var(--blue-soft)}
+.adm-table .mono{font-weight:700;color:var(--blue);white-space:nowrap}
+.adm-table .adm-cell-muted{color:var(--muted);font-size:13px}
+.adm-table .adm-cell-clip{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adm-table .adm-cell-nowrap{white-space:nowrap}
+.adm-table .adm-cell-actions{display:flex;align-items:center;gap:6px;justify-content:flex-end;white-space:nowrap}
+@media(max-width:620px){.adm-view{margin-left:0}.adm-view span{display:none}}
+.adm-table .adm-pill{white-space:nowrap}
+.adm-table .adm-cell-wrap{min-width:120px;max-width:240px;line-height:1.35}
