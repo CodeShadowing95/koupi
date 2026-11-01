@@ -8,12 +8,17 @@
 //   3. l'icône déclarée par le site officiel (apple-touch-icon, puis icon, puis /favicon.ico).
 // Sans logo trouvé, le site affiche l'initiale (repli).
 //
+// Liste des outils : ceux de la base (DATABASE_URL dans .env.local), y compris ceux créés dans l'admin,
+// plus ceux de lib/catalog.json pas encore importés. Sans DATABASE_URL, seulement lib/catalog.json.
+//
 // Usage : npm run logos -- [--force] [--only slug1,slug2]
 //   SIMPLE_ICONS_DIR=/chemin/vers/simple-icons  pour lire un paquet simple-icons déjà extrait.
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { neon } from '@neondatabase/serverless';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const OUT_DIR = path.join(ROOT, 'public', 'logos');
@@ -27,10 +32,51 @@ const force = args.includes('--force');
 const onlyIndex = args.indexOf('--only');
 const only = onlyIndex >= 0 ? new Set(args[onlyIndex + 1].split(',')) : null;
 
-/** Lit les outils publiés (slug, nom, site) dans lib/catalog.json, généré par `npm run catalog`. */
+/** Vrai quand le fichier est lancé directement (node script.mjs), y compris sous Windows. */
+function isMainScript() {
+  return Boolean(process.argv[1]) && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
+}
+
+/**
+ * Réunit les outils de la base et ceux du catalogue, un seul par slug.
+ * La base l'emporte (nom ou site corrigé dans l'admin) ; les outils archivés sont ignorés,
+ * même s'ils sont encore dans le catalogue.
+ */
+export function mergeTools(dbTools, catalogTools) {
+  const bySlug = new Map();
+  for (const tool of dbTools) {
+    if (!tool.archived) bySlug.set(tool.slug, { slug: tool.slug, name: tool.name, website: tool.website });
+  }
+  const archived = new Set(dbTools.filter(tool => tool.archived).map(tool => tool.slug));
+  for (const { slug, name, website } of catalogTools) {
+    if (!bySlug.has(slug) && !archived.has(slug)) bySlug.set(slug, { slug, name, website });
+  }
+  return [...bySlug.values()].sort((a, b) => a.slug.localeCompare(b.slug));
+}
+
+/** Les outils de la base (DATABASE_URL), ou une liste vide si elle n'est pas configurée ou joignable. */
+async function readDbTools() {
+  const url = process.env.DATABASE_URL?.trim();
+  if (!url) {
+    console.log('DATABASE_URL absent : seuls les outils de lib/catalog.json sont traités.');
+    return [];
+  }
+  try {
+    const sql = neon(url);
+    const rows = await sql`select slug, name, website, archived_at is not null as archived from tools`;
+    console.log(`${rows.length} outils lus dans la base.`);
+    return rows;
+  } catch (error) {
+    // On n'affiche pas le message d'erreur : il peut recopier l'adresse de la base, qui contient le mot de passe.
+    console.warn(`Base injoignable (${error.code ?? error.name}) : seuls les outils de lib/catalog.json sont traités.`);
+    return [];
+  }
+}
+
+/** Les outils à traiter : la base, plus le catalogue (lib/catalog.json, généré par `npm run catalog`). */
 async function readTools() {
   const catalog = JSON.parse(await readFile(path.join(ROOT, 'lib', 'catalog.json'), 'utf8'));
-  return catalog.tools.map(({ slug, name, website }) => ({ slug, name, website }));
+  return mergeTools(await readDbTools(), catalog.tools);
 }
 
 /** Règle de slug de Simple Icons : minuscules, + → plus, . → dot, le reste retiré. */
@@ -160,4 +206,4 @@ async function main() {
   await writeFile(MANIFEST, `${JSON.stringify(sorted, null, 2)}\n`);
 }
 
-await main();
+if (isMainScript()) main().catch(error => { console.error(error.message); process.exit(1); });
