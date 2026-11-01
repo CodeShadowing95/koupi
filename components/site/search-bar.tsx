@@ -1,22 +1,36 @@
 'use client';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { searchTools } from '@/lib/data';
+import { searchTools, tools } from '@/lib/data';
 import { routes } from '@/lib/routes';
 import { plural } from '@/lib/ui';
 import { ToolLogo } from './tool-logo';
 
+type Props = {
+  placeholder?: string;
+  autoFocusShortcut?: boolean;
+  initial?: string;
+  /** « palette » : dans la fenêtre de recherche, la liste reste affichée et montre les outils populaires quand le champ est vide. */
+  variant?: 'bar' | 'palette';
+  /** Appelé quand on part vers une fiche ou vers la recherche (pour fermer la fenêtre). */
+  onNavigate?: () => void;
+  /** Appelé sur Échap en mode palette : ferme la fenêtre d'un coup, même si le champ n'est pas vide. */
+  onDismiss?: () => void;
+};
+
 // Barre de recherche façon « palette de commandes » : autocomplétion au clavier (flèches, Entrée, Échap),
 // raccourci « / » pour la rejoindre depuis n'importe où sur la page.
-export function SearchBar({ placeholder = 'Hostinger, NordVPN, ElevenLabs…', autoFocusShortcut = true, initial = '' }: { placeholder?: string; autoFocusShortcut?: boolean; initial?: string }) {
+export function SearchBar({ placeholder = 'Hostinger, NordVPN, ElevenLabs…', autoFocusShortcut = true, initial = '', variant = 'bar', onNavigate, onDismiss }: Props) {
   const router = useRouter();
   const [query, setQuery] = useState(initial);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const input = useRef<HTMLInputElement>(null);
   const listId = useId();
-  const suggestions = query.trim().length >= 1 ? searchTools(query).slice(0, 6) : [];
-  const showList = open && query.trim().length >= 1;
+  const palette = variant === 'palette';
+  const typed = query.trim().length >= 1;
+  const suggestions = typed ? searchTools(query).slice(0, palette ? 8 : 6) : palette ? tools.slice(0, 6) : [];
+  const showList = palette || (open && typed);
 
   useEffect(() => {
     if (!autoFocusShortcut) return;
@@ -35,13 +49,18 @@ export function SearchBar({ placeholder = 'Hostinger, NordVPN, ElevenLabs…', a
     const tool = suggestions[index];
     if (tool) router.push(routes.tool(tool.slug));
     else if (query.trim()) router.push(routes.search(query.trim()));
+    else return;
     setOpen(false);
+    onNavigate?.();
   }
 
   function onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'ArrowDown') { event.preventDefault(); setOpen(true); setActive(i => Math.min(i + 1, suggestions.length - 1)); }
     else if (event.key === 'ArrowUp') { event.preventDefault(); setActive(i => Math.max(i - 1, 0)); }
-    else if (event.key === 'Escape') { setOpen(false); }
+    else if (event.key === 'Escape') {
+      if (palette) { event.preventDefault(); onDismiss?.(); }
+      else setOpen(false);
+    }
   }
 
   return (
@@ -64,14 +83,16 @@ export function SearchBar({ placeholder = 'Hostinger, NordVPN, ElevenLabs…', a
           placeholder={placeholder}
           onChange={event => { setQuery(event.target.value); setOpen(true); setActive(0); }}
           onFocus={() => setOpen(true)}
-          onBlur={() => setTimeout(() => setOpen(false), 120)}
+          onBlur={() => { if (!palette) setTimeout(() => setOpen(false), 120); }}
+          autoFocus={palette}
           onKeyDown={onKeyDown}
         />
         {autoFocusShortcut && !query && <kbd className="k-kbd" aria-hidden="true">/</kbd>}
         <button className="k-btn k-btn-primary" type="submit">Trouver le code</button>
       </form>
       {showList && (
-        <ul className="k-suggest" id={listId} role="listbox" aria-label="Outils suggérés">
+        <ul className={`k-suggest${palette ? ' is-inline' : ''}`} id={listId} role="listbox" aria-label={typed ? 'Outils suggérés' : 'Outils populaires'}>
+          {palette && !typed && <li className="k-suggest-head" role="presentation">Populaires</li>}
           {suggestions.length === 0 && <li className="k-suggest-empty" role="option" aria-selected="false" aria-disabled="true">Pas encore suivi. Entrée pour chercher « {query.trim()} ».</li>}
           {suggestions.map((tool, index) => (
             <li
