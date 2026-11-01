@@ -2,9 +2,10 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { codes, isPublic, tools } from '@/lib/data';
 import { routes } from '@/lib/routes';
-import { avatarClass, creatorSlug, initials, plural } from '@/lib/ui';
+import { creatorSlug, plural } from '@/lib/ui';
 import { ToolSeal } from '@/components/site/tool-logo';
 import { MiniCoupon } from '@/components/site/coupon';
+import { CreatorAvatar } from '@/components/site/creator-avatar';
 
 export default async function Creator({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -16,7 +17,7 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
       <div className="k-wrap">
         <nav className="k-crumbs" aria-label="Fil d'Ariane"><Link href={routes.home}>Accueil</Link><span aria-hidden="true">/</span><span aria-current="page" style={{ color: 'var(--text)' }}>{creator}</span></nav>
         <div className="k-creator-head" style={{ marginTop: 28 }}>
-          <span className={`k-av k-av-lg k-${avatarClass(creator)}`} aria-hidden="true">{initials(creator)}</span>
+          <CreatorAvatar name={creator} size="lg" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: '1 1 320px' }}>
             <span className="k-eyebrow">Créateur</span>
             <h1 style={{ fontSize: 'clamp(40px,5vw,64px)' }}>{creator}</h1>

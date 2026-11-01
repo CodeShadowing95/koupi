@@ -105,6 +105,9 @@ html:has(.kp),body:has(.kp){margin:0;background:#07081A}
 /* Avatars */
 .k-av{width:44px;height:44px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:var(--paper-ink);border:2px solid var(--paper-ink)}
 .k-av-lg{width:96px;height:96px;font-size:32px;border-width:3px}
+.k-av-xs{width:22px;height:22px;font-size:9px;border-width:1.5px}
+.k-av-photo{object-fit:cover;background:var(--paper,#fff);padding:0}
+.k-by{display:inline-flex;align-items:center;gap:7px}
 .k-av-1{background:#FFB59C}.k-av-2{background:#9FE6C2}.k-av-3{background:#B8C1FF}.k-av-4{background:#FFE08A}.k-av-5{background:#EBB8F5}
 .k-tool-logo{width:46px;height:46px;flex:none;border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:20px;color:#fff;
   background:linear-gradient(140deg,var(--blue-hi),var(--blue));box-shadow:0 0 0 1px rgba(255,255,255,.18) inset}

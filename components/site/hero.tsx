@@ -7,6 +7,7 @@ import { SearchDialog } from './search-dialog';
 import { MiniCoupon } from './coupon';
 import { ToolSeal } from './tool-logo';
 import { withLogosFirst } from '@/lib/tool-logos';
+import { CreatorAvatar } from './creator-avatar';
 
 const rotating = ['NordVPN', 'o2switch', 'ElevenLabs', 'Shopify', 'Qonto', 'Babbel'];
 
@@ -111,7 +112,7 @@ export function Hero() {
                 code={code.code}
                 avatar={<ToolSeal tool={slugOf(code.tool)} name={code.tool} />}
                 title={<>{code.tool}, {code.discount}</>}
-                subtitle={<>le code de {code.creator}</>}
+                subtitle={<span className="k-by"><CreatorAvatar name={code.creator} size="xs" />le code de {code.creator}</span>}
               />
             ))}
           </div>
