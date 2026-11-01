@@ -4,10 +4,19 @@ import { useState } from 'react';
 import type { AdminCategory } from '@/lib/catalog-admin';
 import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { FormDialog, sendJson } from '@/components/admin-form-dialog';
+import { SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
 
 const rate = (category: AdminCategory) => category.tools ? Math.round((category.covered / category.tools) * 100) : 0;
 
-export function CategoriesView({ categories }: { categories: AdminCategory[] }) {
+const sortFields: SortField<AdminCategory>[] = [
+  { key: 'name', label: 'Nom', value: category => category.name, text: true },
+  { key: 'tools', label: 'Nombre d’outils', value: category => category.tools, defaultDir: 'desc' },
+  { key: 'coverage', label: 'Couverture', value: category => rate(category), defaultDir: 'desc' },
+];
+
+export function CategoriesView({ categories: all }: { categories: AdminCategory[] }) {
+  const sort = useAdminSort(all, sortFields, { key: 'name', dir: 'asc' }, 'name');
+  const categories = sort.items;
   const [view, setView] = useAdminView();
   const [editing, setEditing] = useState<AdminCategory | 'new' | null>(null);
   const [name, setName] = useState('');
@@ -31,13 +40,14 @@ export function CategoriesView({ categories }: { categories: AdminCategory[] }) 
           <div className="adm-head-actions"><button type="button" className="adm-btn adm-btn-pri" onClick={() => open('new')}>+ Nouvelle catégorie</button></div>
         </div>
         <div className="adm-toolbar">
+          <SortControl sort={sort} id="category-sort" />
           <span className="adm-count" role="status">{categories.length} catégories</span>
           <ViewToggle view={view} onChange={setView} />
         </div>
         {view === 'table' ? (
           <div className="adm-table-wrap">
             <table className="adm-table">
-              <thead><tr><th scope="col">Catégorie</th><th scope="col">Outils couverts</th><th scope="col">Couverture</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
+              <thead><tr><SortHeader sort={sort} field="name">Catégorie</SortHeader><SortHeader sort={sort} field="tools">Outils couverts</SortHeader><SortHeader sort={sort} field="coverage">Couverture</SortHeader><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
               <tbody>
                 {categories.map(category => (
                   <tr key={category.slug}>

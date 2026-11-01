@@ -8,7 +8,14 @@ import { SUBMISSIONS_CHANGED } from '../pending-count';
 import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { Pagination, usePagination } from '@/components/admin-pagination';
 import { AdminSelect } from '@/components/admin-select';
+import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
 type Submission = { id: string; tool_name: string; creator_name: string; code: string; discount_label: string; source_url: string; creator_link: string | null; comment: string | null; submitter_email: string | null; status: string; admin_note: string | null; created_at: string; category: string | null; created_code_id: string | null };
+const sortFields: SortField<Submission>[] = [
+  { key: 'received', label: 'Date de réception', value: item => item.created_at, defaultDir: 'desc' },
+  { key: 'code', label: 'Code', value: item => item.code, text: true },
+  { key: 'tool', label: 'Outil', value: item => item.tool_name, text: true },
+  { key: 'creator', label: 'Créateur', value: item => item.creator_name, text: true },
+];
 export function PropositionsView({ categories, tools, creators }: { categories: Category[]; tools: ToolOption[]; creators: string[] }) {
   const [editing, setEditing] = useState<EditorTarget | null>(null);
   const [items, setItems] = useState<Submission[]>([]);
@@ -52,8 +59,10 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
     </> : item.created_code_id ? <a className="adm-btn" href={`/admin/codes?q=${encodeURIComponent(item.code)}`}>Voir le code</a>
       : <button type="button" className="adm-btn" onClick={() => decide(item.id, 'restore')}>Remettre à traiter</button>;
   }
-  const visible = items.filter(item => matchesSearch([item.code, item.tool_name, item.creator_name, item.discount_label, item.comment, item.submitter_email], query));
-  const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${status}|${category}|${from}|${to}|${query}`);
+  const filtered = items.filter(item => matchesSearch([item.code, item.tool_name, item.creator_name, item.discount_label, item.comment, item.submitter_email], query));
+  const sort = useAdminSort(filtered, sortFields, { key: 'received', dir: 'desc' }, 'tool');
+  const visible = sort.items;
+  const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${status}|${category}|${from}|${to}|${query}|${sort.resetKey}`);
   return (
     <main className="adm-page">
       <div className="container">
@@ -83,13 +92,15 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
           <button type="button" className="adm-btn" onClick={resetFilters}>Réinitialiser</button>
           {!loading && <span className="adm-count" role="status">{visible.length} sur {items.length}</span>}
         </div>
+        <div className="adm-toolbar"><SortControl sort={sort} id="proposal-sort" /></div>
+        <LetterBar sort={sort} />
         <div ref={topRef} className="adm-list-top" />
         {error && <div className="notice notice-error" role="alert" style={{ marginBottom: 12 }}>{error}</div>}
         {loading ? <p className="muted">Chargement de la file…</p> : visible.length === 0 ? <div className="adm-empty">{items.length === 0 ? 'Aucune proposition ici. Modifie les filtres ou la période.' : 'Aucune proposition ne correspond à cette recherche.'}</div> : view === 'table' ? (
           <div className="adm-table-wrap adm-page-enter" key={`table-${current.page}`}>
             <table className="adm-table">
               <thead>
-                <tr><th scope="col">Code</th><th scope="col">Outil</th><th scope="col">Réduction</th><th scope="col">Créateur</th><th scope="col">Reçue le</th><th scope="col">E-mail</th><th scope="col">Commentaire</th><th scope="col">Statut</th><th scope="col">Liens</th><th scope="col"><span className="sr-only">Décision</span></th></tr>
+                <tr><SortHeader sort={sort} field="code">Code</SortHeader><SortHeader sort={sort} field="tool">Outil</SortHeader><th scope="col">Réduction</th><SortHeader sort={sort} field="creator">Créateur</SortHeader><SortHeader sort={sort} field="received">Reçue le</SortHeader><th scope="col">E-mail</th><th scope="col">Commentaire</th><th scope="col">Statut</th><th scope="col">Liens</th><th scope="col"><span className="sr-only">Décision</span></th></tr>
               </thead>
               <tbody>
                 {current.items.map(item => (
