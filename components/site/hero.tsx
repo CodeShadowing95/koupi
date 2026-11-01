@@ -3,7 +3,7 @@ import { useRef } from 'react';
 import { gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
 import { codes, tools } from '@/lib/data';
 import { routes } from '@/lib/routes';
-import { SearchBar } from './search-bar';
+import { SearchDialog } from './search-dialog';
 import { MiniCoupon } from './coupon';
 import { ToolSeal } from './tool-logo';
 import { withLogosFirst } from '@/lib/tool-logos';
@@ -89,7 +89,7 @@ export function Hero() {
             <span className="k-line"><span>prends le code.</span></span>
           </h1>
           <p className="k-hero-copy" data-hero-fade>Koupi retrouve le code promo que <strong>ton créateur préféré</strong> a donné en vidéo. Vérifié à la main, crédité au créateur. Pas de compte, pas de pub.</p>
-          <div className="k-hero-search" data-hero-fade><SearchBar /></div>
+          <div className="k-hero-search" data-hero-fade><SearchDialog /></div>
           <div className="k-trust" data-hero-fade>
             <span><Check />Le code reste celui du créateur</span>
             <span><Check />Testé et daté</span>
