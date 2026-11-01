@@ -401,7 +401,7 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 /* Logos des outils et sceau Koupi (ADR-0007) */
 .k-tool-logo.is-real{background:#fff;overflow:hidden}
 .k-tool-logo.is-real img{display:block;width:58%;height:58%;object-fit:contain}
-.k-tool-logo.is-image img{width:70%;height:70%;border-radius:6px}
+.k-tool-logo.is-image img{width:100%;height:100%;object-fit:cover}
 .k-seal{--seal:70px;position:relative;flex:none;width:var(--seal);height:var(--seal);display:grid;place-items:center;transform:rotate(-10deg);
   filter:drop-shadow(0 4px 0 rgba(23,21,15,.18))}
 .k-seal-sm{--seal:56px}

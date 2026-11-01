@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { sealText, toolLogo } from './tool-logos';
+import { sealText, toolLogo, usesLogoDev } from './tool-logos';
+import manifest from './tool-logos.json';
 
 describe('toolLogo', () => {
   it('trouve un logo par slug ou par nom', () => {
@@ -21,5 +22,12 @@ describe('sealText', () => {
 
   it('ne coupe jamais un nom long', () => {
     expect(sealText('Une marque au nom très long', 10)).toBe('UNE MARQUE AU NOM TRÈS LONG · CODE CRÉATEUR · ');
+  });
+});
+
+describe('usesLogoDev', () => {
+  it('suit la source des logos enregistrés', () => {
+    const fromLogoDev = Object.values(manifest as Record<string, { source?: string }>).some(logo => logo.source === 'Logo.dev');
+    expect(usesLogoDev()).toBe(fromLogoDev);
   });
 });

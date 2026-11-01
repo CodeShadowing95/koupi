@@ -14,6 +14,11 @@ export function toolLogo(slugOrName: string): ToolLogo | null {
   return { src: logo.src, bg: logo.bg, kind: logo.kind };
 }
 
+/** Vrai si au moins un logo vient de Logo.dev : leur plan gratuit demande un lien d'attribution. */
+export function usesLogoDev(): boolean {
+  return Object.values(logos).some(logo => logo.source === 'Logo.dev');
+}
+
 /** Le texte qui tourne autour du sceau : le nom répété jusqu'à faire le tour. */
 export function sealText(name: string, minLength = 26): string {
   const unit = `${name.toUpperCase()} · CODE CRÉATEUR · `;
