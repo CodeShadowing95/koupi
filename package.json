@@ -12,7 +12,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate.ts",
     "logos": "node --env-file-if-exists=.env.local scripts/fetch-logos.mjs",
-    "catalog": "node scripts/build-catalog.mjs"
+    "catalog": "node scripts/build-catalog.mjs",
+    "avatars": "node --env-file-if-exists=.env.local scripts/fetch-avatars.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.3.8",

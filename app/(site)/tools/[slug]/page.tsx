@@ -2,9 +2,10 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { findTool, isPublic, toolCodes, type Code } from '@/lib/data';
 import { routes } from '@/lib/routes';
-import { avatarClass, creatorSlug, initials } from '@/lib/ui';
+import { creatorSlug } from '@/lib/ui';
 import { MiniCoupon, TearTicket } from '@/components/site/coupon';
 import { ToolSeal } from '@/components/site/tool-logo';
+import { CreatorAvatar } from '@/components/site/creator-avatar';
 
 function StatusBadge({ status, dark = false }: { status: Code['status']; dark?: boolean }) {
   if (status === 'verified') return <span className={`k-status k-status-ok${dark ? ' is-dark' : ''}`}>✓ Vérifié</span>;
@@ -55,7 +56,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
             {best ? (
               <TearTicket code={best.code} link={best.creatorLink || tool.website} creator={best.creator} discount={best.discount} tool={tool.name} seal={<ToolSeal tool={tool.slug} name={tool.name} size="lg" />}>
                 <div className="k-ticket-who">
-                  <span className={`k-av k-${avatarClass(best.creator)}`} style={{ width: 52, height: 52 }} aria-hidden="true">{initials(best.creator)}</span>
+                  <CreatorAvatar name={best.creator} style={{ width: 52, height: 52 }} />
                   <span>
                     <strong><Link href={routes.creator(creatorSlug(best.creator))}>{best.creator}</Link></strong>
                     <span>l&apos;a donné dans « {best.sourceTitle} » · <a href={best.source} target="_blank" rel="noopener noreferrer">voir la vidéo ↗</a></span>
@@ -86,7 +87,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                         className="k-row-coupon"
                         code={code.code}
                         link={code.creatorLink || tool.website}
-                        avatar={<span className={`k-av k-${avatarClass(code.creator)}`} aria-hidden="true">{initials(code.creator)}</span>}
+                        avatar={<CreatorAvatar name={code.creator} />}
                         title={<>{code.creator} · {code.discount}</>}
                         subtitle={code.sourceTitle}
                       />

@@ -1,13 +1,14 @@
 import Link from 'next/link';
 import { categories, codes, isPublic, tools } from '@/lib/data';
 import { routes } from '@/lib/routes';
-import { avatarClass, creatorSlug, initials } from '@/lib/ui';
+import { creatorSlug } from '@/lib/ui';
 import { Hero } from '@/components/site/hero';
 import { Marquee } from '@/components/site/marquee';
 import { HowItWorks } from '@/components/site/how-it-works';
 import { MiniCoupon } from '@/components/site/coupon';
 import { ToolSeal } from '@/components/site/tool-logo';
 import { Counter } from '@/components/site/counter';
+import { CreatorAvatar } from '@/components/site/creator-avatar';
 
 const Arrow = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
@@ -58,7 +59,7 @@ export default function Home() {
                     link={code.creatorLink || tool?.website || '#'}
                     avatar={<ToolSeal tool={tool?.slug ?? code.tool} name={code.tool} />}
                     title={<>{code.tool} · {code.discount}</>}
-                    subtitle={<>le code de {code.creator}</>}
+                    subtitle={<span className="k-by"><CreatorAvatar name={code.creator} size="xs" />le code de {code.creator}</span>}
                   />
                   <div className="k-coupon-meta">
                     <span className="k-status k-status-ok is-dark">✓ Vérifié · {code.success} % de réussite</span>
@@ -87,7 +88,7 @@ export default function Home() {
                 <span className="k-flow-line" />
                 <span className="k-flow-node"><span className="k-tool-logo">K</span>Koupi</span>
                 <span className="k-flow-line" />
-                <span className="k-flow-node"><span className={`k-av k-${avatarClass(best.creator)}`}>{initials(best.creator)}</span>{best.creator}</span>
+                <span className="k-flow-node"><CreatorAvatar name={best.creator} />{best.creator}</span>
               </div>
             </article>
             <article className="k-tile k-tile-b" data-reveal>
