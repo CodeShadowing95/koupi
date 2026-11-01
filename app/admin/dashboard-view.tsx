@@ -10,6 +10,8 @@ import { SUBMISSIONS_CHANGED } from './pending-count';
 
 
 const actionLabel: Record<string, string> = { approved: 'validée', rejected: 'refusée', duplicate: 'marquée en doublon', new: 'remise à traiter' };
+const codeActionLabel: Record<string, string> = { create: 'ajouté', edit: 'modifié', verify: 'vérifié : il marche', reject: 'rejeté : il ne marche pas', to_test: 'publié à tester', pending: 'mis en attente', archive: 'archivé', restore: 'restauré' };
+const dotStatus: Record<string, string> = { verified: 'approved', to_test: 'new', pending: 'new' };
 
 function useInsights() {
   const [insights, setInsights] = useState<Insights | null>(null);
@@ -157,11 +159,13 @@ export function DashboardView({ catalog }: { catalog: Catalog }) {
 
         <div className="adm-row">
           <section className="adm-panel adm-span-2" aria-labelledby="activity-title" style={{ gap: 0 }}>
-            <div className="adm-panel-head" style={{ marginBottom: 6 }}><h2 id="activity-title">Activité récente</h2><span className="adm-panel-sub">Journal de modération</span></div>
+            <div className="adm-panel-head" style={{ marginBottom: 6 }}><h2 id="activity-title">Activité récente</h2><span className="adm-panel-sub">Propositions et codes</span></div>
             {insights?.recent.length ? insights.recent.map(item => (
               <div className="adm-activity" key={item.id}>
-                <span className="dot" data-status={item.nextStatus} aria-hidden="true" />
-                <span>Proposition {item.code ? <b className="mono">{item.code}</b> : 'supprimée'}{item.tool ? ` (${item.tool})` : ''} {actionLabel[item.nextStatus] ?? item.nextStatus}</span>
+                <span className="dot" data-status={item.kind === 'code' ? dotStatus[item.nextStatus] ?? item.nextStatus : item.nextStatus} aria-hidden="true" />
+                {item.kind === 'code'
+                  ? <span>Code <b className="mono">{item.code}</b>{item.tool ? ` (${item.tool})` : ''} {codeActionLabel[item.action] ?? item.action}</span>
+                  : <span>Proposition {item.code ? <b className="mono">{item.code}</b> : 'supprimée'}{item.tool ? ` (${item.tool})` : ''} {actionLabel[item.nextStatus] ?? item.nextStatus}</span>}
                 <time dateTime={item.at}>{new Date(item.at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</time>
               </div>
             )) : <p className="adm-panel-sub" style={{ paddingTop: 10, borderTop: '1px solid var(--line)' }}>{insights ? 'Aucune décision pour l’instant.' : 'Chargement…'}</p>}

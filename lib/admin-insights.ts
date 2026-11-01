@@ -2,7 +2,7 @@
 // propositions par semaine et journal récent. Les calculs sont des fonctions pures, testées à part.
 import { and, desc, eq, gte, isNotNull, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
-import { moderationLogs, submissions, type Submission } from '@/db/schema';
+import { codeLogs, codes, moderationLogs, submissions, tools, type Submission } from '@/db/schema';
 
 export const PERIODS = [7, 30, 90, 365] as const;
 export type Period = typeof PERIODS[number];
@@ -46,7 +46,8 @@ export function weeklyBuckets(rows: { createdAt: Date; status: Submission['statu
   return buckets;
 }
 
-export type Activity = { id: string; action: string; nextStatus: string; code: string | null; tool: string | null; at: string };
+/** kind : décision sur une proposition, ou action sur un code du catalogue. */
+export type Activity = { id: string; kind: 'submission' | 'code'; action: string; nextStatus: string; code: string | null; tool: string | null; at: string };
 
 export type Insights = {
   period: Period;
@@ -62,7 +63,7 @@ export async function adminInsights(db: Db, period: Period, now = new Date()): P
   const weeks = Math.min(12, Math.max(4, Math.ceil(period / 7)));
   const weeklySince = new Date(weekStart(now).getTime() - (weeks - 1) * 7 * DAY);
 
-  const [[pendingRow], reviewed, received, recentRows] = await Promise.all([
+  const [[pendingRow], reviewed, received, recentRows, codeRows] = await Promise.all([
     db.select({ count: sql<number>`count(*)::int` }).from(submissions).where(eq(submissions.status, 'new')),
     db.select({ createdAt: submissions.createdAt, reviewedAt: submissions.reviewedAt }).from(submissions)
       .where(and(isNotNull(submissions.reviewedAt), gte(submissions.reviewedAt, since))),
@@ -71,6 +72,9 @@ export async function adminInsights(db: Db, period: Period, now = new Date()): P
     db.select({ id: moderationLogs.id, action: moderationLogs.action, nextStatus: moderationLogs.nextStatus, at: moderationLogs.createdAt, code: submissions.code, tool: submissions.toolName })
       .from(moderationLogs).leftJoin(submissions, eq(moderationLogs.submissionId, submissions.id))
       .orderBy(desc(moderationLogs.createdAt)).limit(6),
+    db.select({ id: codeLogs.id, action: codeLogs.action, nextStatus: codeLogs.nextStatus, at: codeLogs.createdAt, code: codes.code, tool: tools.name })
+      .from(codeLogs).innerJoin(codes, eq(codeLogs.codeId, codes.id)).innerJoin(tools, eq(codes.toolId, tools.id))
+      .orderBy(desc(codeLogs.createdAt)).limit(6),
   ]);
 
   const delays = reviewed.filter(row => row.reviewedAt).map(row => (row.reviewedAt!.getTime() - row.createdAt.getTime()) / HOUR);
@@ -81,6 +85,9 @@ export async function adminInsights(db: Db, period: Period, now = new Date()): P
     received: received.filter(row => row.createdAt >= since).length,
     medianDelayHours: delay === null ? null : Math.round(delay * 10) / 10,
     weekly: weeklyBuckets(received, weeks, now),
-    recent: recentRows.map(row => ({ id: row.id, action: row.action, nextStatus: row.nextStatus, code: row.code, tool: row.tool, at: row.at.toISOString() })),
+    recent: [
+      ...recentRows.map(row => ({ id: row.id, kind: 'submission' as const, action: row.action, nextStatus: row.nextStatus, code: row.code, tool: row.tool, at: row.at.toISOString() })),
+      ...codeRows.map(row => ({ id: row.id, kind: 'code' as const, action: row.action, nextStatus: row.nextStatus, code: row.code, tool: row.tool, at: row.at.toISOString() })),
+    ].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 6),
   };
 }

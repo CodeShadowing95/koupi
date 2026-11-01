@@ -1,12 +1,15 @@
 'use client';
 import { useEffect, useState } from 'react';
 import type { Category } from '@/lib/data';
+import type { ToolOption } from '@/lib/codes-admin';
+import { CodeEditor, type EditorTarget } from '@/components/admin-code-editor';
 import { matchesSearch } from '@/lib/admin-search';
 import { SUBMISSIONS_CHANGED } from '../pending-count';
 import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { Pagination, usePagination } from '@/components/admin-pagination';
-type Submission = { id: string; tool_name: string; creator_name: string; code: string; discount_label: string; source_url: string; creator_link: string | null; comment: string | null; submitter_email: string | null; status: string; admin_note: string | null; created_at: string };
-export function PropositionsView({ categories }: { categories: Category[] }) {
+type Submission = { id: string; tool_name: string; creator_name: string; code: string; discount_label: string; source_url: string; creator_link: string | null; comment: string | null; submitter_email: string | null; status: string; admin_note: string | null; created_at: string; category: string | null; created_code_id: string | null };
+export function PropositionsView({ categories, tools, creators }: { categories: Category[]; tools: ToolOption[]; creators: string[] }) {
+  const [editing, setEditing] = useState<EditorTarget | null>(null);
   const [items, setItems] = useState<Submission[]>([]);
   const [status, setStatus] = useState('new');
   const [category, setCategory] = useState('');
@@ -29,7 +32,7 @@ export function PropositionsView({ categories }: { categories: Category[] }) {
   }
   useEffect(() => { void load(); }, [status, category, from, to]);
   async function decide(id: string, action: string) {
-    const note = action === 'reject' ? window.prompt('Note de refus (facultative)') || '' : action === 'approve' ? window.prompt('Note de validation (facultative)') || '' : '';
+    const note = action === 'reject' ? window.prompt('Note de refus (facultative)') || '' : '';
     const response = await fetch('/api/admin/submissions', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id, action, note }) });
     if (!response.ok) { setError('La décision n’a pas pu être enregistrée.'); return; }
     await load();
@@ -40,10 +43,11 @@ export function PropositionsView({ categories }: { categories: Category[] }) {
   const statusName: Record<string, string> = { new: 'À traiter', duplicate: 'Doublon', approved: 'Validée', rejected: 'Refusée' };
   function decisionButtons(item: Submission) {
     return item.status === 'new' ? <>
-      <button type="button" className="adm-btn adm-btn-pri" onClick={() => decide(item.id, 'approve')}>Valider</button>
+      <button type="button" className="adm-btn adm-btn-pri" onClick={() => setEditing({ kind: 'submission', submission: item })}>Valider…</button>
       <button type="button" className="adm-btn" onClick={() => decide(item.id, 'mark_duplicate')}>Doublon</button>
       <button type="button" className="adm-btn" onClick={() => decide(item.id, 'reject')}>Refuser</button>
-    </> : <button type="button" className="adm-btn" onClick={() => decide(item.id, 'restore')}>Remettre à traiter</button>;
+    </> : item.created_code_id ? <a className="adm-btn" href={`/admin/codes?q=${encodeURIComponent(item.code)}`}>Voir le code</a>
+      : <button type="button" className="adm-btn" onClick={() => decide(item.id, 'restore')}>Remettre à traiter</button>;
   }
   const visible = items.filter(item => matchesSearch([item.code, item.tool_name, item.creator_name, item.discount_label, item.comment, item.submitter_email], query));
   const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${status}|${category}|${from}|${to}|${query}`);
@@ -121,6 +125,7 @@ export function PropositionsView({ categories }: { categories: Category[] }) {
           </div>
         )}
         {!loading && <Pagination current={current} onChange={goTo} label="propositions" size={size} onSizeChange={changeSize} />}
+        <CodeEditor target={editing} tools={tools} categories={categories} creators={creators} onClose={() => setEditing(null)} onSaved={() => { void load(); window.dispatchEvent(new Event(SUBMISSIONS_CHANGED)); }} />
       </div>
     </main>
   );
