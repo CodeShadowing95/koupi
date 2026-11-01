@@ -46,7 +46,7 @@ export default function Propositions() {
     </> : <button type="button" className="adm-btn" onClick={() => decide(item.id, 'restore')}>Remettre à traiter</button>;
   }
   const visible = items.filter(item => matchesSearch([item.code, item.tool_name, item.creator_name, item.discount_label, item.comment, item.submitter_email], query));
-  const { current, goTo, topRef } = usePagination(visible, `${status}|${category}|${from}|${to}|${query}`);
+  const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${status}|${category}|${from}|${to}|${query}`);
   return (
     <main className="adm-page">
       <div className="container">
@@ -120,7 +120,7 @@ export default function Propositions() {
             ))}
           </div>
         )}
-        {!loading && <Pagination current={current} onChange={goTo} label="propositions" />}
+        {!loading && <Pagination current={current} onChange={goTo} label="propositions" size={size} onSizeChange={changeSize} />}
       </div>
     </main>
   );
