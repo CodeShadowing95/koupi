@@ -670,3 +670,28 @@ html:has(> body > .ct){overflow:hidden}
   -webkit-mask:radial-gradient(circle var(--ct-notch) at 0 50%,#0000 97%,#000 100%),radial-gradient(circle var(--ct-notch) at 100% 50%,#0000 97%,#000 100%);
   -webkit-mask-composite:source-in;mask-composite:intersect}
 .ct-text{position:absolute;left:50%;top:50%;translate:-50% -50%;padding:.15em .45em;border-radius:.3em;background:#2A3BD6;color:#fff;font-family:var(--font-display);font-weight:800;font-size:clamp(28px,4.6vw,56px);letter-spacing:-.04em;white-space:nowrap;visibility:hidden;opacity:0}
+
+/* Liste déroulante avec recherche (components/admin-select.tsx) */
+.adm-combo{position:relative;min-width:0}
+.adm-combo-trigger{display:flex;align-items:center;gap:8px;width:100%;min-height:42px;border:1.5px solid var(--line-strong);border-radius:10px;padding:8px 12px;font:inherit;font-size:15px;color:var(--ink);background:var(--card);text-align:left;cursor:pointer;outline:0}
+.adm-combo-trigger:focus-visible,.adm-combo-trigger[aria-expanded="true"]{border-color:var(--blue);box-shadow:0 0 0 3px rgba(42,59,214,.2)}
+.adm-combo-filter{flex:0 1 220px}
+.adm-combo-filter .adm-combo-trigger{border-color:var(--ink);min-height:42px}
+.adm-combo-value{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adm-combo-placeholder{color:var(--muted)}
+.adm-combo-hint{color:var(--muted);font-size:13px}
+.adm-combo-chevron{flex:none;color:var(--muted);transition:transform .15s}
+.adm-combo-trigger[aria-expanded="true"] .adm-combo-chevron{transform:rotate(180deg)}
+.adm-form .field .adm-combo-native,.adm-combo-native{position:absolute;left:12px;bottom:0;width:1px;height:1px;min-height:0;padding:0;border:0;opacity:0;pointer-events:none}
+.adm-combo-pop{position:fixed;z-index:1000;display:flex;flex-direction:column;background:var(--card);color:var(--ink);border:1.5px solid var(--line-strong);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,.18);overflow:hidden}
+.adm-combo-search{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--line);color:var(--muted)}
+.adm-form .field .adm-combo-search input,.adm-combo-search input{flex:1;min-width:0;min-height:30px;height:30px;border:0;border-radius:0;padding:0;font-size:14px;background:transparent;color:var(--ink);outline:0;box-shadow:none}
+.adm-combo-list{list-style:none;margin:0;padding:4px;overflow-y:auto;overscroll-behavior:contain}
+.adm-combo-option{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;font-size:14px;cursor:pointer}
+.adm-combo-option > span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adm-combo-option.is-active{background:var(--blue-soft)}
+.adm-combo-option[aria-selected="true"]{font-weight:600}
+.adm-combo-option.is-pinned{color:var(--blue);font-weight:600;border-top:1px solid var(--line);border-radius:0 0 8px 8px;margin-top:2px}
+.adm-combo-check{flex:none;color:var(--blue)}
+.adm-combo-empty{padding:10px;font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.adm-combo-chevron{transition:none}}

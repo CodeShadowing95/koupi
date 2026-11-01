@@ -7,6 +7,7 @@ import { matchesSearch } from '@/lib/admin-search';
 import { SUBMISSIONS_CHANGED } from '../pending-count';
 import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { Pagination, usePagination } from '@/components/admin-pagination';
+import { AdminSelect } from '@/components/admin-select';
 type Submission = { id: string; tool_name: string; creator_name: string; code: string; discount_label: string; source_url: string; creator_link: string | null; comment: string | null; submitter_email: string | null; status: string; admin_note: string | null; created_at: string; category: string | null; created_code_id: string | null };
 export function PropositionsView({ categories, tools, creators }: { categories: Category[]; tools: ToolOption[]; creators: string[] }) {
   const [editing, setEditing] = useState<EditorTarget | null>(null);
@@ -74,7 +75,7 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
           <label htmlFor="proposal-search" className="sr-only">Rechercher une proposition</label>
           <input id="proposal-search" className="adm-search" type="search" placeholder="Rechercher un code, un outil, un créateur, un e-mail…" value={query} onChange={event => setQuery(event.target.value)} />
           <label htmlFor="category-filter" className="sr-only">Catégorie</label>
-          <select id="category-filter" className="adm-search" style={{ flex: '0 1 220px' }} value={category} onChange={event => setCategory(event.target.value)}><option value="">Toutes les catégories</option>{categories.map(item => <option key={item.slug} value={item.name}>{item.name}</option>)}</select>
+          <AdminSelect id="category-filter" variant="filter" ariaLabel="Catégorie" value={category} onChange={setCategory} options={[{ value: '', label: 'Toutes les catégories' }, ...categories.map(item => ({ value: item.name, label: item.name }))]} searchPlaceholder="Rechercher une catégorie…" />
           <label htmlFor="from-filter" className="sr-only">Du</label>
           <input id="from-filter" className="adm-search" style={{ flex: '0 1 160px' }} type="date" value={from} onChange={event => setFrom(event.target.value)} title="Du" />
           <label htmlFor="to-filter" className="sr-only">Au</label>

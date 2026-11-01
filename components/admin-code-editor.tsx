@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Category, Code, CodeStatus } from '@/lib/data';
 import type { ToolOption } from '@/lib/codes-admin';
+import { AdminSelect } from '@/components/admin-select';
 
 export type EditorTarget =
   | { kind: 'create' }
@@ -110,11 +111,11 @@ export function CodeEditor({ target, tools, categories, creators, onClose, onSav
         <div className="adm-form-grid">
           <div className="field">
             <label htmlFor="ce-tool">Outil</label>
-            <select id="ce-tool" value={values.toolSlug} onChange={set('toolSlug')} required>
-              <option value="" disabled>Choisir un outil…</option>
-              {tools.map(tool => <option key={tool.slug} value={tool.slug}>{tool.name} · {tool.category}</option>)}
-              <option value={NEW_TOOL}>+ Nouvel outil</option>
-            </select>
+            <AdminSelect
+              id="ce-tool" value={values.toolSlug} onChange={toolSlug => setValues(current => ({ ...current, toolSlug }))} required
+              placeholder="Choisir un outil…" searchPlaceholder="Rechercher un outil ou une catégorie…"
+              options={[...tools.map(tool => ({ value: tool.slug, label: tool.name, hint: tool.category })), { value: NEW_TOOL, label: '+ Nouvel outil', pinned: true }]}
+            />
           </div>
           <div className="field">
             <label htmlFor="ce-creator">Créateur</label>
@@ -125,7 +126,7 @@ export function CodeEditor({ target, tools, categories, creators, onClose, onSav
             <fieldset className="adm-fieldset">
               <legend>Nouvel outil</legend>
               <div className="field"><label htmlFor="ce-tool-name">Nom</label><input id="ce-tool-name" value={values.newToolName} onChange={set('newToolName')} required maxLength={120} /></div>
-              <div className="field"><label htmlFor="ce-tool-cat">Catégorie</label><select id="ce-tool-cat" value={values.newToolCategory} onChange={set('newToolCategory')} required>{categories.map(category => <option key={category.slug} value={category.slug}>{category.name}</option>)}</select></div>
+              <div className="field"><label htmlFor="ce-tool-cat">Catégorie</label><AdminSelect id="ce-tool-cat" value={values.newToolCategory} onChange={newToolCategory => setValues(current => ({ ...current, newToolCategory }))} options={categories.map(category => ({ value: category.slug, label: category.name }))} placeholder="Choisir une catégorie…" searchPlaceholder="Rechercher une catégorie…" required /></div>
               <div className="field"><label htmlFor="ce-tool-site">Site officiel</label><input id="ce-tool-site" value={values.newToolWebsite} onChange={set('newToolWebsite')} required placeholder="exemple.com" maxLength={300} /></div>
             </fieldset>
           )}

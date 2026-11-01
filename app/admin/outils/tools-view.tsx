@@ -7,6 +7,7 @@ import { matchesSearch } from '@/lib/admin-search';
 import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { Pagination, usePagination } from '@/components/admin-pagination';
 import { FormDialog, sendJson } from '@/components/admin-form-dialog';
+import { AdminSelect } from '@/components/admin-select';
 
 type Filter = 'all' | 'published' | 'empty' | 'archived';
 const filters: { value: Filter; label: string }[] = [
@@ -114,7 +115,7 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
           onSubmit={() => editing === 'new' ? sendJson('/api/admin/tools', 'POST', form) : sendJson(`/api/admin/tools/${(editing as AdminTool).id}`, 'PATCH', form)}
           extra={editing && editing !== 'new' ? <button type="button" className="adm-btn adm-btn-danger" onClick={() => archive(editing)}>{editing.archived ? 'Restaurer' : 'Archiver'}</button> : null}>
           <div className="field"><label htmlFor="tool-name">Nom</label><input id="tool-name" value={form.name} onChange={set('name')} required maxLength={120} /></div>
-          <div className="field"><label htmlFor="tool-cat">Catégorie</label><select id="tool-cat" value={form.categorySlug} onChange={set('categorySlug')} required>{categories.map(category => <option key={category.slug} value={category.slug}>{category.name}</option>)}</select></div>
+          <div className="field"><label htmlFor="tool-cat">Catégorie</label><AdminSelect id="tool-cat" value={form.categorySlug} onChange={categorySlug => setForm(value => ({ ...value, categorySlug }))} options={categories.map(category => ({ value: category.slug, label: category.name }))} placeholder="Choisir une catégorie…" searchPlaceholder="Rechercher une catégorie…" required /></div>
           <div className="field"><label htmlFor="tool-site">Site officiel</label><input id="tool-site" value={form.website} onChange={set('website')} required maxLength={300} placeholder="exemple.com" /></div>
           <div className="field"><label htmlFor="tool-priority">Priorité</label><select id="tool-priority" value={form.priority} onChange={set('priority')}>{[1, 2, 3, 4, 5].map(value => <option key={value} value={value}>{priorityLabel[value]}</option>)}</select></div>
           <div className="field adm-span-2"><label htmlFor="tool-desc">Description (facultative)</label><textarea id="tool-desc" rows={2} value={form.description} onChange={set('description')} maxLength={300} placeholder="Une phrase pour la fiche de l’outil" /><small>Vide : « Les codes promo donnés par les créateurs pour … ».</small></div>
