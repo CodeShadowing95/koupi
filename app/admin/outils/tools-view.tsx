@@ -15,7 +15,7 @@ const filters: { value: Filter; label: string }[] = [
   { value: 'all', label: 'Tous' }, { value: 'published', label: 'Publiés' }, { value: 'empty', label: 'Sans code visible' }, { value: 'archived', label: 'Archivés' },
 ];
 const matches = (tool: AdminTool, filter: Filter) => filter === 'archived' ? tool.archived : !tool.archived && (filter === 'all' || (filter === 'published' ? tool.visible > 0 : tool.visible === 0));
-const priorityLabel: Record<number, string> = { 1: '1 · haute', 2: '2 · assez haute', 3: '3 · normale', 4: '4 · assez basse', 5: '5 · basse' };
+const priorityLabel: Record<number, string> = { 1: '1 · haute', 2: '2', 3: '3 · normale', 4: '4', 5: '5 · basse' };
 
 type Form = { name: string; categorySlug: string; website: string; description: string; priority: number };
 
