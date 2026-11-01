@@ -27,14 +27,10 @@ const force = args.includes('--force');
 const onlyIndex = args.indexOf('--only');
 const only = onlyIndex >= 0 ? new Set(args[onlyIndex + 1].split(',')) : null;
 
-/** Lit les outils (slug, nom, site) dans lib/data.ts sans exécuter le TypeScript. */
+/** Lit les outils publiés (slug, nom, site) dans lib/catalog.json, généré par `npm run catalog`. */
 async function readTools() {
-  const source = await readFile(path.join(ROOT, 'lib', 'data.ts'), 'utf8');
-  const tools = [];
-  for (const match of source.matchAll(/\{slug:'([^']+)',name:'([^']+)',category:'[^']*',website:'([^']+)'/g)) {
-    tools.push({ slug: match[1], name: match[2], website: match[3] });
-  }
-  return tools;
+  const catalog = JSON.parse(await readFile(path.join(ROOT, 'lib', 'catalog.json'), 'utf8'));
+  return catalog.tools.map(({ slug, name, website }) => ({ slug, name, website }));
 }
 
 /** Règle de slug de Simple Icons : minuscules, + → plus, . → dot, le reste retiré. */
