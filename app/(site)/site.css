@@ -156,7 +156,9 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-stage-badge strong{color:#fff;font-size:15px}
 
 /* Recherche (barre de commande) */
-.k-search{position:relative;width:100%;max-width:580px}
+.k-search{position:relative;z-index:30;width:100%;max-width:580px}
+/* Le bloc du hero est animé (transform) : il lui faut son propre z-index pour que les suggestions passent au-dessus des liens « Populaires ». */
+.k-hero-search{position:relative;z-index:5;width:100%}
 .k-search-box{position:relative;display:flex;align-items:center;gap:4px;padding:6px 6px 6px 18px;border-radius:18px;background:rgba(13,15,43,.85);border:1px solid var(--line-2);
   box-shadow:0 20px 60px -20px rgba(42,59,214,.6);transition:border-color .2s,box-shadow .2s}
 .k-search-box::before{content:"";position:absolute;inset:-1px;border-radius:19px;padding:1px;pointer-events:none;
@@ -167,6 +169,7 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-search-box:focus-within{border-color:var(--blue-soft);box-shadow:0 0 0 4px rgba(110,125,255,.22),0 20px 60px -20px rgba(42,59,214,.9)}
 .k-search-box svg{flex:none;color:var(--muted)}
 .k-search-box input{flex:1;min-width:0;height:54px;border:0;outline:0;background:transparent;font-size:18px;font-weight:500;color:#fff;padding:0 8px}
+.k-search-box input:focus-visible{outline:none}
 .k-search-box input::placeholder{color:#6E7393}
 .k-search-box input::-webkit-search-cancel-button{display:none}
 .k-kbd{font-family:var(--mono);font-size:12px;padding:3px 7px;border-radius:7px;border:1px solid var(--line-2);color:var(--muted);margin-right:6px}
