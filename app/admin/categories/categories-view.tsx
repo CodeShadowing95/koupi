@@ -1,12 +1,17 @@
 'use client';
 // Catégories d'outils, avec leur couverture : combien de leurs outils ont un code visible.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { AdminCategory } from '@/lib/catalog-admin';
 import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { FormDialog, sendJson } from '@/components/admin-form-dialog';
-import { SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
+import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
+import { matchesSearch } from '@/lib/admin-search';
 
 const rate = (category: AdminCategory) => category.tools ? Math.round((category.covered / category.tools) * 100) : 0;
+
+type Filter = 'all' | 'covered' | 'empty';
+const filters: { value: Filter; label: string }[] = [{ value: 'all', label: 'Toutes' }, { value: 'covered', label: 'Sur le site' }, { value: 'empty', label: 'Vides sur le site' }];
+const matches = (category: AdminCategory, filter: Filter) => filter === 'all' || (filter === 'covered' ? category.covered > 0 : category.covered === 0);
 
 const sortFields: SortField<AdminCategory>[] = [
   { key: 'name', label: 'Nom', value: category => category.name, text: true },
@@ -15,8 +20,14 @@ const sortFields: SortField<AdminCategory>[] = [
 ];
 
 export function CategoriesView({ categories: all }: { categories: AdminCategory[] }) {
-  const sort = useAdminSort(all, sortFields, 'name');
+  const [filter, setFilter] = useState<Filter>('all');
+  const [query, setQuery] = useState('');
+  // Les liens des autres pages ouvrent la liste déjà filtrée (?q=…).
+  useEffect(() => { const q = new URLSearchParams(window.location.search).get('q'); if (q) setQuery(q); }, []);
+  const filtered = all.filter(category => matches(category, filter) && matchesSearch([category.name, category.slug], query));
+  const sort = useAdminSort(filtered, sortFields, 'name');
   const categories = sort.items;
+  const countOf = (value: Filter) => all.filter(category => matches(category, value)).length;
   const [view, setView] = useAdminView();
   const [editing, setEditing] = useState<AdminCategory | 'new' | null>(null);
   const [name, setName] = useState('');
@@ -39,12 +50,18 @@ export function CategoriesView({ categories: all }: { categories: AdminCategory[
           </div>
           <div className="adm-head-actions"><button type="button" className="adm-btn adm-btn-pri" onClick={() => open('new')}>+ Nouvelle catégorie</button></div>
         </div>
+        <div className="adm-tabs" role="group" aria-label="Filtre">
+          {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label} <span className="adm-tab-n">{countOf(item.value)}</span></button>)}
+        </div>
         <div className="adm-toolbar">
+          <label htmlFor="category-search" className="sr-only">Rechercher une catégorie</label>
+          <input id="category-search" className="adm-search" type="search" placeholder="Rechercher une catégorie…" value={query} onChange={event => setQuery(event.target.value)} />
           {view !== 'table' && <SortControl sort={sort} id="category-sort" />}
-          <span className="adm-count" role="status">{categories.length} catégories</span>
+          <span className="adm-count" role="status">{categories.length} sur {countOf(filter)}</span>
           <ViewToggle view={view} onChange={setView} />
         </div>
-        {view === 'table' ? (
+        <LetterBar sort={sort} />
+        {categories.length === 0 ? <div className="adm-empty">Aucune catégorie ne correspond.</div> : view === 'table' ? (
           <div className="adm-table-wrap">
             <table className="adm-table">
               <thead><tr><SortHeader sort={sort} field="name">Catégorie</SortHeader><SortHeader sort={sort} field="tools">Outils couverts</SortHeader><SortHeader sort={sort} field="coverage">Couverture</SortHeader><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
