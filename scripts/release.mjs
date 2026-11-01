@@ -32,10 +32,16 @@ const SEP = '\u001f';
 const END = '\u001e';
 
 const args = process.argv.slice(2);
-const dryRun = args.includes('--dry-run');
+// `npm run release --dry-run` (without the lone `--`) does not pass the flag to the script:
+// npm keeps it and exposes it as npm_config_dry_run. Read both so a forgotten `--` never runs a real release.
+const npmFlag = (name) => {
+  const value = process.env[`npm_config_${name.replace(/-/g, '_')}`];
+  return value !== undefined && value !== '' && value !== 'false';
+};
+const dryRun = args.includes('--dry-run') || npmFlag('dry-run');
 const baseIndex = args.indexOf('--base');
-const base = baseIndex === -1 ? 'develop' : args[baseIndex + 1];
-const forcedLevel = ['major', 'minor', 'patch'].find((l) => args.includes(`--${l}`));
+const base = baseIndex !== -1 ? args[baseIndex + 1] : npmFlag('base') ? process.env.npm_config_base : 'develop';
+const forcedLevel = ['major', 'minor', 'patch'].find((l) => args.includes(`--${l}`) || npmFlag(l));
 const forcedVersion = args.find((a) => /^v?\d+\.\d+\.\d+$/.test(a))?.replace(/^v/, '');
 
 function git(...gitArgs) {
