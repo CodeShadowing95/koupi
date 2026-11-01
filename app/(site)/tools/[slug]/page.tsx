@@ -8,8 +8,10 @@ import { ToolSeal } from '@/components/site/tool-logo';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { VoteButtons } from '@/components/site/vote-buttons';
 
-function StatusBadge({ status, dark = false }: { status: Code['status']; dark?: boolean }) {
-  if (status === 'verified') return <span className={`k-status k-status-ok${dark ? ' is-dark' : ''}`}>✓ Vérifié</span>;
+function StatusBadge({ status, testedAt, dark = false }: { status: Code['status']; testedAt?: string | null; dark?: boolean }) {
+  // « Testé, daté » : la date du dernier test est affichée quand on la connaît.
+  const date = testedAt ? new Date(testedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Paris' }) : null;
+  if (status === 'verified') return <span className={`k-status k-status-ok${dark ? ' is-dark' : ''}`}>✓ Vérifié{date ? ` le ${date}` : ''}</span>;
   return <span className={`k-status k-status-warn${dark ? ' is-dark' : ''}`}>◷ À tester</span>;
 }
 
@@ -65,7 +67,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                   </span>
                 </div>
                 <span className="k-ticket-discount">{best.discount}</span>
-                <div className="k-ticket-meta"><StatusBadge status={best.status} /><span>Lien du créateur ouvert tel quel</span></div>
+                <div className="k-ticket-meta"><StatusBadge status={best.status} testedAt={best.lastTestedAt} /><span>Lien du créateur ouvert tel quel</span></div>
                 <div className="k-ticket-votes">
                   <span style={{ fontSize: 14, fontWeight: 600 }}>{votesLabel(best)}</span>
                   {best.votes >= 3 && <div className="k-meter"><span style={{ width: `${best.success}%` }} /></div>}
@@ -96,7 +98,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                         subtitle={code.sourceTitle}
                       />
                       <div className="k-coupon-meta">
-                        <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}><StatusBadge status={code.status} dark />{votesLabel(code)}</span>
+                        <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}><StatusBadge status={code.status} testedAt={code.lastTestedAt} dark />{votesLabel(code)}</span>
                         <a href={code.source} target="_blank" rel="noopener noreferrer">Source ↗</a>
                         <VoteButtons codeId={code.id} code={code.code} />
                       </div>

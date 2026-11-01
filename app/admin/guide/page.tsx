@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { FLAG_MAX_SUCCESS, FLAG_MIN_VOTES, TARGETS } from '@/lib/admin-stats';
+import { FLAG_MAX_SUCCESS, FLAG_MIN_VOTES, RETEST_DAYS, TARGETS } from '@/lib/admin-stats';
 
 // Guide de l'admin : la vie d'un code, les indicateurs expliqués, la routine et les mots du métier.
 export default function AdminGuide() {
@@ -67,7 +67,7 @@ export default function AdminGuide() {
           <div className="adm-row" style={{ marginTop: 0 }}>
             <div className="adm-mini"><b>Chaque jour · 10 min</b><span>Ouvre l’<Link href="/admin">Accueil</Link> et fais la liste « À faire » dans l’ordre. Réponds aux propositions. Teste 3 à 5 codes.</span></div>
             <div className="adm-mini"><b>Chaque semaine · 30 min</b><span>Lance le script de recherche, trie les nouveaux codes, regarde les catégories vides dans les <Link href="/admin/stats">Statistiques</Link> et ajoute 2 ou 3 créateurs à suivre.</span></div>
-            <div className="adm-mini"><b>Chaque mois · 1 h</b><span>Reteste les codes vérifiés de plus de 30 jours (les offres expirent), compare les indicateurs au mois d’avant, choisis le prochain objectif.</span></div>
+            <div className="adm-mini"><b>Chaque mois · 1 h</b><span>Reteste les codes vérifiés de plus de {RETEST_DAYS} jours (onglet <Link href="/admin/codes?status=retest">À retester</Link>, les offres expirent), regarde les <Link href="/admin/stats#audience">recherches sans résultat</Link>, compare les indicateurs au mois d’avant, choisis le prochain objectif.</span></div>
           </div>
         </section>
 

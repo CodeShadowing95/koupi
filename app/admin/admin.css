@@ -547,3 +547,4 @@ a.tool-card:hover{color:var(--ink);border-color:var(--ink);box-shadow:var(--shad
   .adm-status-choice{grid-template-columns:1fr 1fr}
 }
 .adm-mini-n{font-family:var(--font-display);font-size:26px!important;line-height:1.1;margin-bottom:2px}
+.adm-hint{font-size:14px;color:var(--ink-soft);background:var(--blue-soft);border-radius:10px;padding:10px 14px;margin:-4px 0 14px}
