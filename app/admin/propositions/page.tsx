@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { categories } from '@/lib/data';
+import { matchesSearch } from '@/lib/admin-search';
 type Submission = { id: string; tool_name: string; creator_name: string; code: string; discount_label: string; source_url: string; creator_link: string | null; comment: string | null; submitter_email: string | null; status: string; admin_note: string | null; created_at: string };
 export default function Propositions() {
   const [items, setItems] = useState<Submission[]>([]);
@@ -10,6 +11,7 @@ export default function Propositions() {
   const [to, setTo] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [query, setQuery] = useState('');
   async function load(nextStatus = status, nextCategory = category, nextFrom = from, nextTo = to) {
     setLoading(true); setError('');
     const params = new URLSearchParams({ status: nextStatus });
@@ -29,5 +31,61 @@ export default function Propositions() {
     await load();
   }
   function resetFilters() { setCategory(''); setFrom(''); setTo(''); }
-  return <main className="page"><div className="container"><span className="eyebrow">Modération</span><h1>Propositions</h1><p className="hero-copy">Vérifie la source et décide ce qui peut entrer dans le catalogue public.</p><div style={{ display: 'flex', gap: 8, margin: '30px 0 16px', flexWrap: 'wrap' }}>{['new', 'duplicate', 'approved', 'rejected', 'all'].map(option => <button key={option} className={status === option ? 'submit' : 'tag'} onClick={() => setStatus(option)}>{option === 'new' ? 'À traiter' : option === 'duplicate' ? 'Doublons' : option === 'approved' ? 'Validées' : option === 'rejected' ? 'Refusées' : 'Toutes'}</button>)}</div><div className="feature-panel" style={{ display: 'flex', gap: 12, alignItems: 'end', flexWrap: 'wrap' }}><div className="field"><label htmlFor="category-filter">Catégorie</label><select id="category-filter" value={category} onChange={event => setCategory(event.target.value)}><option value="">Toutes les catégories</option>{categories.map(item => <option key={item.slug} value={item.name}>{item.name}</option>)}</select></div><div className="field"><label htmlFor="from-filter">Du</label><input id="from-filter" type="date" value={from} onChange={event => setFrom(event.target.value)} /></div><div className="field"><label htmlFor="to-filter">Au</label><input id="to-filter" type="date" value={to} onChange={event => setTo(event.target.value)} /></div><button className="tag" onClick={resetFilters}>Réinitialiser</button></div>{error && <div className="notice" style={{ background: '#fff1f1', color: '#a12626' }}>{error}</div>}{loading ? <p className="muted">Chargement de la file…</p> : items.length === 0 ? <div className="feature-panel"><h2>Aucune proposition ici.</h2><p className="muted">Modifie les filtres ou la période sélectionnée.</p></div> : <div className="code-list">{items.map(item => <article className="code-card" key={item.id}><div><span className="tag">{item.status}</span><h3 style={{ marginTop: 10 }}>{item.code} · {item.tool_name}</h3><p>Créateur : {item.creator_name}</p><p className="muted">{item.discount_label}</p><p className="muted">{new Date(item.created_at).toLocaleDateString('fr-FR')}</p>{item.comment && <p style={{ marginTop: 10 }}>{item.comment}</p>}{item.submitter_email && <p className="muted">Contact : {item.submitter_email}</p>}</div><div><a className="text-link" href={item.source_url} target="_blank" rel="noopener noreferrer">Vérifier la source ↗</a>{item.creator_link && <a className="text-link" style={{ display: 'block', marginTop: 8 }} href={item.creator_link} target="_blank" rel="noopener noreferrer">Lien du créateur ↗</a>}</div><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>{item.status === 'new' && <><button className="submit" onClick={() => decide(item.id, 'approve')}>Valider</button><button className="tag" onClick={() => decide(item.id, 'mark_duplicate')}>Doublon</button><button className="tag" onClick={() => decide(item.id, 'reject')}>Refuser</button></>}{item.status !== 'new' && <button className="tag" onClick={() => decide(item.id, 'restore')}>Remettre à traiter</button>}</div></article>)}</div>}</div></main>;
+  const statusPill: Record<string, string> = { new: 'adm-pill', duplicate: 'adm-pill adm-pill-warn', approved: 'adm-pill adm-pill-ok', rejected: 'adm-pill adm-pill-bad' };
+  const statusName: Record<string, string> = { new: 'À traiter', duplicate: 'Doublon', approved: 'Validée', rejected: 'Refusée' };
+  const visible = items.filter(item => matchesSearch([item.code, item.tool_name, item.creator_name, item.discount_label, item.comment, item.submitter_email], query));
+  return (
+    <main className="adm-page">
+      <div className="container">
+        <div className="adm-head">
+          <div>
+            <span className="eyebrow">Modération</span>
+            <h1>Propositions</h1>
+            <p>Vérifie la source et décide ce qui peut entrer dans le catalogue public.</p>
+          </div>
+        </div>
+        <div className="adm-toolbar">
+          <div className="adm-filters">
+            {['new', 'duplicate', 'approved', 'rejected', 'all'].map(option => <button key={option} type="button" className="adm-filter" aria-pressed={status === option} onClick={() => setStatus(option)}>{option === 'new' ? 'À traiter' : option === 'duplicate' ? 'Doublons' : option === 'approved' ? 'Validées' : option === 'rejected' ? 'Refusées' : 'Toutes'}</button>)}
+          </div>
+        </div>
+        <div className="adm-toolbar">
+          <label htmlFor="proposal-search" className="sr-only">Rechercher une proposition</label>
+          <input id="proposal-search" className="adm-search" type="search" placeholder="Rechercher un code, un outil, un créateur, un e-mail…" value={query} onChange={event => setQuery(event.target.value)} />
+          <label htmlFor="category-filter" className="sr-only">Catégorie</label>
+          <select id="category-filter" className="adm-search" style={{ flex: '0 1 220px' }} value={category} onChange={event => setCategory(event.target.value)}><option value="">Toutes les catégories</option>{categories.map(item => <option key={item.slug} value={item.name}>{item.name}</option>)}</select>
+          <label htmlFor="from-filter" className="sr-only">Du</label>
+          <input id="from-filter" className="adm-search" style={{ flex: '0 1 160px' }} type="date" value={from} onChange={event => setFrom(event.target.value)} title="Du" />
+          <label htmlFor="to-filter" className="sr-only">Au</label>
+          <input id="to-filter" className="adm-search" style={{ flex: '0 1 160px' }} type="date" value={to} onChange={event => setTo(event.target.value)} title="Au" />
+          <button type="button" className="adm-btn" onClick={resetFilters}>Réinitialiser</button>
+          {!loading && <span className="adm-count" role="status">{visible.length} sur {items.length}</span>}
+        </div>
+        {error && <div className="notice notice-error" role="alert" style={{ marginBottom: 12 }}>{error}</div>}
+        {loading ? <p className="muted">Chargement de la file…</p> : visible.length === 0 ? <div className="adm-empty">{items.length === 0 ? 'Aucune proposition ici. Modifie les filtres ou la période.' : 'Aucune proposition ne correspond à cette recherche.'}</div> : (
+          <div className="adm-grid">
+            {visible.map(item => (
+              <article className="adm-card" key={item.id}>
+                <div className="adm-card-top"><span className="mono">{item.code}</span><span className={statusPill[item.status] || 'adm-pill'}>{statusName[item.status] || item.status}</span></div>
+                <h3>{item.tool_name} · {item.discount_label}</h3>
+                <p>{item.creator_name} · {new Date(item.created_at).toLocaleDateString('fr-FR')}{item.submitter_email ? ` · ${item.submitter_email}` : ''}</p>
+                {item.comment && <p title={item.comment}>« {item.comment} »</p>}
+                <div className="adm-card-foot">
+                  <a href={item.source_url} target="_blank" rel="noopener noreferrer">Source ↗</a>
+                  {item.creator_link && <a href={item.creator_link} target="_blank" rel="noopener noreferrer">Lien ↗</a>}
+                </div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {item.status === 'new' ? <>
+                    <button type="button" className="adm-btn adm-btn-pri" onClick={() => decide(item.id, 'approve')}>Valider</button>
+                    <button type="button" className="adm-btn" onClick={() => decide(item.id, 'mark_duplicate')}>Doublon</button>
+                    <button type="button" className="adm-btn" onClick={() => decide(item.id, 'reject')}>Refuser</button>
+                  </> : <button type="button" className="adm-btn" onClick={() => decide(item.id, 'restore')}>Remettre à traiter</button>}
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
+    </main>
+  );
 }
