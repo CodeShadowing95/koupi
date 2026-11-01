@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { sealText, toolLogo, usesLogoDev, withLogosFirst } from './tool-logos';
 import manifest from './tool-logos.json';
+import { mergeTools } from '../scripts/fetch-logos.mjs';
 
 describe('toolLogo', () => {
   it('trouve un logo par slug ou par nom', () => {
@@ -36,5 +37,33 @@ describe('withLogosFirst', () => {
   it("place d'abord les outils qui ont un logo, en gardant l'ordre", () => {
     const items = ['outil-inconnu', 'NordVPN', 'autre-inconnu', 'Shopify'];
     expect(withLogosFirst(items, name => name)).toEqual(['NordVPN', 'Shopify', 'outil-inconnu', 'autre-inconnu']);
+  });
+});
+
+describe('fetch-logos : liste des outils', () => {
+  const site = (slug: string) => `https://${slug}.com`;
+
+  it("ajoute les outils créés dans l'admin à ceux du catalogue", () => {
+    const tools = mergeTools(
+      [{ slug: 'notion', name: 'Notion', website: site('notion'), archived: false }],
+      [{ slug: 'nordvpn', name: 'NordVPN', website: site('nordvpn') }],
+    );
+    expect(tools.map(tool => tool.slug)).toEqual(['nordvpn', 'notion']);
+  });
+
+  it('garde la version de la base quand un outil est aux deux endroits', () => {
+    const tools = mergeTools(
+      [{ slug: 'qonto', name: 'Qonto', website: 'https://qonto.fr', archived: false }],
+      [{ slug: 'qonto', name: 'Qonto', website: 'https://qonto.com' }],
+    );
+    expect(tools).toEqual([{ slug: 'qonto', name: 'Qonto', website: 'https://qonto.fr' }]);
+  });
+
+  it('ignore les outils archivés, même encore présents dans le catalogue', () => {
+    const tools = mergeTools(
+      [{ slug: 'ancien', name: 'Ancien', website: site('ancien'), archived: true }],
+      [{ slug: 'ancien', name: 'Ancien', website: site('ancien') }],
+    );
+    expect(tools).toEqual([]);
   });
 });

@@ -23,6 +23,6 @@ Les coupons affichaient l'initiale du créateur. On veut le logo de l'outil (Nor
 - **Colonne `logo` dans la base** : utile quand les outils seront en base. Ce sera un changement de schéma à valider plus tard ; pour l'instant, les outils sont dans `lib/catalog.json` (généré par `npm run catalog`).
 
 ## Conséquences
-- Il faut relancer `npm run logos` quand on ajoute un outil. Le script garde les logos déjà présents (`--force` pour tout refaire).
+- Il faut relancer `npm run logos` quand on ajoute un outil. Le script lit les outils de la base (avec `DATABASE_URL`, donc aussi ceux créés dans l'admin) et ceux de `lib/catalog.json` pas encore importés. Il garde les logos déjà présents (`--force` pour tout refaire).
 - Simple Icons ne couvre pas tous les outils. Pour les autres, le script doit pouvoir joindre le site officiel : il tourne en local, pas dans un environnement au réseau fermé.
 - Les logos restent des marques : on les utilise seulement pour identifier l'outil, et la page Transparence le dit.
