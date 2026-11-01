@@ -8,14 +8,16 @@ const Scissors = () => (
 
 // Bandeau défilant infini (inspiré des « Logo Marquee » de 21st.dev), animé avec GSAP :
 // il ralentit au survol et s'arrête si l'utilisateur préfère réduire les animations.
-export function Marquee({ items, reverse = false, className = '' }: { items: string[]; reverse?: boolean; className?: string }) {
+// `speed` est en pixels par seconde : la vitesse reste la même quelle que soit la longueur du bandeau.
+export function Marquee({ items, reverse = false, speed = 155, className = '' }: { items: string[]; reverse?: boolean; speed?: number; className?: string }) {
   const root = useRef<HTMLDivElement>(null);
   useGSAP(() => {
     const mm = gsap.matchMedia();
     mm.add(MOTION_OK, () => {
       const track = root.current?.querySelector<HTMLElement>('.k-marquee');
       if (!track) return;
-      const tween = gsap.fromTo(track, { xPercent: reverse ? -50 : 0 }, { xPercent: reverse ? 0 : -50, duration: 38, ease: 'none', repeat: -1 });
+      const duration = Math.max(track.scrollWidth / 2 / speed, 10);
+      const tween = gsap.fromTo(track, { xPercent: reverse ? -50 : 0 }, { xPercent: reverse ? 0 : -50, duration, ease: 'none', repeat: -1 });
       const slow = () => gsap.to(tween, { timeScale: 0.25, duration: 0.6 });
       const fast = () => gsap.to(tween, { timeScale: 1, duration: 0.6 });
       root.current?.addEventListener('pointerenter', slow);
