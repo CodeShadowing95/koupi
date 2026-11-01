@@ -52,6 +52,7 @@ export default function Home() {
               return (
                 <div className="k-coupon-card" key={code.id} data-reveal>
                   <MiniCoupon
+                    key={code.id}
                     code={code.code}
                     link={code.creatorLink || tool?.website || '#'}
                     avatar={<span className={`k-av k-${avatarClass(code.creator)}`} aria-hidden="true">{initials(code.creator)}</span>}
