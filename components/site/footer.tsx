@@ -18,6 +18,12 @@ export function SiteFooter() {
               <li><Link href={routes.categories}>Catégories</Link></li>
               <li><Link href={routes.keyring}>Mon trousseau</Link></li>
               <li><Link href={routes.submit()}>Proposer un code</Link></li>
+              <li>
+                <Link className="k-copy-magic" href={routes.magic}>
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c.4 4.6 2.4 7.6 10 10-7.6 2.4-9.6 5.4-10 10-.4-4.6-2.4-7.6-10-10 7.6-2.4 9.6-5.4 10-10z" /></svg>
+                  <span>Copy Magic</span>
+                </Link>
+              </li>
             </ul>
           </div>
           <div>

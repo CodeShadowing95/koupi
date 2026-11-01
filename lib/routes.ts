@@ -1,6 +1,7 @@
 // Adresses des pages publiques (en anglais). Le texte affiché, lui, reste en français.
 export const routes = {
   home: '/',
+  magic: '/magic',
   categories: '/categories',
   category: (slug: string) => `/categories/${slug}`,
   tool: (slug: string) => `/tools/${slug}`,

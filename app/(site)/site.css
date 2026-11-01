@@ -479,3 +479,11 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-vote-done{font-size:13px;opacity:.8;margin:0}
 .k-vote-error{font-size:13px;color:#E5484D}
 @media (prefers-reduced-motion:reduce){.k-vote-btn{transition:none}.k-vote-btn:hover{transform:none}}
+
+/* Lien « Copy Magic » du pied de page (vers la page /magic) */
+.k-copy-magic{display:inline-flex;align-items:center;gap:6px}
+.k-copy-magic span{font-weight:700;background:linear-gradient(100deg,#FF6A3D,#FFC46B,#8C9BFF,#FF6A3D);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:k-magic-sheen 5s linear infinite}
+.k-copy-magic svg{flex:none;color:var(--amber);width:13px;height:13px;transition:transform .5s cubic-bezier(.2,.9,.3,1.3)}
+.k-copy-magic:hover svg{transform:rotate(180deg) scale(1.25)}
+@keyframes k-magic-sheen{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.k-copy-magic span{animation:none}}
