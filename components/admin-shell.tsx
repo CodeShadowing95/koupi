@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { PendingBadge } from '@/app/admin/pending-count';
 import { ThemeToggle } from '@/components/admin-theme';
+import { CommandPalette } from '@/components/admin-command';
 
 type Item = { href: string; label: string; icon: React.ReactNode; badge?: React.ReactNode };
 
@@ -99,6 +100,7 @@ export function AdminShell({ children, toTest = 0 }: { children: React.ReactNode
             {current && current !== '/admin' ? <><Link href="/admin">Accueil</Link> / <b>{titles[current]}</b></> : <b>Accueil</b>}
           </nav>
           <div className="adm-top-right">
+            <CommandPalette />
             <span className="adm-today" suppressHydrationWarning>{today.charAt(0).toUpperCase() + today.slice(1)}</span>
             <ThemeToggle />
           </div>
