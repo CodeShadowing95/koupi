@@ -10,6 +10,12 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+
+/** Vrai quand le fichier est lancé directement (node script.mjs), y compris sous Windows. */
+function isMainScript() {
+  return Boolean(process.argv[1]) && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
+}
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const OUT_DIR = path.join(ROOT, 'public', 'avatars');
@@ -102,4 +108,4 @@ async function main() {
   console.log(`\n${saved} avatar(s) enregistré(s) dans public/avatars/.`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) main().catch(error => { console.error(error.message); process.exit(1); });
+if (isMainScript()) main().catch(error => { console.error(error.message); process.exit(1); });

@@ -8,6 +8,13 @@
 // Sortie : lib/catalog.json, lu par lib/data.ts (site public et admin).
 // Usage : npm run catalog
 import { readFileSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+
+/** Vrai quand le fichier est lancé directement (node script.mjs), y compris sous Windows. */
+function isMainScript() {
+  return Boolean(process.argv[1]) && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
+}
 
 export function parseCsv(text) {
   const rows = [];
@@ -122,7 +129,7 @@ export function buildCatalog({ toolsCsv, candidatesCsv, manual }) {
   return { categories, tools, codes, tracked: toolRows.length };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainScript()) {
   const catalog = buildCatalog({
     toolsCsv: readFileSync('data/outils-v0.csv', 'utf8'),
     candidatesCsv: readFileSync('data/candidats-tous.csv', 'utf8'),
