@@ -66,9 +66,10 @@ export function AdminShell({ children, toTest = 0 }: { children: React.ReactNode
   const pathname = usePathname();
   const groups = navGroups(toTest);
   if (pathname.startsWith('/admin/login')) {
+    // Portail de connexion : plein écran, sans barre du haut ; seul le bouton clair / sombre reste, en haut à droite.
     return (
       <>
-        <header className="adm-top"><Link className="adm-brand" href="/" aria-label="Koupi"><Logo /><span className="admin-badge">Admin</span></Link><div className="adm-top-right"><ThemeToggle /></div></header>
+        <div className="lp-theme"><ThemeToggle /></div>
         {children}
       </>
     );
