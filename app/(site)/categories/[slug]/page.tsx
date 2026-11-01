@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { categories, codes, tools } from '@/lib/data';
+import { categories, codes, isPublic, tools } from '@/lib/data';
 import { routes } from '@/lib/routes';
 import { MiniCoupon } from '@/components/site/coupon';
 import { ToolSeal } from '@/components/site/tool-logo';
@@ -11,7 +11,7 @@ export default async function Category({ params }: { params: Promise<{ slug: str
   const category = categories.find(item => item.slug === slug);
   if (!category) notFound();
   const categoryTools = tools.filter(tool => tool.category === category.name);
-  const categoryCodes = codes.filter(code => code.status !== 'pending' && categoryTools.some(tool => tool.name === code.tool));
+  const categoryCodes = codes.filter(code => isPublic(code) && categoryTools.some(tool => tool.name === code.tool));
   return (
     <main className="k-page">
       <div className="k-wrap">

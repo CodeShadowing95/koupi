@@ -4,11 +4,12 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { PendingBadge } from '@/app/admin/pending-count';
 
 const links = [
   { href: '/admin', label: 'Tableau de bord' },
   { href: '/admin/codes', label: 'Codes' },
-  { href: '/admin/propositions', label: 'Propositions' },
+  { href: '/admin/propositions', label: 'Propositions', badge: true },
 ];
 
 export function Header() {
@@ -24,7 +25,7 @@ export function Header() {
         <nav className="nav" aria-label="Navigation admin">
           {!isLogin && links.map(link => {
             const active = link.href === '/admin' ? pathname === '/admin' : pathname.startsWith(link.href);
-            return <Link key={link.href} href={link.href} className={active ? 'nav-strong admin-active' : undefined} aria-current={active ? 'page' : undefined}>{link.label}</Link>;
+            return <Link key={link.href} href={link.href} className={active ? 'nav-strong admin-active' : undefined} aria-current={active ? 'page' : undefined}>{link.label}{link.badge && <PendingBadge />}</Link>;
           })}
           <Link href="/" target="_blank" rel="noopener noreferrer">Voir le site ↗</Link>
           {!isLogin && (

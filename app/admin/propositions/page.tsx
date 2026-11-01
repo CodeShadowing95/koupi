@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { categories } from '@/lib/data';
 import { matchesSearch } from '@/lib/admin-search';
+import { SUBMISSIONS_CHANGED } from '../pending-count';
 type Submission = { id: string; tool_name: string; creator_name: string; code: string; discount_label: string; source_url: string; creator_link: string | null; comment: string | null; submitter_email: string | null; status: string; admin_note: string | null; created_at: string };
 export default function Propositions() {
   const [items, setItems] = useState<Submission[]>([]);
@@ -29,6 +30,7 @@ export default function Propositions() {
     const response = await fetch('/api/admin/submissions', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id, action, note }) });
     if (!response.ok) { setError('La décision n’a pas pu être enregistrée.'); return; }
     await load();
+    window.dispatchEvent(new Event(SUBMISSIONS_CHANGED));
   }
   function resetFilters() { setCategory(''); setFrom(''); setTo(''); }
   const statusPill: Record<string, string> = { new: 'adm-pill', duplicate: 'adm-pill adm-pill-warn', approved: 'adm-pill adm-pill-ok', rejected: 'adm-pill adm-pill-bad' };

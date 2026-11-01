@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { codes, tools } from '@/lib/data';
+import { codes, isPublic, tools } from '@/lib/data';
 import { routes } from '@/lib/routes';
 import { avatarClass, creatorSlug, initials, plural } from '@/lib/ui';
 import { ToolSeal } from '@/components/site/tool-logo';
@@ -10,7 +10,7 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
   const { slug } = await params;
   const creator = codes.find(code => creatorSlug(code.creator) === slug)?.creator;
   if (!creator) notFound();
-  const creatorCodes = codes.filter(code => code.creator === creator && code.status !== 'pending');
+  const creatorCodes = codes.filter(code => code.creator === creator && isPublic(code));
   return (
     <main className="k-page">
       <div className="k-wrap">

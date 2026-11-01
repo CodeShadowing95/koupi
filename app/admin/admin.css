@@ -263,7 +263,8 @@ a.tool-card:hover{color:var(--ink);border-color:var(--ink);box-shadow:var(--shad
 .adm-pill-ok{background:var(--ok-bg);color:var(--ok)}
 .adm-pill-warn{background:var(--warn-bg);color:var(--warn)}
 .adm-pill-bad{background:var(--bad-bg);color:var(--bad)}
-.adm-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.adm-note{margin:6px 0 0;font-size:12px;color:var(--muted)}
+.adm-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:16px}
 .adm-stat{display:flex;align-items:center;gap:12px;padding:14px;background:var(--card);border:1.5px solid var(--line);border-radius:12px}
 .adm-stat strong{font-family:var(--font-display);font-size:28px;font-weight:800;line-height:1;letter-spacing:-.03em}
 .adm-stat span{display:block;font-size:13px;color:var(--muted)}
@@ -280,3 +281,5 @@ a.tool-card:hover{color:var(--ink);border-color:var(--ink);box-shadow:var(--shad
 .admin-root{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
 .admin-root>.footer{margin-top:auto}
 .admin-root>.adm-page{min-height:0}
+.adm-count-badge{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;margin-left:6px;padding:0 6px;border-radius:999px;background:var(--bad);color:#fff;font-size:12px;font-weight:700;line-height:1;vertical-align:middle;font-variant-numeric:tabular-nums}
+.adm-action .adm-count-badge{font-size:12px;color:#fff}

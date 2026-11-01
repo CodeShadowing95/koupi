@@ -15,7 +15,7 @@ export default function Categories() {
           <p>Des outils en ligne utiles, avec les codes des créateurs qui les recommandent.</p>
         </div>
         <div className="k-cat-grid">
-          {categories.map(category => (
+          {categories.filter(category => category.count > 0).map(category => (
             <Link className="k-cat" href={routes.category(category.slug)} key={category.slug} data-reveal>
               <strong>{category.name}</strong>
               <span>{category.count} outils <span aria-hidden="true">→</span></span>
