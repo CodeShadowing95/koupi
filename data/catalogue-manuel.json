@@ -1,0 +1,126 @@
+{
+  "descriptions": {
+    "o2switch": "Un hébergement français simple, rapide et sans surprise.",
+    "nordvpn": "Protège ta connexion et navigue plus sereinement.",
+    "surfshark": "Un VPN accessible pour protéger tous tes appareils.",
+    "incogni": "Fais retirer tes données personnelles des courtiers.",
+    "elevenlabs": "Des voix et de l’audio générés par IA.",
+    "opus-clip": "Transforme tes longues vidéos en clips courts.",
+    "brilliant": "Apprends les maths et les sciences en pratiquant.",
+    "babbel": "Progresse dans une nouvelle langue à ton rythme.",
+    "shopify": "Lance et développe ta boutique en ligne.",
+    "qonto": "Le compte pro pensé pour les indépendants.",
+    "indy": "Facturation et comptabilité pour indépendants."
+  },
+  "codes": [
+    {
+      "id": "o2-akdev",
+      "tool": "o2switch",
+      "code": "AKDEV10",
+      "status": "verified",
+      "discount": "-10 %",
+      "creatorLink": "https://osw.li/akdev",
+      "votes": 18,
+      "success": 94
+    },
+    {
+      "id": "nord-ytstack",
+      "tool": "NordVPN",
+      "code": "YTSTACK",
+      "status": "verified",
+      "discount": "76 % + 4 mois offerts",
+      "votes": 7,
+      "success": 86
+    },
+    {
+      "id": "surf-ytstack",
+      "tool": "Surfshark",
+      "code": "YTSTACK",
+      "status": "to_test",
+      "discount": "88 % + 4 mois offerts",
+      "votes": 14,
+      "success": 71
+    },
+    {
+      "id": "incogni-pad",
+      "tool": "Incogni",
+      "code": "PAD60",
+      "status": "verified",
+      "discount": "60 % sur l’offre annuelle",
+      "votes": 4,
+      "success": 100
+    },
+    {
+      "id": "incogni-phil",
+      "tool": "Incogni",
+      "code": "PHIL60",
+      "status": "to_test",
+      "discount": "60 %",
+      "votes": 2,
+      "success": 0
+    },
+    {
+      "id": "eleven-jimmy",
+      "tool": "ElevenLabs",
+      "code": "JIMMY",
+      "status": "verified",
+      "discount": "Abonnement moins cher",
+      "votes": 5,
+      "success": 80
+    },
+    {
+      "id": "opus-joel",
+      "tool": "Opus Clip",
+      "code": "JOEL30",
+      "status": "verified",
+      "discount": "-30 % en annuel",
+      "votes": 3,
+      "success": 100
+    },
+    {
+      "id": "brilliant-mng",
+      "tool": "Brilliant",
+      "code": "MNGJG",
+      "status": "to_test",
+      "discount": "Offre partenaire",
+      "votes": 1,
+      "success": 100
+    },
+    {
+      "id": "babbel-insight",
+      "tool": "Babbel",
+      "code": "INSIGHT10",
+      "status": "verified",
+      "discount": "-10 %",
+      "votes": 3,
+      "success": 67
+    },
+    {
+      "id": "shopify-joe",
+      "tool": "Shopify",
+      "code": "JOECOM",
+      "status": "verified",
+      "discount": "-25 %",
+      "votes": 9,
+      "success": 89
+    },
+    {
+      "id": "qonto-silicon",
+      "tool": "Qonto",
+      "code": "SILICON3M",
+      "status": "verified",
+      "discount": "Offre partenaire",
+      "votes": 3,
+      "success": 100
+    },
+    {
+      "id": "indy-yoan",
+      "tool": "Indy",
+      "code": "YOAN",
+      "status": "verified",
+      "discount": "3 mois offerts",
+      "votes": 6,
+      "success": 83
+    }
+  ]
+}

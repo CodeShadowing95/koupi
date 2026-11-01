@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { categories, codes, tools } from '@/lib/data';
+import { categories, codes, isPublic, tools } from '@/lib/data';
 import { routes } from '@/lib/routes';
 import { avatarClass, creatorSlug, initials } from '@/lib/ui';
 import { Hero } from '@/components/site/hero';
@@ -14,7 +14,7 @@ const Arrow = () => (
 );
 
 export default function Home() {
-  const live = codes.filter(code => code.status !== 'pending');
+  const live = codes.filter(isPublic);
   const featured = live.filter(code => code.status === 'verified').slice(0, 6);
   const creators = new Set(live.map(code => code.creator));
   const toolOf = (name: string) => tools.find(tool => tool.name === name);
@@ -124,7 +124,7 @@ export default function Home() {
             <Link className="k-btn k-btn-ghost k-btn-sm" href={routes.categories}>Toutes les catégories <Arrow /></Link>
           </div>
           <div className="k-cat-grid">
-            {categories.map(category => (
+            {categories.filter(category => category.count > 0).map(category => (
               <Link className="k-cat" href={routes.category(category.slug)} key={category.slug} data-reveal>
                 <strong>{category.name}</strong>
                 <span>{category.count} outils <Arrow /></span>

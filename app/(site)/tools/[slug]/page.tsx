@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { findTool, toolCodes, type Code } from '@/lib/data';
+import { findTool, isPublic, toolCodes, type Code } from '@/lib/data';
 import { routes } from '@/lib/routes';
 import { avatarClass, creatorSlug, initials } from '@/lib/ui';
 import { MiniCoupon, TearTicket } from '@/components/site/coupon';
@@ -25,7 +25,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const tool = findTool(slug);
   if (!tool) notFound();
-  const active = toolCodes(tool.name).filter(code => code.status !== 'pending');
+  const active = toolCodes(tool.name).filter(isPublic);
   const sorted = [...active].sort((a, b) => (a.status === 'verified' ? 0 : 1) - (b.status === 'verified' ? 0 : 1) || b.success - a.success);
   const [best, ...others] = sorted;
 
