@@ -1,1 +1,110 @@
-{}
+{
+  "ai-tooltip": {
+    "src": "/avatars/ai-tooltip.jpg",
+    "channelId": "UCPGTzfelYXnX_IRDItRWLeg"
+  },
+  "andres-the-designer": {
+    "src": "/avatars/andres-the-designer.jpg",
+    "channelId": "UCMf4Y6-9iEsAhxPp_UFz4Yw"
+  },
+  "antony-klinger": {
+    "src": "/avatars/antony-klinger.jpg",
+    "channelId": "UCaIwAnzrzubjMDoZdBsCQ0w"
+  },
+  "bienvenue-au-cabinet": {
+    "src": "/avatars/bienvenue-au-cabinet.jpg",
+    "channelId": "UCIIq-MNFUrlgmrW5pBdNedQ"
+  },
+  "ccima": {
+    "src": "/avatars/ccima.jpg",
+    "channelId": "UC_G416bI5hAbyWyF-GSsobA"
+  },
+  "digitiz-business": {
+    "src": "/avatars/digitiz-business.jpg",
+    "channelId": "UCvmHvwM47f_iXwN1KMtG-ig"
+  },
+  "dimitri-swan-ai-technoblog": {
+    "src": "/avatars/dimitri-swan-ai-technoblog.jpg",
+    "channelId": "UCv3CpXcDafsKkhjYDm31ixg"
+  },
+  "juj-urbex": {
+    "src": "/avatars/juj-urbex.jpg",
+    "channelId": "UCtnvybEbbEEhxUAd3wv0VAg"
+  },
+  "julien-facturation-lectronique": {
+    "src": "/avatars/julien-facturation-lectronique.jpg",
+    "channelId": "UCnf8o2rSSQgE8QNPspmMqkw"
+  },
+  "kate-hayes": {
+    "src": "/avatars/kate-hayes.jpg",
+    "channelId": "UCfXzRcRPMHw_AF7EdRtyiJQ"
+  },
+  "kyledunnigan": {
+    "src": "/avatars/kyledunnigan.jpg",
+    "channelId": "UCxO0H6PghZvZboIBY0PHclQ"
+  },
+  "le-bon-logiciel": {
+    "src": "/avatars/le-bon-logiciel.jpg",
+    "channelId": "UC4AWpgxO3TmkqumI81XmGZQ"
+  },
+  "le-petit-astronome": {
+    "src": "/avatars/le-petit-astronome.jpg",
+    "channelId": "UCyeoIdJHgQhOrct9mVJ2fTQ"
+  },
+  "live-production-tips-tools": {
+    "src": "/avatars/live-production-tips-tools.jpg",
+    "channelId": "UCaDfFZbAvAdlmlwNOhYarFQ"
+  },
+  "mike-russell": {
+    "src": "/avatars/mike-russell.jpg",
+    "channelId": "UCYEiWHoP2IHHgjOapTAYMQw"
+  },
+  "payton-clark-smith": {
+    "src": "/avatars/payton-clark-smith.jpg",
+    "channelId": "UCbHP6VGz859AqUebR1B_WLw"
+  },
+  "phil-pallen": {
+    "src": "/avatars/phil-pallen.jpg",
+    "channelId": "UC2KVnGvOAWutbCnf1kqWuCQ"
+  },
+  "phones-and-drones": {
+    "src": "/avatars/phones-and-drones.jpg",
+    "channelId": "UCcB2ddShux5me1xrk7haF0w"
+  },
+  "pierre-avis-saas-": {
+    "src": "/avatars/pierre-avis-saas-.jpg",
+    "channelId": "UCRMhTmW7oASkj9J5xayfPMQ"
+  },
+  "pod-mahal": {
+    "src": "/avatars/pod-mahal.jpg",
+    "channelId": "UCPDfB6AgbqvLCx_dChD6DeQ"
+  },
+  "romain-de-softind-p-": {
+    "src": "/avatars/romain-de-softind-p-.jpg",
+    "channelId": "UCTEVrV3TctbdXiPdnssCe7w"
+  },
+  "sarachoux": {
+    "src": "/avatars/sarachoux.jpg",
+    "channelId": "UCyyYLn3qwcfgGyREkcyN5NA"
+  },
+  "silicon-carne-": {
+    "src": "/avatars/silicon-carne-.jpg",
+    "channelId": "UCt11zYNefnunOkgCrsO9UYg"
+  },
+  "tutorial-stack": {
+    "src": "/avatars/tutorial-stack.jpg",
+    "channelId": "UC3_1NCqJD5Ba9QYWhihksbw"
+  },
+  "une-tasse-de-tech": {
+    "src": "/avatars/une-tasse-de-tech.jpg",
+    "channelId": "UCLFTh8qTdibgkJluoliDhgw"
+  },
+  "wpmarmite-cr-ez-et-lancez-votre-site-wordpress": {
+    "src": "/avatars/wpmarmite-cr-ez-et-lancez-votre-site-wordpress.jpg",
+    "channelId": "UCU_gPhU-eAI56oUeFzVyUUQ"
+  },
+  "yann-leonardi": {
+    "src": "/avatars/yann-leonardi.jpg",
+    "channelId": "UC-06IzcwOHu9_Xgqr-NMkUQ"
+  }
+}
