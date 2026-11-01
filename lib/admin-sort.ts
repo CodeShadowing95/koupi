@@ -8,8 +8,6 @@ export type SortField<T> = {
   value: (item: T) => SortValue;
   /** Champ texte : la barre alphabet filtre sur son initiale. */
   text?: boolean;
-  /** Sens choisi quand on passe sur ce critère (ex. dates : les plus récentes d'abord). */
-  defaultDir?: SortDir;
 };
 
 export const DIGITS = '0-9';

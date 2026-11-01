@@ -22,7 +22,7 @@ const sortFields: SortField<AdminTool>[] = [
   { key: 'priority', label: 'Priorité', value: tool => tool.priority },
   { key: 'name', label: 'Nom', value: tool => tool.name, text: true },
   { key: 'category', label: 'Catégorie', value: tool => tool.category, text: true },
-  { key: 'codes', label: 'Nombre de codes', value: tool => tool.codes, defaultDir: 'desc' },
+  { key: 'codes', label: 'Nombre de codes', value: tool => tool.codes },
 ];
 
 type Form = { name: string; categorySlug: string; website: string; description: string; priority: number };
@@ -37,7 +37,7 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
   const [editing, setEditing] = useState<AdminTool | 'new' | null>(null);
   const [form, setForm] = useState<Form>({ name: '', categorySlug: categories[0]?.slug ?? '', website: '', description: '', priority: 3 });
   const filtered = tools.filter(tool => matches(tool, filter) && matchesSearch([tool.name, tool.category, tool.website, tool.description], query));
-  const sort = useAdminSort(filtered, sortFields, { key: 'priority', dir: 'asc' }, 'name');
+  const sort = useAdminSort(filtered, sortFields, 'name');
   const visible = sort.items;
   const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${filter}|${query}|${sort.resetKey}`);
   const countOf = (value: Filter) => tools.filter(tool => matches(tool, value)).length;
@@ -78,7 +78,7 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
         <div className="adm-toolbar">
           <label htmlFor="tool-search" className="sr-only">Rechercher un outil</label>
           <input id="tool-search" className="adm-search" type="search" placeholder="Rechercher un outil, une catégorie…" value={query} onChange={event => setQuery(event.target.value)} />
-          <SortControl sort={sort} id="tool-sort" />
+          {view !== 'table' && <SortControl sort={sort} id="tool-sort" />}
           <span className="adm-count" role="status">{visible.length} sur {countOf(filter)}</span>
           <ViewToggle view={view} onChange={setView} />
         </div>

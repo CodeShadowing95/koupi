@@ -15,8 +15,8 @@ const matches = (creator: AdminCreator, filter: Filter) => filter === 'all' || (
 
 const sortFields: SortField<AdminCreator>[] = [
   { key: 'name', label: 'Nom', value: creator => creator.name, text: true },
-  { key: 'codes', label: 'Nombre de codes', value: creator => creator.codes, defaultDir: 'desc' },
-  { key: 'visible', label: 'Codes visibles', value: creator => creator.visible, defaultDir: 'desc' },
+  { key: 'codes', label: 'Nombre de codes', value: creator => creator.codes },
+  { key: 'visible', label: 'Codes visibles', value: creator => creator.visible },
 ];
 
 export function CreatorsView({ creators }: { creators: AdminCreator[] }) {
@@ -28,7 +28,7 @@ export function CreatorsView({ creators }: { creators: AdminCreator[] }) {
   const [editing, setEditing] = useState<AdminCreator | null>(null);
   const [name, setName] = useState('');
   const filtered = creators.filter(creator => matches(creator, filter) && matchesSearch([creator.name, ...creator.tools], query));
-  const sort = useAdminSort(filtered, sortFields, { key: 'name', dir: 'asc' }, 'name');
+  const sort = useAdminSort(filtered, sortFields, 'name');
   const visible = sort.items;
   const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${filter}|${query}|${sort.resetKey}`);
   const countOf = (value: Filter) => creators.filter(creator => matches(creator, value)).length;
@@ -52,7 +52,7 @@ export function CreatorsView({ creators }: { creators: AdminCreator[] }) {
         <div className="adm-toolbar">
           <label htmlFor="creator-search" className="sr-only">Rechercher un créateur</label>
           <input id="creator-search" className="adm-search" type="search" placeholder="Rechercher un créateur, un outil…" value={query} onChange={event => setQuery(event.target.value)} />
-          <SortControl sort={sort} id="creator-sort" />
+          {view !== 'table' && <SortControl sort={sort} id="creator-sort" />}
           <span className="adm-count" role="status">{visible.length} sur {countOf(filter)}</span>
           <ViewToggle view={view} onChange={setView} />
         </div>

@@ -11,7 +11,7 @@ import { AdminSelect } from '@/components/admin-select';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
 type Submission = { id: string; tool_name: string; creator_name: string; code: string; discount_label: string; source_url: string; creator_link: string | null; comment: string | null; submitter_email: string | null; status: string; admin_note: string | null; created_at: string; category: string | null; created_code_id: string | null };
 const sortFields: SortField<Submission>[] = [
-  { key: 'received', label: 'Date de réception', value: item => item.created_at, defaultDir: 'desc' },
+  { key: 'received', label: 'Date de réception', value: item => item.created_at },
   { key: 'code', label: 'Code', value: item => item.code, text: true },
   { key: 'tool', label: 'Outil', value: item => item.tool_name, text: true },
   { key: 'creator', label: 'Créateur', value: item => item.creator_name, text: true },
@@ -60,7 +60,7 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
       : <button type="button" className="adm-btn" onClick={() => decide(item.id, 'restore')}>Remettre à traiter</button>;
   }
   const filtered = items.filter(item => matchesSearch([item.code, item.tool_name, item.creator_name, item.discount_label, item.comment, item.submitter_email], query));
-  const sort = useAdminSort(filtered, sortFields, { key: 'received', dir: 'desc' }, 'tool');
+  const sort = useAdminSort(filtered, sortFields, 'tool');
   const visible = sort.items;
   const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${status}|${category}|${from}|${to}|${query}|${sort.resetKey}`);
   return (
@@ -89,10 +89,10 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
           <input id="from-filter" className="adm-search" style={{ flex: '0 1 160px' }} type="date" value={from} onChange={event => setFrom(event.target.value)} title="Du" />
           <label htmlFor="to-filter" className="sr-only">Au</label>
           <input id="to-filter" className="adm-search" style={{ flex: '0 1 160px' }} type="date" value={to} onChange={event => setTo(event.target.value)} title="Au" />
+          {view !== 'table' && <SortControl sort={sort} id="proposal-sort" />}
           <button type="button" className="adm-btn" onClick={resetFilters}>Réinitialiser</button>
           {!loading && <span className="adm-count" role="status">{visible.length} sur {items.length}</span>}
         </div>
-        <div className="adm-toolbar"><SortControl sort={sort} id="proposal-sort" /></div>
         <LetterBar sort={sort} />
         <div ref={topRef} className="adm-list-top" />
         {error && <div className="notice notice-error" role="alert" style={{ marginBottom: 12 }}>{error}</div>}

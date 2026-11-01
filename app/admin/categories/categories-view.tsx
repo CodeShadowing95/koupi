@@ -10,12 +10,12 @@ const rate = (category: AdminCategory) => category.tools ? Math.round((category.
 
 const sortFields: SortField<AdminCategory>[] = [
   { key: 'name', label: 'Nom', value: category => category.name, text: true },
-  { key: 'tools', label: 'Nombre d’outils', value: category => category.tools, defaultDir: 'desc' },
-  { key: 'coverage', label: 'Couverture', value: category => rate(category), defaultDir: 'desc' },
+  { key: 'tools', label: 'Nombre d’outils', value: category => category.tools },
+  { key: 'coverage', label: 'Couverture', value: category => rate(category) },
 ];
 
 export function CategoriesView({ categories: all }: { categories: AdminCategory[] }) {
-  const sort = useAdminSort(all, sortFields, { key: 'name', dir: 'asc' }, 'name');
+  const sort = useAdminSort(all, sortFields, 'name');
   const categories = sort.items;
   const [view, setView] = useAdminView();
   const [editing, setEditing] = useState<AdminCategory | 'new' | null>(null);
@@ -40,7 +40,7 @@ export function CategoriesView({ categories: all }: { categories: AdminCategory[
           <div className="adm-head-actions"><button type="button" className="adm-btn adm-btn-pri" onClick={() => open('new')}>+ Nouvelle catégorie</button></div>
         </div>
         <div className="adm-toolbar">
-          <SortControl sort={sort} id="category-sort" />
+          {view !== 'table' && <SortControl sort={sort} id="category-sort" />}
           <span className="adm-count" role="status">{categories.length} catégories</span>
           <ViewToggle view={view} onChange={setView} />
         </div>

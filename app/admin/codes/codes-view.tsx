@@ -23,13 +23,13 @@ const filters: { value: Filter; label: string }[] = [
 const matchesFilter = (code: Code, filter: Filter, stale: Set<string>) => filter === 'archived' ? Boolean(code.archived) : filter === 'retest' ? stale.has(code.id) : !code.archived && (filter === 'all' || code.status === filter);
 const testedLabel = (iso: string | null) => iso ? `Testé le ${new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}` : 'Jamais testé';
 const sortFields: SortField<Code>[] = [
-  { key: 'created', label: 'Date d’ajout', value: code => code.createdAt, defaultDir: 'desc' },
+  { key: 'created', label: 'Date d’ajout', value: code => code.createdAt },
   { key: 'code', label: 'Code', value: code => code.code, text: true },
   { key: 'tool', label: 'Outil', value: code => code.tool, text: true },
   { key: 'creator', label: 'Créateur', value: code => code.creator, text: true },
-  { key: 'votes', label: 'Votes', value: code => code.votes, defaultDir: 'desc' },
-  { key: 'success', label: 'Réussite', value: code => code.success, defaultDir: 'desc' },
-  { key: 'tested', label: 'Dernier test', value: code => code.lastTestedAt, defaultDir: 'desc' },
+  { key: 'votes', label: 'Votes', value: code => code.votes },
+  { key: 'success', label: 'Réussite', value: code => code.success },
+  { key: 'tested', label: 'Dernier test', value: code => code.lastTestedAt },
 ];
 const isFilter = (value: string | null): value is Filter => filters.some(filter => filter.value === value);
 
@@ -64,7 +64,7 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
     if (params.get('q')) setQuery(params.get('q') ?? '');
   }, []);
   const filtered = codes.filter(code => matchesFilter(code, status, stale) && matchesSearch([code.code, code.tool, code.creator, code.discount, code.sourceTitle, code.note ?? ''], query));
-  const sort = useAdminSort(filtered, sortFields, { key: 'created', dir: 'desc' }, 'tool');
+  const sort = useAdminSort(filtered, sortFields, 'tool');
   const visible = sort.items;
   const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${status}|${query}|${sort.resetKey}`);
   return (
@@ -85,7 +85,7 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
         <div className="adm-toolbar">
           <label htmlFor="code-search" className="sr-only">Rechercher un code</label>
           <input id="code-search" className="adm-search" type="search" placeholder="Rechercher un code, un outil, un créateur…" value={query} onChange={event => setQuery(event.target.value)} />
-          <SortControl sort={sort} id="code-sort" />
+          {view !== 'table' && <SortControl sort={sort} id="code-sort" />}
           <span className="adm-count" role="status">{visible.length} sur {countOf(status)}</span>
           <ViewToggle view={view} onChange={setView} />
         </div>
