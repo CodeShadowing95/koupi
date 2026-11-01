@@ -2,6 +2,28 @@
 
 Toutes les versions de Koupi. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.3.0](https://github.com/CodeShadowing95/koupi/compare/v0.2.0...v0.3.0) (2026-11-01)
+
+### Nouveautés
+
+- **logos:** read tools from the database in the logo script ([c5b0d2d](https://github.com/CodeShadowing95/koupi/commit/c5b0d2d311d385bd96de159914f9b0b4dd6ff4b0))
+- **admin:** show tool logos next to tool names ([23160b8](https://github.com/CodeShadowing95/koupi/commit/23160b83a816606f7071823567c178c888675527))
+- **admin:** animate dialogs and keep their scrollbar inside ([2f5e661](https://github.com/CodeShadowing95/koupi/commit/2f5e661e29b4abaa51ce6faa812b9eb7de5279b2))
+- **admin:** refine inputs and dropdowns to match buttons ([05b2cfb](https://github.com/CodeShadowing95/koupi/commit/05b2cfbf1d6c9f2d578d13fa9982c9c9c1a5e9a7))
+- **admin:** add filters, search and initials to categories ([137ea2a](https://github.com/CodeShadowing95/koupi/commit/137ea2a6693c676c37d533770adec01ef32fbaac))
+- **admin:** sort from table headers and move page actions to the right ([f4de2c7](https://github.com/CodeShadowing95/koupi/commit/f4de2c7fa98e0bc409f5e8ef578b2a9c02b1d0c8))
+- **admin:** sort lists and filter them by initial ([bb9c3c8](https://github.com/CodeShadowing95/koupi/commit/bb9c3c858e62f8afb36c69a050ba1a0b080d24c0))
+- **admin:** explain tool priority with an info tooltip ([7010a34](https://github.com/CodeShadowing95/koupi/commit/7010a34d5602d1d646f4738c8df7cea9b8c18b4e))
+- **admin:** add search to form dropdowns ([2bc3134](https://github.com/CodeShadowing95/koupi/commit/2bc31340b430cc68f8464a3fcbe932ec0485ed52))
+- **admin:** tear the logo coupon open to reveal the dashboard ([d94e0e8](https://github.com/CodeShadowing95/koupi/commit/d94e0e8597eeb1fc08224e91992ae8bbe47fe47c))
+- **admin:** redesign the login portal with gsap animations ([0d08209](https://github.com/CodeShadowing95/koupi/commit/0d08209a51252ed87950d8186a303fde603a9b36))
+
+### Corrections
+
+- **home:** slow down the creators marquee ([a74d599](https://github.com/CodeShadowing95/koupi/commit/a74d59995a8f72e12c51e7983cc81eb100f62478))
+- **admin:** keep priorities 2 and 4 as plain numbers ([4825cd4](https://github.com/CodeShadowing95/koupi/commit/4825cd4ca7a296e5a6307cd721cb85edff93916e))
+- **admin:** keep the stub in place and hide the scrollbar during the tear ([d78e807](https://github.com/CodeShadowing95/koupi/commit/d78e80741c9414525a59a01a5a975fb238a53d26))
+
 ## 0.2.0 (2026-11-01)
 
 ### Nouveautés
