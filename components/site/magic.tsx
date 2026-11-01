@@ -10,7 +10,7 @@ import { ToolLogo, ToolSeal } from '@/components/site/tool-logo';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { SearchDialog } from '@/components/site/search-dialog';
 
-// Page « Copy Magic » (/magic, lien dans le pied de page) : l'accueil de Koupi en version spectacle. Même contenu, autre mise en scène.
+// Page « Koupi Magic » (/magic, lien dans le pied de page) : l'accueil de Koupi en version spectacle. Même contenu, autre mise en scène.
 //  1. Entrée : un coupon arrive du fond, les ciseaux le découpent, il s'ouvre et on passe à travers.
 //  2. Héros : on est « dans » le coupon (papier crème perforé), titre lettre par lettre, logos en apesanteur.
 //  3. Bandeaux qui se penchent selon la vitesse du défilement.

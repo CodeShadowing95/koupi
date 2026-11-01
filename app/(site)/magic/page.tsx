@@ -5,7 +5,7 @@ import { MagicHome, type MagicCode } from '@/components/site/magic';
 import './magic.css';
 
 export const metadata: Metadata = {
-  title: 'Copy Magic',
+  title: 'Koupi Magic',
   description: 'La page d’accueil de Koupi, version spectacle : entre dans le coupon.',
 };
 
