@@ -3,6 +3,7 @@
 // onSubmit renvoie un message d'erreur, ou null quand c'est enregistré (la page est alors rechargée côté serveur).
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { afterDialogClose } from '@/lib/admin-dialog';
 
 export async function sendJson(url: string, method: string, body: unknown): Promise<string | null> {
   try {
@@ -39,7 +40,7 @@ export function FormDialog({ open, title, intro, submitLabel = 'Enregistrer', on
   }
 
   return (
-    <dialog ref={dialog} className="adm-dialog adm-dialog-sm" aria-label={title} onClose={onClose}>
+    <dialog ref={dialog} className="adm-dialog adm-dialog-sm" aria-label={title} onClose={() => afterDialogClose(() => { if (!dialog.current?.open) onClose(); })}>
       {open && (
         <form className="adm-form" onSubmit={submit}>
           <div className="adm-dialog-head">

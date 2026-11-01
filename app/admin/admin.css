@@ -754,3 +754,17 @@ html:has(> body > .ct){overflow:hidden}
 .adm-sort-dir{width:var(--field-h);min-height:var(--field-h)}
 .adm-cmd-trigger{min-height:var(--field-h);border-color:var(--field-border)}
 @media (prefers-reduced-motion:reduce){.adm-search,.adm-combo-trigger,.adm-form .field input:where(:not([type=radio],[type=checkbox],.adm-combo-native,[role=combobox])),.adm-form .field select,.adm-form .field textarea{transition:none}}
+
+/* Fenêtres : ouverture et fermeture en fondu (DIALOG_MS = 200 dans lib/admin-dialog.ts),
+   défilement à l'intérieur pour que la barre ne recouvre pas les coins arrondis. */
+.adm-dialog{overflow:hidden;opacity:0;transform:translateY(10px) scale(.98);
+  transition:opacity .2s ease,transform .2s cubic-bezier(.2,.8,.2,1),overlay .2s allow-discrete,display .2s allow-discrete}
+.adm-dialog[open]{display:flex;flex-direction:column;opacity:1;transform:none}
+@starting-style{.adm-dialog[open]{opacity:0;transform:translateY(10px) scale(.98)}}
+.adm-dialog::backdrop{opacity:0;transition:opacity .2s ease,overlay .2s allow-discrete,display .2s allow-discrete}
+.adm-dialog[open]::backdrop{opacity:1}
+@starting-style{.adm-dialog[open]::backdrop{opacity:0}}
+.adm-dialog>.adm-form,.adm-cmd-body,.adm-cmd-results{min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
+.adm-dialog>.adm-form{flex:1 1 auto}
+.adm-cmd-body{overflow:hidden}
+@media (prefers-reduced-motion:reduce){.adm-dialog,.adm-dialog::backdrop{transition:none;transform:none}}

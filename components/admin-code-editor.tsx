@@ -3,6 +3,7 @@
 // Tout est enregistré en base par /api/admin/codes, puis la page est rechargée côté serveur (router.refresh).
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { afterDialogClose } from '@/lib/admin-dialog';
 import type { Category, Code, CodeStatus } from '@/lib/data';
 import type { ToolOption } from '@/lib/codes-admin';
 import { AdminSelect } from '@/components/admin-select';
@@ -58,7 +59,8 @@ export function CodeEditor({ target, tools, categories, creators, onClose, onSav
     if (!dialog.current?.open) dialog.current?.showModal();
   }, [target, tools, categories]);
 
-  if (!target) return <dialog ref={dialog} className="adm-dialog" onClose={onClose} />;
+  const closed = () => afterDialogClose(() => { if (!dialog.current?.open) onClose(); });
+  if (!target) return <dialog ref={dialog} className="adm-dialog" onClose={closed} />;
 
   const set = <K extends keyof Initial>(key: K) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setValues(current => ({ ...current, [key]: event.target.value }));
   const title = target.kind === 'create' ? 'Nouveau code' : target.kind === 'edit' ? `Modifier ${target.code.code}` : 'Valider la proposition';
@@ -100,7 +102,7 @@ export function CodeEditor({ target, tools, categories, creators, onClose, onSav
   }
 
   return (
-    <dialog ref={dialog} className="adm-dialog" aria-labelledby="code-editor-title" onClose={onClose}>
+    <dialog ref={dialog} className="adm-dialog" aria-labelledby="code-editor-title" onClose={closed}>
       <form className="adm-form" onSubmit={submit}>
         <div className="adm-dialog-head">
           <h2 id="code-editor-title">{title}</h2>
