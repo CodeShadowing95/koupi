@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { codes, type Code } from '@/lib/data';
 import { matchesSearch } from '@/lib/admin-search';
 import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
+import { Pagination, usePagination } from '@/components/admin-pagination';
 
 const statusLabel: Record<Code['status'], { label: string; className: string }> = {
   verified: { label: 'Vérifié', className: 'adm-pill adm-pill-ok' },
@@ -19,6 +20,7 @@ export default function AdminCodes() {
   const [status, setStatus] = useState<'all' | Code['status']>('all');
   const [view, setView] = useAdminView();
   const visible = codes.filter(code => (status === 'all' || code.status === status) && matchesSearch([code.code, code.tool, code.creator, code.discount, code.sourceTitle, code.note ?? ''], query));
+  const { current, goTo, topRef } = usePagination(visible, `${status}|${query}`);
   return (
     <main className="adm-page">
       <div className="container">
@@ -38,14 +40,15 @@ export default function AdminCodes() {
           <span className="adm-count" role="status">{visible.length} sur {codes.length}</span>
           <ViewToggle view={view} onChange={setView} />
         </div>
+        <div ref={topRef} className="adm-list-top" />
         {visible.length === 0 ? <div className="adm-empty">Aucun code ne correspond à cette recherche.</div> : view === 'table' ? (
-          <div className="adm-table-wrap">
+          <div className="adm-table-wrap adm-page-enter" key={`table-${current.page}`}>
             <table className="adm-table">
               <thead>
                 <tr><th scope="col">Code</th><th scope="col">Outil</th><th scope="col">Réduction</th><th scope="col">Créateur</th><th scope="col">Votes</th><th scope="col">Réussite</th><th scope="col">Statut</th><th scope="col">Tri</th><th scope="col"><span className="sr-only">Actions</span></th></tr>
               </thead>
               <tbody>
-                {visible.map(code => (
+                {current.items.map(code => (
                   <tr key={code.id}>
                     <td className="mono">{code.code}</td>
                     <td className="adm-cell-nowrap">{code.tool}</td>
@@ -62,8 +65,8 @@ export default function AdminCodes() {
             </table>
           </div>
         ) : (
-          <div className="adm-grid">
-            {visible.map(code => (
+          <div className="adm-grid adm-page-enter" key={`grid-${current.page}`}>
+            {current.items.map(code => (
               <article className="adm-card" key={code.id}>
                 <div className="adm-card-top"><span className="mono">{code.code}</span><span className={statusLabel[code.status].className}>{statusLabel[code.status].label}</span></div>
                 <h3>{code.tool} · {code.discount}</h3>
@@ -77,6 +80,7 @@ export default function AdminCodes() {
             ))}
           </div>
         )}
+        <Pagination current={current} onChange={goTo} label="codes" />
       </div>
     </main>
   );

@@ -4,6 +4,7 @@ import { categories } from '@/lib/data';
 import { matchesSearch } from '@/lib/admin-search';
 import { SUBMISSIONS_CHANGED } from '../pending-count';
 import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
+import { Pagination, usePagination } from '@/components/admin-pagination';
 type Submission = { id: string; tool_name: string; creator_name: string; code: string; discount_label: string; source_url: string; creator_link: string | null; comment: string | null; submitter_email: string | null; status: string; admin_note: string | null; created_at: string };
 export default function Propositions() {
   const [items, setItems] = useState<Submission[]>([]);
@@ -45,6 +46,7 @@ export default function Propositions() {
     </> : <button type="button" className="adm-btn" onClick={() => decide(item.id, 'restore')}>Remettre à traiter</button>;
   }
   const visible = items.filter(item => matchesSearch([item.code, item.tool_name, item.creator_name, item.discount_label, item.comment, item.submitter_email], query));
+  const { current, goTo, topRef } = usePagination(visible, `${status}|${category}|${from}|${to}|${query}`);
   return (
     <main className="adm-page">
       <div className="container">
@@ -73,15 +75,16 @@ export default function Propositions() {
           <button type="button" className="adm-btn" onClick={resetFilters}>Réinitialiser</button>
           {!loading && <span className="adm-count" role="status">{visible.length} sur {items.length}</span>}
         </div>
+        <div ref={topRef} className="adm-list-top" />
         {error && <div className="notice notice-error" role="alert" style={{ marginBottom: 12 }}>{error}</div>}
         {loading ? <p className="muted">Chargement de la file…</p> : visible.length === 0 ? <div className="adm-empty">{items.length === 0 ? 'Aucune proposition ici. Modifie les filtres ou la période.' : 'Aucune proposition ne correspond à cette recherche.'}</div> : view === 'table' ? (
-          <div className="adm-table-wrap">
+          <div className="adm-table-wrap adm-page-enter" key={`table-${current.page}`}>
             <table className="adm-table">
               <thead>
                 <tr><th scope="col">Code</th><th scope="col">Outil</th><th scope="col">Réduction</th><th scope="col">Créateur</th><th scope="col">Reçue le</th><th scope="col">E-mail</th><th scope="col">Commentaire</th><th scope="col">Statut</th><th scope="col">Liens</th><th scope="col"><span className="sr-only">Décision</span></th></tr>
               </thead>
               <tbody>
-                {visible.map(item => (
+                {current.items.map(item => (
                   <tr key={item.id}>
                     <td className="mono">{item.code}</td>
                     <td className="adm-cell-wrap">{item.tool_name}</td>
@@ -99,8 +102,8 @@ export default function Propositions() {
             </table>
           </div>
         ) : (
-          <div className="adm-grid">
-            {visible.map(item => (
+          <div className="adm-grid adm-page-enter" key={`grid-${current.page}`}>
+            {current.items.map(item => (
               <article className="adm-card" key={item.id}>
                 <div className="adm-card-top"><span className="mono">{item.code}</span><span className={statusPill[item.status] || 'adm-pill'}>{statusName[item.status] || item.status}</span></div>
                 <h3>{item.tool_name} · {item.discount_label}</h3>
@@ -117,6 +120,7 @@ export default function Propositions() {
             ))}
           </div>
         )}
+        {!loading && <Pagination current={current} onChange={goTo} label="propositions" />}
       </div>
     </main>
   );

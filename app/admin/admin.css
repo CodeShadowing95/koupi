@@ -302,3 +302,16 @@ a.tool-card:hover{color:var(--ink);border-color:var(--ink);box-shadow:var(--shad
 @media(max-width:620px){.adm-view{margin-left:0}.adm-view span{display:none}}
 .adm-table .adm-pill{white-space:nowrap}
 .adm-table .adm-cell-wrap{min-width:120px;max-width:240px;line-height:1.35}
+/* Pagination des listes admin */
+.adm-list-top{scroll-margin-top:16px}
+.adm-page-enter{animation:adm-page-in .22s ease-out}
+@keyframes adm-page-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.adm-pager{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px}
+.adm-pager-range{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.adm-pager-pages{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.adm-pager-btn{min-width:34px;min-height:34px;padding:0 8px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);font-size:14px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;transition:border-color .15s ease,background .15s ease}
+.adm-pager-btn:hover:not(:disabled){border-color:var(--ink)}
+.adm-pager-btn[aria-current="page"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.adm-pager-btn:disabled{opacity:.4;cursor:not-allowed}
+.adm-pager-gap{min-width:20px;text-align:center;color:var(--muted)}
+@media(prefers-reduced-motion:reduce){.adm-page-enter{animation:none}}
