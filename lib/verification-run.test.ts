@@ -67,6 +67,18 @@ describe('runVerification', () => {
     expect(await runVerification(ctx.db, '00000000-0000-0000-0000-000000000000', { readSource: reader('') })).toBeNull();
   });
 
+  it('tient compte du niveau du créateur', async () => {
+    const before = await runVerification(ctx.db, ctx.codeId, { readSource: reader('pas de code ici') });
+    expect(before?.reasons.map(r => r.label)).toContain('Créateur repéré, pas encore contrôlé.');
+    const [code] = await ctx.db.select().from(schema.codes).where(eq(schema.codes.id, ctx.codeId));
+    await ctx.db.insert(schema.creatorAccounts).values({
+      creatorId: code.creatorId, platform: 'youtube', externalId: 'UC1', handle: '@ana', url: 'https://youtube.com/@ana', platformVerified: true,
+    });
+    const after = await runVerification(ctx.db, ctx.codeId, { readSource: reader('pas de code ici') });
+    expect(after?.reasons.map(r => r.label)).toContain('Créateur contrôlé par Koupi.');
+    expect(after!.score).toBe(before!.score + 15);
+  });
+
   it('prouve un code présent dans une source en ligne, sans IA', async () => {
     const check = await runVerification(ctx.db, ctx.codeId, { readSource: reader('Merci NordVPN, code ANA10 pour 10 %') });
     expect(check?.score).toBe(90);

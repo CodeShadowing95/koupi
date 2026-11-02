@@ -5,6 +5,7 @@ import type { Db } from '@/db';
 import { codes, type VerificationCheckRow, type VerificationReason } from '@/db/schema';
 import { aiStatusOf, extractCodes, needsSecondReading, type AiConfig, type Extraction } from './ai-extract';
 import { isValidDay } from './code-expiry';
+import { creatorLevelFor } from './creator-level';
 import { aiSpendSince, recordVerificationCheck, startOfMonthUtc } from './verification-store';
 import { findCodeInText, scoreVerification, spamSignals } from './verification';
 
@@ -87,8 +88,7 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
   const result = scoreVerification({
     sourceOnline: source ? source.online : null,
     codeInSource: match ? match.found : null,
-    // Les niveaux de créateur viendront avec la table des comptes créateurs (PR 9) : un créateur en base est « repéré ».
-    creatorLevel: 'spotted',
+    creatorLevel: await creatorLevelFor(db, code.creatorId),
     toolKnown: true,
     duplicate: Boolean(duplicate),
     spam: spamSignals({ sourceUrl: code.sourceUrl, code: code.code }),
