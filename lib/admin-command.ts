@@ -4,10 +4,18 @@ import type { Code } from './data';
 import { matchesSearch } from './admin-search';
 
 export type CommandKind = 'page' | 'code' | 'tool' | 'creator' | 'proposal';
-export type CommandItem = { kind: CommandKind; label: string; detail: string; href: string; keywords?: string };
+/** status : pastille affichée à droite (statut d'un code, outil archivé). */
+export type CommandStatus = Code['status'] | 'archived';
+export type CommandItem = { kind: CommandKind; label: string; detail: string; href: string; keywords?: string; status?: CommandStatus };
+export type CommandFilter = CommandKind | 'all';
+export type CommandGroup = { kind: CommandKind; items: CommandItem[]; total: number };
 
 export const COMMAND_KIND_LABELS: Record<CommandKind, string> = { page: 'Pages', code: 'Codes', tool: 'Outils', creator: 'Créateurs', proposal: 'Propositions à traiter' };
-const ORDER: CommandKind[] = ['page', 'code', 'tool', 'creator', 'proposal'];
+/** Libellés courts des filtres de la palette. */
+export const COMMAND_FILTER_LABELS: Record<CommandFilter, string> = { all: 'Tout', page: 'Pages', code: 'Codes', tool: 'Outils', creator: 'Créateurs', proposal: 'Propositions' };
+export const COMMAND_STATUS_LABELS: Record<CommandStatus, string> = { verified: 'Vérifié', to_test: 'À tester', pending: 'En attente', rejected: 'Rejeté', archived: 'Archivé' };
+export const COMMAND_ORDER: CommandKind[] = ['page', 'code', 'tool', 'creator', 'proposal'];
+export const COMMAND_FILTERS: CommandFilter[] = ['all', ...COMMAND_ORDER];
 
 export const ADMIN_PAGES: CommandItem[] = [
   { kind: 'page', label: 'Accueil', detail: 'Tableau de bord, à faire', href: '/admin', keywords: 'dashboard kpi' },
@@ -34,18 +42,44 @@ export function buildCommandIndex(input: {
 }): CommandItem[] {
   return [
     ...ADMIN_PAGES,
-    ...input.codes.map(code => ({ kind: 'code' as const, label: code.code, detail: `${code.tool} · ${code.creator} · ${code.archived ? 'archivé' : statusLabel[code.status]}`, href: `/admin/codes?q=${q(code.code)}`, keywords: code.discount })),
-    ...input.tools.map(tool => ({ kind: 'tool' as const, label: tool.name, detail: `${tool.category}${tool.archived ? ' · archivé' : ''}`, href: `/admin/outils?q=${q(tool.name)}` })),
+    ...input.codes.map((code): CommandItem => ({
+      kind: 'code', label: code.code, detail: `${code.tool} · ${code.creator}`, href: `/admin/codes?q=${q(code.code)}`,
+      keywords: `${code.discount} ${code.archived ? 'archivé' : statusLabel[code.status]}`, status: code.archived ? 'archived' : code.status,
+    })),
+    ...input.tools.map((tool): CommandItem => ({ kind: 'tool', label: tool.name, detail: tool.category, href: `/admin/outils?q=${q(tool.name)}`, keywords: tool.archived ? 'archivé' : undefined, status: tool.archived ? 'archived' : undefined })),
     ...input.creators.map(creator => ({ kind: 'creator' as const, label: creator.name, detail: `${creator.codes} code${creator.codes > 1 ? 's' : ''}`, href: `/admin/createurs?q=${q(creator.name)}` })),
     ...input.proposals.map(item => ({ kind: 'proposal' as const, label: item.code, detail: `${item.toolName} · ${item.creatorName}`, href: `/admin/propositions?q=${q(item.code)}` })),
   ];
 }
 
-/** Résultats groupés par type, dans un ordre fixe ; au plus `perKind` par groupe. Sans recherche : rien (la palette s'ouvre vide). */
-export function searchCommands(index: CommandItem[], query: string, perKind = 5): { kind: CommandKind; items: CommandItem[] }[] {
+/**
+ * Résultats groupés par type, dans un ordre fixe. Sans recherche : rien (la palette s'ouvre vide).
+ * Avec le filtre « Tout », au plus `perKind` par groupe ; avec un type choisi, jusqu'à 50. `total` compte toutes les correspondances.
+ */
+export function searchCommands(index: CommandItem[], query: string, perKind = 5, filter: CommandFilter = 'all'): CommandGroup[] {
   if (!query.trim()) return [];
   const items = index.filter(item => matchesSearch([item.label, item.detail, item.keywords], query));
-  return ORDER.map(kind => ({ kind, items: items.filter(item => item.kind === kind).slice(0, perKind) })).filter(group => group.items.length > 0);
+  return COMMAND_ORDER
+    .filter(kind => filter === 'all' || filter === kind)
+    .map(kind => {
+      const all = items.filter(item => item.kind === kind);
+      return { kind, items: all.slice(0, filter === 'all' ? perKind : 50), total: all.length };
+    })
+    .filter(group => group.total > 0);
+}
+
+/** Nombre de correspondances par type, pour les compteurs des filtres. */
+export function countByKind(index: CommandItem[], query: string): Record<CommandFilter, number> {
+  const counts: Record<CommandFilter, number> = { all: 0, page: 0, code: 0, tool: 0, creator: 0, proposal: 0 };
+  if (!query.trim()) return counts;
+  for (const item of index) if (matchesSearch([item.label, item.detail, item.keywords], query)) { counts[item.kind] += 1; counts.all += 1; }
+  return counts;
+}
+
+/** Filtre suivant (ou précédent) quand on appuie sur Tab (ou Maj+Tab). */
+export function cycleFilter(current: CommandFilter, step: 1 | -1): CommandFilter {
+  const at = COMMAND_FILTERS.indexOf(current);
+  return COMMAND_FILTERS[(at + step + COMMAND_FILTERS.length) % COMMAND_FILTERS.length];
 }
 
 /** Retire accents et casse caractère par caractère, pour garder les positions du texte d'origine. */

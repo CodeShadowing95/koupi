@@ -5,7 +5,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { afterDialogClose } from '@/lib/admin-dialog';
-import { ADMIN_PAGES, COMMAND_KIND_LABELS, highlightParts, searchCommands, type CommandItem, type CommandKind } from '@/lib/admin-command';
+import {
+  ADMIN_PAGES, COMMAND_FILTERS, COMMAND_FILTER_LABELS, COMMAND_KIND_LABELS, COMMAND_STATUS_LABELS, countByKind, cycleFilter, highlightParts, searchCommands,
+  type CommandFilter, type CommandItem, type CommandKind, type CommandStatus,
+} from '@/lib/admin-command';
+import { StatusDot, type Tone } from '@/components/admin-card';
+
+const statusTone: Record<CommandStatus, Tone> = { verified: 'ok', to_test: 'warn', pending: 'muted', rejected: 'bad', archived: 'muted' };
 
 const kindIcon: Record<CommandKind, React.ReactNode> = {
   page: <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5" />,
@@ -14,6 +20,8 @@ const kindIcon: Record<CommandKind, React.ReactNode> = {
   creator: <><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></>,
   proposal: <><path d="M22 12h-6l-2 3h-4l-2-3H2" /><path d="M5.5 5h13L22 12v7H2v-7z" /></>,
 };
+const allIcon = <><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></>;
+const icon = (path: React.ReactNode, size = 16) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{path}</svg>;
 const searchIcon = (size: number) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>;
 
 export function CommandPalette() {
@@ -25,10 +33,11 @@ export function CommandPalette() {
   const [index, setIndex] = useState<CommandItem[]>(ADMIN_PAGES);
   const [state, setState] = useState<'idle' | 'loading' | 'error'>('idle');
   const [active, setActive] = useState(0);
+  const [filter, setFilter] = useState<CommandFilter>('all');
   const [mac, setMac] = useState(false);
 
   const show = useCallback(() => {
-    setQuery(''); setActive(0); setOpen(true);
+    setQuery(''); setActive(0); setFilter('all'); setOpen(true);
     if (!dialog.current?.open) dialog.current?.showModal();
     setState('loading');
     fetch('/api/admin/search-index').then(async response => {
@@ -46,9 +55,11 @@ export function CommandPalette() {
     return () => window.removeEventListener('keydown', onKey);
   }, [show]);
 
-  const groups = useMemo(() => searchCommands(index, query), [index, query]);
+  const groups = useMemo(() => searchCommands(index, query, 5, filter), [index, query, filter]);
+  const counts = useMemo(() => countByKind(index, query), [index, query]);
   const flat = groups.flatMap(group => group.items);
-  useEffect(() => { setActive(0); }, [query]);
+  const typed = query.trim().length > 0;
+  useEffect(() => { setActive(0); }, [query, filter]);
   useEffect(() => { document.getElementById(`cmd-${active}`)?.scrollIntoView({ block: 'nearest' }); }, [active]);
 
   function go(item: CommandItem | undefined) {
@@ -65,9 +76,18 @@ export function CommandPalette() {
     else if (event.key === 'ArrowUp') { event.preventDefault(); setActive(i => Math.max(0, i - 1)); }
     else if (event.key === 'Enter') { event.preventDefault(); go(flat[active]); }
     else if (event.key === 'Escape') { event.preventDefault(); dialog.current?.close(); }
+    else if (event.key === 'Tab') {
+      event.preventDefault();
+      // Une fois qu'on a tapé, on saute les types sans résultat.
+      const step = event.shiftKey ? -1 : 1;
+      setFilter(current => {
+        let next = cycleFilter(current, step);
+        while (typed && next !== 'all' && counts[next] === 0) next = cycleFilter(next, step);
+        return next;
+      });
+    }
   }
 
-  const typed = query.trim().length > 0;
   let position = -1;
   return (
     <>
@@ -83,38 +103,55 @@ export function CommandPalette() {
             <div className="adm-cmd-field">
               {searchIcon(18)}
               <input ref={input} autoFocus type="text" value={query} onChange={event => setQuery(event.target.value)} onKeyDown={onKeyDown}
-                placeholder="Rechercher un code, un outil, un créateur…" aria-label="Rechercher dans le back-office" role="combobox" aria-expanded={typed}
+                placeholder="Commence à taper…" aria-label="Rechercher dans le back-office" role="combobox" aria-expanded={typed}
                 aria-controls="cmd-results" aria-activedescendant={flat.length ? `cmd-${active}` : undefined} aria-autocomplete="list" spellCheck={false} autoComplete="off" />
               {state === 'loading' && <span className="adm-cmd-spinner" aria-hidden="true" />}
-              <button type="button" className="adm-cmd-esc" onClick={() => dialog.current?.close()} aria-label="Fermer la recherche">Échap</button>
+              <kbd className="adm-cmd-kbd" suppressHydrationWarning>{mac ? '⌘' : 'Ctrl'} K</kbd>
+            </div>
+            <div className="adm-cmd-filters" role="tablist" aria-label="Filtrer par type">
+              {COMMAND_FILTERS.map(item => (
+                <button key={item} type="button" role="tab" aria-selected={filter === item} className="adm-cmd-chip" tabIndex={-1} data-empty={typed && counts[item] === 0 ? "" : undefined}
+                  onClick={() => { setFilter(item); input.current?.focus(); }}>
+                  {icon(item === 'all' ? allIcon : kindIcon[item], 14)}
+                  <span>{COMMAND_FILTER_LABELS[item]}</span>
+                  {typed && <span className="adm-cmd-chip-n">{counts[item]}</span>}
+                </button>
+              ))}
             </div>
             <div className="adm-cmd-panel">
               <div className="adm-cmd-results" id="cmd-results" role="listbox" aria-label="Résultats">
                 {groups.map(group => (
                   <div key={group.kind} role="group" aria-label={COMMAND_KIND_LABELS[group.kind]} className="adm-cmd-section">
-                    <div className="adm-cmd-group" aria-hidden="true">{COMMAND_KIND_LABELS[group.kind]}</div>
+                    <div className="adm-cmd-group" aria-hidden="true">{COMMAND_KIND_LABELS[group.kind]}<span>{group.total}</span></div>
                     {group.items.map(item => {
                       position += 1;
                       const i = position;
                       return (
                         <div key={`${item.kind}-${item.href}-${i}`} id={`cmd-${i}`} role="option" aria-selected={i === active} className="adm-cmd-item"
                           onMouseMove={() => setActive(i)} onClick={() => go(item)}>
-                          <span className="adm-cmd-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{kindIcon[item.kind]}</svg></span>
+                          <span className="adm-cmd-icon" aria-hidden="true">{icon(kindIcon[item.kind])}</span>
                           <span className="adm-cmd-text">
                             <b className={item.kind === 'code' || item.kind === 'proposal' ? 'mono' : undefined}>
                               {highlightParts(item.label, query).map((part, n) => part.match ? <mark key={n}>{part.text}</mark> : part.text)}
                             </b>
-                            <span>{item.detail}</span>
+                            <span className="adm-cmd-dot" aria-hidden="true">·</span>
+                            <span className="adm-cmd-detail">{item.detail}</span>
                           </span>
+                          {item.status && <StatusDot tone={statusTone[item.status]}>{COMMAND_STATUS_LABELS[item.status]}</StatusDot>}
                           <kbd className="adm-cmd-enter" aria-hidden="true">↵</kbd>
                         </div>
                       );
                     })}
+                    {group.total > group.items.length && (
+                      <button type="button" className="adm-cmd-more" tabIndex={-1} onClick={() => { setFilter(group.kind); input.current?.focus(); }}>
+                        Voir les {group.total} {COMMAND_FILTER_LABELS[group.kind].toLowerCase()}
+                      </button>
+                    )}
                   </div>
                 ))}
                 {typed && flat.length === 0 && (
                   <div className="adm-cmd-empty">
-                    {state === 'loading' ? 'Chargement…' : <><b>Aucun résultat</b><span>Rien ne correspond à « {query.trim()} ». Essaie un autre mot.</span></>}
+                    {state === 'loading' ? 'Chargement…' : <><b>Aucun résultat</b><span>Rien ne correspond à « {query.trim()} »{filter !== 'all' ? ` dans ${COMMAND_FILTER_LABELS[filter].toLowerCase()}` : ''}. Essaie un autre mot{filter !== 'all' ? ' ou le filtre « Tout »' : ''}.</span></>}
                   </div>
                 )}
               </div>
@@ -122,9 +159,13 @@ export function CommandPalette() {
             <div className="adm-cmd-foot" role="status">
               {state === 'error'
                 ? <span>Les codes et outils n’ont pas pu être chargés : seules les pages sont proposées.</span>
-                : typed
-                  ? <><span><kbd>↑</kbd><kbd>↓</kbd> choisir</span><span><kbd>↵</kbd> ouvrir</span><span><kbd>Échap</kbd> fermer</span></>
-                  : <span>Codes, outils, créateurs, propositions et pages de l’admin</span>}
+                : <>
+                  <span><kbd>↑↓</kbd> Choisir</span>
+                  <span><kbd>↵</kbd> Ouvrir</span>
+                  <span><kbd>Tab</kbd> Filtrer</span>
+                  <span><kbd>Échap</kbd> Fermer</span>
+                  {typed && <span className="adm-cmd-total">{counts[filter]} résultat{counts[filter] > 1 ? 's' : ''}</span>}
+                </>}
             </div>
           </div>
         )}
