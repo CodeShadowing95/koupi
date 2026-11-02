@@ -40,8 +40,35 @@ export function buildCommandIndex(input: {
   ];
 }
 
-/** Résultats groupés par type, dans un ordre fixe ; au plus `perKind` par groupe. Sans recherche : les pages seulement. */
+/** Résultats groupés par type, dans un ordre fixe ; au plus `perKind` par groupe. Sans recherche : rien (la palette s'ouvre vide). */
 export function searchCommands(index: CommandItem[], query: string, perKind = 5): { kind: CommandKind; items: CommandItem[] }[] {
-  const items = query.trim() ? index.filter(item => matchesSearch([item.label, item.detail, item.keywords], query)) : index.filter(item => item.kind === 'page');
-  return ORDER.map(kind => ({ kind, items: items.filter(item => item.kind === kind).slice(0, query.trim() ? perKind : 20) })).filter(group => group.items.length > 0);
+  if (!query.trim()) return [];
+  const items = index.filter(item => matchesSearch([item.label, item.detail, item.keywords], query));
+  return ORDER.map(kind => ({ kind, items: items.filter(item => item.kind === kind).slice(0, perKind) })).filter(group => group.items.length > 0);
+}
+
+/** Retire accents et casse caractère par caractère, pour garder les positions du texte d'origine. */
+function fold(text: string): string {
+  return Array.from(text, char => char.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').charAt(0) || char).join('');
+}
+
+/**
+ * Découpe un libellé pour surligner les mots tapés (sans tenir compte des accents ni de la casse).
+ * Renvoie des morceaux { text, match } à afficher dans l'ordre.
+ */
+export function highlightParts(label: string, query: string): { text: string; match: boolean }[] {
+  const words = fold(query).split(/\s+/).filter(Boolean);
+  if (words.length === 0) return [{ text: label, match: false }];
+  const folded = fold(label);
+  const marked = new Array<boolean>(label.length).fill(false);
+  for (const word of words) {
+    for (let at = folded.indexOf(word); at !== -1; at = folded.indexOf(word, at + word.length)) marked.fill(true, at, at + word.length);
+  }
+  const parts: { text: string; match: boolean }[] = [];
+  for (let i = 0; i < label.length; i++) {
+    const last = parts[parts.length - 1];
+    if (last && last.match === marked[i]) last.text += label[i];
+    else parts.push({ text: label[i], match: marked[i] });
+  }
+  return parts;
 }
