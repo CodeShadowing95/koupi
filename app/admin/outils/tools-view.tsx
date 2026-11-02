@@ -12,6 +12,7 @@ import { InfoTip } from '@/components/admin-info-tip';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
 import { AdminToolLogo, AdminToolName } from '@/components/admin-tool-logo';
 import { IconButton, IconLink, StatusDot } from '@/components/admin-card';
+import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
 
 type Filter = 'all' | 'published' | 'empty' | 'archived';
@@ -82,7 +83,7 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
             <h1>Outils</h1>
             <p>Les outils que Koupi suit. Un outil apparaît sur le site dès qu’il a un code vérifié ou à tester. Priorité 1 : à couvrir en premier.</p>
           </div>
-          <div className="adm-head-actions"><button type="button" className="adm-btn adm-btn-pri" onClick={() => open('new')}>+ Nouvel outil</button></div>
+          <div className="adm-head-actions"><ExportMenu type="outils" /><button type="button" className="adm-btn adm-btn-pri" onClick={() => open('new')}>+ Nouvel outil</button></div>
         </div>
         <div className="adm-tabs" role="group" aria-label="Filtre">
           {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label} <span className="adm-tab-n">{countOf(item.value)}</span></button>)}
