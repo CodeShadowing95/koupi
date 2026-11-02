@@ -4,7 +4,7 @@ import { buildCommandIndex, countByKind, cycleFilter, highlightParts, parseRecen
 
 const code = (id: string, value: string, tool: string): Code => ({
   id, tool, toolSlug: tool.toLowerCase(), creator: 'Ali', creatorSlug: 'ali', code: value, discount: '-20 %', status: 'to_test',
-  source: 'https://x.y', sourceTitle: '', votes: 0, success: 0, lastTestedAt: null, createdAt: '2026-10-01T00:00:00.000Z',
+  source: 'https://x.y', sourceTitle: '', votes: 0, success: 0, lastTestedAt: null, paymentTestedAt: null, createdAt: '2026-10-01T00:00:00.000Z',
 });
 
 const index = buildCommandIndex({

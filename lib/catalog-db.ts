@@ -33,6 +33,7 @@ export async function loadCatalog(db: Db, options: { includeArchived?: boolean }
     success: successRate(code.votesUp, code.votesDown),
     ...(code.note ? { note: code.note } : {}),
     lastTestedAt: code.lastTestedAt?.toISOString() ?? null,
+    paymentTestedAt: code.paymentTestedAt?.toISOString() ?? null,
     createdAt: code.createdAt.toISOString(),
     ...(code.archivedAt ? { archived: true } : {}),
   }));

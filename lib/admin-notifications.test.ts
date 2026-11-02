@@ -5,7 +5,7 @@ import { buildNotifications, countByTab, markRead, parseSeen, timeAgo, unseen } 
 const now = new Date('2026-11-02T12:00:00.000Z');
 const code = (over: Partial<Code>): Code => ({
   id: 'c1', tool: 'Notion', toolSlug: 'notion', creator: 'Ali', creatorSlug: 'ali', code: 'NOTION20', discount: '-20 %', status: 'verified',
-  source: 'https://x.y', sourceTitle: '', votes: 0, success: 0, lastTestedAt: '2026-11-01T00:00:00.000Z', createdAt: '2026-10-01T00:00:00.000Z', ...over,
+  source: 'https://x.y', sourceTitle: '', votes: 0, success: 0, lastTestedAt: '2026-11-01T00:00:00.000Z', paymentTestedAt: null, createdAt: '2026-10-01T00:00:00.000Z', ...over,
 });
 const proposal = (id: string, createdAt: string) => ({ id, code: `P${id}`, toolName: 'Canva', creatorName: 'Bea', createdAt });
 

@@ -8,6 +8,8 @@ export type Code = {
   source: string; sourceTitle: string; creatorLink?: string; votes: number; success: number; note?: string;
   /** Date ISO du dernier test par l'admin, null s'il n'a jamais été testé. */
   lastTestedAt: string | null;
+  /** Date ISO du dernier test au paiement (la réduction s'applique), null sinon. */
+  paymentTestedAt: string | null;
   createdAt: string;
   /** Seulement dans l'admin : code retiré du site et des statistiques. */
   archived?: boolean;

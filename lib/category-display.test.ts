@@ -5,7 +5,7 @@ import { topCodesFor } from './category-display';
 const tool = (slug: string, category: string): Tool => ({ slug, name: slug, category, website: `https://${slug}.com`, description: '', priority: 1, codes: 1 });
 const code = (id: string, toolSlug: string, success: number, votes = 10): Code => ({
   id, tool: toolSlug, toolSlug, creator: 'C', creatorSlug: 'c', code: id.toUpperCase(), discount: '-10 %', status: 'verified',
-  source: '', sourceTitle: '', votes, success, lastTestedAt: null, createdAt: '2026-11-01',
+  source: '', sourceTitle: '', votes, success, lastTestedAt: null, paymentTestedAt: null, createdAt: '2026-11-01',
 });
 
 const tools = [tool('nord', 'VPN'), tool('surf', 'VPN'), tool('proton', 'VPN'), tool('hostinger', 'Hébergement')];

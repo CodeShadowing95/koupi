@@ -6,6 +6,7 @@ import { routes } from '@/lib/routes';
 import { MiniCoupon } from '@/components/site/coupon';
 import { ToolSeal } from '@/components/site/tool-logo';
 import { ToolCard } from '@/components/site/tool-card';
+import { CodeBadge } from '@/components/site/code-badge';
 
 export default async function Category({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -42,7 +43,7 @@ export default async function Category({ params }: { params: Promise<{ slug: str
                         subtitle={<>de {code.creator}</>}
                       />
                       <div className="k-coupon-meta">
-                        <span className={`k-status ${code.status === 'verified' ? 'k-status-ok' : 'k-status-warn'} is-dark`}>{code.status === 'verified' ? '✓ Vérifié' : '◷ À tester'}</span>
+                        <CodeBadge code={code} dark withDate={false} />
                         {tool && <Link href={routes.tool(tool.slug)}>Voir la fiche →</Link>}
                       </div>
                     </div>

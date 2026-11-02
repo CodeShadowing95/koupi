@@ -7,6 +7,7 @@ import { creatorSlug, plural } from '@/lib/ui';
 import { ToolSeal } from '@/components/site/tool-logo';
 import { MiniCoupon } from '@/components/site/coupon';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
+import { CodeBadge } from '@/components/site/code-badge';
 
 export default async function Creator({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -48,7 +49,7 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
                   subtitle={code.sourceTitle}
                 />
                 <div className="k-coupon-meta">
-                  <span className={`k-status ${code.status === 'verified' ? 'k-status-ok' : 'k-status-warn'} is-dark`}>{code.status === 'verified' ? '✓ Vérifié' : '◷ À tester'}</span>
+                  <CodeBadge code={code} dark withDate={false} />
                   <span style={{ display: 'flex', gap: 16 }}>
                     <a href={code.source} target="_blank" rel="noopener noreferrer">Source ↗</a>
                     {tool && <Link href={routes.tool(tool.slug)}>Fiche {tool.name} →</Link>}
