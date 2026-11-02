@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { PendingBadge } from '@/app/admin/pending-count';
 import { ThemeToggle } from '@/components/admin-theme';
 import { CommandPalette } from '@/components/admin-command';
+import { AdminNotifications } from '@/components/admin-notifications';
 import { AdminCouponTear } from '@/components/admin-coupon-tear';
 import { AdminIcon } from '@/components/admin-icons';
 
@@ -135,6 +136,7 @@ export function AdminShell({ children, toTest = 0 }: { children: React.ReactNode
           <div className="adm-top-right">
             <CommandPalette />
             <span className="adm-today" suppressHydrationWarning>{today.charAt(0).toUpperCase() + today.slice(1)}</span>
+            <AdminNotifications />
             <ThemeToggle />
             <button type="button" ref={burger} className="adm-icon-btn adm-burger" aria-label="Ouvrir le menu" aria-expanded={menuOpen} aria-controls="adm-side" onClick={() => setMenuOpen(true)}>{icons.menu}</button>
           </div>

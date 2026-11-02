@@ -31,9 +31,9 @@ export const guideChapters: GuideChapter[] = [
     practice: { href: '/admin', label: 'Ouvrir l’accueil' },
   },
   {
-    slug: 'se-reperer', part: 'start', title: 'Se repérer dans l’admin', minutes: 5,
-    summary: 'Le menu, la recherche ⌘K, les vues Cartes et Tableau, le panneau de détail et l’export.',
-    goals: ['Trouver n’importe quoi en deux secondes', 'Filtrer, trier et changer de vue', 'Ouvrir le détail d’un élément sans quitter la liste', 'Exporter une liste en Excel ou en CSV'],
+    slug: 'se-reperer', part: 'start', title: 'Se repérer dans l’admin', minutes: 6,
+    summary: 'Le menu, la recherche ⌘K, la cloche de notifications, les vues Cartes et Tableau, le panneau de détail et l’export.',
+    goals: ['Trouver n’importe quoi en deux secondes', 'Savoir ce qui t’attend grâce à la cloche', 'Filtrer, trier et changer de vue', 'Ouvrir le détail d’un élément sans quitter la liste', 'Exporter une liste en Excel ou en CSV'],
     practice: { href: '/admin/codes', label: 'Essayer sur la liste des codes' },
   },
   {
