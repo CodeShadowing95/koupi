@@ -73,6 +73,19 @@ describe('actions de l’admin', () => {
     expect((await loadCatalog(db)).tools).toEqual([]);
   });
 
+  it('note le test au paiement, et l’efface si le code est rejeté', async () => {
+    const created = await createCode(db, base);
+    if (!created.ok) throw new Error(created.error);
+    expect(await applyCodeAction(db, created.data.id, 'payment_test')).toEqual({ ok: true, data: { status: 'verified', archived: false } });
+    let [row] = await db.select().from(schema.codes).where(eq(schema.codes.id, created.data.id));
+    expect(row.paymentTestedAt).not.toBeNull();
+    expect(row.lastTestedAt).not.toBeNull();
+    await applyCodeAction(db, created.data.id, 'reject');
+    [row] = await db.select().from(schema.codes).where(eq(schema.codes.id, created.data.id));
+    expect(row).toMatchObject({ status: 'rejected', paymentTestedAt: null });
+    expect((await db.select().from(schema.codeLogs)).map(log => log.action)).toEqual(['create', 'payment_test', 'reject']);
+  });
+
   it('archive un code sans le supprimer, puis le restaure', async () => {
     const created = await createCode(db, base);
     if (!created.ok) throw new Error(created.error);

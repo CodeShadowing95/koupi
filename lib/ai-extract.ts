@@ -1,5 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { REJECT_BELOW, findCodeInText } from './verification';
+import { CLEAR_SCORE, REJECT_BELOW, findCodeInText } from './verification';
+
+export { CLEAR_SCORE };
 
 // Socle IA des vérifications (ADR-0013). L'IA lit une description publique (vidéo, épisode) et rend
 // les codes promo qu'elle y trouve. Elle ne décide de rien : chaque code rendu doit figurer mot pour mot
@@ -174,9 +176,6 @@ export async function extractCodes(create: CreateMessage, model: string, source:
 }
 
 const PROMO_WORDS = /(code\s*promo|promo\s*code|coupon|r[ée]duction|discount|remise|offre|\d+\s*%|% off)/i;
-
-/** Au-delà de ce score, un dossier est assez clair pour se passer d'une deuxième lecture. */
-export const CLEAR_SCORE = 60;
 
 // Mode mixte : faut-il faire relire ce dossier par le modèle puissant ?
 // Oui si la première lecture a été refusée, si elle ne trouve rien alors que la description parle de promo,

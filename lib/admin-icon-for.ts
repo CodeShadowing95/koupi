@@ -1,11 +1,12 @@
 // Quelle icône du menu montrer pour un lien du back-office (recherche ⌘K) : la même que l'entrée du menu latéral.
-export type PageIcon = 'home' | 'stats' | 'inbox' | 'ticket' | 'tool' | 'users' | 'folder' | 'book' | 'download';
+export type PageIcon = 'home' | 'stats' | 'inbox' | 'ticket' | 'shield' | 'tool' | 'users' | 'folder' | 'book' | 'download';
 
 const sections: [prefix: string, icon: PageIcon][] = [
   ['/api/admin/export', 'download'],
   ['/admin/stats', 'stats'],
   ['/admin/propositions', 'inbox'],
   ['/admin/codes', 'ticket'],
+  ['/admin/verifications', 'shield'],
   ['/admin/outils', 'tool'],
   ['/admin/createurs', 'users'],
   ['/admin/categories', 'folder'],
