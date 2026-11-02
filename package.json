@@ -19,6 +19,7 @@
     "avatars": "node --env-file-if-exists=.env.local scripts/fetch-avatars.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "1.3.0",
     "@electric-sql/pglite": "^0.3.8",
     "@gsap/react": "^2.1.2",
     "@neondatabase/serverless": "^1.2.0",
