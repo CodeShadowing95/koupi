@@ -588,3 +588,9 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 }
 /* Date de fin d'un code, quand elle est loin : discrète, sans couleur d'alerte. */
 .k-status-plain{background:transparent;color:inherit;border:1.5px solid currentColor;opacity:.75}
+
+/* Marque d'un créateur contrôlé par Koupi : coche à côté du nom, ou pastille sur sa page */
+.k-creator-check{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-left:6px;border-radius:50%;background:var(--mint);color:#06281A;font-size:10px;font-weight:900;line-height:1;vertical-align:middle;flex:none}
+.k-creator-check.is-verified{background:#7FB2FF;color:#0A1F44}
+.k-creator-mark{text-decoration:none}
+.k-creator-mark:hover{text-decoration:underline}

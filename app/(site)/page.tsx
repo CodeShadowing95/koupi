@@ -9,6 +9,7 @@ import { MiniCoupon } from '@/components/site/coupon';
 import { ToolSeal } from '@/components/site/tool-logo';
 import { Counter } from '@/components/site/counter';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
+import { CreatorMark } from '@/components/site/creator-mark';
 import { CreatorsOrbit } from '@/components/site/creators-orbit';
 import { CategoryDisplay } from '@/components/site/category-display';
 import { CodeBadge } from '@/components/site/code-badge';
@@ -64,7 +65,7 @@ export default async function Home() {
                     link={code.creatorLink || tool?.website || '#'}
                     avatar={<ToolSeal tool={tool?.slug ?? code.tool} name={code.tool} />}
                     title={<>{code.tool} · {code.discount}</>}
-                    subtitle={<span className="k-by"><CreatorAvatar name={code.creator} size="xs" />de {code.creator}</span>}
+                    subtitle={<span className="k-by"><CreatorAvatar name={code.creator} size="xs" />de {code.creator}<CreatorMark level={code.creatorLevel} compact /></span>}
                   />
                   <div className="k-coupon-meta">
                     <CodeBadge code={code} dark withDate={false} />
