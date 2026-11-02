@@ -26,6 +26,7 @@ export const ADMIN_PAGES: CommandItem[] = [
   { kind: 'page', label: 'Codes à tester', detail: 'Visibles, pas encore essayés', href: '/admin/codes?status=to_test' },
   { kind: 'page', label: 'Codes à retester', detail: 'Test de plus de 30 jours', href: '/admin/codes?status=retest' },
   { kind: 'page', label: 'Vérifications', detail: 'Analyse des sources, score et IA', href: '/admin/verifications', keywords: 'verifier ia score analyse source' },
+  { kind: 'page', label: 'Podcasts suivis', detail: 'Podcasts lus pour trouver des codes', href: '/admin/podcasts', keywords: 'podcast episode audio podcast index' },
   { kind: 'page', label: 'Outils', detail: 'Catalogue', href: '/admin/outils' },
   { kind: 'page', label: 'Créateurs', detail: 'Catalogue', href: '/admin/createurs' },
   { kind: 'page', label: 'Catégories', detail: 'Catalogue', href: '/admin/categories' },

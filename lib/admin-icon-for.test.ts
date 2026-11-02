@@ -9,6 +9,7 @@ describe('iconForHref', () => {
     expect(iconForHref('/admin/codes?status=retest')).toBe('ticket');
     expect(iconForHref('/admin/guide/se-reperer')).toBe('book');
     expect(iconForHref('/admin/createurs?q=Ali')).toBe('users');
+    expect(iconForHref('/admin/podcasts')).toBe('mic');
   });
   it('shows a download icon for every export', () => {
     const exports = ADMIN_PAGES.filter(page => page.href.startsWith('/api/admin/export'));
