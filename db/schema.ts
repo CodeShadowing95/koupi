@@ -123,6 +123,8 @@ export const codes = pgTable('codes', {
   lastTestedAt: timestamp('last_tested_at', { withTimezone: true }),
   /** Date à laquelle l'admin a essayé le code au paiement (badge « Testé au paiement »), vide sinon. */
   paymentTestedAt: timestamp('payment_tested_at', { withTimezone: true }),
+  /** Date de fin écrite par le créateur (« jusqu'au 31/12 »), vide si le code n'en a pas. */
+  expiresOn: date('expires_on', { mode: 'string' }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   archivedAt: timestamp('archived_at', { withTimezone: true }),

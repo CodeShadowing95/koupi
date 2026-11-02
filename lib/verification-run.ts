@@ -4,6 +4,7 @@ import { and, eq, isNull, ne, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { codes, type VerificationCheckRow, type VerificationReason } from '@/db/schema';
 import { aiStatusOf, extractCodes, needsSecondReading, type AiConfig, type Extraction } from './ai-extract';
+import { isValidDay } from './code-expiry';
 import { aiSpendSince, recordVerificationCheck, startOfMonthUtc } from './verification-store';
 import { findCodeInText, scoreVerification, spamSignals } from './verification';
 
@@ -100,8 +101,13 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
   const ai = source?.online ? await runAi(db, deps, mode, source, result.score) : { extraction: null, calls: [], note: null };
   if (ai.note) reasons.push(ai.note);
   if (ai.extraction) {
-    const seen = ai.extraction.codes.some(found => found.code.toLowerCase() === code.code.toLowerCase());
+    const seen = ai.extraction.codes.find(found => found.code.toLowerCase() === code.code.toLowerCase());
     reasons.push({ points: 0, label: seen ? 'L’IA retrouve ce code dans la description.' : 'L’IA ne retrouve pas ce code dans la description.' });
+    // Date de fin écrite par le créateur : l'IA pré-remplit le champ s'il est vide. L'admin peut la corriger.
+    if (seen?.expiresOn && !code.expiresOn && isValidDay(seen.expiresOn)) {
+      await db.update(codes).set({ expiresOn: seen.expiresOn, updatedAt: new Date() }).where(eq(codes.id, code.id));
+      reasons.push({ points: 0, label: `L’IA a trouvé une date de fin (${seen.expiresOn}) et l’a ajoutée au code.` });
+    }
   }
 
   const last = ai.calls.at(-1);

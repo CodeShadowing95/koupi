@@ -5,7 +5,7 @@ import { categoriesSheet, codesCsv, creatorsSheet, exportFileName, isExportForma
 
 const code: Code = {
   id: '1', tool: 'Notion', toolSlug: 'notion', creator: 'Ali', creatorSlug: 'ali', code: 'ALI20', discount: '-20 %', status: 'verified',
-  source: 'https://youtu.be/x', sourceTitle: 'Ma vidéo; épisode 2', votes: 4, success: 75, lastTestedAt: '2026-10-20T08:00:00.000Z', paymentTestedAt: null,
+  source: 'https://youtu.be/x', sourceTitle: 'Ma vidéo; épisode 2', votes: 4, success: 75, lastTestedAt: '2026-10-20T08:00:00.000Z', paymentTestedAt: null, expiresOn: null,
   createdAt: '2026-09-01T08:00:00.000Z', archived: true,
 };
 

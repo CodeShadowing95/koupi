@@ -2,6 +2,7 @@ import type Anthropic from '@anthropic-ai/sdk';
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
 import { migrate } from 'drizzle-orm/pglite/migrator';
+import { eq } from 'drizzle-orm';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Db } from '@/db';
 import * as schema from '@/db/schema';
@@ -26,10 +27,10 @@ async function setup() {
 
 const reader = (description: string, online = true): SourceReader => async () => ({ online, title: 'Vidéo', description });
 
-function aiResponse(model: string, codes: string[]): Anthropic.Beta.BetaMessage {
+function aiResponse(model: string, codes: string[], expires = ''): Anthropic.Beta.BetaMessage {
   return {
     id: 'msg', type: 'message', role: 'assistant', model, stop_reason: 'end_turn',
-    content: [{ type: 'text', text: JSON.stringify({ codes: codes.map(code => ({ code, tool: 'NordVPN', discount: '', conditions: '', expires_on: '' })) }) }],
+    content: [{ type: 'text', text: JSON.stringify({ codes: codes.map(code => ({ code, tool: 'NordVPN', discount: '', conditions: '', expires_on: expires })) }) }],
     usage: { input_tokens: 1000, output_tokens: 200 },
   } as unknown as Anthropic.Beta.BetaMessage;
 }
@@ -119,6 +120,19 @@ describe('runVerification', () => {
     const check = await runVerification(ctx.db, ctx.codeId, { readSource: reader('code ANA10'), ai: { config, create } });
     expect(create).not.toHaveBeenCalled();
     expect(check?.reasons.map(r => r.label)).toContain('Plafond du mois atteint : pas de lecture par l’IA.');
+  });
+
+  it('pré-remplit la date de fin trouvée par l’IA, sans écraser celle de l’admin', async () => {
+    const create = vi.fn(async (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => aiResponse(params.model, ['ANA10'], '2026-12-31'));
+    const config = aiConfigFrom({ ANTHROPIC_API_KEY: 'k' });
+    const check = await runVerification(ctx.db, ctx.codeId, { readSource: reader('Code ANA10 jusqu’au 31/12'), ai: { config, create } });
+    expect(check?.reasons.map(r => r.label)).toContain('L’IA a trouvé une date de fin (2026-12-31) et l’a ajoutée au code.');
+    let [row] = await ctx.db.select().from(schema.codes).where(eq(schema.codes.id, ctx.codeId));
+    expect(row.expiresOn).toBe('2026-12-31');
+    await ctx.db.update(schema.codes).set({ expiresOn: '2027-01-15' }).where(eq(schema.codes.id, ctx.codeId));
+    await runVerification(ctx.db, ctx.codeId, { readSource: reader('Code ANA10 jusqu’au 31/12'), ai: { config, create } });
+    [row] = await ctx.db.select().from(schema.codes).where(eq(schema.codes.id, ctx.codeId));
+    expect(row.expiresOn).toBe('2027-01-15');
   });
 
   it('repère un doublon', async () => {

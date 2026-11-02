@@ -586,3 +586,5 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 @media (prefers-reduced-motion:reduce){
   .k-display-ticket,.k-display-front{transition:none}
 }
+/* Date de fin d'un code, quand elle est loin : discrète, sans couleur d'alerte. */
+.k-status-plain{background:transparent;color:inherit;border:1.5px solid currentColor;opacity:.75}

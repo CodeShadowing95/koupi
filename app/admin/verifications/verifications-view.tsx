@@ -20,9 +20,10 @@ const filters: { value: Filter; label: string }[] = [
   { value: 'retest', label: 'Retests' },
 ];
 const verdictClass: Record<Verdict, string> = { clear: 'is-ok', doubt: 'is-warn', reject: 'is-bad', none: 'is-none' };
-const statusLabel: Record<QueueItem['status'], string> = { pending: 'En attente', to_test: 'À tester', verified: 'Vérifié, relu par un retest' };
+const statusLabel: Record<QueueItem['status'], string> = { pending: 'En attente', to_test: 'À tester', verified: 'Vérifié' };
 const isRetest = (item: QueueItem) => item.status === 'verified';
 const matchesFilter = (item: QueueItem, filter: Filter) => filter === 'retest' ? isRetest(item) : !isRetest(item) && (filter === 'all' || verdictOf(item.check) === filter);
+const shortDay = (day: string) => new Date(`${day}T12:00:00Z`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 const dateTime = (iso: string) => new Date(iso).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
 type Decision = 'verify' | 'payment_test' | 'reject';
@@ -204,9 +205,11 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
                       <div className="adm-vf-title"><span className="mono">{item.code}</span><span className={`adm-vf-verdict ${verdictClass[verdict]}`}>{VERDICT_LABELS[verdict]}</span></div>
                       <p>{item.tool} · {item.discount} · par {item.creator} · <span className="adm-cell-muted">{statusLabel[item.status]}</span></p>
                       <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()}>{item.sourceTitle || 'Ouvrir la source'} ↗</a>
+                      {item.expiresOn && !item.expired && <span className="adm-vf-expiry">Valable jusqu’au {shortDay(item.expiresOn)}</span>}
                     </div>
                   </header>
 
+                  {item.expired && item.expiresOn && <p className="adm-vf-ai-warn">La date de fin donnée par le créateur ({shortDay(item.expiresOn)}) est passée. Essaie le code : s’il marche encore, « Valider » le confirme et retire la date passée. Sinon, rejette-le.</p>}
                   {item.check ? (
                     <div className="adm-vf-body">
                       {item.check.evidence && <Evidence excerpt={item.check.evidence} code={item.code} />}

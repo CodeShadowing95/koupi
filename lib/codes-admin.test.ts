@@ -86,6 +86,25 @@ describe('actions de l’admin', () => {
     expect((await db.select().from(schema.codeLogs)).map(log => log.action)).toEqual(['create', 'payment_test', 'reject']);
   });
 
+  it('garde la date de fin, et la retire quand l’admin confirme un code après cette date', async () => {
+    const created = await createCode(db, { ...base, expiresOn: '2020-01-01' });
+    if (!created.ok) throw new Error(created.error);
+    const future = await createCode(db, { ...base, code: 'LATER', expiresOn: '2999-12-31' });
+    if (!future.ok) throw new Error(future.error);
+    await applyCodeAction(db, created.data.id, 'verify');
+    await applyCodeAction(db, future.data.id, 'verify');
+    const rows = await db.select().from(schema.codes);
+    expect(rows.find(row => row.id === created.data.id)?.expiresOn).toBeNull();
+    expect(rows.find(row => row.id === future.data.id)?.expiresOn).toBe('2999-12-31');
+  });
+
+  it('refuse une date de fin impossible', () => {
+    const body = { toolSlug: 'nordvpn', creatorName: 'Ana', code: 'X', discount: '-10 %', sourceUrl: 'https://youtube.com/watch?v=a' };
+    expect(parseCodeInput({ ...body, expiresOn: '2026-02-31' })).toEqual({ ok: false, error: 'La date de fin doit être une date valide.' });
+    expect(parseCodeInput({ ...body, expiresOn: '2026-12-31' })).toMatchObject({ ok: true, data: { expiresOn: '2026-12-31' } });
+    expect(parseCodeInput(body)).toMatchObject({ ok: true, data: { expiresOn: null } });
+  });
+
   it('archive un code sans le supprimer, puis le restaure', async () => {
     const created = await createCode(db, base);
     if (!created.ok) throw new Error(created.error);

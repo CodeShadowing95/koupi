@@ -21,13 +21,13 @@ const statusOptions: { value: CodeStatus; label: string; hint: string }[] = [
   { value: 'rejected', label: 'Rejeté', hint: 'masqué, ne marche pas' },
 ];
 
-type Initial = { toolSlug: string; newToolName: string; newToolCategory: string; newToolWebsite: string; creatorName: string; code: string; discount: string; sourceUrl: string; sourceTitle: string; creatorLink: string; status: CodeStatus; note: string };
+type Initial = { toolSlug: string; newToolName: string; newToolCategory: string; newToolWebsite: string; creatorName: string; code: string; discount: string; sourceUrl: string; sourceTitle: string; creatorLink: string; status: CodeStatus; note: string; expiresOn: string };
 
 function initialValues(target: EditorTarget, tools: ToolOption[], categories: Category[]): Initial {
-  const empty: Initial = { toolSlug: '', newToolName: '', newToolCategory: categories[0]?.slug ?? '', newToolWebsite: '', creatorName: '', code: '', discount: '', sourceUrl: '', sourceTitle: '', creatorLink: '', status: 'to_test', note: '' };
+  const empty: Initial = { toolSlug: '', newToolName: '', newToolCategory: categories[0]?.slug ?? '', newToolWebsite: '', creatorName: '', code: '', discount: '', sourceUrl: '', sourceTitle: '', creatorLink: '', status: 'to_test', note: '', expiresOn: '' };
   if (target.kind === 'edit') {
     const { code } = target;
-    return { ...empty, toolSlug: code.toolSlug, creatorName: code.creator, code: code.code, discount: code.discount, sourceUrl: code.source, sourceTitle: code.sourceTitle, creatorLink: code.creatorLink ?? '', status: code.status, note: code.note ?? '' };
+    return { ...empty, toolSlug: code.toolSlug, creatorName: code.creator, code: code.code, discount: code.discount, sourceUrl: code.source, sourceTitle: code.sourceTitle, creatorLink: code.creatorLink ?? '', status: code.status, note: code.note ?? '', expiresOn: code.expiresOn ?? '' };
   }
   if (target.kind === 'submission') {
     const { submission } = target;
@@ -87,7 +87,7 @@ export function CodeEditor({ target, tools, categories, creators, onClose, onSav
     const body = {
       ...(isNewTool ? { newTool: { name: values.newToolName, categorySlug: values.newToolCategory, website: values.newToolWebsite } } : { toolSlug: values.toolSlug }),
       creatorName: values.creatorName, code: values.code, discount: values.discount, sourceUrl: values.sourceUrl, sourceTitle: values.sourceTitle,
-      creatorLink: values.creatorLink, status: values.status, note: values.note,
+      creatorLink: values.creatorLink, status: values.status, note: values.note, expiresOn: values.expiresOn,
       ...(target?.kind === 'submission' ? { submissionId: target.submission.id } : {}),
     };
     if (target?.kind === 'edit') void send(`/api/admin/codes/${target.code.id}`, 'PATCH', body);
@@ -136,6 +136,7 @@ export function CodeEditor({ target, tools, categories, creators, onClose, onSav
           <div className="field"><label htmlFor="ce-discount">Réduction</label><input id="ce-discount" value={values.discount} onChange={set('discount')} required maxLength={240} placeholder="-20 %, 3 mois offerts…" /></div>
           <div className="field adm-span-2"><label htmlFor="ce-source">Lien de la source</label><input id="ce-source" type="url" value={values.sourceUrl} onChange={set('sourceUrl')} required maxLength={1000} placeholder="https://… (vidéo, post, story)" /><small>Là où le créateur donne le code. C’est la preuve qu’il est public.</small></div>
           <div className="field"><label htmlFor="ce-source-title">Titre de la source</label><input id="ce-source-title" value={values.sourceTitle} onChange={set('sourceTitle')} maxLength={300} /></div>
+          <div className="field"><label htmlFor="ce-expires">Valable jusqu’au (facultatif)</label><input id="ce-expires" type="date" value={values.expiresOn} onChange={set('expiresOn')} /><small>Seulement si le créateur donne une date de fin. Le site l’affiche.</small></div>
           <div className="field"><label htmlFor="ce-link">Lien du créateur (facultatif)</label><input id="ce-link" type="url" value={values.creatorLink} onChange={set('creatorLink')} maxLength={1000} placeholder="https://…" /><small>Son lien d’affiliation, ouvert tel quel.</small></div>
           <div className="field adm-span-2">
             <span className="adm-field-label" id="ce-status-label">Statut</span>

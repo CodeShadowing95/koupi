@@ -6,6 +6,7 @@ import type { ToolOption } from '@/lib/codes-admin';
 import { CodeEditor, type EditorTarget } from '@/components/admin-code-editor';
 import { matchesSearch } from '@/lib/admin-search';
 import { RETEST_DAYS, staleCodes } from '@/lib/admin-stats';
+import { expiryOf } from '@/lib/code-expiry';
 import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { Pagination, usePagination } from '@/components/admin-pagination';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
@@ -158,6 +159,8 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
               { label: 'Lien du créateur', value: selected.creatorLink && <a href={selected.creatorLink} target="_blank" rel="noopener noreferrer">Ouvrir ↗</a> },
               { label: 'Votes', value: selected.votes > 0 ? `${selected.votes} vote${selected.votes > 1 ? 's' : ''} · ${selected.success} % de réussite` : 'Aucun vote' },
               { label: 'Dernier test', value: testedLabel(selected.lastTestedAt) + (stale.has(selected.id) ? ' · à retester' : '') },
+              { label: 'Testé au paiement', value: selected.paymentTestedAt && new Date(selected.paymentTestedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) },
+              { label: 'Valable jusqu’au', value: selected.expiresOn && `${new Date(`${selected.expiresOn}T12:00:00Z`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}${expiryOf(selected.expiresOn).state === 'expired' ? ' · date passée' : ''}` },
               { label: 'Ajouté le', value: new Date(selected.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) },
             ]} />
             {selected.note && <p className="adm-detail-quote">Note : {selected.note}</p>}

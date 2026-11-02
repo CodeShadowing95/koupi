@@ -12,6 +12,7 @@ import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { CreatorsOrbit } from '@/components/site/creators-orbit';
 import { CategoryDisplay } from '@/components/site/category-display';
 import { CodeBadge } from '@/components/site/code-badge';
+import { expiryOf } from '@/lib/code-expiry';
 
 const Arrow = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
@@ -20,7 +21,7 @@ const Arrow = () => (
 export default async function Home() {
   const { categories, codes, tools } = await getCatalog();
   const live = codes.filter(isPublic);
-  const featured = live.filter(code => code.status === 'verified').slice(0, 6);
+  const featured = live.filter(code => code.status === 'verified' && expiryOf(code.expiresOn).state !== 'expired').slice(0, 6);
   const creators = new Set(live.map(code => code.creator));
   const toolOf = (name: string) => tools.find(tool => tool.name === name);
   // Un créateur par entrée, avec son nombre de codes visibles et un exemple de code.

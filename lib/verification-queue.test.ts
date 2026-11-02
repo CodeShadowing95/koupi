@@ -1,6 +1,7 @@
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
 import { migrate } from 'drizzle-orm/pglite/migrator';
+import { eq } from 'drizzle-orm';
 import { describe, expect, it } from 'vitest';
 import type { Db } from '@/db';
 import * as schema from '@/db/schema';
@@ -29,7 +30,7 @@ async function add(db: Db, input: Partial<CodeInput>) {
 }
 
 const item = (id: string, createdAt: string, score: number | null): QueueItem => ({
-  id, code: id, discount: '', status: 'pending', tool: 't', creator: 'c', sourceUrl: '', sourceTitle: '', votesUp: 0, votesDown: 0, createdAt,
+  id, code: id, discount: '', status: 'pending', tool: 't', creator: 'c', sourceUrl: '', sourceTitle: '', votesUp: 0, votesDown: 0, createdAt, expiresOn: null, expired: false,
   check: score === null ? null : { score, reasons: [], evidence: null, model: null, costUsdMicros: 0, createdAt },
 });
 
@@ -99,6 +100,18 @@ describe('verificationQueue', () => {
     const queue = await verificationQueue(db);
     expect(queue.map(entry => entry.id)).toEqual([doubtful]);
     expect(queue[0].status).toBe('verified');
+  });
+
+  it('fait remonter un code vérifié dont la date de fin est passée depuis le dernier test', async () => {
+    const db = await freshDb();
+    const expired = await add(db, { code: 'END1', status: 'verified', expiresOn: '2020-01-01' });
+    await db.update(schema.codes).set({ lastTestedAt: new Date('2019-12-01') }).where(eq(schema.codes.id, expired));
+    const retested = await add(db, { code: 'END2', status: 'verified', expiresOn: '2020-01-01' });
+    await add(db, { code: 'END3', status: 'verified', expiresOn: '2999-01-01' });
+    const queue = await verificationQueue(db);
+    expect(queue.map(entry => entry.id)).toEqual([expired]);
+    expect(queue[0]).toMatchObject({ expired: true, expiresOn: '2020-01-01' });
+    expect(retested).toBeTruthy();
   });
 
   it('rend une file vide sans requête de plus', async () => {

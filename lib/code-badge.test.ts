@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { codeBadge } from './code-badge';
+import { codeBadge, expiryNote } from './code-badge';
 
 const at = '2026-11-02T10:00:00.000Z';
 
@@ -16,5 +16,18 @@ describe('codeBadge', () => {
   });
   it('ignore un vieux test au paiement sur un code à tester', () => {
     expect(codeBadge({ status: 'to_test', lastTestedAt: null, paymentTestedAt: at })).toMatchObject({ tone: 'warn', label: '◷ À tester' });
+  });
+});
+
+describe('date de fin', () => {
+  const now = new Date('2026-11-02T10:00:00Z');
+  it('ne présente plus comme vérifié un code dont la date est passée', () => {
+    expect(codeBadge({ status: 'verified', lastTestedAt: at, paymentTestedAt: at, expiresOn: '2026-11-01' }, { now })).toMatchObject({ tone: 'warn', label: '◷ Peut-être expiré' });
+  });
+  it('donne une ligne neutre, puis un avertissement quand la date approche', () => {
+    expect(expiryNote('2026-12-31', now)).toMatchObject({ tone: 'neutral', label: 'Valable jusqu’au 31 déc. 2026' });
+    expect(expiryNote('2026-11-04', now)).toMatchObject({ tone: 'warn', label: 'Expire dans 2 jours' });
+    expect(expiryNote(null, now)).toBeNull();
+    expect(expiryNote('2026-10-01', now)).toBeNull();
   });
 });

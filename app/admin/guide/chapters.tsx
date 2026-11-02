@@ -232,6 +232,7 @@ function Codes() {
         { term: 'Lien de la source', meaning: 'Obligatoire. La vidéo, l’épisode ou le post où le créateur donne le code.' },
         { term: 'Réduction', meaning: 'Court et concret : « -20 % », « 3 mois offerts », « 50 € offerts ».' },
         { term: 'Lien du créateur', meaning: 'Facultatif. Son lien d’affiliation, ouvert tel quel quand le visiteur clique.' },
+        { term: 'Valable jusqu’au', meaning: 'Facultatif. Seulement si le créateur donne une date de fin (« jusqu’au 31/12 »). Le site l’affiche, et prévient quand elle approche. La plupart des codes n’en ont pas : laisse vide.' },
         { term: 'Note interne', meaning: 'Pour toi et les autres admins. Jamais affichée sur le site.' },
       ]} />
       <p>Pour corriger un code existant, ouvre-le et clique sur <b>Modifier</b> (ou l’icône crayon).</p>
@@ -253,6 +254,7 @@ function Verifications() {
         <Step title="Lire la source">Pour une vidéo YouTube, Koupi récupère sa description par l’API officielle. Les autres plateformes viendront ensuite : en attendant, ouvre la source toi-même.</Step>
         <Step title="Chercher le code">Le code doit figurer <b>mot pour mot</b> dans la description. Si oui, l’extrait apparaît avec le code surligné : c’est ta preuve.</Step>
         <Step title="Faire les contrôles">Source en ligne, doublon, signes de spam, votes des visiteurs.</Step>
+        <Step title="Repérer la date de fin">Si la description donne une date (« jusqu’au 31/12 ») et que le code n’en a pas, l’IA remplit le champ <b>Valable jusqu’au</b>. Tu peux la corriger dans Codes.</Step>
         <Step title="Calculer le score">Chaque contrôle ajoute ou retire des points. Les raisons sont listées sous l’extrait, avec leurs points.</Step>
       </Steps>
       <p>Le bouton <b>Analyser</b> lance l’analyse d’un code ; <b>Analyser les codes non analysés</b> les fait tous, l’un après l’autre.</p>
@@ -290,6 +292,7 @@ function Verifications() {
         { term: <Fake tone="pri">✓ Valider</Fake>, meaning: 'Le code est toujours bon : la date du test est remise à aujourd’hui et il quitte la liste.' },
         { term: <Fake tone="no">✗ Rejeter</Fake>, meaning: 'Le code est mort : il quitte le site.' },
       ]} />
+      <p>Un code vérifié dont la <b>date de fin est passée</b> arrive aussi dans cet onglet, et le site ne le présente plus comme vérifié (« Peut-être expiré »). S’il marche encore, « Valider » le confirme et retire la date passée.</p>
       <Callout tone="tip">Le bouton <b>Lancer les retests maintenant</b> fait le même travail tout de suite, sans attendre la nuit.</Callout>
     </Section>
     <Section id="ia" title="L’IA, son coût et ses limites">

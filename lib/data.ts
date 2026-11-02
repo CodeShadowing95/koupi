@@ -10,6 +10,8 @@ export type Code = {
   lastTestedAt: string | null;
   /** Date ISO du dernier test au paiement (la réduction s'applique), null sinon. */
   paymentTestedAt: string | null;
+  /** Date de fin AAAA-MM-JJ écrite par le créateur, null s'il n'y en a pas. */
+  expiresOn: string | null;
   createdAt: string;
   /** Seulement dans l'admin : code retiré du site et des statistiques. */
   archived?: boolean;
