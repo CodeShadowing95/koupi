@@ -4,16 +4,38 @@ import type { Code } from './data';
 import { flaggedCodes, RETEST_DAYS, staleCodes } from './admin-stats';
 
 export type NotificationTone = 'bad' | 'warn' | 'info';
+/** Onglet du panneau : propositions de visiteurs, codes signalés, rappels de tests. */
+export type NotificationKind = 'proposal' | 'flag' | 'reminder';
 export type AdminNotification = {
   /** Identifiant stable : une notification vue ne revient comme « nouvelle » que si son contenu change (ex. le nombre de codes). */
   id: string;
   tone: NotificationTone;
+  kind: NotificationKind;
+  /** Début du texte, en gras (le code, le nombre de codes), suivi de text. */
+  subject: string;
+  text: string;
+  /** Texte complet, pour les lecteurs d'écran et les exports. */
   title: string;
   detail: string;
   href: string;
   /** Date ISO de l'événement, null pour un rappel sans date (codes à retester…). */
   at: string | null;
+  /** Proposition concernée : permet de la refuser depuis la cloche. */
+  proposalId?: string;
 };
+
+export const NOTIFICATION_TABS = ['all', 'proposal', 'flag', 'reminder'] as const;
+export type NotificationTab = typeof NOTIFICATION_TABS[number];
+export const NOTIFICATION_TAB_LABELS: Record<NotificationTab, string> = { all: 'Tout', proposal: 'Propositions', flag: 'Signalés', reminder: 'Rappels' };
+
+/** Nombre de notifications par onglet. */
+export function countByTab(items: AdminNotification[]): Record<NotificationTab, number> {
+  const counts: Record<NotificationTab, number> = { all: items.length, proposal: 0, flag: 0, reminder: 0 };
+  for (const item of items) counts[item.kind] += 1;
+  return counts;
+}
+
+const make = (item: Omit<AdminNotification, 'title'>): AdminNotification => ({ ...item, title: `${item.subject} ${item.text}` });
 
 export const NOTIFICATIONS_SEEN_KEY = 'koupi-admin-notifications-seen';
 const MAX_PROPOSALS = 10;
@@ -30,24 +52,24 @@ export function buildNotifications(input: {
     .map(item => ({ ...item, at: new Date(item.createdAt).toISOString() }))
     .sort((a, b) => b.at.localeCompare(a.at))
     .slice(0, MAX_PROPOSALS)
-    .map(item => ({
-      id: `proposal-${item.id}`, tone: 'info', title: `Nouvelle proposition : ${item.code}`,
-      detail: `${item.toolName} · par ${item.creatorName}`, href: `/admin/propositions?q=${q(item.code)}`, at: item.at,
+    .map(item => make({
+      id: `proposal-${item.id}`, tone: 'info', kind: 'proposal', subject: item.code, text: `proposé pour ${item.toolName}`,
+      detail: `Crédité à ${item.creatorName}`, href: `/admin/propositions?q=${q(item.code)}`, at: item.at, proposalId: item.id,
     }));
-  for (const code of flaggedCodes(input.codes).slice(0, MAX_FLAGS)) list.push({
-    id: `flag-${code.id}-${code.votes}`, tone: 'bad', title: `${code.code} signalé par les visiteurs`,
+  for (const code of flaggedCodes(input.codes).slice(0, MAX_FLAGS)) list.push(make({
+    id: `flag-${code.id}-${code.votes}`, tone: 'bad', kind: 'flag', subject: code.code, text: 'signalé par les visiteurs',
     detail: `${code.tool} · ${plural(code.votes, 'vote')}, ${code.success} % de réussite`, href: `/admin/codes?q=${q(code.code)}`, at: null,
-  });
+  }));
   const stale = staleCodes(input.codes, now).length;
-  if (stale) list.push({
-    id: `retest-${stale}`, tone: 'warn', title: `${plural(stale, 'code')} à retester`,
+  if (stale) list.push(make({
+    id: `retest-${stale}`, tone: 'warn', kind: 'reminder', subject: plural(stale, 'code'), text: 'à retester',
     detail: `Vérifiés il y a plus de ${RETEST_DAYS} jours ou jamais datés`, href: '/admin/codes?status=retest', at: null,
-  });
+  }));
   const toTest = input.codes.filter(code => !code.archived && code.status === 'to_test').length;
-  if (toTest) list.push({
-    id: `to-test-${toTest}`, tone: 'warn', title: `${plural(toTest, 'code')} à tester`,
+  if (toTest) list.push(make({
+    id: `to-test-${toTest}`, tone: 'warn', kind: 'reminder', subject: plural(toTest, 'code'), text: 'à tester',
     detail: 'Visibles sur le site, pas encore essayés', href: '/admin/codes?status=to_test', at: null,
-  });
+  }));
   return list;
 }
 
@@ -55,6 +77,12 @@ export function buildNotifications(input: {
 export function unseen(items: AdminNotification[], seen: string[]): AdminNotification[] {
   const known = new Set(seen);
   return items.filter(item => !known.has(item.id));
+}
+
+/** Ids à garder comme lus : ceux déjà lus qui existent encore, plus les nouveaux (la liste ne grossit pas sans fin). */
+export function markRead(items: AdminNotification[], seen: string[], ids: string[]): string[] {
+  const current = new Set(items.map(item => item.id));
+  return [...new Set([...seen.filter(id => current.has(id)), ...ids])];
 }
 
 /** Lit la liste des notifications vues (tolère une valeur absente ou abîmée). */

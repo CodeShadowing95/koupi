@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Code } from './data';
-import { buildNotifications, parseSeen, timeAgo, unseen } from './admin-notifications';
+import { buildNotifications, countByTab, markRead, parseSeen, timeAgo, unseen } from './admin-notifications';
 
 const now = new Date('2026-11-02T12:00:00.000Z');
 const code = (over: Partial<Code>): Code => ({
@@ -20,8 +20,9 @@ describe('buildNotifications', () => {
       ],
     }, now);
     expect(items.map(item => item.id)).toEqual(['proposal-2', 'proposal-1', 'flag-f-4', 'retest-1', 'to-test-2']);
-    expect(items[0]).toMatchObject({ title: 'Nouvelle proposition : P2', detail: 'Canva · par Bea', href: '/admin/propositions?q=P2', at: '2026-11-02T09:00:00.000Z' });
-    expect(items[2]).toMatchObject({ tone: 'bad', title: 'DEAD signalé par les visiteurs', detail: 'Notion · 4 votes, 25 % de réussite', at: null });
+    expect(items[0]).toMatchObject({ kind: 'proposal', subject: 'P2', text: 'proposé pour Canva', detail: 'Crédité à Bea', href: '/admin/propositions?q=P2', at: '2026-11-02T09:00:00.000Z', proposalId: '2' });
+    expect(items[2]).toMatchObject({ tone: 'bad', kind: 'flag', title: 'DEAD signalé par les visiteurs', detail: 'Notion · 4 votes, 25 % de réussite', at: null });
+    expect(countByTab(items)).toEqual({ all: 5, proposal: 2, flag: 1, reminder: 2 });
     expect(items[3].title).toBe('1 code à retester');
     expect(items[4]).toMatchObject({ title: '2 codes à tester', href: '/admin/codes?status=to_test' });
   });
@@ -39,6 +40,10 @@ describe('seen notifications', () => {
     const items = buildNotifications({ proposals: [proposal('1', '2026-11-02T09:00:00.000Z')], codes: [code({ status: 'to_test' })] }, now);
     expect(unseen(items, ['proposal-1']).map(item => item.id)).toEqual(['to-test-1']);
     expect(unseen(items, ['proposal-1', 'to-test-3'])).toHaveLength(1);
+  });
+  it('marks items read and forgets ids that no longer exist', () => {
+    const items = buildNotifications({ proposals: [proposal('1', '2026-11-02T09:00:00.000Z')], codes: [code({ status: 'to_test' })] }, now);
+    expect(markRead(items, ['old', 'to-test-1'], ['proposal-1'])).toEqual(['to-test-1', 'proposal-1']);
   });
   it('reads stored ids safely', () => {
     expect(parseSeen(null)).toEqual([]);

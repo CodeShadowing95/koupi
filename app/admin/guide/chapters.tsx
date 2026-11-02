@@ -68,14 +68,14 @@ function SeReperer() {
       <Callout tone="tip">C’est le moyen le plus rapide de retrouver un code signalé par un visiteur : tape le code, tu tombes directement dessus.</Callout>
     </Section>
     <Section id="notifications" title="La cloche de notifications">
-      <p>En haut à droite, la <b>cloche</b> rassemble ce qui demande ton attention, sans que tu aies à faire le tour des pages. Une pastille orange indique combien de notifications sont nouvelles depuis la dernière fois que tu l’as ouverte.</p>
+      <p>En haut à droite, la <b>cloche</b> rassemble ce qui demande ton attention, sans que tu aies à faire le tour des pages. Une pastille orange indique combien de notifications tu n’as pas encore lues.</p>
       <Legend rows={[
-        { term: 'Point bleu', meaning: <>Une <b>nouvelle proposition</b> d’un visiteur, avec le moment où elle est arrivée.</> },
-        { term: 'Point rouge', meaning: <>Un <b>code signalé</b> : les visiteurs votent qu’il ne marche pas. À tester en priorité.</> },
-        { term: 'Point orange', meaning: <>Un rappel : des codes <b>à tester</b> ou <b>à retester</b>.</> },
+        { term: 'Propositions', meaning: <>Chaque <b>nouvelle proposition</b> d’un visiteur, avec le moment où elle est arrivée. <b>Refuser</b> la rejette tout de suite ; <b>Examiner</b> ouvre la file pour la valider.</> },
+        { term: 'Signalés', meaning: <>Les <b>codes signalés</b> : les visiteurs votent qu’ils ne marchent pas (marqués d’un « ! » rouge). À tester en priorité.</> },
+        { term: 'Rappels', meaning: <>Les codes <b>à tester</b> et <b>à retester</b>.</> },
       ]} />
-      <p>Clique sur une notification pour aller droit à l’élément concerné. Ouvrir la cloche marque tout comme vu : la pastille disparaît, et une notification ne revient « nouvelle » que si quelque chose change (une autre proposition, un nombre de codes différent).</p>
-      <Callout tone="tip">La cloche te dit quoi faire maintenant ; l’accueil t’explique pourquoi et dans quel ordre. Le lien en bas de la cloche y mène.</Callout>
+      <p>Les onglets du haut filtrent par type, avec leur nombre. Un point bleu marque ce qui n’est pas lu : cliquer sur une notification t’amène à l’élément et la marque comme lue, et <b>Tout marquer comme lu</b> les marque toutes. Un rappel ne redevient non lu que si quelque chose change (un nombre de codes différent, par exemple).</p>
+      <Callout tone="tip">La cloche te dit quoi faire maintenant ; l’accueil t’explique pourquoi et dans quel ordre.</Callout>
     </Section>
     <Section id="listes" title="Les listes : onglets, recherche, tri">
       <p>Toutes les pages de liste (codes, propositions, outils…) marchent de la même façon. Une fois que tu en connais une, tu les connais toutes.</p>
