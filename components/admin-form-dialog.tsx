@@ -40,7 +40,7 @@ export function FormDialog({ open, title, intro, submitLabel = 'Enregistrer', on
   }
 
   return (
-    <dialog ref={dialog} className="adm-dialog adm-dialog-sm" aria-label={title} onClose={() => afterDialogClose(() => { if (!dialog.current?.open) onClose(); })}>
+    <dialog ref={dialog} className="adm-dialog adm-dialog-sm adm-drawer" aria-label={title} onClose={() => afterDialogClose(() => { if (!dialog.current?.open) onClose(); })}>
       {open && (
         <form className="adm-form" onSubmit={submit}>
           <div className="adm-dialog-head">
