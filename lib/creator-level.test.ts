@@ -4,7 +4,7 @@ import { migrate } from 'drizzle-orm/pglite/migrator';
 import { describe, expect, it } from 'vitest';
 import type { Db } from '@/db';
 import * as schema from '@/db/schema';
-import { accountLevelOf, creatorLevelFor, creatorLevelFromAccounts } from './creator-level';
+import { accountLevelOf, bestLevel, creatorLevelFor, creatorLevelFromAccounts } from './creator-level';
 
 const base = { claimStatus: 'none' as const, platformVerified: false, adminCheckedAt: null, subscribers: null };
 const checkedAt = new Date('2026-11-02T10:00:00Z');
@@ -30,6 +30,10 @@ describe('niveau d’un créateur', () => {
   it('garde le meilleur compte', () => {
     expect(creatorLevelFromAccounts([])).toBe('spotted');
     expect(creatorLevelFromAccounts([base, { ...base, platformVerified: true }])).toBe('checked');
+  });
+  it('bestLevel prend le plus haut niveau', () => {
+    expect(bestLevel([])).toBe('spotted');
+    expect(bestLevel(['checked', 'verified', 'spotted'])).toBe('verified');
   });
   it('ne mélange pas les comptes : le seuil vaut pour le compte contrôlé', () => {
     expect(creatorLevelFromAccounts([{ ...base, adminCheckedAt: checkedAt, subscribers: 200 }, { ...base, subscribers: 90_000 }])).toBe('spotted');

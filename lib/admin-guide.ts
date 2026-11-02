@@ -66,9 +66,9 @@ export const guideChapters: GuideChapter[] = [
     practice: { href: '/admin/outils', label: 'Ouvrir les outils' },
   },
   {
-    slug: 'createurs', part: 'catalog', title: 'Suivre les créateurs', minutes: 3,
-    summary: 'Qui donne les codes, ce qu’ils recommandent et comment garder des noms propres.',
-    goals: ['Lire la fiche d’un créateur', 'Éviter les doublons de noms', 'Repérer les créateurs à suivre'],
+    slug: 'createurs', part: 'catalog', title: 'Suivre les créateurs', minutes: 5,
+    summary: 'Qui donne les codes, leurs comptes, leur niveau de confiance et comment garder des noms propres.',
+    goals: ['Lire la fiche d’un créateur', 'Relier et contrôler ses comptes', 'Comprendre les trois niveaux', 'Éviter les doublons de noms'],
     practice: { href: '/admin/createurs', label: 'Ouvrir les créateurs' },
   },
   {

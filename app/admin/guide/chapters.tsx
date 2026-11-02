@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { Icon, StatusDot } from '@/components/admin-card';
 import { Callout, Demo, Key, Legend, Section, Step, Steps } from '@/components/admin-guide';
 import { FLAG_MAX_SUCCESS, FLAG_MIN_VOTES, RETEST_DAYS, TARGETS } from '@/lib/admin-stats';
-import { CLEAR_SCORE, REJECT_BELOW } from '@/lib/verification';
+import { CLEAR_SCORE, CREATOR_LEVEL_LABELS, MIN_SUBSCRIBERS, REJECT_BELOW } from '@/lib/verification';
 
 /** Faux bouton : même apparence que dans l'admin, mais rien ne se passe au clic. */
 function Fake({ tone, children }: { tone?: 'pri' | 'ok' | 'no' | 'danger'; children: ReactNode }) {
@@ -253,7 +253,7 @@ function Verifications() {
       <Steps>
         <Step title="Lire la source">Pour une vidéo YouTube, Koupi récupère sa description par l’API officielle. Les autres plateformes viendront ensuite : en attendant, ouvre la source toi-même.</Step>
         <Step title="Chercher le code">Le code doit figurer <b>mot pour mot</b> dans la description. Si oui, l’extrait apparaît avec le code surligné : c’est ta preuve.</Step>
-        <Step title="Faire les contrôles">Source en ligne, doublon, signes de spam, votes des visiteurs.</Step>
+        <Step title="Faire les contrôles">Source en ligne, doublon, signes de spam, votes des visiteurs, et <b>niveau du créateur</b> : +15 s’il est « Contrôlé par Koupi », +20 s’il est vérifié. Le niveau se règle dans <Link href="/admin/createurs">Créateurs</Link>.</Step>
         <Step title="Repérer la date de fin">Si la description donne une date (« jusqu’au 31/12 ») et que le code n’en a pas, l’IA remplit le champ <b>Valable jusqu’au</b>. Tu peux la corriger dans Codes.</Step>
         <Step title="Calculer le score">Chaque contrôle ajoute ou retire des points. Les raisons sont listées sous l’extrait, avec leurs points.</Step>
       </Steps>
@@ -348,8 +348,26 @@ function Createurs() {
       ]} />
     </Section>
     <Section id="fiche" title="Lire la fiche d’un créateur">
-      <p>Clique sur un créateur : le panneau montre son nombre de codes, les <b>outils qu’il recommande</b> et le lien vers sa page publique. <b>Voir ses codes</b> ouvre la liste des codes filtrée sur lui.</p>
+      <p>Clique sur un créateur : le panneau montre son niveau, son nombre de codes, ses <b>comptes sur les réseaux</b>, les <b>outils qu’il recommande</b> et le lien vers sa page publique. <b>Voir ses codes</b> ouvre la liste des codes filtrée sur lui.</p>
       <Callout tone="tip">Un créateur qui recommande déjà trois outils en a souvent d’autres. Regarde ses dernières vidéos : c’est la façon la plus rapide de trouver de nouveaux codes.</Callout>
+    </Section>
+    <Section id="niveaux" title="Les trois niveaux d’un créateur">
+      <p>Le niveau dit à quel point Koupi est sûr que le créateur est bien celui qu’il prétend être. Il compte dans le score des <Link href="/admin/verifications">Vérifications</Link>.</p>
+      <Legend rows={[
+        { term: <StatusDot tone="muted">{CREATOR_LEVEL_LABELS.spotted}</StatusDot>, meaning: 'Koupi connaît son nom, mais personne n’a encore contrôlé ses comptes. C’est le niveau de départ.' },
+        { term: <StatusDot tone="ok">{CREATOR_LEVEL_LABELS.checked}</StatusDot>, meaning: `Tu as contrôlé un de ses comptes et il a au moins ${MIN_SUBSCRIBERS} abonnés, ou ce compte a le badge certifié du réseau.` },
+        { term: <StatusDot tone="info">{CREATOR_LEVEL_LABELS.verified}</StatusDot>, meaning: 'Le créateur a prouvé lui-même que le compte est à lui. Ce sera possible avec l’espace créateur, plus tard.' },
+      ]} />
+      <p>Le filtre <b>À contrôler</b> liste les créateurs déjà sur le site mais encore repérés : commence par eux.</p>
+    </Section>
+    <Section id="comptes" title="Relier et contrôler un compte">
+      <Steps>
+        <Step title="Relie sa chaîne">Dans le panneau du créateur, <b>Relier un compte</b>, choisis YouTube et colle le lien de la chaîne (youtube.com/@pseudo). Koupi lit son identifiant, son nom et ses abonnés. Pour TikTok, Instagram et les autres, recopie le pseudo, le lien et les abonnés affichés sur le profil.</Step>
+        <Step title="Contrôle-le">Ouvre le compte : il est actif, il publie sous ce nom, ce n’est pas une copie. Coche alors <b>J’ai contrôlé ce compte</b>.</Step>
+        <Step title="Coche le badge s’il y en a un">Si la chaîne affiche la coche grise de compte certifié, coche <b>Badge certifié du réseau</b>. Ce badge suffit pour passer « Contrôlé par Koupi ».</Step>
+      </Steps>
+      <p><b>Actualiser</b> relit les abonnés d’une chaîne YouTube (1 unité du quota YouTube, sur 10 000 par jour). <b>Retirer</b> enlève le compte, pas le créateur ni ses codes.</p>
+      <Callout tone="warn">Un même compte ne peut être relié qu’à un seul créateur. Si Koupi refuse, il te dit à qui il est déjà relié : c’est souvent un doublon de nom à corriger.</Callout>
     </Section>
     <Section id="noms" title="Garder des noms propres">
       <p>Les majuscules ne comptent pas, mais « Le Grand JD » et « LeGrandJD » font deux créateurs différents, avec deux pages à moitié vides. Utilise toujours le nom exact de la chaîne et choisis-le dans la liste proposée quand tu tapes.</p>
