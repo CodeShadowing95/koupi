@@ -468,7 +468,7 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-journey{position:relative;height:100svh;overflow:hidden}
 .k-journey-track{position:relative;display:flex;height:100%;width:max-content}
 .k-journey-svg{position:absolute;left:80vw;top:50%;width:calc(100% - 120vw);height:220px;translate:0 -50%;overflow:visible;pointer-events:none}
-.k-journey-line{fill:none;stroke:var(--coral);stroke-width:4;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.k-journey-line{fill:none;stroke:var(--coral);stroke-width:3.5;stroke-linecap:round}
 .k-journey-step{position:relative;flex:none;width:100vw;height:100%;display:flex;align-items:center;justify-content:center;padding:100px 8vw 60px;gap:4vw}
 .k-journey-step-0{width:80vw}
 .k-journey-copy{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-start;gap:20px;max-width:560px}
