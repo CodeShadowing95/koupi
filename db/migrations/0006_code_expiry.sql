@@ -1,0 +1,1 @@
+ALTER TABLE "codes" ADD COLUMN "expires_on" date;

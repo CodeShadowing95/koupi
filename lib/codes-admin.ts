@@ -4,6 +4,7 @@ import { and, eq, isNull, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { categories, codeLogs, codes, creators, moderationLogs, submissions, tools, CODE_STATUSES, type CodeRow } from '@/db/schema';
 import { slugify } from './slug';
+import { isValidDay, todayInParis } from './code-expiry';
 
 export type CodeStatus = typeof CODE_STATUSES[number];
 export type NewTool = { name: string; categorySlug: string; website: string };
@@ -19,6 +20,8 @@ export type CodeInput = {
   creatorLink: string | null;
   status: CodeStatus;
   note: string | null;
+  /** Date de fin AAAA-MM-JJ, null si le code n'en a pas. */
+  expiresOn?: string | null;
 };
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -47,9 +50,11 @@ export function parseCodeInput(body: Record<string, unknown>): Parsed<CodeInput>
   if (!discount) return { ok: false, error: 'Indique la réduction.' };
   if (!validUrl(sourceUrl)) return { ok: false, error: 'Le lien source doit être une adresse web valide.' };
   if (creatorLink && !validUrl(creatorLink)) return { ok: false, error: 'Le lien du créateur doit être une adresse web valide.' };
+  const expiresOn = text(body.expiresOn, 10);
+  if (expiresOn && !isValidDay(expiresOn)) return { ok: false, error: 'La date de fin doit être une date valide.' };
   const status = body.status ?? 'to_test';
   if (!isStatus(status)) return { ok: false, error: 'Statut invalide.' };
-  return { ok: true, data: { ...(newTool ? { newTool } : { toolSlug }), creatorName, code, discount, sourceUrl, sourceTitle, creatorLink: creatorLink || null, status, note: text(body.note, 1000) || null } };
+  return { ok: true, data: { ...(newTool ? { newTool } : { toolSlug }), creatorName, code, discount, sourceUrl, sourceTitle, creatorLink: creatorLink || null, status, note: text(body.note, 1000) || null, expiresOn: expiresOn || null } };
 }
 
 async function resolveTool(db: Db, input: Pick<CodeInput, 'toolSlug' | 'newTool'>): Promise<Parsed<string>> {
@@ -94,7 +99,7 @@ export async function createCode(db: Db, input: CodeInput, options: { submission
   const creatorId = await resolveCreator(db, input.creatorName);
   const [created] = await db.insert(codes).values({
     toolId: tool.data, creatorId, code: input.code, discount: input.discount, sourceUrl: input.sourceUrl, sourceTitle: input.sourceTitle,
-    creatorLink: input.creatorLink, status: input.status, note: input.note, submissionId: options.submissionId ?? null,
+    creatorLink: input.creatorLink, status: input.status, note: input.note, submissionId: options.submissionId ?? null, expiresOn: input.expiresOn ?? null,
     lastTestedAt: testedAt(input.status, null, null),
   }).returning({ id: codes.id });
   await db.insert(codeLogs).values({ codeId: created.id, action: 'create', nextStatus: input.status });
@@ -123,6 +128,7 @@ export async function updateCode(db: Db, id: string, input: CodeInput): Promise<
     toolId: tool.data, creatorId, code: input.code, discount: input.discount, sourceUrl: input.sourceUrl, sourceTitle: input.sourceTitle,
     creatorLink: input.creatorLink, status: input.status, note: input.note, updatedAt: new Date(),
     lastTestedAt: testedAt(input.status, current.status, current.lastTestedAt),
+    ...(input.expiresOn !== undefined ? { expiresOn: input.expiresOn } : {}),
   }).where(eq(codes.id, id));
   await db.insert(codeLogs).values({ codeId: id, action: 'edit', previousStatus: current.status, nextStatus: input.status });
   return { ok: true, data: { id } };
@@ -157,6 +163,8 @@ export async function applyCodeAction(db: Db, id: string, action: CodeQuickActio
     status, lastTestedAt, updatedAt: now,
     // Un code rejeté perd son test au paiement : s'il revient, il devra être retesté pour le retrouver.
     ...(action === 'payment_test' ? { paymentTestedAt: now } : action === 'reject' ? { paymentTestedAt: null } : {}),
+    // L'admin confirme qu'un code marche après sa date de fin : cette date était fausse, on la retire.
+    ...((action === 'verify' || action === 'payment_test') && current.expiresOn && current.expiresOn < todayInParis(now) ? { expiresOn: null } : {}),
   }).where(eq(codes.id, id));
   await db.insert(codeLogs).values({ codeId: id, action, previousStatus: current.status, nextStatus: status, note });
   return { ok: true, data: { status, archived: Boolean(current.archivedAt) } };

@@ -8,6 +8,7 @@ import { ToolSeal } from '@/components/site/tool-logo';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { VoteButtons } from '@/components/site/vote-buttons';
 import { CodeBadge } from '@/components/site/code-badge';
+import { expiryOf } from '@/lib/code-expiry';
 
 function votesLabel(code: Code) {
   return code.votes < 3 ? 'Pas encore assez de votes pour un taux de réussite.' : `Marche pour ${code.success} % des ${code.votes} personnes qui ont voté.`;
@@ -25,7 +26,9 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
   const tool = tools.find(item => item.slug === slug);
   if (!tool) notFound();
   const active = codes.filter(code => code.toolSlug === tool.slug && isPublic(code));
-  const sorted = [...active].sort((a, b) => (a.status === 'verified' ? 0 : 1) - (b.status === 'verified' ? 0 : 1) || b.success - a.success);
+  // Un code vérifié dont la date de fin est passée ne passe plus devant : on ne sait plus s'il marche.
+  const trusted = (code: Code) => code.status === 'verified' && expiryOf(code.expiresOn).state !== 'expired';
+  const sorted = [...active].sort((a, b) => (trusted(a) ? 0 : 1) - (trusted(b) ? 0 : 1) || b.success - a.success);
   const [best, ...others] = sorted;
 
   return (
@@ -44,7 +47,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                 <span className="k-eyebrow">Code promo {tool.name}</span>
               </div>
               {best ? (
-                <h1>de {best.creator}<br />{best.status === 'verified' ? <em>marche.</em> : <em className="is-warn">est à tester.</em>}</h1>
+                <h1>de {best.creator}<br />{trusted(best) ? <em>marche.</em> : <em className="is-warn">est à tester.</em>}</h1>
               ) : (
                 <h1>Pas encore de code<br />pour {tool.name}.</h1>
               )}

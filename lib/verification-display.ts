@@ -24,6 +24,10 @@ export type QueueItem = {
   votesUp: number;
   votesDown: number;
   createdAt: string;
+  /** Date de fin AAAA-MM-JJ, null s'il n'y en a pas. */
+  expiresOn: string | null;
+  /** Date de fin passée depuis le dernier test. */
+  expired: boolean;
   check: QueueCheck | null;
 };
 
