@@ -199,7 +199,7 @@ export function MagicHome({ codes, best, tools, creators, spotlight, categories 
           scrollTrigger: { trigger: '.m-journey', start: 'top top', end: () => `+=${distance()}`, pin: true, scrub: 1, invalidateOnRefresh: true },
         });
         // La ligne part de l'étape 1 et sa pointe avance devant le lecteur jusqu'à la fin de l'étape 3.
-        gsap.fromTo('.m-journey-line', { drawSVG: '0%' }, { drawSVG: '100%', ease: 'none', scrollTrigger: { trigger: '.m-journey-svg', containerAnimation: slide, start: 'left 75%', end: 'right right', scrub: true } });
+        gsap.fromTo('.m-journey-line', { drawSVG: '0%' }, { drawSVG: '100%', ease: 'none', scrollTrigger: { trigger: '.m-journey-svg', containerAnimation: slide, start: 'left 60%', end: 'right 60%', scrub: true } });
         gsap.utils.toArray<HTMLElement>('.m-step').forEach(step => {
           gsap.from(step.querySelectorAll('.m-step-num, .m-step-copy > *'), {
             y: 80, autoAlpha: 0, rotation: 4, stagger: 0.08, duration: 0.9, ease: 'back.out(1.6)',
