@@ -17,9 +17,11 @@ export default function Transparency() {
           <h2>Pourquoi on ne remplace jamais leur code</h2>
           <p>Le créateur touche sa commission : c&apos;est lui qui a fait le travail de recommandation. On affiche son code, sa source et son lien, sans ajouter de suivi caché.</p>
           <h2>Comment on vérifie</h2>
-          <p>Chaque code vient d&apos;une vidéo ou d&apos;un post public. Il est testé à la main avant publication. La date est affichée, puis les votes de la communauté indiquent s&apos;il fonctionne encore.</p>
+          <p>Chaque code vient d&apos;une vidéo, d&apos;un épisode ou d&apos;un post public. Avant de le publier, on vérifie qu&apos;il y figure bien, donné par le créateur. Quand on a pu l&apos;essayer jusqu&apos;à la page de paiement, on le dit aussi. La date est affichée, puis les votes de la communauté indiquent s&apos;il fonctionne encore.</p>
+          <p>Un outil d&apos;IA nous aide à lire les descriptions des vidéos pour y repérer les codes. Il ne reçoit que ces textes publics, jamais tes données, et la décision de publier reste humaine.</p>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <span className="k-status k-status-ok is-dark">Vérifié : testé par nous</span>
+            <span className="k-status k-status-ok is-dark">Testé au paiement : la réduction s&apos;appliquait</span>
+            <span className="k-status k-status-ok is-dark">Source vérifiée : le code vient bien du créateur</span>
             <span className="k-status k-status-warn is-dark">À tester : signalé ou pas encore testé</span>
             <span className="k-status k-status-bad is-dark">Expiré : ne marche plus</span>
           </div>

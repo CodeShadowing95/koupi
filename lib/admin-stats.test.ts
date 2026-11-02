@@ -4,7 +4,7 @@ import { coverageByCategory, flaggedCodes, overview, reliabilityBuckets, staleCo
 
 const code = (over: Partial<Code>): Code => ({
   id: over.code ?? 'X', tool: 'Abby', toolSlug: 'abby', creator: 'Créa', creatorSlug: 'crea', code: 'X', discount: '-10 %', status: 'to_test',
-  source: 'https://youtube.com/watch?v=x', sourceTitle: 'Vidéo', votes: 0, success: 0, lastTestedAt: null, createdAt: '2026-11-01T00:00:00.000Z', ...over,
+  source: 'https://youtube.com/watch?v=x', sourceTitle: 'Vidéo', votes: 0, success: 0, lastTestedAt: null, paymentTestedAt: null, createdAt: '2026-11-01T00:00:00.000Z', ...over,
 });
 
 const codes: Code[] = [
