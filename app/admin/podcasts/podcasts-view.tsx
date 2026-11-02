@@ -13,7 +13,7 @@ import type { PodcastReadReport } from '@/lib/podcast-read';
 const dayFormat = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Paris' });
 const day = (iso: string) => dayFormat.format(new Date(iso));
 
-export function PodcastsView({ podcasts, starters }: { podcasts: AdminPodcast[]; starters: string[] }) {
+export function PodcastsView({ podcasts, images, starters }: { podcasts: AdminPodcast[]; images: Record<string, string>; starters: string[] }) {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<PodcastFeed[] | null>(null);
@@ -138,7 +138,12 @@ export function PodcastsView({ podcasts, starters }: { podcasts: AdminPodcast[];
               <tbody>
                 {podcasts.map(podcast => (
                   <tr key={podcast.id}>
-                    <td className="adm-cell-wrap"><b>{podcast.title}</b><br /><small className="muted">Suivi depuis le {day(podcast.createdAt)}</small></td>
+                    <td className="adm-cell-wrap">
+                      <div className="adm-pod-cell">
+                        {images[podcast.feedId] ? <img src={images[podcast.feedId]} alt="" width={40} height={40} loading="lazy" /> : <span className="adm-pod-noimg" aria-hidden="true" />}
+                        <div><b>{podcast.title}</b><br /><small className="muted">Suivi depuis le {day(podcast.createdAt)}</small></div>
+                      </div>
+                    </td>
                     <td>{podcast.creatorName ? <Link href={`/admin/createurs?q=${encodeURIComponent(podcast.creatorName)}`}>{podcast.creatorName}</Link> : '—'}</td>
                     <td><StatusDot tone={podcast.active ? 'ok' : 'muted'}>{podcast.active ? 'Lu chaque nuit' : 'En pause'}</StatusDot></td>
                     <td className="adm-cell-muted">{podcast.lastFetchedAt ? day(podcast.lastFetchedAt) : 'Pas encore lu'}</td>

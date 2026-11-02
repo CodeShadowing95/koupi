@@ -17,6 +17,7 @@ function directory(episodes: Record<number, PodcastEpisode[]>): PodcastDirectory
   return {
     search: vi.fn(),
     podcast: vi.fn(),
+    podcasts: vi.fn(),
     episodes: vi.fn(async (id: number) => { if (!episodes[id]) throw new Error('503'); return episodes[id]; }),
   };
 }

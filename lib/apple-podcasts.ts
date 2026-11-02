@@ -12,6 +12,8 @@ export type PodcastEpisode = { id: number; title: string; link: string; descript
 export type PodcastDirectory = {
   search(term: string): Promise<PodcastFeed[]>;
   podcast(id: number): Promise<PodcastFeed | null>;
+  /** Plusieurs podcasts en un appel (jusqu'à 100 identifiants), pour afficher leurs images. */
+  podcasts(ids: number[]): Promise<PodcastFeed[]>;
   /** Derniers épisodes, du plus récent au plus ancien. */
   episodes(podcastId: number, options?: { max?: number }): Promise<PodcastEpisode[]>;
 };
@@ -70,6 +72,12 @@ export function applePodcasts(fetchFn: typeof fetch = fetch): PodcastDirectory {
     async podcast(id) {
       const results = await get('/lookup', { id: String(id) });
       return results.map(toFeed).find((feed): feed is PodcastFeed => feed !== null) ?? null;
+    },
+    async podcasts(ids) {
+      const unique = [...new Set(ids)].filter(id => Number.isSafeInteger(id) && id > 0).slice(0, 100);
+      if (unique.length === 0) return [];
+      const results = await get('/lookup', { id: unique.join(',') });
+      return results.map(toFeed).filter((feed): feed is PodcastFeed => feed !== null);
     },
     async episodes(podcastId, options = {}) {
       const results = await get('/lookup', { id: String(podcastId), entity: 'podcastEpisode', limit: String(options.max ?? 20) });
