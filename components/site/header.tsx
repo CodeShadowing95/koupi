@@ -52,7 +52,11 @@ export function SiteHeader() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z" /><path d="m22 9-6 6" /><path d="m16 9 6 6" /></svg>
             )}
           </button>
-          <Link className="k-btn k-btn-paper k-btn-sm k-btn-ticket" href={routes.submit()} style={{ marginLeft: 6 }}>Proposer un code</Link>
+          {/* Un vrai petit coupon : papier crème festonné, perforation, talon corail « % » qui se décolle au survol. */}
+          <Link className="k-nav-coupon" href={routes.submit()}>
+            <span className="k-nav-coupon-main k-paper">Proposer un code</span>
+            <span className="k-nav-coupon-stub" aria-hidden="true">%</span>
+          </Link>
         </nav>
       </div>
     </header>

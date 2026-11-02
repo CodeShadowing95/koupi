@@ -86,6 +86,25 @@ html:has(.kp),body:has(.kp){margin:0;background:#07081A}
 .k-btn-ticket{border-radius:10px;-webkit-mask:radial-gradient(circle 7px at 0 0,#0000 98%,#000) top left,radial-gradient(circle 7px at 100% 0,#0000 98%,#000) top right,radial-gradient(circle 7px at 0 100%,#0000 98%,#000) bottom left,radial-gradient(circle 7px at 100% 100%,#0000 98%,#000) bottom right;
   -webkit-mask-size:51% 51%;-webkit-mask-repeat:no-repeat;mask:radial-gradient(circle 7px at 0 0,#0000 98%,#000) top left,radial-gradient(circle 7px at 100% 0,#0000 98%,#000) top right,radial-gradient(circle 7px at 0 100%,#0000 98%,#000) bottom left,radial-gradient(circle 7px at 100% 100%,#0000 98%,#000) bottom right;mask-size:51% 51%;mask-repeat:no-repeat}
 
+/* Barre de navigation : « Proposer un code » en vrai coupon, même taille que l'ancien bouton (40 px de haut).
+   Le corps en papier est festonné à gauche, une perforation le sépare du talon corail festonné à droite.
+   Au survol, le talon se décolle un peu et un reflet passe sur le papier. */
+.k-nav-coupon{position:relative;display:inline-flex;align-items:stretch;height:40px;margin-left:6px;border-radius:8px;filter:drop-shadow(0 8px 16px rgba(0,0,0,.45));color:var(--paper-ink)}
+.k-nav-coupon-main{position:relative;display:flex;align-items:center;padding:0 7px 0 11px;border-radius:7px 0 0 7px;font-size:13.5px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;
+  -webkit-mask:radial-gradient(circle at 0 50%,#0000 2.5px,#000 3px) 0 0/100% 7px repeat-y,radial-gradient(circle 5px at 100% 0,#0000 97%,#000) 0 0/100% 100% no-repeat,radial-gradient(circle 5px at 100% 100%,#0000 97%,#000) 0 0/100% 100% no-repeat;-webkit-mask-composite:source-in;
+  mask:radial-gradient(circle at 0 50%,#0000 2.5px,#000 3px) 0 0/100% 7px repeat-y,radial-gradient(circle 5px at 100% 0,#0000 97%,#000) 0 0/100% 100% no-repeat,radial-gradient(circle 5px at 100% 100%,#0000 97%,#000) 0 0/100% 100% no-repeat;mask-composite:intersect}
+.k-nav-coupon-main::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.85) 50%,transparent 65%);transform:translateX(-120%);pointer-events:none}
+.k-nav-coupon-stub{display:flex;align-items:center;justify-content:center;width:23px;border-left:2px dotted rgba(255,255,255,.75);border-radius:0 7px 7px 0;background:linear-gradient(160deg,#FF7A52,var(--coral) 55%,#E8462B);color:#fff;font-family:var(--mono);font-size:13px;font-weight:800;
+  transform-origin:0 100%;transition:transform .45s cubic-bezier(.2,.9,.3,1.4),background .2s;
+  -webkit-mask:radial-gradient(circle at 100% 50%,#0000 2.5px,#000 3px) 0 0/100% 7px repeat-y,radial-gradient(circle 5px at 0 0,#0000 97%,#000) 0 0/100% 100% no-repeat,radial-gradient(circle 5px at 0 100%,#0000 97%,#000) 0 0/100% 100% no-repeat;-webkit-mask-composite:source-in;
+  mask:radial-gradient(circle at 100% 50%,#0000 2.5px,#000 3px) 0 0/100% 7px repeat-y,radial-gradient(circle 5px at 0 0,#0000 97%,#000) 0 0/100% 100% no-repeat,radial-gradient(circle 5px at 0 100%,#0000 97%,#000) 0 0/100% 100% no-repeat;mask-composite:intersect}
+.k-nav-coupon:hover .k-nav-coupon-stub,.k-nav-coupon:focus-visible .k-nav-coupon-stub{transform:translate(3px,2px) rotate(9deg)}
+.k-nav-coupon:hover .k-nav-coupon-main::before,.k-nav-coupon:focus-visible .k-nav-coupon-main::before{transform:translateX(120%);transition:transform .7s ease}
+.k-nav-coupon:active .k-nav-coupon-stub{transform:translate(5px,4px) rotate(16deg)}
+.kp .k-nav-coupon:focus-visible{outline-offset:4px}
+@media (max-width:640px){.k-header .k-nav-coupon{display:none}}
+@media (prefers-reduced-motion:reduce){.k-nav-coupon-stub{transition:none}.k-nav-coupon:hover .k-nav-coupon-main::before{transition:none;transform:translateX(-120%)}}
+
 /* Pastilles, étiquettes, statuts */
 .k-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 8px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);font-size:13px;font-weight:600;color:var(--text-soft)}
 .k-dot{width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 0 0 rgba(91,227,164,.6);animation:k-ping 2s infinite}
