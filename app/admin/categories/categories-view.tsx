@@ -71,7 +71,7 @@ export function CategoriesView({ categories: all }: { categories: AdminCategory[
                     <td className="adm-cell-wrap"><b>{category.name}</b></td>
                     <td>{coverage(category)}</td>
                     <td className="adm-cell-muted">{rate(category)} %</td>
-                    <td><div className="adm-cell-actions"><a href={`/admin/outils?q=${encodeURIComponent(category.name)}`}>Outils</a><button type="button" className="adm-btn" onClick={() => open(category)}>Renommer</button></div></td>
+                    <td><div className="adm-cell-actions"><a href={`/admin/outils?category=${encodeURIComponent(category.slug)}`}>Outils</a><button type="button" className="adm-btn" onClick={() => open(category)}>Renommer</button></div></td>
                   </tr>
                 ))}
               </tbody>
@@ -84,7 +84,7 @@ export function CategoriesView({ categories: all }: { categories: AdminCategory[
                 <div className="adm-card-top"><b>{category.name}</b>{category.covered === 0 ? <span className="adm-pill adm-pill-warn">Vide sur le site</span> : <span className="adm-pill adm-pill-ok">{rate(category)} %</span>}</div>
                 {coverage(category)}
                 <div className="adm-card-foot">
-                  <a href={`/admin/outils?q=${encodeURIComponent(category.name)}`}>Voir les outils</a>
+                  <a href={`/admin/outils?category=${encodeURIComponent(category.slug)}`}>Voir les outils</a>
                   <button type="button" className="adm-btn" style={{ marginLeft: 'auto' }} onClick={() => open(category)}>Renommer</button>
                 </div>
               </article>

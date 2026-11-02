@@ -32,15 +32,20 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
+  const [category, setCategory] = useState('');
   // Les liens des autres pages ouvrent la liste déjà filtrée (?q=…).
-  useEffect(() => { const q = new URLSearchParams(window.location.search).get('q'); if (q) setQuery(q); }, []);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('q')) setQuery(params.get('q') ?? '');
+    if (params.get('category')) setCategory(params.get('category') ?? '');
+  }, []);
   const [view, setView] = useAdminView();
   const [editing, setEditing] = useState<AdminTool | 'new' | null>(null);
   const [form, setForm] = useState<Form>({ name: '', categorySlug: categories[0]?.slug ?? '', website: '', description: '', priority: 3 });
-  const filtered = tools.filter(tool => matches(tool, filter) && matchesSearch([tool.name, tool.category, tool.website, tool.description], query));
+  const filtered = tools.filter(tool => matches(tool, filter) && (!category || tool.categorySlug === category) && matchesSearch([tool.name, tool.category, tool.website, tool.description], query));
   const sort = useAdminSort(filtered, sortFields, 'name');
   const visible = sort.items;
-  const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${filter}|${query}|${sort.resetKey}`);
+  const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${filter}|${category}|${query}|${sort.resetKey}`);
   const countOf = (value: Filter) => tools.filter(tool => matches(tool, value)).length;
 
   function open(target: AdminTool | 'new') {
@@ -79,6 +84,9 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
         <div className="adm-toolbar">
           <label htmlFor="tool-search" className="sr-only">Rechercher un outil</label>
           <input id="tool-search" className="adm-search" type="search" placeholder="Rechercher un outil, une catégorie…" value={query} onChange={event => setQuery(event.target.value)} />
+          <AdminSelect id="tool-category-filter" variant="filter" ariaLabel="Catégorie" value={category} onChange={setCategory}
+            options={[{ value: '', label: 'Toutes les catégories' }, ...categories.map(item => ({ value: item.slug, label: item.name, hint: `${item.tools} outil${item.tools > 1 ? 's' : ''}` }))]}
+            searchPlaceholder="Rechercher une catégorie…" />
           {view !== 'table' && <SortControl sort={sort} id="tool-sort" />}
           <span className="adm-count" role="status">{visible.length} sur {countOf(filter)}</span>
           <ViewToggle view={view} onChange={setView} />
