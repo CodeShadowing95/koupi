@@ -10,6 +10,7 @@ import { FormDialog, sendJson } from '@/components/admin-form-dialog';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
 import { IconButton, IconLink, StatusDot } from '@/components/admin-card';
 import { initials } from '@/lib/admin-card';
+import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
 
 type Filter = 'all' | 'visible' | 'hidden';
 const filters: { value: Filter; label: string }[] = [{ value: 'all', label: 'Tous' }, { value: 'visible', label: 'Sur le site' }, { value: 'hidden', label: 'Sans code visible' }];
@@ -28,6 +29,8 @@ export function CreatorsView({ creators }: { creators: AdminCreator[] }) {
   useEffect(() => { const q = new URLSearchParams(window.location.search).get('q'); if (q) setQuery(q); }, []);
   const [view, setView] = useAdminView();
   const [editing, setEditing] = useState<AdminCreator | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = creators.find(creator => creator.id === selectedId) ?? null;
   const [name, setName] = useState('');
   const filtered = creators.filter(creator => matches(creator, filter) && matchesSearch([creator.name, ...creator.tools], query));
   const sort = useAdminSort(filtered, sortFields, 'name');
@@ -66,8 +69,8 @@ export function CreatorsView({ creators }: { creators: AdminCreator[] }) {
               <thead><tr><SortHeader sort={sort} field="name">Créateur</SortHeader><SortHeader sort={sort} field="codes">Codes</SortHeader><th scope="col">Outils</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
               <tbody>
                 {current.items.map(creator => (
-                  <tr key={creator.id}>
-                    <td className="adm-cell-wrap"><b>{creator.name}</b></td>
+                  <tr key={creator.id} data-open onClick={openOnClick(() => setSelectedId(creator.id))}>
+                    <td className="adm-cell-wrap"><button type="button" className="adm-open adm-open-wrap" title={`Voir le détail de ${creator.name}`} onClick={() => setSelectedId(creator.id)}><b>{creator.name}</b></button></td>
                     <td className="adm-cell-nowrap">{codesLink(creator)}</td>
                     <td className="adm-cell-wrap adm-cell-muted">{creator.tools.join(', ') || '—'}</td>
                     <td><div className="adm-cell-actions">{page(creator)}<button type="button" className="adm-btn" onClick={() => open(creator)}>Renommer</button></div></td>
@@ -79,9 +82,9 @@ export function CreatorsView({ creators }: { creators: AdminCreator[] }) {
         ) : (
           <div className="adm-grid adm-page-enter" key={`grid-${current.page}`}>
             {current.items.map(creator => (
-              <article className="adm-card" key={creator.id}>
+              <article className="adm-card" key={creator.id} data-open onClick={openOnClick(() => setSelectedId(creator.id))}>
                 <div className="adm-card-row">
-                  <div className="adm-card-id"><span className="adm-avatar" aria-hidden="true">{initials(creator.name)}</span><div><b title={creator.name}>{creator.name}</b><small title={creator.tools.join(', ')}>{creator.tools.join(', ') || 'Aucun outil'}</small></div></div>
+                  <div className="adm-card-id"><span className="adm-avatar" aria-hidden="true">{initials(creator.name)}</span><div><button type="button" className="adm-open" title={`Voir le détail de ${creator.name}`} onClick={() => setSelectedId(creator.id)}><b>{creator.name}</b></button><small title={creator.tools.join(', ')}>{creator.tools.join(', ') || 'Aucun outil'}</small></div></div>
                   {creator.visible > 0 ? <StatusDot tone="ok">Sur le site</StatusDot> : <StatusDot tone="muted">Masqué</StatusDot>}
                 </div>
                 <div className="adm-card-foot">
@@ -95,6 +98,25 @@ export function CreatorsView({ creators }: { creators: AdminCreator[] }) {
         )}
         <Pagination current={current} onChange={goTo} label="créateurs" size={size} onSizeChange={changeSize} />
 
+        <AdminDrawer open={selected !== null} onClose={() => setSelectedId(null)} label={`Détail de ${selected?.name ?? ''}`} eyebrow="Créateur"
+          title={selected && <span className="adm-drawer-name"><span className="adm-avatar" aria-hidden="true">{initials(selected.name)}</span>{selected.name}</span>}
+          aside={selected && (selected.visible > 0 ? <StatusDot tone="ok">Sur le site</StatusDot> : <StatusDot tone="muted">Masqué</StatusDot>)}
+          actions={selected && <>
+            <a className="adm-btn" href={`/admin/codes?q=${encodeURIComponent(selected.name)}`}>Voir ses codes</a>
+            <span style={{ flex: 1 }} />
+            <button type="button" className="adm-btn adm-btn-pri" onClick={() => open(selected)}>Renommer</button>
+          </>}>
+          {selected && <>
+            <DetailList items={[
+              { label: 'Codes', value: codesLink(selected) },
+              { label: 'Page publique', value: selected.visible > 0 && <a href={`/creators/${selected.slug}`} target="_blank" rel="noopener noreferrer">/creators/{selected.slug} ↗</a> },
+            ]} />
+            <div>
+              <span className="eyebrow">Outils recommandés</span>
+              {selected.tools.length ? <div className="adm-chips" style={{ marginTop: 8 }}>{selected.tools.map(tool => <a key={tool} href={`/admin/outils?q=${encodeURIComponent(tool)}`}>{tool}</a>)}</div> : <p className="muted">Aucun outil pour l’instant.</p>}
+            </div>
+          </>}
+        </AdminDrawer>
         <FormDialog open={editing !== null} title={`Renommer ${editing?.name ?? ''}`} intro="Corrige l’orthographe ou le nom de la chaîne. L’adresse de sa page sur le site ne change pas."
           onClose={() => setEditing(null)} onSubmit={() => sendJson(`/api/admin/creators/${editing?.id}`, 'PATCH', { name })}>
           <div className="field adm-span-2"><label htmlFor="creator-name">Nom</label><input id="creator-name" value={name} onChange={event => setName(event.target.value)} required maxLength={160} /></div>

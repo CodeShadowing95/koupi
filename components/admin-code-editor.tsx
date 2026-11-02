@@ -60,7 +60,7 @@ export function CodeEditor({ target, tools, categories, creators, onClose, onSav
   }, [target, tools, categories]);
 
   const closed = () => afterDialogClose(() => { if (!dialog.current?.open) onClose(); });
-  if (!target) return <dialog ref={dialog} className="adm-dialog" onClose={closed} />;
+  if (!target) return <dialog ref={dialog} className="adm-dialog adm-drawer" onClose={closed} />;
 
   const set = <K extends keyof Initial>(key: K) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setValues(current => ({ ...current, [key]: event.target.value }));
   const title = target.kind === 'create' ? 'Nouveau code' : target.kind === 'edit' ? `Modifier ${target.code.code}` : 'Valider la proposition';
@@ -102,7 +102,7 @@ export function CodeEditor({ target, tools, categories, creators, onClose, onSav
   }
 
   return (
-    <dialog ref={dialog} className="adm-dialog" aria-labelledby="code-editor-title" onClose={closed}>
+    <dialog ref={dialog} className="adm-dialog adm-drawer" aria-labelledby="code-editor-title" onClose={closed}>
       <form className="adm-form" onSubmit={submit}>
         <div className="adm-dialog-head">
           <h2 id="code-editor-title">{title}</h2>

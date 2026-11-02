@@ -10,6 +10,7 @@ import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { Pagination, usePagination } from '@/components/admin-pagination';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
 import { IconButton, IconLink, StatusDot, type Tone } from '@/components/admin-card';
+import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
 
 const statusLabel: Record<Code['status'], { label: string; className: string }> = {
   verified: { label: 'Vérifié', className: 'adm-pill adm-pill-ok' },
@@ -42,6 +43,8 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
   const countOf = (value: Filter) => codes.filter(code => matchesFilter(code, value, stale)).length;
   const router = useRouter();
   const [editing, setEditing] = useState<EditorTarget | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = codes.find(code => code.id === selectedId) ?? null;
   const [busy, setBusy] = useState('');
   const creators = [...new Set(codes.map(code => code.creator))].sort((a, b) => a.localeCompare(b, 'fr'));
   async function quick(code: Code, action: 'verify' | 'reject' | 'restore') {
@@ -109,8 +112,8 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
               </thead>
               <tbody>
                 {current.items.map(code => (
-                  <tr key={code.id}>
-                    <td className="mono">{code.code}</td>
+                  <tr key={code.id} data-open onClick={openOnClick(() => setSelectedId(code.id))}>
+                    <td className="mono"><button type="button" className="adm-open" title={`Voir le détail de ${code.code}`} onClick={() => setSelectedId(code.id)}>{code.code}</button></td>
                     <td className="adm-cell-nowrap">{code.tool}</td>
                     <td className="adm-cell-wrap">{code.discount}</td>
                     <td className="adm-cell-wrap">{code.creator}</td>
@@ -127,8 +130,8 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
         ) : (
           <div className="adm-grid adm-page-enter" key={`grid-${current.page}`}>
             {current.items.map(code => (
-              <article className="adm-card" key={code.id}>
-                <div className="adm-card-row"><span className="mono" title={code.code}>{code.code}</span><StatusDot tone={statusTone[code.status]}>{statusLabel[code.status].label}</StatusDot></div>
+              <article className="adm-card" key={code.id} data-open onClick={openOnClick(() => setSelectedId(code.id))}>
+                <div className="adm-card-row"><button type="button" className="mono adm-open" title={`Voir le détail de ${code.code}`} onClick={() => setSelectedId(code.id)}>{code.code}</button><StatusDot tone={statusTone[code.status]}>{statusLabel[code.status].label}</StatusDot></div>
                 <p className="adm-card-line" title={`${code.tool} · ${code.discount}`}>{code.tool} <span>· {code.discount}</span></p>
                 <div className="adm-card-foot">
                   <span className="adm-card-meta" title={[cardMeta(code), code.note && `Note : ${code.note}`].filter(Boolean).join('\n')}>{cardMeta(code)}</span>
@@ -141,6 +144,24 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
           </div>
         )}
         <Pagination current={current} onChange={goTo} label="codes" size={size} onSizeChange={changeSize} />
+        <AdminDrawer open={selected !== null} onClose={() => setSelectedId(null)} label={`Détail du code ${selected?.code ?? ''}`} eyebrow={selected?.archived ? 'Code archivé' : 'Code'}
+          title={<span className="mono">{selected?.code}</span>}
+          aside={selected && <StatusDot tone={statusTone[selected.status]}>{statusLabel[selected.status].label}</StatusDot>}
+          actions={selected && <>{actions(selected)}<span style={{ flex: 1 }} /><button type="button" className="adm-btn adm-btn-pri" onClick={() => setEditing({ kind: 'edit', code: selected })}>Modifier</button></>}>
+          {selected && <>
+            <DetailList items={[
+              { label: 'Outil', value: <a href={`/admin/outils?q=${encodeURIComponent(selected.tool)}`}>{selected.tool}</a> },
+              { label: 'Réduction', value: selected.discount },
+              { label: 'Créateur', value: <a href={`/admin/createurs?q=${encodeURIComponent(selected.creator)}`}>{selected.creator}</a> },
+              { label: 'Source', value: <a href={selected.source} target="_blank" rel="noopener noreferrer">{selected.sourceTitle || 'Ouvrir la source'} ↗</a> },
+              { label: 'Lien du créateur', value: selected.creatorLink && <a href={selected.creatorLink} target="_blank" rel="noopener noreferrer">Ouvrir ↗</a> },
+              { label: 'Votes', value: selected.votes > 0 ? `${selected.votes} vote${selected.votes > 1 ? 's' : ''} · ${selected.success} % de réussite` : 'Aucun vote' },
+              { label: 'Dernier test', value: testedLabel(selected.lastTestedAt) + (stale.has(selected.id) ? ' · à retester' : '') },
+              { label: 'Ajouté le', value: new Date(selected.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) },
+            ]} />
+            {selected.note && <p className="adm-detail-quote">Note : {selected.note}</p>}
+          </>}
+        </AdminDrawer>
         <CodeEditor target={editing} tools={tools} categories={categories} creators={creators} onClose={() => setEditing(null)} />
       </div>
     </main>
