@@ -1,0 +1,96 @@
+import type Anthropic from '@anthropic-ai/sdk';
+import { describe, expect, it, vi } from 'vitest';
+import {
+  DEFAULT_AI_MODEL, MAX_DESCRIPTION_CHARS, aiConfigFrom, aiStatusOf, costUsdMicros, extractCodes, keepVerbatimCodes,
+} from './ai-extract';
+
+const description = 'Merci à Qonto ! Avec le code KOUPI10 vous avez 10 % sur 3 mois, jusqu’au 31/12. Et NordVPN : code NORD20.';
+
+function fakeResponse(text: string, extra: Partial<Anthropic.Beta.BetaMessage> = {}): Anthropic.Beta.BetaMessage {
+  return {
+    id: 'msg_1', type: 'message', role: 'assistant', model: DEFAULT_AI_MODEL, stop_reason: 'end_turn',
+    content: [{ type: 'text', text }],
+    usage: { input_tokens: 1000, output_tokens: 200 },
+    ...extra,
+  } as unknown as Anthropic.Beta.BetaMessage;
+}
+
+describe('aiConfigFrom', () => {
+  it('reste inactive sans clé et applique les valeurs par défaut', () => {
+    const config = aiConfigFrom({});
+    expect(config).toEqual({ apiKey: null, model: DEFAULT_AI_MODEL, monthlyBudgetUsdMicros: 12_000_000 });
+  });
+  it('lit la clé, le modèle et le plafond', () => {
+    const config = aiConfigFrom({ ANTHROPIC_API_KEY: ' sk ', AI_MODEL: 'claude-haiku-5-5', AI_MONTHLY_BUDGET_EUR: '20', AI_USD_PER_EUR: '1' });
+    expect(config).toEqual({ apiKey: 'sk', model: 'claude-haiku-5-5', monthlyBudgetUsdMicros: 20_000_000 });
+  });
+  it('ignore un plafond invalide', () => {
+    expect(aiConfigFrom({ AI_MONTHLY_BUDGET_EUR: 'abc' }).monthlyBudgetUsdMicros).toBe(12_000_000);
+    expect(aiConfigFrom({ AI_MONTHLY_BUDGET_EUR: '-5' }).monthlyBudgetUsdMicros).toBe(12_000_000);
+  });
+});
+
+describe('aiStatusOf', () => {
+  it('annonce l’IA en attente sans clé', () => {
+    expect(aiStatusOf(aiConfigFrom({}), 0)).toEqual({ state: 'inactive', label: 'IA en attente d’activation' });
+  });
+  it('s’arrête au plafond du mois', () => {
+    const config = aiConfigFrom({ ANTHROPIC_API_KEY: 'k' });
+    expect(aiStatusOf(config, 1_000).state).toBe('active');
+    expect(aiStatusOf(config, 12_000_000).state).toBe('budget_reached');
+  });
+});
+
+describe('costUsdMicros', () => {
+  it('compte les jetons au prix du modèle', () => {
+    expect(costUsdMicros('claude-opus-5-5', { input_tokens: 1000, output_tokens: 200 })).toBe(8000);
+    expect(costUsdMicros('claude-haiku-5-5', { input_tokens: 1000, output_tokens: 200 })).toBe(200);
+  });
+  it('prend le prix le plus élevé connu pour un modèle inconnu', () => {
+    expect(costUsdMicros('autre', { input_tokens: 1000, output_tokens: 0 })).toBe(4000);
+  });
+});
+
+describe('keepVerbatimCodes', () => {
+  it('écarte les codes inventés et les doublons, garde la preuve', () => {
+    const codes = keepVerbatimCodes({ codes: [
+      { code: 'KOUPI10', tool: 'Qonto', discount: '10 %', conditions: '3 mois', expires_on: '2026-12-31' },
+      { code: 'koupi10', tool: 'Qonto', discount: '', conditions: '', expires_on: '' },
+      { code: 'INVENTE', tool: 'X', discount: '', conditions: '', expires_on: '' },
+      { code: 'NORD20', tool: 'NordVPN', discount: '', conditions: '', expires_on: '31/12' },
+    ] }, description);
+    expect(codes.map(c => c.code)).toEqual(['KOUPI10', 'NORD20']);
+    expect(codes[0].evidence).toContain('KOUPI10');
+    expect(codes[0].expiresOn).toBe('2026-12-31');
+    expect(codes[1].expiresOn).toBe('');
+  });
+  it('supporte une réponse vide ou mal formée', () => {
+    expect(keepVerbatimCodes(null, description)).toEqual([]);
+    expect(keepVerbatimCodes({ codes: 'x' }, description)).toEqual([]);
+    expect(keepVerbatimCodes({ codes: [{ code: 42 }] }, description)).toEqual([]);
+  });
+});
+
+describe('extractCodes', () => {
+  it('envoie la description comme donnée et rend les codes vérifiés avec le coût', async () => {
+    const create = vi.fn(async (_params: Anthropic.Beta.MessageCreateParamsNonStreaming) => fakeResponse(JSON.stringify({ codes: [{ code: 'NORD20', tool: 'NordVPN', discount: '', conditions: '', expires_on: '' }] })));
+    const result = await extractCodes(create, DEFAULT_AI_MODEL, { title: 'Vidéo', description });
+    expect(result).toMatchObject({ refused: false, costUsdMicros: 8000, model: DEFAULT_AI_MODEL });
+    expect(result.codes.map(c => c.code)).toEqual(['NORD20']);
+    const params = create.mock.calls[0][0];
+    expect(JSON.stringify(params.messages)).toContain('<description>');
+    expect(params.output_config?.format?.type).toBe('json_schema');
+  });
+  it('coupe une description trop longue', async () => {
+    const create = vi.fn(async (_params: Anthropic.Beta.MessageCreateParamsNonStreaming) => fakeResponse('{"codes":[]}'));
+    await extractCodes(create, DEFAULT_AI_MODEL, { title: 't', description: 'a'.repeat(MAX_DESCRIPTION_CHARS + 500) });
+    const params = create.mock.calls[0][0];
+    expect(JSON.stringify(params.messages).length).toBeLessThan(MAX_DESCRIPTION_CHARS + 400);
+  });
+  it('rend une liste vide sur un refus ou un JSON invalide, en comptant le coût', async () => {
+    const refused = await extractCodes(async () => fakeResponse('', { stop_reason: 'refusal' }), DEFAULT_AI_MODEL, { title: 't', description });
+    expect(refused).toMatchObject({ refused: true, codes: [], costUsdMicros: 8000 });
+    const broken = await extractCodes(async () => fakeResponse('pas du json'), DEFAULT_AI_MODEL, { title: 't', description });
+    expect(broken).toMatchObject({ refused: false, codes: [] });
+  });
+});

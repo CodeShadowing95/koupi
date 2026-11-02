@@ -16,5 +16,6 @@ Chaque décision importante est notée ici dans un fichier numéroté. On ne sup
 | [0010](0010-audience-anonyme.md) | Votes et mesure d'audience anonymes, dans notre base | Proposée |
 | [0011](0011-processus-de-release.md) | Releases par PR de release, version calculée depuis les commits | Proposée |
 | [0012](0012-verifications-assistees.md) | Vérifications assistées : analyses et sources suivies en base | Proposée |
+| [0013](0013-socle-ia.md) | Socle IA des vérifications avec le SDK Anthropic | Proposée |
 
 Modèle : copier [`template.md`](template.md).
