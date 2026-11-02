@@ -1180,3 +1180,9 @@ html:has(> body > .ct){overflow:hidden}
 .adm-link-report details{width:100%;color:var(--ink)}
 .adm-link-report summary{cursor:pointer;font-weight:600}
 .adm-link-report ul{margin:8px 0 0;padding-left:18px;max-height:220px;overflow:auto;font-size:13px;line-height:1.5}
+
+/* Logo du réseau devant son nom (comptes créateurs) */
+.adm-platform-icon{display:inline-flex;align-items:center;justify-content:center;flex:none;border-radius:6px;background:var(--muted);color:#fff}
+.adm-platform-icon.is-snapchat{color:#000}
+.adm-platform-icon.is-tiktok,.adm-platform-icon.is-x{box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.adm-ca-platform{display:inline-flex;align-items:center;gap:7px;margin-bottom:4px}
