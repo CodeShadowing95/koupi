@@ -78,3 +78,28 @@ export function applePodcasts(fetchFn: typeof fetch = fetch): PodcastDirectory {
     },
   };
 }
+
+/** Identifiants d'un épisode dans un lien Apple Podcasts (…/id123?i=456), null pour un autre lien. */
+export function appleEpisodeRef(url: string): { podcastId: number; episodeId: number } | null {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname !== 'podcasts.apple.com') return null;
+    const podcastId = Number(parsed.pathname.match(/\/id(\d+)\/?$/)?.[1]);
+    const episodeId = Number(parsed.searchParams.get('i'));
+    return Number.isSafeInteger(podcastId) && podcastId > 0 && Number.isSafeInteger(episodeId) && episodeId > 0 ? { podcastId, episodeId } : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Relit les notes d'un épisode Apple Podcasts pour les vérifications. null si le lien n'en est pas un ou si l'épisode est trop ancien. */
+export function podcastReader(directory: PodcastDirectory): (url: string) => Promise<{ online: boolean; title: string; description: string } | null> {
+  return async url => {
+    const ref = appleEpisodeRef(url);
+    if (!ref) return null;
+    const [podcast, episodes] = await Promise.all([directory.podcast(ref.podcastId), directory.episodes(ref.podcastId, { max: 200 })]);
+    if (!podcast) return { online: false, title: '', description: '' };
+    const episode = episodes.find(item => item.id === ref.episodeId);
+    return episode ? { online: true, title: episode.title, description: episode.description } : null;
+  };
+}

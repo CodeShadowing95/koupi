@@ -12,6 +12,10 @@
     {
       "path": "/api/cron/retest",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/podcasts",
+      "schedule": "30 3 * * *"
     }
   ]
 }
