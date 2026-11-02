@@ -20,7 +20,12 @@ export function accountLevelOf(account: AccountFacts): CreatorLevel {
 
 /** Meilleur niveau parmi les comptes. Un créateur sans compte relié est « repéré ». */
 export function creatorLevelFromAccounts(accounts: AccountFacts[]): CreatorLevel {
-  return accounts.map(accountLevelOf).reduce<CreatorLevel>((best, level) => (RANK[level] > RANK[best] ? level : best), 'spotted');
+  return bestLevel(accounts.map(accountLevelOf));
+}
+
+/** Le plus haut des niveaux donnés, « repéré » si la liste est vide. */
+export function bestLevel(levels: CreatorLevel[]): CreatorLevel {
+  return levels.reduce<CreatorLevel>((best, level) => (RANK[level] > RANK[best] ? level : best), 'spotted');
 }
 
 export async function creatorLevelFor(db: Db, creatorId: string): Promise<CreatorLevel> {

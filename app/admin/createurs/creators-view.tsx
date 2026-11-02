@@ -1,6 +1,6 @@
 'use client';
-// Créateurs crédités : leurs codes et les outils qu'ils recommandent. Les comptes sur chaque réseau
-// (YouTube, TikTok, Instagram…) et leur vérification viendront ici.
+// Créateurs crédités : leurs codes, les outils qu'ils recommandent, et leurs comptes sur les réseaux
+// (YouTube, TikTok, Instagram…) qui donnent leur niveau : Repéré, Contrôlé par Koupi, Créateur vérifié.
 import { useEffect, useState } from 'react';
 import type { AdminCreator } from '@/lib/catalog-admin';
 import { matchesSearch } from '@/lib/admin-search';
@@ -12,24 +12,39 @@ import { IconButton, IconLink, StatusDot } from '@/components/admin-card';
 import { initials } from '@/lib/admin-card';
 import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
+import type { AdminCreatorAccount } from '@/lib/creator-accounts-display';
+import { CREATOR_LEVEL_LABELS, type CreatorLevel } from '@/lib/verification';
+import { CreatorAccountsPanel, LevelDot } from './creator-accounts-panel';
 
-type Filter = 'all' | 'visible' | 'hidden';
-const filters: { value: Filter; label: string }[] = [{ value: 'all', label: 'Tous' }, { value: 'visible', label: 'Sur le site' }, { value: 'hidden', label: 'Sans code visible' }];
-const matches = (creator: AdminCreator, filter: Filter) => filter === 'all' || (filter === 'visible' ? creator.visible > 0 : creator.visible === 0);
+type Creator = AdminCreator & { accounts: AdminCreatorAccount[]; level: CreatorLevel };
+const LEVEL_ORDER: Record<CreatorLevel, number> = { spotted: 0, checked: 1, verified: 2 };
 
-const sortFields: SortField<AdminCreator>[] = [
+type Filter = 'all' | 'visible' | 'hidden' | 'tocheck';
+const filters: { value: Filter; label: string }[] = [
+  { value: 'all', label: 'Tous' }, { value: 'visible', label: 'Sur le site' }, { value: 'hidden', label: 'Sans code visible' }, { value: 'tocheck', label: 'À contrôler' },
+];
+function matches(creator: Creator, filter: Filter): boolean {
+  if (filter === 'visible') return creator.visible > 0;
+  if (filter === 'hidden') return creator.visible === 0;
+  // Sur le site, mais encore « repéré » : c'est eux qu'il faut contrôler en premier.
+  if (filter === 'tocheck') return creator.visible > 0 && creator.level === 'spotted';
+  return true;
+}
+
+const sortFields: SortField<Creator>[] = [
   { key: 'name', label: 'Nom', value: creator => creator.name, text: true },
+  { key: 'level', label: 'Niveau', value: creator => LEVEL_ORDER[creator.level] },
   { key: 'codes', label: 'Nombre de codes', value: creator => creator.codes },
   { key: 'visible', label: 'Codes visibles', value: creator => creator.visible },
 ];
 
-export function CreatorsView({ creators }: { creators: AdminCreator[] }) {
+export function CreatorsView({ creators, youtubeReady }: { creators: Creator[]; youtubeReady: boolean }) {
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
   // Les liens des autres pages ouvrent la liste déjà filtrée (?q=…).
   useEffect(() => { const q = new URLSearchParams(window.location.search).get('q'); if (q) setQuery(q); }, []);
   const [view, setView] = useAdminView();
-  const [editing, setEditing] = useState<AdminCreator | null>(null);
+  const [editing, setEditing] = useState<Creator | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = creators.find(creator => creator.id === selectedId) ?? null;
   const [name, setName] = useState('');
@@ -38,9 +53,9 @@ export function CreatorsView({ creators }: { creators: AdminCreator[] }) {
   const visible = sort.items;
   const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${filter}|${query}|${sort.resetKey}`);
   const countOf = (value: Filter) => creators.filter(creator => matches(creator, value)).length;
-  const open = (creator: AdminCreator) => { setName(creator.name); setEditing(creator); };
-  const codesLink = (creator: AdminCreator) => <a href={`/admin/codes?q=${encodeURIComponent(creator.name)}`}>{creator.visible} visible{creator.visible > 1 ? 's' : ''} / {creator.codes}</a>;
-  const page = (creator: AdminCreator) => creator.visible > 0 ? <a href={`/creators/${creator.slug}`} target="_blank" rel="noopener noreferrer">Page ↗</a> : null;
+  const open = (creator: Creator) => { setName(creator.name); setEditing(creator); };
+  const codesLink = (creator: Creator) => <a href={`/admin/codes?q=${encodeURIComponent(creator.name)}`}>{creator.visible} visible{creator.visible > 1 ? 's' : ''} / {creator.codes}</a>;
+  const page = (creator: Creator) => creator.visible > 0 ? <a href={`/creators/${creator.slug}`} target="_blank" rel="noopener noreferrer">Page ↗</a> : null;
 
   return (
     <main className="adm-page">
@@ -49,7 +64,7 @@ export function CreatorsView({ creators }: { creators: AdminCreator[] }) {
           <div>
             <span className="eyebrow">Catalogue</span>
             <h1>Créateurs</h1>
-            <p>Les personnes à qui appartiennent les codes. Un créateur est ajouté automatiquement avec son premier code ; ici, tu corriges son nom et tu vois ce qu’il recommande.</p>
+            <p>Les personnes à qui appartiennent les codes. Un créateur est ajouté automatiquement avec son premier code ; ici, tu corriges son nom, tu relies ses comptes et tu le contrôles.</p>
           </div>
           <div className="adm-head-actions"><ExportMenu type="createurs" /></div>
         </div>
@@ -68,11 +83,12 @@ export function CreatorsView({ creators }: { creators: AdminCreator[] }) {
         {visible.length === 0 ? <div className="adm-empty">Aucun créateur ne correspond.</div> : view === 'table' ? (
           <div className="adm-table-wrap adm-page-enter" key={`table-${current.page}`}>
             <table className="adm-table">
-              <thead><tr><SortHeader sort={sort} field="name">Créateur</SortHeader><SortHeader sort={sort} field="codes">Codes</SortHeader><th scope="col">Outils</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
+              <thead><tr><SortHeader sort={sort} field="name">Créateur</SortHeader><SortHeader sort={sort} field="level">Niveau</SortHeader><SortHeader sort={sort} field="codes">Codes</SortHeader><th scope="col">Outils</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
               <tbody>
                 {current.items.map(creator => (
                   <tr key={creator.id} data-open onClick={openOnClick(() => setSelectedId(creator.id))}>
                     <td className="adm-cell-wrap"><button type="button" className="adm-open adm-open-wrap" title={`Voir le détail de ${creator.name}`} onClick={() => setSelectedId(creator.id)}><b>{creator.name}</b></button></td>
+                    <td className="adm-cell-nowrap"><LevelDot level={creator.level} /></td>
                     <td className="adm-cell-nowrap">{codesLink(creator)}</td>
                     <td className="adm-cell-wrap adm-cell-muted">{creator.tools.join(', ') || '—'}</td>
                     <td><div className="adm-cell-actions">{page(creator)}<button type="button" className="adm-btn" onClick={() => open(creator)}>Renommer</button></div></td>
@@ -87,10 +103,10 @@ export function CreatorsView({ creators }: { creators: AdminCreator[] }) {
               <article className="adm-card" key={creator.id} data-open onClick={openOnClick(() => setSelectedId(creator.id))}>
                 <div className="adm-card-row">
                   <div className="adm-card-id"><span className="adm-avatar" aria-hidden="true">{initials(creator.name)}</span><div><button type="button" className="adm-open" title={`Voir le détail de ${creator.name}`} onClick={() => setSelectedId(creator.id)}><b>{creator.name}</b></button><small title={creator.tools.join(', ')}>{creator.tools.join(', ') || 'Aucun outil'}</small></div></div>
-                  {creator.visible > 0 ? <StatusDot tone="ok">Sur le site</StatusDot> : <StatusDot tone="muted">Masqué</StatusDot>}
+                  <LevelDot level={creator.level} />
                 </div>
                 <div className="adm-card-foot">
-                  <span className="adm-card-meta">{codesLink(creator)}</span>
+                  <span className="adm-card-meta">{codesLink(creator)}{creator.visible === 0 && ' · masqué'}</span>
                   {creator.visible > 0 && <IconLink icon="external" label="Page publique" href={`/creators/${creator.slug}`} external />}
                   <IconButton icon="edit" label="Renommer" onClick={() => open(creator)} />
                 </div>
@@ -110,9 +126,11 @@ export function CreatorsView({ creators }: { creators: AdminCreator[] }) {
           </>}>
           {selected && <>
             <DetailList items={[
+              { label: 'Niveau', value: CREATOR_LEVEL_LABELS[selected.level] },
               { label: 'Codes', value: codesLink(selected) },
               { label: 'Page publique', value: selected.visible > 0 && <a href={`/creators/${selected.slug}`} target="_blank" rel="noopener noreferrer">/creators/{selected.slug} ↗</a> },
             ]} />
+            <CreatorAccountsPanel creatorId={selected.id} creatorName={selected.name} accounts={selected.accounts} youtubeReady={youtubeReady} />
             <div>
               <span className="eyebrow">Outils recommandés</span>
               {selected.tools.length ? <div className="adm-chips" style={{ marginTop: 8 }}>{selected.tools.map(tool => <a key={tool} href={`/admin/outils?q=${encodeURIComponent(tool)}`}>{tool}</a>)}</div> : <p className="muted">Aucun outil pour l’instant.</p>}
