@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { StatusDot, type Tone } from '@/components/admin-card';
 import { FormDialog, sendJson } from '@/components/admin-form-dialog';
 import { InfoTip } from '@/components/admin-info-tip';
+import { PlatformIcon } from '@/components/platform-icon';
 import { CREATOR_LEVEL_LABELS, MIN_SUBSCRIBERS, type CreatorLevel } from '@/lib/verification';
 import { PLATFORM_LABELS, formatSubscribers, type AdminCreatorAccount, type CreatorPlatform } from '@/lib/creator-accounts-display';
 
@@ -75,7 +76,7 @@ export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtube
               <li key={account.id} className="adm-ca-item">
                 <div className="adm-ca-row">
                   <div className="adm-ca-id">
-                    <small>{PLATFORM_LABELS[account.platform]}</small>
+                    <small className="adm-ca-platform"><PlatformIcon platform={account.platform} size={18} />{PLATFORM_LABELS[account.platform]}</small>
                     <a href={account.url} target="_blank" rel="noopener noreferrer"><b>{account.handle}</b> ↗</a>
                   </div>
                   <LevelDot level={account.level} />
