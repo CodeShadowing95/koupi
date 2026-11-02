@@ -203,19 +203,6 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-grad{background:linear-gradient(100deg,#fff 10%,var(--blue-soft) 60%,var(--coral));-webkit-background-clip:text;background-clip:text;color:transparent}
 
 /* Comment ça marche : notes épinglées reliées par une ligne perforée (adapté de « How It Works », chamaac sur 21st.dev) */
-.k-steps{position:relative;height:820px;max-width:1000px;margin:0 auto}
-.k-steps svg.k-steps-path{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;color:rgba(140,155,255,.45)}
-.k-step{position:absolute;width:320px;padding:10px;border-radius:26px;background:rgba(255,255,255,.04);border:1px solid var(--line);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
-.k-step:hover{z-index:5}
-.k-step-pin{display:block;margin:4px auto 12px;color:var(--coral)}
-.k-step-in{border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
-.k-step-num{font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:.12em;color:var(--blue)}
-.k-step h3{font-size:28px;color:var(--paper-ink)}
-.k-step p{font-size:15px;color:var(--paper-muted)}
-.k-step-1{top:0;left:6%;transform:rotate(-5deg)}
-.k-step-2{top:250px;right:4%;transform:rotate(4deg)}
-.k-step-3{top:520px;left:14%;transform:rotate(-3deg)}
-.k-step-art{margin-top:8px;display:flex;align-items:center;gap:10px}
 
 /* Codes du moment */
 .k-coupon-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 32px}
@@ -377,9 +364,6 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
   .k-bento{grid-template-columns:repeat(2,minmax(0,1fr))}
   .k-tile-a,.k-tile-b,.k-tile-c,.k-tile-d,.k-tile-e{grid-column:span 2;grid-row:auto}
   .k-cat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .k-steps{height:auto;display:flex;flex-direction:column;gap:26px;align-items:center}
-  .k-steps svg.k-steps-path{display:none}
-  .k-step{position:relative;inset:auto!important;width:min(420px,100%)}
   .k-coupon-grid{grid-template-columns:1fr}
   .k-footer-in{grid-template-columns:1fr 1fr}
 }
@@ -510,4 +494,50 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 @media (max-width:760px){
   .k-orbit-grid{grid-template-columns:1fr}
   .k-orbit-item .k-av{width:42px;height:42px;font-size:14px}
+}
+
+/* Comment ça marche : défilement horizontal épinglé (components/site/how-it-works.tsx) */
+.k-journey{position:relative;height:100svh;overflow:hidden}
+.k-journey-track{position:relative;display:flex;height:100%;width:max-content}
+.k-journey-svg{position:absolute;left:80vw;top:50%;width:calc(100% - 120vw);height:220px;translate:0 -50%;overflow:visible;pointer-events:none}
+.k-journey-line{fill:none;stroke:var(--coral);stroke-width:3.5;stroke-linecap:round}
+.k-journey-step{position:relative;flex:none;width:100vw;height:100%;display:flex;align-items:center;justify-content:center;padding:100px 8vw 60px;gap:4vw}
+.k-journey-step-0{width:80vw}
+.k-journey-copy{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-start;gap:20px;max-width:560px}
+.k-journey-copy h2{font-size:clamp(46px,6.6vw,96px)}
+.k-journey-copy h3{font-size:clamp(38px,5vw,72px)}
+.k-journey-copy p{font-size:18px;color:var(--text-soft);max-width:460px}
+.k-journey-num{font-family:var(--display);font-weight:800;font-size:clamp(140px,24vw,340px);line-height:.8;letter-spacing:-.06em;color:transparent;-webkit-text-stroke:2px rgba(255,255,255,.22)}
+.k-journey-search{display:flex;align-items:center;gap:12px;padding:16px 20px;border-radius:18px;background:var(--paper);color:var(--paper-ink);font-size:22px;font-weight:600;width:min(420px,100%);box-shadow:0 30px 60px -20px rgba(0,0,0,.6)}
+.k-journey-search i{width:2px;height:24px;background:var(--blue);animation:k-journey-blink 1s steps(1) infinite}
+@keyframes k-journey-blink{50%{opacity:0}}
+.k-journey-coupon{display:flex;margin-top:14px;filter:drop-shadow(0 30px 50px rgba(0,0,0,.55))}
+.k-journey-main{position:relative;display:flex;flex-direction:column;gap:4px;padding:26px 28px;width:260px;border-radius:18px 0 0 18px;background:var(--paper);color:var(--paper-ink);border-right:3px dashed rgba(23,21,15,.25)}
+.k-journey-main span{font-weight:700;color:var(--paper-muted)}
+.k-journey-main strong{font-family:var(--display);font-size:52px;line-height:1;letter-spacing:-.04em}
+.k-journey-main .k-journey-stamp{position:absolute;right:16px;top:14px;padding:6px 12px;border:3px solid var(--coral);border-radius:10px;color:var(--coral);font-family:var(--mono);font-weight:800;text-transform:uppercase;letter-spacing:.08em;transform:rotate(-12deg)}
+.k-journey-stub{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;padding:18px;width:150px;border-radius:0 18px 18px 0;background:var(--paper-2);color:var(--paper-ink);transform-origin:0 0}
+.k-journey-stub span{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--paper-muted)}
+.k-journey-stub strong{font-size:18px;word-break:break-all;text-align:center}
+.k-journey-coins{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:10px}
+.k-journey-coin{display:inline-flex;align-items:center;padding:12px 18px;border-radius:999px;font-weight:800;font-size:17px}
+.k-journey-coin.is-avatar{padding:0;border-radius:50%}
+.k-journey-coin.is-mint{background:#DDF5E8;color:#0B6B43}
+.k-journey-coin.is-blue{background:#EEF0FF;color:var(--blue)}
+.k-journey-coin.is-coral{background:#FFE2D8;color:#B23A12}
+@media (max-width:760px){
+  .k-journey-step{flex-direction:column;align-items:flex-start;justify-content:center;padding:90px 24px 40px;gap:10px}
+  .k-journey-step-0{width:100vw}
+  .k-journey-svg{left:100vw;width:calc(100% - 140vw)}
+  .k-journey-num{font-size:120px}
+  .k-journey-main{width:190px;padding:20px}
+  .k-journey-main strong{font-size:38px}
+  .k-journey-stub{width:110px}
+}
+@media (prefers-reduced-motion:reduce){
+  .k-journey{height:auto}
+  .k-journey-track{flex-direction:column;width:auto}
+  .k-journey-svg{display:none}
+  .k-journey-step,.k-journey-step-0{width:auto;height:auto;padding:60px 24px}
+  .k-journey-search i{animation:none}
 }

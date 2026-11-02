@@ -40,16 +40,7 @@ export default async function Home() {
         <Marquee className="k-band-2" reverse speed={330} items={[...creators, ...creators].map(name => `de ${name}`)} />
       </div>
 
-      <section className="k-section">
-        <div className="k-wrap">
-          <div className="k-section-head is-center" data-reveal>
-            <span className="k-eyebrow">Comment ça marche</span>
-            <h2>Trois gestes, <span className="k-grad" style={{ whiteSpace: 'nowrap' }}>zéro code mort.</span></h2>
-            <p>On ne t&apos;envoie pas sur un site rempli de faux boutons. Tu trouves, tu détaches, le créateur est payé.</p>
-          </div>
-          <HowItWorks />
-        </div>
-      </section>
+      <HowItWorks example={featured[0] && { tool: featured[0].tool, code: featured[0].code, discount: featured[0].discount, creator: featured[0].creator }} />
 
       <section className="k-section" style={{ paddingTop: 40 }}>
         <div className="k-wrap">
