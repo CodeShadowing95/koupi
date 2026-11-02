@@ -58,6 +58,7 @@ Avant chaque commit : `npm run typecheck && npm test && npm run build` doivent p
   Un changement d'apparence de l'interface (CSS, design) est un `feat` ou un `fix`, pas un `style`.
 - **Seul `README.md`** peut être poussé directement. Tout le reste passe par une PR que Vastolorde relit et fusionne.
 - **Une PR = une étape** : petite, avec une description de ce qui change et comment le tester (voir `.github/pull_request_template.md`).
+- **Guide de l'admin** : toute fonctionnalité ajoutée, modifiée ou retirée dans l'espace admin met à jour le guide (`/admin/guide`) dans la même PR : le chapitre concerné dans `app/admin/guide/chapters.tsx`, et `lib/admin-guide.ts` pour les objectifs ou un nouveau chapitre.
 - **Décision d'architecture** (nouvelle dépendance importante, changement de service, de schéma ou de flux) : ajouter un ADR dans `docs/decisions/`.
 
 ## Cycle d'une fonctionnalité
