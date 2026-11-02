@@ -35,8 +35,12 @@ export function HowItWorks({ example }: { example?: HowItWorksExample }) {
       const pin = { trigger: section, start: 'top top', end: () => `+=${distance()}`, scrub: 1, invalidateOnRefresh: true };
 
       const slide = gsap.to(track, { x: () => -distance(), ease: 'none', scrollTrigger: { ...pin, pin: true } });
-      gsap.fromTo('.k-journey-line', { drawSVG: '0%' }, { drawSVG: '100%', ease: 'none', scrollTrigger: pin });
 
+      // La ligne part de l'étape 1 et sa pointe avance devant le lecteur jusqu'à la fin de l'étape 3.
+      gsap.fromTo('.k-journey-line', { drawSVG: '0%' }, {
+        drawSVG: '100%', ease: 'none',
+        scrollTrigger: { trigger: '.k-journey-svg', containerAnimation: slide, start: 'left 75%', end: 'right right', scrub: true },
+      });
       gsap.from('.k-journey-step-0 .k-journey-copy > *', { y: 60, autoAlpha: 0, stagger: 0.1, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: section, start: 'top 75%' } });
       gsap.utils.toArray<HTMLElement>('.k-journey-step:not(.k-journey-step-0)').forEach(step => {
         gsap.from(step.querySelectorAll('.k-journey-num, .k-journey-copy > *'), {
