@@ -80,6 +80,19 @@ function SeReperer() {
       ]} />
       <p>Les longues listes sont coupées en pages. En bas, tu choisis combien d’éléments afficher par page.</p>
     </Section>
+    <Section id="exporter" title="Exporter une liste">
+      <p>Chaque liste (propositions, codes, outils, créateurs, catégories) a un bouton <b>Exporter</b> en haut à droite. Il ouvre un petit menu avec deux formats :</p>
+      <Demo caption="Le bouton Exporter et son menu.">
+        <div className="gd-row"><Fake>Exporter ▾</Fake><span className="gd-sep" aria-hidden="true" /><Fake>Excel</Fake><Fake>CSV</Fake></div>
+      </Demo>
+      <Legend rows={[
+        { term: 'Excel (.xlsx)', meaning: 'Le plus pratique : s’ouvre directement dans Excel, Numbers ou Google Sheets, avec l’en-tête figé, des filtres sur chaque colonne et des colonnes à la bonne largeur.' },
+        { term: 'CSV (.csv)', meaning: 'Un fichier texte simple, lisible par tous les tableurs et par d’autres outils. À choisir pour importer les données ailleurs.' },
+      ]} />
+      <p>L’export contient <b>toute la liste</b>, archives comprises, quels que soient les filtres affichés à l’écran. Filtre ensuite dans le tableur.</p>
+      <Callout tone="warn" title="Rien de personnel dans les fichiers">Les exports ne contiennent jamais l’e-mail des visiteurs qui ont proposé un code : un fichier peut circuler, il ne doit rien contenir de personnel.</Callout>
+      <Callout tone="tip">Tu peux aussi lancer un export depuis la recherche <Key>⌘</Key> <Key>K</Key> : tape « exporter ».</Callout>
+    </Section>
     <Section id="panneau" title="Le panneau de détail">
       <p><b>Clique sur une carte</b> (ou sur une ligne du tableau) : un panneau glisse depuis la droite avec toutes les informations, sans quitter la liste. Les formulaires (« Modifier », « Nouveau code »…) s’ouvrent au même endroit, par-dessus.</p>
       <Demo caption="Les petits boutons carrés sont des raccourcis. Survole-les : une bulle dit ce qu’ils font.">
@@ -163,7 +176,7 @@ function Propositions() {
     </Section>
     <Section id="filtres" title="Retrouver une ancienne proposition">
       <p>Les onglets <b>Validées</b>, <b>Refusées</b>, <b>Doublons</b> et <b>Toutes</b> gardent l’historique. Tu peux filtrer par catégorie et par période (dates « Du » et « Au »). Une proposition refusée par erreur se remet en file avec <b>Remettre à traiter</b>.</p>
-      <Callout tone="warn" title="Les e-mails des visiteurs">Certains visiteurs laissent leur e-mail. Il sert uniquement à leur répondre : ne le copie nulle part. Les exports CSV ne le contiennent pas, exprès.</Callout>
+      <Callout tone="warn" title="Les e-mails des visiteurs">Certains visiteurs laissent leur e-mail. Il sert uniquement à leur répondre : ne le copie nulle part. Les exports (Excel ou CSV) ne le contiennent pas, exprès.</Callout>
     </Section>
   </>;
 }
@@ -206,7 +219,7 @@ function Codes() {
       <p>Pour corriger un code existant, ouvre-le et clique sur <b>Modifier</b> (ou l’icône crayon).</p>
     </Section>
     <Section id="export" title="Exporter">
-      <p><b>Exporter en CSV</b> télécharge la liste filtrée pour l’ouvrir dans un tableur. Utile pour un bilan ou pour préparer un message à une marque.</p>
+      <p><b>Exporter</b> télécharge tous les codes, archives comprises, en Excel ou en CSV. Utile pour un bilan ou pour préparer un message à une marque. Voir <Link href="/admin/guide/se-reperer#exporter">Exporter une liste</Link>.</p>
     </Section>
   </>;
 }
@@ -239,6 +252,9 @@ function Outils() {
       <p>Un outil fermé ou hors sujet s’<b>archive</b> depuis son panneau. Il disparaît du site avec ses codes, mais rien n’est perdu : l’onglet <b>Archivés</b> permet de le <b>restaurer</b>.</p>
       <Callout tone="warn">On ne supprime jamais un outil : il serait réimporté au prochain déploiement. L’archive est la bonne façon de le retirer.</Callout>
     </Section>
+    <Section id="exporter" title="Exporter les outils">
+      <p><b>Exporter</b> donne la liste complète en Excel ou en CSV : catégorie, site, priorité, nombre de codes, présence sur le site. Pratique pour trier les P1 sans code dans un tableur et se faire une liste de chasse.</p>
+    </Section>
   </>;
 }
 
@@ -260,6 +276,9 @@ function Createurs() {
       <p>Si un nom est mal écrit, <b>Renommer</b> le corrige partout d’un coup, sur tous ses codes.</p>
       <Callout tone="warn">Renommer change le nom affiché sur le site. Vérifie l’orthographe sur la chaîne du créateur avant de valider.</Callout>
     </Section>
+    <Section id="exporter" title="Exporter les créateurs">
+      <p><b>Exporter</b> donne tous les créateurs en Excel ou en CSV, avec leurs codes et les outils qu’ils recommandent. Utile pour préparer une prise de contact ou repérer ceux à suivre.</p>
+    </Section>
   </>;
 }
 
@@ -279,6 +298,9 @@ function Categories() {
     <Section id="gerer" title="Créer et renommer">
       <p><b>Nouvelle catégorie</b> en crée une ; <b>Renommer</b> change son nom partout. Garde des noms courts, au pluriel quand c’est naturel, compréhensibles par tout le monde (« Banques en ligne » plutôt que « Néobanques »).</p>
       <Callout tone="tip">Moins de catégories bien remplies valent mieux que beaucoup de catégories vides.</Callout>
+    </Section>
+    <Section id="exporter" title="Exporter les catégories">
+      <p><b>Exporter</b> donne chaque catégorie avec son nombre d’outils, ceux qui ont un code visible et sa couverture en pourcentage, en Excel ou en CSV.</p>
     </Section>
   </>;
 }

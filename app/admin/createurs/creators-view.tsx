@@ -10,6 +10,7 @@ import { FormDialog, sendJson } from '@/components/admin-form-dialog';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
 import { IconButton, IconLink, StatusDot } from '@/components/admin-card';
 import { initials } from '@/lib/admin-card';
+import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
 
 type Filter = 'all' | 'visible' | 'hidden';
@@ -50,6 +51,7 @@ export function CreatorsView({ creators }: { creators: AdminCreator[] }) {
             <h1>Créateurs</h1>
             <p>Les personnes à qui appartiennent les codes. Un créateur est ajouté automatiquement avec son premier code ; ici, tu corriges son nom et tu vois ce qu’il recommande.</p>
           </div>
+          <div className="adm-head-actions"><ExportMenu type="createurs" /></div>
         </div>
         <div className="adm-tabs" role="group" aria-label="Filtre">
           {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label} <span className="adm-tab-n">{countOf(item.value)}</span></button>)}
