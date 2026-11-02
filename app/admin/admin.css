@@ -997,3 +997,16 @@ html:has(> body > .ct){overflow:hidden}
 @keyframes adm-cmd-in{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
 @media(max-width:620px){.adm-dialog.adm-cmd{margin-top:8vh}.adm-cmd-foot span:not(:first-child){display:none}}
 @media(prefers-reduced-motion:reduce){.adm-cmd-panel,.adm-cmd-item,.adm-cmd-enter,.adm-cmd-results{transition:none;animation:none}.adm-cmd-spinner{animation-duration:2s}}
+/* Bouton « Exporter ▾ » et son menu (Excel / CSV). */
+.adm-export{position:relative;display:inline-flex}
+.adm-export-btn{display:inline-flex;align-items:center;gap:6px}
+.adm-export-btn svg{transition:transform .15s ease}
+.adm-export-btn[aria-expanded="true"] svg{transform:rotate(180deg)}
+.adm-export-menu{position:absolute;top:calc(100% + 6px);right:0;z-index:20;min-width:250px;padding:6px;background:var(--card);border:1px solid var(--line-strong);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.14);display:flex;flex-direction:column;gap:2px;animation:adm-export-in .14s ease-out}
+.admin-root .adm-export-menu a{display:flex;flex-direction:column;gap:1px;padding:8px 10px;border-radius:8px;color:var(--ink);text-decoration:none}
+.admin-root .adm-export-menu a:hover,.admin-root .adm-export-menu a:focus-visible{background:var(--blue-soft);color:var(--ink);outline:0}
+.adm-export-menu b{font-size:14px}
+.adm-export-menu span{font-size:12px;color:var(--muted)}
+@keyframes adm-export-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media(max-width:620px){.adm-export-menu{right:auto;left:0}}
+@media(prefers-reduced-motion:reduce){.adm-export-menu{animation:none}.adm-export-btn svg{transition:none}}

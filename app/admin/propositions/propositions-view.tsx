@@ -10,6 +10,7 @@ import { Pagination, usePagination } from '@/components/admin-pagination';
 import { AdminSelect } from '@/components/admin-select';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
 import { IconLink, StatusDot, type Tone } from '@/components/admin-card';
+import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
 type Submission = { id: string; tool_name: string; creator_name: string; code: string; discount_label: string; source_url: string; creator_link: string | null; comment: string | null; submitter_email: string | null; status: string; admin_note: string | null; created_at: string; category: string | null; created_code_id: string | null };
 const sortFields: SortField<Submission>[] = [
@@ -77,7 +78,7 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
             <h1>Propositions</h1>
             <p>Vérifie la source et décide ce qui peut entrer dans le catalogue public.</p>
           </div>
-          <div className="adm-head-actions"><a className="adm-btn" href="/api/admin/export?type=propositions" download>Exporter en CSV</a></div>
+          <div className="adm-head-actions"><ExportMenu type="propositions" /></div>
         </div>
         <div className="adm-toolbar">
           <div className="adm-filters">

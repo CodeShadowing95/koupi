@@ -27,7 +27,7 @@ describe('searchCommands', () => {
   });
   it('ignores accents and finds pages by keyword', () => {
     expect(searchCommands(index, 'editeur')[0].items[0]).toMatchObject({ label: 'Éditeur', detail: 'Création · archivé' });
-    expect(searchCommands(index, 'csv')[0].items.map(item => item.href)).toEqual(['/api/admin/export?type=codes', '/api/admin/export?type=propositions']);
+    expect(searchCommands(index, 'excel')[0].items.map(item => item.href)).toEqual(['codes', 'propositions', 'outils', 'createurs', 'categories'].map(type => `/api/admin/export?type=${type}&format=xlsx`));
   });
   it('caps each group', () => {
     const many = buildCommandIndex({ codes: Array.from({ length: 9 }, (_, i) => code(String(i), `X${i}`, 'Notion')), tools: [], creators: [], proposals: [] });

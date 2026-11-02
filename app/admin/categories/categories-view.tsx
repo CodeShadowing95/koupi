@@ -7,6 +7,7 @@ import { FormDialog, sendJson } from '@/components/admin-form-dialog';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
 import { matchesSearch } from '@/lib/admin-search';
 import { IconButton, IconLink, StatusDot } from '@/components/admin-card';
+import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
 
 const rate = (category: AdminCategory) => category.tools ? Math.round((category.covered / category.tools) * 100) : 0;
@@ -52,7 +53,7 @@ export function CategoriesView({ categories: all }: { categories: AdminCategory[
             <h1>Catégories</h1>
             <p>Elles rangent les outils sur le site. La couverture dit combien de leurs outils ont au moins un code visible : une catégorie à 0 est vide sur le site.</p>
           </div>
-          <div className="adm-head-actions"><button type="button" className="adm-btn adm-btn-pri" onClick={() => open('new')}>+ Nouvelle catégorie</button></div>
+          <div className="adm-head-actions"><ExportMenu type="categories" /><button type="button" className="adm-btn adm-btn-pri" onClick={() => open('new')}>+ Nouvelle catégorie</button></div>
         </div>
         <div className="adm-tabs" role="group" aria-label="Filtre">
           {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label} <span className="adm-tab-n">{countOf(item.value)}</span></button>)}
