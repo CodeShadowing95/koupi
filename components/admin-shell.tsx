@@ -3,6 +3,7 @@
 // La page de connexion garde un affichage simple, sans menu.
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import { PendingBadge } from '@/app/admin/pending-count';
 import { ThemeToggle } from '@/components/admin-theme';
 import { CommandPalette } from '@/components/admin-command';
@@ -21,6 +22,8 @@ const icons = {
   folder: icon(<path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H10l2 2.5h7.5A1.5 1.5 0 0 1 21 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z" />),
   book: icon(<><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v16H5.5A1.5 1.5 0 0 0 4 20.5z" /><path d="M4 20.5A1.5 1.5 0 0 0 5.5 22H20" /></>),
   external: icon(<><path d="M14 4h6v6" /><path d="M20 4 10 14" /><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></>),
+  menu: icon(<><path d="M4 7h16" /><path d="M4 12h16" /><path d="M4 17h16" /></>),
+  close: icon(<><path d="M6 6l12 12" /><path d="M18 6 6 18" /></>),
   logout: icon(<><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4" /><path d="M10 16l-4-4 4-4" /><path d="M6 12h10" /></>),
 };
 
@@ -66,6 +69,27 @@ function Logo() {
 export function AdminShell({ children, toTest = 0 }: { children: React.ReactNode; toTest?: number }) {
   const pathname = usePathname();
   const groups = navGroups(toTest);
+  // Mobile : le menu latéral devient un tiroir ouvert par le bouton ☰ de la barre du haut.
+  const [menuOpen, setMenuOpen] = useState(false);
+  const burger = useRef<HTMLButtonElement>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => { setMenuOpen(false); }, [pathname]);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setMenuOpen(false); };
+    const desktop = window.matchMedia('(min-width: 901px)');
+    const onResize = () => { if (desktop.matches) setMenuOpen(false); };
+    document.addEventListener('keydown', onKey);
+    desktop.addEventListener('change', onResize);
+    document.documentElement.classList.add('adm-menu-lock');
+    closeButton.current?.focus();
+    return () => {
+      if (!desktop.matches) burger.current?.focus();
+      document.removeEventListener('keydown', onKey);
+      desktop.removeEventListener('change', onResize);
+      document.documentElement.classList.remove('adm-menu-lock');
+    };
+  }, [menuOpen]);
   if (pathname.startsWith('/admin/login')) {
     // Portail de connexion : plein écran, sans barre du haut ; seul le bouton clair / sombre reste, en haut à droite.
     return (
@@ -80,9 +104,13 @@ export function AdminShell({ children, toTest = 0 }: { children: React.ReactNode
   const today = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   return (
     <>
-    <div className="adm-shell">
-      <nav className="adm-side" aria-label="Navigation admin">
-        <Link className="adm-brand" href="/admin" aria-label="Koupi, accueil admin"><Logo /><span className="admin-badge">Admin</span></Link>
+    <div className="adm-shell" data-menu={menuOpen ? 'open' : undefined}>
+      <div className="adm-side-backdrop" aria-hidden="true" onClick={() => setMenuOpen(false)} />
+      <nav className="adm-side" id="adm-side" aria-label="Navigation admin">
+        <div className="adm-side-head">
+          <Link className="adm-brand" href="/admin" aria-label="Koupi, accueil admin"><Logo /><span className="admin-badge">Admin</span></Link>
+          <button type="button" ref={closeButton} className="adm-icon-btn adm-side-close" aria-label="Fermer le menu" onClick={() => setMenuOpen(false)}>{icons.close}</button>
+        </div>
         {groups.map(group => (
           <div className="adm-side-group" key={group.label}>
             <span className="adm-side-label">{group.label}</span>
@@ -100,6 +128,7 @@ export function AdminShell({ children, toTest = 0 }: { children: React.ReactNode
       </nav>
       <div className="adm-main">
         <header className="adm-top">
+          <Link className="adm-brand adm-top-brand" href="/admin" aria-label="Koupi, accueil admin"><Logo /><span className="admin-badge">Admin</span></Link>
           <nav className="adm-crumbs" aria-label="Fil d’Ariane">
             {current && current !== '/admin' ? <><Link href="/admin">Accueil</Link> / <b>{titles[current]}</b></> : <b>Accueil</b>}
           </nav>
@@ -107,6 +136,7 @@ export function AdminShell({ children, toTest = 0 }: { children: React.ReactNode
             <CommandPalette />
             <span className="adm-today" suppressHydrationWarning>{today.charAt(0).toUpperCase() + today.slice(1)}</span>
             <ThemeToggle />
+            <button type="button" ref={burger} className="adm-icon-btn adm-burger" aria-label="Ouvrir le menu" aria-expanded={menuOpen} aria-controls="adm-side" onClick={() => setMenuOpen(true)}>{icons.menu}</button>
           </div>
         </header>
         {children}
