@@ -1,8 +1,8 @@
 // Podcasts suivis (table watched_sources, plateforme « podcast ») : l'admin les choisit dans l'annuaire Apple Podcasts.
 // Suivre un podcast crée aussi son créateur (au nom du podcast) et relie le compte « podcast » à ce créateur.
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, eq, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
-import { creatorAccounts, creators, watchedSources } from '@/db/schema';
+import { codes, creatorAccounts, creators, watchedSources } from '@/db/schema';
 import { resolveCreator } from './codes-admin';
 import type { PodcastFeed } from './apple-podcasts';
 
@@ -11,6 +11,8 @@ type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 export type AdminPodcast = {
   id: string; feedId: string; title: string; feedUrl: string | null; active: boolean;
   lastFetchedAt: string | null; createdAt: string; creatorId: string | null; creatorName: string | null; creatorSlug: string | null;
+  /** Codes dont la source est un épisode de ce podcast (tous statuts, hors archivés). */
+  codesFound: number;
 };
 
 /** Page publique d'un podcast sur Apple Podcasts : sert de lien quand l'annuaire n'en donne pas. */
@@ -19,14 +21,15 @@ export function applePodcastUrl(podcastId: number | string, episodeId?: number):
 }
 
 export async function listPodcasts(db: Db): Promise<AdminPodcast[]> {
-  const rows = await db.select({ source: watchedSources, creator: { name: creators.name, slug: creators.slug } })
+  const found = sql<number>`(select count(*) from ${codes} where ${codes.archivedAt} is null and ${codes.sourceUrl} ~ ('^https://podcasts\\.apple\\.com/.*/id' || ${watchedSources.externalId} || '\\?'))`.mapWith(Number);
+  const rows = await db.select({ source: watchedSources, creator: { name: creators.name, slug: creators.slug }, found })
     .from(watchedSources).leftJoin(creators, eq(creators.id, watchedSources.creatorId))
     .where(eq(watchedSources.platform, 'podcast'))
     .orderBy(asc(watchedSources.title));
-  return rows.map(({ source, creator }) => ({
+  return rows.map(({ source, creator, found }) => ({
     id: source.id, feedId: source.externalId, title: source.title, feedUrl: source.feedUrl, active: source.active,
     lastFetchedAt: source.lastFetchedAt?.toISOString() ?? null, createdAt: source.createdAt.toISOString(),
-    creatorId: source.creatorId, creatorName: creator?.name ?? null, creatorSlug: creator?.slug ?? null,
+    creatorId: source.creatorId, creatorName: creator?.name ?? null, creatorSlug: creator?.slug ?? null, codesFound: found,
   }));
 }
 
