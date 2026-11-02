@@ -8,6 +8,7 @@ import { ToolSeal } from '@/components/site/tool-logo';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { VoteButtons } from '@/components/site/vote-buttons';
 import { CodeBadge } from '@/components/site/code-badge';
+import { CreatorMark } from '@/components/site/creator-mark';
 import { expiryOf } from '@/lib/code-expiry';
 
 function votesLabel(code: Code) {
@@ -59,7 +60,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                 <div className="k-ticket-who">
                   <CreatorAvatar name={best.creator} style={{ width: 52, height: 52 }} />
                   <span>
-                    <strong><Link href={routes.creator(best.creatorSlug)}>{best.creator}</Link></strong>
+                    <strong><Link href={routes.creator(best.creatorSlug)}>{best.creator}</Link><CreatorMark level={best.creatorLevel} compact /></strong>
                     <span>l&apos;a donné dans « {best.sourceTitle} » · <a href={best.source} target="_blank" rel="noopener noreferrer">voir la vidéo ↗</a></span>
                   </span>
                 </div>
@@ -91,7 +92,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                         code={code.code}
                         link={code.creatorLink || tool.website}
                         avatar={<CreatorAvatar name={code.creator} />}
-                        title={<>{code.creator} · {code.discount}</>}
+                        title={<>{code.creator}<CreatorMark level={code.creatorLevel} compact /> · {code.discount}</>}
                         subtitle={code.sourceTitle}
                       />
                       <div className="k-coupon-meta">

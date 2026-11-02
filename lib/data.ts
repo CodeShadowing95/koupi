@@ -1,5 +1,7 @@
 // Types du catalogue (outils, codes, catégories) et fonctions pures pour les lire.
 // Les données viennent de la base (lib/catalog-db.ts), chargées côté serveur par getCatalog() (lib/catalog-server.ts).
+import type { CreatorLevel } from './verification';
+
 export type Category = { slug: string; name: string; count: number; tracked: number };
 export type Tool = { slug: string; name: string; category: string; website: string; description: string; priority: number; codes: number };
 export type CodeStatus = 'verified' | 'to_test' | 'pending' | 'rejected';
@@ -13,6 +15,8 @@ export type Code = {
   /** Date de fin AAAA-MM-JJ écrite par le créateur, null s'il n'y en a pas. */
   expiresOn: string | null;
   createdAt: string;
+  /** Niveau du créateur, absent tant qu'il est seulement « repéré ». */
+  creatorLevel?: Exclude<CreatorLevel, 'spotted'>;
   /** Seulement dans l'admin : code retiré du site et des statistiques. */
   archived?: boolean;
 };

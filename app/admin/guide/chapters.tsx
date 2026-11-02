@@ -359,6 +359,7 @@ function Createurs() {
         { term: <StatusDot tone="info">{CREATOR_LEVEL_LABELS.verified}</StatusDot>, meaning: 'Le créateur a prouvé lui-même que le compte est à lui. Ce sera possible avec l’espace créateur, plus tard.' },
       ]} />
       <p>Le filtre <b>À contrôler</b> liste les créateurs déjà sur le site mais encore repérés : commence par eux.</p>
+      <p>Sur le site, un créateur contrôlé ou vérifié porte une coche verte à côté de son nom, et la mention <b>✓ Contrôlé par Koupi</b> (ou <b>✓ Créateur vérifié</b>) sur sa page. Un créateur repéré n’a aucune marque.</p>
     </Section>
     <Section id="comptes" title="Relier et contrôler un compte">
       <Steps>
