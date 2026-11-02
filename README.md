@@ -146,7 +146,7 @@ La commande met à jour `package.json`, ce README et le [changelog](CHANGELOG.md
 ## Contribuer
 
 1. Partir de `develop` sur une branche `dev-<sujet>`.
-2. Commits et titre de PR au format `<type>(<scope>): <description>`, en anglais (ex. `feat(search): add category filter`).
+2. Commits et titre de PR au format `<type>(<scope>): <description>`, en anglais (ex. `feat(search): Add category filter`), la description commençant par une majuscule.
 3. Vérifier en local : `npm run typecheck && npm test && npm run build`.
 4. Ouvrir une PR vers `develop` en suivant le [modèle](.github/pull_request_template.md). La CI doit être verte avant le merge.
 
