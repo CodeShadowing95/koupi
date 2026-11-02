@@ -541,3 +541,48 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
   .k-journey-step,.k-journey-step-0{width:auto;height:auto;padding:60px 24px}
   .k-journey-search i{animation:none}
 }
+
+/* « Par catégorie » en présentoir de coupons (components/site/category-display.tsx) */
+.k-display-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:84px 18px;padding-top:92px}
+.k-display{position:relative;display:block;isolation:isolate;outline:none}
+.k-display:hover,.k-display:focus-visible{z-index:5}
+.k-display-front{position:relative;z-index:4;display:flex;flex-direction:column;gap:12px;min-height:220px;padding:22px 22px 18px;border-radius:18px;background:var(--paper);color:var(--paper-ink);
+  box-shadow:0 24px 50px -24px rgba(0,0,0,.7);transition:transform .45s cubic-bezier(.2,.9,.3,1.2),box-shadow .3s;
+  -webkit-mask:radial-gradient(circle at 0 62%,transparent 10px,#000 11px) left/51% 100% no-repeat,radial-gradient(circle at 100% 62%,transparent 10px,#000 11px) right/51% 100% no-repeat;
+  mask:radial-gradient(circle at 0 62%,transparent 10px,#000 11px) left/51% 100% no-repeat,radial-gradient(circle at 100% 62%,transparent 10px,#000 11px) right/51% 100% no-repeat}
+.k-display-front::after{content:"";position:absolute;left:16px;right:16px;top:62%;border-top:2px dashed rgba(23,21,15,.16)}
+.k-display:hover .k-display-front,.k-display:focus-visible .k-display-front{transform:translateY(6px)}
+.k-display:focus-visible .k-display-front{box-shadow:0 0 0 3px var(--blue-soft),0 24px 50px -24px rgba(0,0,0,.7)}
+.k-display-logos{display:flex}
+.k-display-logos .k-tool-logo{width:34px;height:34px;border-radius:11px;font-size:14px;margin-left:-8px;box-shadow:0 0 0 2.5px var(--paper)}
+.k-display-logos .k-tool-logo:first-child{margin-left:0}
+.k-display-name{font-family:var(--display);font-size:24px;font-weight:800;letter-spacing:-.03em;line-height:1.05}
+.k-display-best{display:flex;flex-direction:column;gap:2px;margin-top:auto}
+.k-display-best small{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--paper-muted)}
+.k-display-best em{font-style:normal;font-family:var(--display);font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--coral);line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.k-display-foot{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--paper-muted)}
+.k-display-foot svg{margin-left:auto;flex:none;transition:transform .25s}
+.k-display:hover .k-display-foot svg{transform:translateX(4px);color:var(--paper-ink)}
+/* Les coupons rangés dans le présentoir : ils dépassent un peu, puis sortent en éventail. */
+.k-display-fan{position:absolute;left:10px;right:10px;top:0;height:0;z-index:1}
+.k-display-ticket{--y:-14px;--x:0px;--r:0deg;position:absolute;left:0;right:0;top:0;display:flex;align-items:flex-start;gap:10px;height:58px;padding:9px 10px 0 14px;border-radius:12px;background:var(--paper-2);color:var(--paper-ink);
+  border-left:6px dotted var(--tint);box-shadow:0 10px 24px -10px rgba(0,0,0,.6);transform:translate(var(--x),var(--y)) rotate(var(--r));transition:transform .5s cubic-bezier(.2,.9,.3,1.25)}
+.k-display-ticket-1{--tint:var(--coral);--y:-42px;--r:-1.5deg;z-index:3}
+.k-display-ticket-2{--tint:var(--blue-hi);--y:-51px;--r:1.5deg;z-index:2}
+.k-display-ticket-3{--tint:var(--mint);--y:-60px;--r:-1deg;z-index:1}
+.k-display:hover .k-display-ticket-1,.k-display:focus-visible .k-display-ticket-1{--y:-58px;--x:-6px;--r:-2deg}
+.k-display:hover .k-display-ticket-2,.k-display:focus-visible .k-display-ticket-2{--y:-100px;--x:8px;--r:2.5deg;transition-delay:.04s}
+.k-display:hover .k-display-ticket-3,.k-display:focus-visible .k-display-ticket-3{--y:-142px;--x:-4px;--r:-3deg;transition-delay:.08s}
+.k-display-ticket .k-tool-logo{width:30px;height:30px;border-radius:9px;font-size:13px}
+.k-display-ticket-text{display:flex;flex-direction:column;min-width:0;flex:1}
+.k-display-ticket-text strong{font-size:13px;font-weight:800;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.k-display-ticket-text small{font-size:11px;color:var(--paper-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.k-display-ticket-code{flex:none;max-width:42%;padding:4px 8px;border-radius:7px;border:1.5px dashed rgba(23,21,15,.35);font-size:11px;font-weight:700;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:1000px){.k-display-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){
+  .k-display-grid{grid-template-columns:1fr;gap:76px;padding-top:72px}
+  .k-display-front{min-height:190px}
+}
+@media (prefers-reduced-motion:reduce){
+  .k-display-ticket,.k-display-front{transition:none}
+}

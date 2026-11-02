@@ -10,6 +10,7 @@ import { ToolSeal } from '@/components/site/tool-logo';
 import { Counter } from '@/components/site/counter';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { CreatorsOrbit } from '@/components/site/creators-orbit';
+import { CategoryDisplay } from '@/components/site/category-display';
 
 const Arrow = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
@@ -128,14 +129,7 @@ export default async function Home() {
             </div>
             <Link className="k-btn k-btn-ghost k-btn-sm" href={routes.categories}>Toutes les catégories <Arrow /></Link>
           </div>
-          <div className="k-cat-grid">
-            {categories.filter(category => category.count > 0).map(category => (
-              <Link className="k-cat" href={routes.category(category.slug)} key={category.slug} data-reveal>
-                <strong>{category.name}</strong>
-                <span>{category.count} outils <Arrow /></span>
-              </Link>
-            ))}
-          </div>
+          <CategoryDisplay categories={categories.filter(category => category.count > 0)} tools={tools} codes={live} />
         </div>
       </section>
 
