@@ -4,11 +4,30 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { StatusDot } from '@/components/admin-card';
+import { IconButton, StatusDot } from '@/components/admin-card';
+import { Pagination, usePagination } from '@/components/admin-pagination';
+import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
+import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
+import { matchesSearch } from '@/lib/admin-search';
 import { sendJson } from '@/components/admin-form-dialog';
 import type { AdminPodcast } from '@/lib/podcasts-admin';
 import type { PodcastFeed } from '@/lib/apple-podcasts';
 import type { PodcastReadReport } from '@/lib/podcast-read';
+
+type Filter = 'all' | 'active' | 'paused' | 'never' | 'codes';
+const filters: { value: Filter; label: string }[] = [
+  { value: 'all', label: 'Tous' }, { value: 'active', label: 'Lus chaque nuit' }, { value: 'paused', label: 'En pause' },
+  { value: 'never', label: 'Jamais lus' }, { value: 'codes', label: 'Avec codes trouvés' },
+];
+const matches = (podcast: AdminPodcast, filter: Filter) =>
+  filter === 'all' || (filter === 'active' ? podcast.active : filter === 'paused' ? !podcast.active : filter === 'never' ? !podcast.lastFetchedAt : podcast.codesFound > 0);
+
+const sortFields: SortField<AdminPodcast>[] = [
+  { key: 'title', label: 'Nom', value: podcast => podcast.title, text: true },
+  { key: 'followed', label: 'Date de suivi', value: podcast => podcast.createdAt },
+  { key: 'read', label: 'Dernière lecture', value: podcast => podcast.lastFetchedAt ?? '' },
+  { key: 'codes', label: 'Codes trouvés', value: podcast => podcast.codesFound },
+];
 
 const dayFormat = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Paris' });
 const day = (iso: string) => dayFormat.format(new Date(iso));
@@ -22,6 +41,15 @@ export function PodcastsView({ podcasts, images, starters }: { podcasts: AdminPo
   const [error, setError] = useState('');
   const [report, setReport] = useState<PodcastReadReport | null>(null);
   const followed = new Set(podcasts.map(podcast => podcast.feedId));
+  const [panel, setPanel] = useState<'list' | 'add'>(podcasts.length ? 'list' : 'add');
+  const [filter, setFilter] = useState<Filter>('all');
+  const [listQuery, setListQuery] = useState('');
+  const [view, setView] = useAdminView();
+  const filtered = podcasts.filter(podcast => matches(podcast, filter) && matchesSearch([podcast.title, podcast.creatorName ?? ''], listQuery));
+  const sort = useAdminSort(filtered, sortFields, 'title');
+  const visible = sort.items;
+  const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${filter}|${listQuery}|${sort.resetKey}`);
+  const countOf = (value: Filter) => podcasts.filter(podcast => matches(podcast, value)).length;
 
   async function search(term: string) {
     const q = term.trim();
@@ -70,6 +98,23 @@ export function PodcastsView({ podcasts, images, starters }: { podcasts: AdminPo
     void act(`${podcast.id}-delete`, () => sendJson(`/api/admin/podcasts/${podcast.id}`, 'DELETE', {}));
   };
 
+  const artwork = (podcast: AdminPodcast, size: number) => images[podcast.feedId]
+    ? <img className="adm-pod-art" src={images[podcast.feedId]} alt="" width={size} height={size} loading="lazy" />
+    : <span className="adm-pod-art adm-pod-noimg" aria-hidden="true" />;
+  const state = (podcast: AdminPodcast) => <StatusDot tone={podcast.active ? 'ok' : 'muted'}>{podcast.active ? 'Lu chaque nuit' : 'En pause'}</StatusDot>;
+  const lastRead = (podcast: AdminPodcast) => podcast.lastFetchedAt ? `Lu le ${day(podcast.lastFetchedAt)}` : 'Pas encore lu';
+  const creatorLink = (podcast: AdminPodcast) => podcast.creatorName ? <Link href={`/admin/createurs?q=${encodeURIComponent(podcast.creatorName)}`}>{podcast.creatorName}</Link> : '—';
+  const codesLink = (podcast: AdminPodcast) => podcast.codesFound
+    ? <Link href={`/admin/codes?q=${encodeURIComponent(podcast.creatorName ?? podcast.title)}`}>{podcast.codesFound} code{podcast.codesFound > 1 ? 's' : ''} trouvé{podcast.codesFound > 1 ? 's' : ''}</Link>
+    : <span className="muted">Aucun code trouvé</span>;
+  const actions = (podcast: AdminPodcast, compact = false) => <>
+    <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => read(podcast)}>{busy === `${podcast.id}-read` ? 'Lecture…' : 'Lire'}</button>
+    <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => toggle(podcast)}>{podcast.active ? 'Pause' : 'Reprendre'}</button>
+    {compact
+      ? <span className="adm-card-push"><IconButton icon="cross" tone="bad" label={`Ne plus suivre ${podcast.title}`} disabled={busy !== null} onClick={() => remove(podcast)} /></span>
+      : <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => remove(podcast)}>Ne plus suivre</button>}
+  </>;
+
   return (
     <main className="adm-page">
       <div className="container">
@@ -95,70 +140,103 @@ export function PodcastsView({ podcasts, images, starters }: { podcasts: AdminPo
           </div>
         )}
 
-        <section className="adm-pod-search" aria-labelledby="pod-search-title">
-          <h2 id="pod-search-title">Ajouter un podcast</h2>
-          <form className="adm-toolbar" onSubmit={event => { event.preventDefault(); void search(query); }}>
-            <label htmlFor="pod-q" className="sr-only">Nom du podcast</label>
-            <input id="pod-q" className="adm-search" type="search" placeholder="Nom du podcast…" value={query} maxLength={120} onChange={event => setQuery(event.target.value)} />
-            <button type="submit" className="adm-btn adm-btn-pri" disabled={searching}>{searching ? 'Recherche…' : 'Chercher'}</button>
-          </form>
-          <div className="adm-pod-starters">
-            <span className="muted">Pour démarrer :</span>
-            {starters.map(name => <button key={name} type="button" className="adm-pod-chip" disabled={searching} onClick={() => search(name)}>{name}</button>)}
-          </div>
-          {results && (results.length === 0 ? <div className="adm-empty">Aucun podcast trouvé dans Apple Podcasts.</div> : (
-            <ul className="adm-pod-results">
-              {results.map(feed => {
-                const already = followed.has(String(feed.id));
-                return (
-                  <li key={feed.id} className="adm-pod-result">
-                    {feed.image ? <img src={feed.image} alt="" width={56} height={56} loading="lazy" /> : <span className="adm-pod-noimg" aria-hidden="true" />}
-                    <div className="adm-pod-info">
-                      <b>{feed.title}</b>
-                      <small>{[feed.author, feed.genre, feed.episodeCount ? `${feed.episodeCount} épisodes` : ''].filter(Boolean).join(' · ')}</small>
-                    </div>
-                    {feed.link && <a href={feed.link} target="_blank" rel="noopener noreferrer" className="adm-btn">Écouter ↗</a>}
-                    {already
-                      ? <span className="adm-pod-done">Déjà suivi</span>
-                      : <button type="button" className="adm-btn adm-btn-pri" disabled={busy !== null} onClick={() => follow(feed)}>{busy === `follow-${feed.id}` ? 'Ajout…' : 'Suivre'}</button>}
-                  </li>
-                );
-              })}
-            </ul>
-          ))}
-        </section>
+        <div className="adm-pod-panels" role="tablist" aria-label="Podcasts">
+          <button type="button" role="tab" id="pod-tab-list" aria-controls="pod-panel-list" aria-selected={panel === 'list'} className="adm-pod-panel-tab" onClick={() => setPanel('list')}>Suivis <span className="adm-tab-n">{podcasts.length}</span></button>
+          <button type="button" role="tab" id="pod-tab-add" aria-controls="pod-panel-add" aria-selected={panel === 'add'} className="adm-pod-panel-tab" onClick={() => setPanel('add')}>+ Ajouter un podcast</button>
+        </div>
 
         {error && <div className="notice notice-error" role="alert">{error}</div>}
 
-        <h2 className="adm-pod-title">Suivis <span className="adm-tab-n">{podcasts.length}</span></h2>
-        {podcasts.length === 0 ? <div className="adm-empty">Aucun podcast suivi pour l’instant. Cherche-en un ci-dessus, ou clique sur un nom pour démarrer.</div> : (
-          <div className="adm-table-wrap">
-            <table className="adm-table">
-              <thead><tr><th scope="col">Podcast</th><th scope="col">Créateur</th><th scope="col">État</th><th scope="col">Dernière lecture</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
-              <tbody>
-                {podcasts.map(podcast => (
-                  <tr key={podcast.id}>
-                    <td className="adm-cell-wrap">
-                      <div className="adm-pod-cell">
-                        {images[podcast.feedId] ? <img src={images[podcast.feedId]} alt="" width={40} height={40} loading="lazy" /> : <span className="adm-pod-noimg" aria-hidden="true" />}
-                        <div><b>{podcast.title}</b><br /><small className="muted">Suivi depuis le {day(podcast.createdAt)}</small></div>
+        {panel === 'add' ? (
+          <section className="adm-pod-search" id="pod-panel-add" role="tabpanel" aria-labelledby="pod-tab-add">
+            <p className="muted">Cherche un podcast dans l’annuaire Apple Podcasts, puis clique sur <b>Suivre</b>. Il rejoint l’onglet Suivis.</p>
+            <form className="adm-toolbar" onSubmit={event => { event.preventDefault(); void search(query); }}>
+              <label htmlFor="pod-q" className="sr-only">Nom du podcast</label>
+              <input id="pod-q" className="adm-search" type="search" placeholder="Nom du podcast…" value={query} maxLength={120} onChange={event => setQuery(event.target.value)} />
+              <button type="submit" className="adm-btn adm-btn-pri" disabled={searching}>{searching ? 'Recherche…' : 'Chercher'}</button>
+            </form>
+            <div className="adm-pod-starters">
+              <span className="muted">Pour démarrer :</span>
+              {starters.map(name => <button key={name} type="button" className="adm-pod-chip" disabled={searching} onClick={() => search(name)}>{name}</button>)}
+            </div>
+            {results && (results.length === 0 ? <div className="adm-empty">Aucun podcast trouvé dans Apple Podcasts.</div> : (
+              <ul className="adm-pod-results">
+                {results.map(feed => {
+                  const already = followed.has(String(feed.id));
+                  return (
+                    <li key={feed.id} className="adm-pod-result">
+                      {feed.image ? <img src={feed.image} alt="" width={56} height={56} loading="lazy" /> : <span className="adm-pod-noimg" aria-hidden="true" />}
+                      <div className="adm-pod-info">
+                        <b>{feed.title}</b>
+                        <small>{[feed.author, feed.genre, feed.episodeCount ? `${feed.episodeCount} épisodes` : ''].filter(Boolean).join(' · ')}</small>
                       </div>
-                    </td>
-                    <td>{podcast.creatorName ? <Link href={`/admin/createurs?q=${encodeURIComponent(podcast.creatorName)}`}>{podcast.creatorName}</Link> : '—'}</td>
-                    <td><StatusDot tone={podcast.active ? 'ok' : 'muted'}>{podcast.active ? 'Lu chaque nuit' : 'En pause'}</StatusDot></td>
-                    <td className="adm-cell-muted">{podcast.lastFetchedAt ? day(podcast.lastFetchedAt) : 'Pas encore lu'}</td>
-                    <td>
-                      <div className="adm-cell-actions">
-                        <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => read(podcast)}>{busy === `${podcast.id}-read` ? 'Lecture…' : 'Lire'}</button>
-                        <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => toggle(podcast)}>{podcast.active ? 'Mettre en pause' : 'Reprendre'}</button>
-                        <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => remove(podcast)}>Ne plus suivre</button>
+                      {feed.link && <a href={feed.link} target="_blank" rel="noopener noreferrer" className="adm-btn">Écouter ↗</a>}
+                      {already
+                        ? <span className="adm-pod-done">Déjà suivi</span>
+                        : <button type="button" className="adm-btn adm-btn-pri" disabled={busy !== null} onClick={() => follow(feed)}>{busy === `follow-${feed.id}` ? 'Ajout…' : 'Suivre'}</button>}
+                    </li>
+                  );
+                })}
+              </ul>
+            ))}
+          </section>
+        ) : (
+          <section id="pod-panel-list" role="tabpanel" aria-labelledby="pod-tab-list">
+            {podcasts.length === 0 ? (
+              <div className="adm-empty">Aucun podcast suivi pour l’instant. <button type="button" className="adm-btn" onClick={() => setPanel('add')}>Ajouter un podcast</button></div>
+            ) : <>
+              <div className="adm-tabs" role="group" aria-label="Filtre">
+                {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label} <span className="adm-tab-n">{countOf(item.value)}</span></button>)}
+              </div>
+              <div className="adm-toolbar">
+                <label htmlFor="pod-search" className="sr-only">Rechercher un podcast suivi</label>
+                <input id="pod-search" className="adm-search" type="search" placeholder="Rechercher un podcast, un créateur…" value={listQuery} onChange={event => setListQuery(event.target.value)} />
+                {view !== 'table' && <SortControl sort={sort} id="pod-sort" />}
+                <span className="adm-count" role="status">{visible.length} sur {countOf(filter)}</span>
+                <ViewToggle view={view} onChange={setView} />
+              </div>
+              <LetterBar sort={sort} />
+              <div ref={topRef} className="adm-list-top" />
+              {visible.length === 0 ? <div className="adm-empty">Aucun podcast ne correspond.</div> : view === 'table' ? (
+                <div className="adm-table-wrap adm-page-enter" key={`table-${current.page}`}>
+                  <table className="adm-table adm-pod-table">
+                    <thead><tr><SortHeader sort={sort} field="title">Podcast</SortHeader><th scope="col">Créateur</th><th scope="col">État</th><SortHeader sort={sort} field="read">Dernière lecture</SortHeader><SortHeader sort={sort} field="codes">Codes</SortHeader><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
+                    <tbody>
+                      {current.items.map(podcast => (
+                        <tr key={podcast.id}>
+                          <td className="adm-cell-wrap">
+                            <div className="adm-pod-cell">
+                              {artwork(podcast, 40)}
+                              <div><b>{podcast.title}</b><br /><small className="muted">Suivi le {day(podcast.createdAt)}</small></div>
+                            </div>
+                          </td>
+                          <td>{creatorLink(podcast)}</td>
+                          <td>{state(podcast)}</td>
+                          <td className="adm-cell-muted">{lastRead(podcast)}</td>
+                          <td className="adm-cell-nowrap">{podcast.codesFound ? <Link href={`/admin/codes?q=${encodeURIComponent(podcast.creatorName ?? podcast.title)}`}>{podcast.codesFound}</Link> : <span className="muted">0</span>}</td>
+                          <td><div className="adm-cell-actions">{actions(podcast, true)}</div></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="adm-grid adm-page-enter" key={`grid-${current.page}`}>
+                  {current.items.map(podcast => (
+                    <article className="adm-card" key={podcast.id}>
+                      <div className="adm-card-row">
+                        <div className="adm-card-id">{artwork(podcast, 40)}<div><b title={podcast.title}>{podcast.title}</b><small>{podcast.creatorName ?? 'Sans créateur'}</small></div></div>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      <div className="adm-card-row">{state(podcast)}<span className="adm-card-date">{lastRead(podcast)}</span></div>
+                      <p className="adm-card-sub">{codesLink(podcast)}</p>
+                      <div className="adm-card-foot">{actions(podcast, true)}</div>
+                    </article>
+                  ))}
+                </div>
+              )}
+              <Pagination current={current} onChange={goTo} label="podcasts" size={size} onSizeChange={changeSize} />
+            </>}
+          </section>
         )}
       </div>
     </main>

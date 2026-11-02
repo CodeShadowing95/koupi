@@ -313,9 +313,9 @@ function Podcasts() {
     </Section>
     <Section id="ajouter" title="Ajouter un podcast">
       <Steps>
-        <Step title="Cherche-le">Tape son nom dans <b>Ajouter un podcast</b> puis <b>Chercher</b>. Koupi interroge l’annuaire d’Apple Podcasts, gratuit et sans clé. Les noms sous le champ sont les podcasts conseillés pour démarrer : un clic lance la recherche.</Step>
+        <Step title="Cherche-le">La page a deux onglets : <b>Suivis</b> (ta liste) et <b>+ Ajouter un podcast</b>. Dans le second, tape le nom du podcast puis <b>Chercher</b>. Koupi interroge l’annuaire d’Apple Podcasts, gratuit et sans clé. Les noms sous le champ sont les podcasts conseillés pour démarrer : un clic lance la recherche.</Step>
         <Step title="Vérifie que c’est le bon">L’auteur, le genre et le nombre d’épisodes aident à éviter les homonymes. <b>Écouter</b> ouvre sa page Apple Podcasts.</Step>
-        <Step title="Clique sur Suivre">Le podcast rejoint la liste des suivis. Koupi crée aussi son <b>créateur</b> (au nom du podcast) et y relie un compte « Podcast » : les codes trouvés seront crédités à ce créateur. Tu peux le renommer ou lui relier ses autres réseaux dans <Link href="/admin/createurs">Créateurs</Link>.</Step>
+        <Step title="Clique sur Suivre">Le podcast rejoint l’onglet Suivis. Koupi crée aussi son <b>créateur</b> (au nom du podcast) et y relie un compte « Podcast » : les codes trouvés seront crédités à ce créateur. Tu peux le renommer ou lui relier ses autres réseaux dans <Link href="/admin/createurs">Créateurs</Link>.</Step>
       </Steps>
     </Section>
     <Section id="liste" title="La liste des suivis">
@@ -323,7 +323,8 @@ function Podcasts() {
         { term: <StatusDot tone="ok">Lu chaque nuit</StatusDot>, meaning: 'Le podcast est suivi : ses nouveaux épisodes seront lus.' },
         { term: <StatusDot tone="muted">En pause</StatusDot>, meaning: 'Le podcast reste dans la liste mais n’est plus lu. Pratique pour un podcast qui ne donne plus de codes, sans le perdre.' },
       ]} />
-      <p><b>Dernière lecture</b> dit quand ses épisodes ont été lus pour la dernière fois. <b>Ne plus suivre</b> le retire de la liste : son créateur, son compte et ses codes restent.</p>
+      <p><b>Dernière lecture</b> dit quand ses épisodes ont été lus pour la dernière fois, et <b>Codes trouvés</b> combien de codes viennent de ses épisodes (un clic les ouvre dans Codes). <b>Ne plus suivre</b> le retire de la liste : son créateur, son compte et ses codes restent.</p>
+      <p>Comme les autres listes, l’onglet Suivis se filtre (Tous, Lus chaque nuit, En pause, Jamais lus, Avec codes trouvés), se cherche par nom de podcast ou de créateur, se trie, s’affiche en cartes ou en tableau et se lit page par page.</p>
     </Section>
     <Section id="lecture" title="La lecture des épisodes">
       <Steps>

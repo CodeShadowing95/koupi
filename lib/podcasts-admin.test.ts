@@ -72,6 +72,23 @@ describe('podcasts suivis', () => {
     expect(await listPodcasts(db)).toEqual([]);
   });
 
+  it('compte les codes venus des épisodes de chaque podcast', async () => {
+    await followPodcast(db, feed());
+    await followPodcast(db, feed({ id: 420, title: 'Autre' }));
+    await db.insert(schema.categories).values({ slug: 'vpn', name: 'VPN' });
+    const [tool] = await db.insert(schema.tools).values({ slug: 'nordvpn', name: 'NordVPN', categorySlug: 'vpn', website: 'https://nordvpn.com' }).returning();
+    const [silicon] = await listPodcasts(db).then(list => list.filter(item => item.feedId === '42'));
+    const code = (value: string, sourceUrl: string, archived = false) => ({ toolId: tool.id, creatorId: silicon.creatorId!, code: value, discount: '-10 %', sourceUrl, archivedAt: archived ? new Date() : null });
+    await db.insert(schema.codes).values([
+      code('A', 'https://podcasts.apple.com/fr/podcast/titre/id42?i=1&uo=4'),
+      code('B', 'https://podcasts.apple.com/podcast/id42?i=2'),
+      code('C', 'https://podcasts.apple.com/podcast/id42?i=3', true),
+      code('D', 'https://www.youtube.com/watch?v=abc'),
+    ]);
+    const counts = Object.fromEntries((await listPodcasts(db)).map(item => [item.feedId, item.codesFound]));
+    expect(counts).toEqual({ '42': 2, '420': 0 });
+  });
+
   it('donne le lien Apple d’un épisode', () => {
     expect(applePodcastUrl(42, 7)).toBe('https://podcasts.apple.com/podcast/id42?i=7');
   });
