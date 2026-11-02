@@ -1,12 +1,17 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { findCodeInText } from './verification';
+import { REJECT_BELOW, findCodeInText } from './verification';
 
 // Socle IA des vérifications (ADR-0013). L'IA lit une description publique (vidéo, épisode) et rend
 // les codes promo qu'elle y trouve. Elle ne décide de rien : chaque code rendu doit figurer mot pour mot
 // dans le texte, sinon il est écarté, et le score reste calculé par lib/verification.ts.
 // Sans ANTHROPIC_API_KEY, tout le module est inactif et l'admin affiche « IA en attente d'activation ».
 
-export const DEFAULT_AI_MODEL = 'claude-opus-5-5';
+/** Première lecture : le petit modèle lit tout, pour presque rien. */
+export const DEFAULT_AI_MODEL = 'claude-haiku-5-5';
+/** Deuxième lecture : le modèle puissant ne relit que les dossiers douteux (needsSecondReading) ou à la demande de l'admin. */
+export const DEFAULT_REVIEW_MODEL = 'claude-opus-5-5';
+/** Modèles qui acceptent le repli automatique côté serveur en cas de refus (pas les Haiku). */
+const SERVER_FALLBACK_MODELS = new Set(['claude-opus-5-5', 'claude-opus-5', 'claude-fable-5-1', 'claude-sonnet-5-5']);
 const DEFAULT_MONTHLY_BUDGET_EUR = 10;
 /** Taux de conversion prudent : l'API est facturée en dollars, le plafond est en euros. */
 const DEFAULT_USD_PER_EUR = 1.2;
@@ -23,6 +28,7 @@ const PRICES: Record<string, { input: number; output: number }> = {
 export type AiConfig = {
   apiKey: string | null;
   model: string;
+  reviewModel: string;
   monthlyBudgetUsdMicros: number;
 };
 
@@ -37,6 +43,7 @@ export function aiConfigFrom(env: Record<string, string | undefined>): AiConfig 
   return {
     apiKey: env.ANTHROPIC_API_KEY?.trim() || null,
     model: env.AI_MODEL?.trim() || DEFAULT_AI_MODEL,
+    reviewModel: env.AI_REVIEW_MODEL?.trim() || DEFAULT_REVIEW_MODEL,
     monthlyBudgetUsdMicros: Math.round(budgetEur * usdPerEur * 1_000_000),
   };
 }
@@ -56,7 +63,8 @@ export function aiStatusOf(config: AiConfig, spentUsdMicros: number): AiStatus {
 
 /** Coût d'un appel en millionièmes de dollar : jetons × prix par million de jetons. */
 export function costUsdMicros(model: string, usage: { input_tokens: number; output_tokens: number }): number {
-  const price = PRICES[model] ?? PRICES[DEFAULT_AI_MODEL];
+  // Modèle inconnu : on compte au prix du plus cher, pour ne jamais dépasser le plafond.
+  const price = PRICES[model] ?? PRICES[DEFAULT_REVIEW_MODEL];
   return Math.ceil(usage.input_tokens * price.input + usage.output_tokens * price.output);
 }
 
@@ -148,8 +156,7 @@ export async function extractCodes(create: CreateMessage, model: string, source:
   const response = await create({
     model,
     max_tokens: 4000,
-    betas: ['server-side-fallback-2026-07-01'],
-    fallbacks: 'default',
+    ...(SERVER_FALLBACK_MODELS.has(model) ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const } : {}),
     output_config: { effort: 'low', format: { type: 'json_schema', schema: OUTPUT_SCHEMA } },
     system: SYSTEM_PROMPT,
     messages: [{
@@ -164,4 +171,19 @@ export async function extractCodes(create: CreateMessage, model: string, source:
   let parsed: unknown = null;
   try { parsed = JSON.parse(output); } catch { parsed = null; }
   return { codes: keepVerbatimCodes(parsed, description), model: response.model, costUsdMicros: cost, refused: false };
+}
+
+const PROMO_WORDS = /(code\s*promo|promo\s*code|coupon|r[ée]duction|discount|remise|offre|\d+\s*%|% off)/i;
+
+/** Au-delà de ce score, un dossier est assez clair pour se passer d'une deuxième lecture. */
+export const CLEAR_SCORE = 60;
+
+// Mode mixte : faut-il faire relire ce dossier par le modèle puissant ?
+// Oui si la première lecture a été refusée, si elle ne trouve rien alors que la description parle de promo,
+// ou si le score tombe dans la zone douteuse (ni rejet proposé, ni dossier clair).
+export function needsSecondReading(input: { extraction: Extraction; description: string; score?: number | null }): boolean {
+  if (input.extraction.refused) return true;
+  if (input.extraction.codes.length === 0) return PROMO_WORDS.test(input.description);
+  const score = input.score;
+  return typeof score === 'number' && score >= REJECT_BELOW && score < CLEAR_SCORE;
 }

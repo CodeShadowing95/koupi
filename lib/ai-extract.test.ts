@@ -1,7 +1,8 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import { describe, expect, it, vi } from 'vitest';
 import {
-  DEFAULT_AI_MODEL, MAX_DESCRIPTION_CHARS, aiConfigFrom, aiStatusOf, costUsdMicros, extractCodes, keepVerbatimCodes,
+  DEFAULT_AI_MODEL, DEFAULT_REVIEW_MODEL, MAX_DESCRIPTION_CHARS, aiConfigFrom, aiStatusOf, costUsdMicros, extractCodes, keepVerbatimCodes,
+  needsSecondReading, type Extraction,
 } from './ai-extract';
 
 const description = 'Merci à Qonto ! Avec le code KOUPI10 vous avez 10 % sur 3 mois, jusqu’au 31/12. Et NordVPN : code NORD20.';
@@ -18,11 +19,11 @@ function fakeResponse(text: string, extra: Partial<Anthropic.Beta.BetaMessage> =
 describe('aiConfigFrom', () => {
   it('reste inactive sans clé et applique les valeurs par défaut', () => {
     const config = aiConfigFrom({});
-    expect(config).toEqual({ apiKey: null, model: DEFAULT_AI_MODEL, monthlyBudgetUsdMicros: 12_000_000 });
+    expect(config).toEqual({ apiKey: null, model: 'claude-haiku-5-5', reviewModel: 'claude-opus-5-5', monthlyBudgetUsdMicros: 12_000_000 });
   });
   it('lit la clé, le modèle et le plafond', () => {
-    const config = aiConfigFrom({ ANTHROPIC_API_KEY: ' sk ', AI_MODEL: 'claude-haiku-5-5', AI_MONTHLY_BUDGET_EUR: '20', AI_USD_PER_EUR: '1' });
-    expect(config).toEqual({ apiKey: 'sk', model: 'claude-haiku-5-5', monthlyBudgetUsdMicros: 20_000_000 });
+    const config = aiConfigFrom({ ANTHROPIC_API_KEY: ' sk ', AI_MODEL: 'claude-sonnet-5-5', AI_REVIEW_MODEL: 'claude-fable-5-1', AI_MONTHLY_BUDGET_EUR: '20', AI_USD_PER_EUR: '1' });
+    expect(config).toEqual({ apiKey: 'sk', model: 'claude-sonnet-5-5', reviewModel: 'claude-fable-5-1', monthlyBudgetUsdMicros: 20_000_000 });
   });
   it('ignore un plafond invalide', () => {
     expect(aiConfigFrom({ AI_MONTHLY_BUDGET_EUR: 'abc' }).monthlyBudgetUsdMicros).toBe(12_000_000);
@@ -75,11 +76,18 @@ describe('extractCodes', () => {
   it('envoie la description comme donnée et rend les codes vérifiés avec le coût', async () => {
     const create = vi.fn(async (_params: Anthropic.Beta.MessageCreateParamsNonStreaming) => fakeResponse(JSON.stringify({ codes: [{ code: 'NORD20', tool: 'NordVPN', discount: '', conditions: '', expires_on: '' }] })));
     const result = await extractCodes(create, DEFAULT_AI_MODEL, { title: 'Vidéo', description });
-    expect(result).toMatchObject({ refused: false, costUsdMicros: 8000, model: DEFAULT_AI_MODEL });
+    expect(result).toMatchObject({ refused: false, costUsdMicros: 200, model: DEFAULT_AI_MODEL });
     expect(result.codes.map(c => c.code)).toEqual(['NORD20']);
     const params = create.mock.calls[0][0];
     expect(JSON.stringify(params.messages)).toContain('<description>');
     expect(params.output_config?.format?.type).toBe('json_schema');
+    expect(params.fallbacks).toBeUndefined();
+  });
+  it('demande le repli automatique seulement aux modèles qui l’acceptent', async () => {
+    const create = vi.fn(async (_params: Anthropic.Beta.MessageCreateParamsNonStreaming) => fakeResponse('{"codes":[]}', { model: DEFAULT_REVIEW_MODEL }));
+    const result = await extractCodes(create, DEFAULT_REVIEW_MODEL, { title: 't', description });
+    expect(create.mock.calls[0][0]).toMatchObject({ fallbacks: 'default', betas: ['server-side-fallback-2026-07-01'] });
+    expect(result.costUsdMicros).toBe(8000);
   });
   it('coupe une description trop longue', async () => {
     const create = vi.fn(async (_params: Anthropic.Beta.MessageCreateParamsNonStreaming) => fakeResponse('{"codes":[]}'));
@@ -89,8 +97,27 @@ describe('extractCodes', () => {
   });
   it('rend une liste vide sur un refus ou un JSON invalide, en comptant le coût', async () => {
     const refused = await extractCodes(async () => fakeResponse('', { stop_reason: 'refusal' }), DEFAULT_AI_MODEL, { title: 't', description });
-    expect(refused).toMatchObject({ refused: true, codes: [], costUsdMicros: 8000 });
+    expect(refused).toMatchObject({ refused: true, codes: [], costUsdMicros: 200 });
     const broken = await extractCodes(async () => fakeResponse('pas du json'), DEFAULT_AI_MODEL, { title: 't', description });
     expect(broken).toMatchObject({ refused: false, codes: [] });
+  });
+});
+
+describe('needsSecondReading', () => {
+  const found: Extraction = { codes: [{ code: 'A', tool: '', discount: '', conditions: '', expiresOn: '', evidence: '' }], model: 'm', costUsdMicros: 0, refused: false };
+  const empty: Extraction = { ...found, codes: [] };
+
+  it('relit après un refus', () => {
+    expect(needsSecondReading({ extraction: { ...empty, refused: true }, description: 'x' })).toBe(true);
+  });
+  it('relit quand rien n’est trouvé alors que la description parle de promo', () => {
+    expect(needsSecondReading({ extraction: empty, description: 'Profitez de -20 % avec mon code' })).toBe(true);
+    expect(needsSecondReading({ extraction: empty, description: 'Une vidéo sur la cuisine' })).toBe(false);
+  });
+  it('relit les scores douteux seulement', () => {
+    expect(needsSecondReading({ extraction: found, description: '', score: 40 })).toBe(true);
+    expect(needsSecondReading({ extraction: found, description: '', score: 85 })).toBe(false);
+    expect(needsSecondReading({ extraction: found, description: '', score: 10 })).toBe(false);
+    expect(needsSecondReading({ extraction: found, description: '' })).toBe(false);
   });
 });
