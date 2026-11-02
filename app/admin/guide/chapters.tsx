@@ -366,6 +366,7 @@ function Createurs() {
         <Step title="Contrôle-le">Ouvre le compte : il est actif, il publie sous ce nom, ce n’est pas une copie. Coche alors <b>J’ai contrôlé ce compte</b>.</Step>
         <Step title="Coche le badge s’il y en a un">Si la chaîne affiche la coche grise de compte certifié, coche <b>Badge certifié du réseau</b>. Ce badge suffit pour passer « Contrôlé par Koupi ».</Step>
       </Steps>
+      <p>Pour YouTube, tu n’as souvent rien à faire : la chaîne se relie <b>toute seule</b>. Quand tu ajoutes un code dont la source est une vidéo YouTube, Koupi retrouve la chaîne qui l’a publiée et la relie au créateur. Pour les créateurs déjà en base, le bouton <b>Relier les chaînes YouTube</b> en haut de la page le fait pour tous d’un coup, et la tâche de nuit rattrape ceux qui arrivent par l’import. Une chaîne reliée ainsi n’est pas contrôlée : c’est toujours toi qui coches. Koupi te liste les créateurs qu’il n’a pas pu relier (vidéos de plusieurs chaînes, vidéo supprimée, deux noms pour la même chaîne) : ceux-là se font à la main.</p>
       <p><b>Actualiser</b> relit les abonnés d’une chaîne YouTube (1 unité du quota YouTube, sur 10 000 par jour). <b>Retirer</b> enlève le compte, pas le créateur ni ses codes.</p>
       <Callout tone="warn">Un même compte ne peut être relié qu’à un seul créateur. Si Koupi refuse, il te dit à qui il est déjà relié : c’est souvent un doublon de nom à corriger.</Callout>
     </Section>

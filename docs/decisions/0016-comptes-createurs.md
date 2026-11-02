@@ -17,6 +17,7 @@ La spec des vérifications assistées distingue trois niveaux de créateur : Rep
 - Le niveau se calcule compte par compte puis on garde le meilleur (`lib/creator-level.ts`) : réclamé → Créateur vérifié ; badge certifié, ou contrôle de l'admin avec au moins 1000 abonnés sur ce compte → Contrôlé par Koupi ; sinon Repéré.
 - L'analyse d'un code utilise ce niveau dans le score (+15 contrôlé, +20 vérifié).
 - Supprimer un créateur supprime ses comptes (`on delete cascade`).
+- Les chaînes YouTube se relient automatiquement (`lib/creator-youtube-link.ts`) : la chaîne qui a publié les vidéos sources d'un créateur est la sienne. À l'ajout d'un code dans l'admin, par le bouton « Relier les chaînes YouTube » de la page Créateurs, et chaque nuit avec les retests. On ne relie rien en cas de doute (vidéos de plusieurs chaînes, même chaîne pour deux créateurs, chaîne déjà reliée) : l'admin le fait à la main. Un compte relié ainsi n'est jamais marqué contrôlé.
 
 ## Conséquences
 - Une table de plus, vide au départ : tous les créateurs restent « repérés » tant que l'admin ne relie pas de compte.

@@ -3,6 +3,7 @@ import { getDb } from '@/db';
 import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-session';
 import { revalidateCatalog } from '@/lib/catalog-server';
 import { createCode, parseCodeInput } from '@/lib/codes-admin';
+import { linkChannelForCode, youtubeBatch } from '@/lib/creator-youtube-link';
 import { readJsonBody } from '@/lib/http';
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -19,6 +20,8 @@ export async function POST(request: NextRequest) {
     if (submissionId !== undefined && (typeof submissionId !== 'string' || !uuidPattern.test(submissionId))) return NextResponse.json({ error: 'Proposition invalide.' }, { status: 400 });
     const result = await createCode(getDb(), input.data, { submissionId: submissionId as string | undefined });
     if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });
+    // Nouveau créateur venu de YouTube : sa chaîne est reliée tout de suite (2 unités de quota au plus).
+    await linkChannelForCode(getDb(), result.data.id, youtubeBatch(process.env.YOUTUBE_API_KEY));
     revalidateCatalog();
     return NextResponse.json({ ok: true, id: result.data.id });
   } catch (error) {
