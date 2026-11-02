@@ -224,6 +224,46 @@ export const watchedSources = pgTable('watched_sources', {
   check('watched_sources_feed_url_http', sql`${table.feedUrl} is null or ${table.feedUrl} ~* '^https?://'`),
 ]);
 
+export const CREATOR_PLATFORMS = ['youtube', 'tiktok', 'instagram', 'snapchat', 'twitch', 'x', 'podcast', 'other'] as const;
+export const CLAIM_STATUSES = ['none', 'pending', 'verified', 'revoked'] as const;
+export const CLAIM_METHODS = ['oauth', 'bio_code', 'dm', 'manual'] as const;
+
+// Comptes d'un créateur sur les réseaux (voir ADR-0016). Un compte n'appartient qu'à un créateur.
+// Le niveau du créateur (Repéré, Contrôlé par Koupi, Créateur vérifié) se déduit de ses comptes.
+export const creatorAccounts = pgTable('creator_accounts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  creatorId: uuid('creator_id').notNull().references(() => creators.id, { onDelete: 'cascade' }),
+  platform: text('platform', { enum: CREATOR_PLATFORMS }).notNull(),
+  /** Identifiant stable sur le réseau (ID de chaîne YouTube…) : un pseudo peut changer, lui non. */
+  externalId: text('external_id'),
+  handle: text('handle').notNull(),
+  url: text('url').notNull(),
+  subscribers: integer('subscribers'),
+  subscribersAt: timestamp('subscribers_at', { withTimezone: true }),
+  /** Badge de compte certifié du réseau, coché à la main par l'admin (l'API YouTube ne le donne pas). */
+  platformVerified: boolean('platform_verified').notNull().default(false),
+  /** Date du contrôle par l'admin : compte réel, actif, pas une usurpation. */
+  adminCheckedAt: timestamp('admin_checked_at', { withTimezone: true }),
+  /** Réclamation par le créateur lui-même (espace créateur, plus tard). */
+  claimStatus: text('claim_status', { enum: CLAIM_STATUSES }).notNull().default('none'),
+  claimMethod: text('claim_method', { enum: CLAIM_METHODS }),
+  claimedAt: timestamp('claimed_at', { withTimezone: true }),
+  lastRecheckedAt: timestamp('last_rechecked_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  index('creator_accounts_creator_idx').on(table.creatorId),
+  uniqueIndex('creator_accounts_platform_external_idx').on(table.platform, table.externalId),
+  uniqueIndex('creator_accounts_platform_handle_idx').on(table.platform, sql`lower(${table.handle})`),
+  check('creator_accounts_platform_valid', sql`${table.platform} in ('youtube','tiktok','instagram','snapchat','twitch','x','podcast','other')`),
+  check('creator_accounts_claim_status_valid', sql`${table.claimStatus} in ('none','pending','verified','revoked')`),
+  check('creator_accounts_claim_method_valid', sql`${table.claimMethod} is null or ${table.claimMethod} in ('oauth','bio_code','dm','manual')`),
+  check('creator_accounts_handle_len', sql`char_length(trim(${table.handle})) between 1 and 120`),
+  check('creator_accounts_external_id_len', sql`${table.externalId} is null or char_length(trim(${table.externalId})) between 1 and 200`),
+  check('creator_accounts_url_http', sql`${table.url} ~* '^https?://'`),
+  check('creator_accounts_subscribers_positive', sql`${table.subscribers} is null or ${table.subscribers} >= 0`),
+]);
+
 export type Submission = typeof submissions.$inferSelect;
 export type CategoryRow = typeof categories.$inferSelect;
 export type ToolRow = typeof tools.$inferSelect;
@@ -231,3 +271,4 @@ export type CreatorRow = typeof creators.$inferSelect;
 export type CodeRow = typeof codes.$inferSelect;
 export type VerificationCheckRow = typeof verificationChecks.$inferSelect;
 export type WatchedSourceRow = typeof watchedSources.$inferSelect;
+export type CreatorAccountRow = typeof creatorAccounts.$inferSelect;

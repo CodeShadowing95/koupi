@@ -1153,3 +1153,30 @@ html:has(> body > .ct){overflow:hidden}
 @media(prefers-reduced-motion:reduce){.adm-vf-card{transition:none}}
 .adm-vf-retest-hint{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .adm-vf-expiry{font-size:12px;color:var(--muted)}
+
+/* Comptes d'un créateur (panneau de la page Créateurs) */
+.adm-ca{display:flex;flex-direction:column;gap:10px}
+.adm-ca-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.adm-ca-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.adm-ca-item{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:var(--card)}
+.adm-ca-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.adm-ca-id{display:flex;flex-direction:column;min-width:0}
+.adm-ca-id small{color:var(--muted);font-size:12px}
+.adm-ca-id a{color:var(--ink);text-decoration:none;overflow-wrap:anywhere}
+.adm-ca-id a:hover{text-decoration:underline}
+.adm-ca-subs{margin:0;font-size:13px;color:var(--ink-soft)}
+.adm-ca-subs span{color:var(--muted)}
+.adm-ca-check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);cursor:pointer}
+.adm-ca-check input{width:16px;height:16px;margin:0;accent-color:var(--blue)}
+.adm-ca-check small{color:var(--muted)}
+.adm-ca-hint{margin:0;font-size:12.5px;color:var(--muted)}
+.adm-ca-actions{display:flex;align-items:center;gap:8px}
+
+/* Résultat de « Relier les chaînes YouTube » */
+.adm-head-actions{position:relative}
+.adm-link-report{position:absolute;right:0;top:calc(100% + 8px);z-index:20;width:min(460px,90vw)}
+.adm-link-report .notice-error{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.adm-link-report .notice{display:flex;flex-direction:column;gap:8px;align-items:flex-start;font-size:14px;box-shadow:0 12px 30px rgba(0,0,0,.12)}
+.adm-link-report details{width:100%;color:var(--ink)}
+.adm-link-report summary{cursor:pointer;font-weight:600}
+.adm-link-report ul{margin:8px 0 0;padding-left:18px;max-height:220px;overflow:auto;font-size:13px;line-height:1.5}

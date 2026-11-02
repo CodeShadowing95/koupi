@@ -702,3 +702,8 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 }
 @media (max-width:600px){.k-board-list{grid-template-columns:minmax(0,1fr)}}
 @media (prefers-reduced-motion:reduce){.k-pass-stub{transition:none}}
+/* Marque d'un créateur contrôlé par Koupi : coche à côté du nom, ou pastille sur sa page */
+.k-creator-check{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-left:6px;border-radius:50%;background:var(--mint);color:#06281A;font-size:10px;font-weight:900;line-height:1;vertical-align:middle;flex:none}
+.k-creator-check.is-verified{background:#7FB2FF;color:#0A1F44}
+.k-creator-mark{text-decoration:none}
+.k-creator-mark:hover{text-decoration:underline}

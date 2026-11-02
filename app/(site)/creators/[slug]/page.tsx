@@ -8,6 +8,7 @@ import { ToolSeal } from '@/components/site/tool-logo';
 import { MiniCoupon } from '@/components/site/coupon';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { CodeBadge } from '@/components/site/code-badge';
+import { CreatorMark } from '@/components/site/creator-mark';
 
 export default async function Creator({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -30,6 +31,7 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: '1 1 320px' }}>
             <span className="k-eyebrow">Créateur</span>
             <h1 style={{ fontSize: 'clamp(40px,5vw,64px)' }}>{creator}</h1>
+            {match.creatorLevel && <span><CreatorMark level={match.creatorLevel} dark /></span>}
             <p style={{ color: 'var(--text-soft)', fontSize: 18 }}>{plural(creatorCodes.length, 'code partagé', 'codes partagés')}, chacun avec la vidéo ou le post d&apos;où il vient.</p>
           </div>
           <Link className="k-btn k-btn-ghost" href={routes.keyring}>Ajouter à mon trousseau</Link>

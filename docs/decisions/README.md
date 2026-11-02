@@ -19,5 +19,6 @@ Chaque décision importante est notée ici dans un fichier numéroté. On ne sup
 | [0013](0013-socle-ia.md) | Socle IA des vérifications avec le SDK Anthropic | Proposée |
 | [0014](0014-retests-automatiques.md) | Retests automatiques par une tâche planifiée Vercel | Proposée |
 | [0015](0015-date-de-fin-des-codes.md) | Date de fin facultative sur les codes | Proposée |
+| [0016](0016-comptes-createurs.md) | Comptes des créateurs sur les réseaux | Proposée |
 
 Modèle : copier [`template.md`](template.md).

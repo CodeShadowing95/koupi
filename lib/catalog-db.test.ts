@@ -62,4 +62,18 @@ describe('catalogue en base', () => {
     const catalog = await loadCatalog(db);
     for (const tool of catalog.tools) expect(catalog.codes.some(code => code.toolSlug === tool.slug && (code.status === 'verified' || code.status === 'to_test'))).toBe(true);
   });
+
+  it('donne le niveau du créateur quand il est contrôlé, rien s’il est seulement repéré', async () => {
+    await importCatalog(db, input);
+    const [code] = await db.select().from(schema.codes).limit(1);
+    const before = await loadCatalog(db);
+    expect(before.codes.every(item => item.creatorLevel === undefined)).toBe(true);
+    await db.insert(schema.creatorAccounts).values({
+      creatorId: code.creatorId, platform: 'youtube', externalId: 'UC1', handle: '@x', url: 'https://youtube.com/@x', platformVerified: true,
+    });
+    const after = await loadCatalog(db);
+    const own = after.codes.filter(item => item.id === code.id);
+    expect(own[0].creatorLevel).toBe('checked');
+    expect(after.codes.filter(item => item.creatorLevel).every(item => item.creatorSlug === own[0].creatorSlug)).toBe(true);
+  });
 });
