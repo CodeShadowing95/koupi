@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { check, date, index, integer, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { boolean, check, date, index, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 
 // Propositions de codes envoyées par le public, en attente de modération.
 export const submissions = pgTable('submissions', {
@@ -121,6 +121,8 @@ export const codes = pgTable('codes', {
   votesDown: integer('votes_down').notNull().default(0),
   submissionId: uuid('submission_id').references(() => submissions.id, { onDelete: 'set null' }),
   lastTestedAt: timestamp('last_tested_at', { withTimezone: true }),
+  /** Date à laquelle l'admin a essayé le code au paiement (badge « Testé au paiement »), vide sinon. */
+  paymentTestedAt: timestamp('payment_tested_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   archivedAt: timestamp('archived_at', { withTimezone: true }),
@@ -136,7 +138,7 @@ export const codes = pgTable('codes', {
   check('codes_votes_positive', sql`${table.votesUp} >= 0 and ${table.votesDown} >= 0`),
 ]);
 
-export const CODE_ACTIONS = ['create', 'edit', 'verify', 'reject', 'to_test', 'pending', 'archive', 'restore'] as const;
+export const CODE_ACTIONS = ['create', 'edit', 'verify', 'reject', 'to_test', 'pending', 'archive', 'restore', 'payment_test'] as const;
 
 // Journal des actions de l'admin sur les codes (on n'y supprime rien).
 export const codeLogs = pgTable('code_logs', {
@@ -150,7 +152,7 @@ export const codeLogs = pgTable('code_logs', {
 }, table => [
   index('code_logs_code_idx').on(table.codeId, table.createdAt.desc()),
   index('code_logs_created_idx').on(table.createdAt.desc()),
-  check('code_logs_action_valid', sql`${table.action} in ('create','edit','verify','reject','to_test','pending','archive','restore')`),
+  check('code_logs_action_valid', sql`${table.action} in ('create','edit','verify','reject','to_test','pending','archive','restore','payment_test')`),
 ]);
 
 export const COUNTER_METRICS = ['copy', 'open', 'search_empty'] as const;
@@ -169,8 +171,61 @@ export const dailyCounters = pgTable('daily_counters', {
   check('daily_counters_key_len', sql`char_length(${table.key}) between 1 and 80`),
 ]);
 
+export type VerificationReason = { points: number; label: string };
+
+// Analyses d'un code ou d'une proposition (contrôles automatiques, puis lecture par l'IA quand elle est active).
+// On garde chaque analyse : c'est la preuve montrée à l'admin et la base du calcul du budget IA du mois.
+export const verificationChecks = pgTable('verification_checks', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  codeId: uuid('code_id').references(() => codes.id),
+  submissionId: uuid('submission_id').references(() => submissions.id, { onDelete: 'cascade' }),
+  score: integer('score').notNull(),
+  reasons: jsonb('reasons').$type<VerificationReason[]>().notNull().default([]),
+  /** Extrait de la source où figure le code. */
+  evidence: text('evidence'),
+  /** Champs lus par l'IA (code, outil, réduction, conditions…), vide sans IA. */
+  extracted: jsonb('extracted').$type<Record<string, unknown>>(),
+  /** Modèle d'IA utilisé, vide sans IA. */
+  model: text('model'),
+  /** Coût de l'appel à l'IA en millionièmes de dollar, 0 sans IA. */
+  costUsdMicros: integer('cost_usd_micros').notNull().default(0),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  index('verification_checks_code_idx').on(table.codeId, table.createdAt.desc()),
+  index('verification_checks_submission_idx').on(table.submissionId, table.createdAt.desc()),
+  index('verification_checks_created_idx').on(table.createdAt.desc()),
+  check('verification_checks_target', sql`${table.codeId} is not null or ${table.submissionId} is not null`),
+  check('verification_checks_score_range', sql`${table.score} between 0 and 100`),
+  check('verification_checks_cost_positive', sql`${table.costUsdMicros} >= 0`),
+]);
+
+export const WATCHED_PLATFORMS = ['youtube', 'podcast'] as const;
+
+// Chaînes YouTube et podcasts lus par les scripts de sourcing.
+export const watchedSources = pgTable('watched_sources', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  platform: text('platform', { enum: WATCHED_PLATFORMS }).notNull(),
+  /** Identifiant stable sur la plateforme (ID de chaîne YouTube, ID Podcast Index). */
+  externalId: text('external_id').notNull(),
+  feedUrl: text('feed_url'),
+  title: text('title').notNull(),
+  creatorId: uuid('creator_id').references(() => creators.id),
+  active: boolean('active').notNull().default(true),
+  lastFetchedAt: timestamp('last_fetched_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  uniqueIndex('watched_sources_platform_external_idx').on(table.platform, table.externalId),
+  index('watched_sources_active_idx').on(table.active),
+  check('watched_sources_platform_valid', sql`${table.platform} in ('youtube','podcast')`),
+  check('watched_sources_external_id_len', sql`char_length(trim(${table.externalId})) between 1 and 200`),
+  check('watched_sources_title_len', sql`char_length(trim(${table.title})) between 1 and 200`),
+  check('watched_sources_feed_url_http', sql`${table.feedUrl} is null or ${table.feedUrl} ~* '^https?://'`),
+]);
+
 export type Submission = typeof submissions.$inferSelect;
 export type CategoryRow = typeof categories.$inferSelect;
 export type ToolRow = typeof tools.$inferSelect;
 export type CreatorRow = typeof creators.$inferSelect;
 export type CodeRow = typeof codes.$inferSelect;
+export type VerificationCheckRow = typeof verificationChecks.$inferSelect;
+export type WatchedSourceRow = typeof watchedSources.$inferSelect;
