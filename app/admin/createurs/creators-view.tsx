@@ -8,6 +8,8 @@ import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { Pagination, usePagination } from '@/components/admin-pagination';
 import { FormDialog, sendJson } from '@/components/admin-form-dialog';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
+import { IconButton, IconLink, StatusDot } from '@/components/admin-card';
+import { initials } from '@/lib/admin-card';
 
 type Filter = 'all' | 'visible' | 'hidden';
 const filters: { value: Filter; label: string }[] = [{ value: 'all', label: 'Tous' }, { value: 'visible', label: 'Sur le site' }, { value: 'hidden', label: 'Sans code visible' }];
@@ -78,12 +80,14 @@ export function CreatorsView({ creators }: { creators: AdminCreator[] }) {
           <div className="adm-grid adm-page-enter" key={`grid-${current.page}`}>
             {current.items.map(creator => (
               <article className="adm-card" key={creator.id}>
-                <div className="adm-card-top"><b>{creator.name}</b>{creator.visible > 0 ? <span className="adm-pill adm-pill-ok">Sur le site</span> : <span className="adm-pill">Masqué</span>}</div>
-                <p>Codes : {codesLink(creator)}</p>
-                <p className="adm-note">{creator.tools.join(', ') || 'Aucun outil'}</p>
+                <div className="adm-card-row">
+                  <div className="adm-card-id"><span className="adm-avatar" aria-hidden="true">{initials(creator.name)}</span><div><b title={creator.name}>{creator.name}</b><small title={creator.tools.join(', ')}>{creator.tools.join(', ') || 'Aucun outil'}</small></div></div>
+                  {creator.visible > 0 ? <StatusDot tone="ok">Sur le site</StatusDot> : <StatusDot tone="muted">Masqué</StatusDot>}
+                </div>
                 <div className="adm-card-foot">
-                  {page(creator)}
-                  <button type="button" className="adm-btn" style={{ marginLeft: 'auto' }} onClick={() => open(creator)}>Renommer</button>
+                  <span className="adm-card-meta">{codesLink(creator)}</span>
+                  {creator.visible > 0 && <IconLink icon="external" label="Page publique" href={`/creators/${creator.slug}`} external />}
+                  <IconButton icon="edit" label="Renommer" onClick={() => open(creator)} />
                 </div>
               </article>
             ))}

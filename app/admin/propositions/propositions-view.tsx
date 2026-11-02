@@ -9,6 +9,7 @@ import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { Pagination, usePagination } from '@/components/admin-pagination';
 import { AdminSelect } from '@/components/admin-select';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
+import { IconLink, StatusDot, type Tone } from '@/components/admin-card';
 type Submission = { id: string; tool_name: string; creator_name: string; code: string; discount_label: string; source_url: string; creator_link: string | null; comment: string | null; submitter_email: string | null; status: string; admin_note: string | null; created_at: string; category: string | null; created_code_id: string | null };
 const sortFields: SortField<Submission>[] = [
   { key: 'received', label: 'Date de réception', value: item => item.created_at },
@@ -50,6 +51,7 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
   }
   function resetFilters() { setCategory(''); setFrom(''); setTo(''); }
   const statusPill: Record<string, string> = { new: 'adm-pill', duplicate: 'adm-pill adm-pill-warn', approved: 'adm-pill adm-pill-ok', rejected: 'adm-pill adm-pill-bad' };
+  const statusTone: Record<string, Tone> = { new: 'info', duplicate: 'warn', approved: 'ok', rejected: 'bad' };
   const statusName: Record<string, string> = { new: 'À traiter', duplicate: 'Doublon', approved: 'Validée', rejected: 'Refusée' };
   function decisionButtons(item: Submission) {
     return item.status === 'new' ? <>
@@ -124,16 +126,14 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
           <div className="adm-grid adm-page-enter" key={`grid-${current.page}`}>
             {current.items.map(item => (
               <article className="adm-card" key={item.id}>
-                <div className="adm-card-top"><span className="mono">{item.code}</span><span className={statusPill[item.status] || 'adm-pill'}>{statusName[item.status] || item.status}</span></div>
-                <h3>{item.tool_name} · {item.discount_label}</h3>
-                <p>{item.creator_name} · {new Date(item.created_at).toLocaleDateString('fr-FR')}{item.submitter_email ? ` · ${item.submitter_email}` : ''}</p>
-                {item.comment && <p title={item.comment}>« {item.comment} »</p>}
+                <div className="adm-card-row"><span className="mono" title={item.code}>{item.code}</span><span className="adm-card-date">{new Date(item.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}</span><StatusDot tone={statusTone[item.status] ?? 'muted'}>{statusName[item.status] || item.status}</StatusDot></div>
+                <p className="adm-card-line" title={`${item.tool_name} · ${item.discount_label} · ${item.creator_name}`}>{item.tool_name} <span>· {item.discount_label} · {item.creator_name}</span></p>
+                <p className="adm-card-sub is-quote" title={[item.comment, item.submitter_email].filter(Boolean).join(' · ') || undefined}>{item.comment ? `« ${item.comment} »` : 'Sans commentaire'}</p>
                 <div className="adm-card-foot">
-                  <a href={item.source_url} target="_blank" rel="noopener noreferrer">Source ↗</a>
-                  {item.creator_link && <a href={item.creator_link} target="_blank" rel="noopener noreferrer">Lien ↗</a>}
-                </div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {decisionButtons(item)}
+                  <span className="adm-card-push" />
+                  {item.creator_link && <IconLink icon="external" label="Lien du créateur" href={item.creator_link} external />}
+                  <IconLink icon="external" label="Voir la source" href={item.source_url} external />
                 </div>
               </article>
             ))}

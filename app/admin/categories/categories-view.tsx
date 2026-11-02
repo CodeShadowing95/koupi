@@ -6,6 +6,7 @@ import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { FormDialog, sendJson } from '@/components/admin-form-dialog';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
 import { matchesSearch } from '@/lib/admin-search';
+import { IconButton, IconLink, StatusDot } from '@/components/admin-card';
 
 const rate = (category: AdminCategory) => category.tools ? Math.round((category.covered / category.tools) * 100) : 0;
 
@@ -81,11 +82,12 @@ export function CategoriesView({ categories: all }: { categories: AdminCategory[
           <div className="adm-grid">
             {categories.map(category => (
               <article className="adm-card" key={category.slug}>
-                <div className="adm-card-top"><b>{category.name}</b>{category.covered === 0 ? <span className="adm-pill adm-pill-warn">Vide sur le site</span> : <span className="adm-pill adm-pill-ok">{rate(category)} %</span>}</div>
-                {coverage(category)}
+                <div className="adm-card-row"><b className="adm-card-title" title={category.name}>{category.name}</b>{category.covered === 0 ? <StatusDot tone="muted">Vide</StatusDot> : <StatusDot tone="ok">{rate(category)} %</StatusDot>}</div>
+                <span className="adm-track" role="img" aria-label={`${category.covered} outils couverts sur ${category.tools}`}><span style={{ width: `${rate(category)}%` }} /></span>
                 <div className="adm-card-foot">
-                  <a href={`/admin/outils?category=${encodeURIComponent(category.slug)}`}>Voir les outils</a>
-                  <button type="button" className="adm-btn" style={{ marginLeft: 'auto' }} onClick={() => open(category)}>Renommer</button>
+                  <span className="adm-card-meta">{category.covered} / {category.tools} outil{category.tools > 1 ? 's' : ''} couvert{category.covered > 1 ? 's' : ''}</span>
+                  <IconLink icon="list" label="Voir les outils" href={`/admin/outils?category=${encodeURIComponent(category.slug)}`} />
+                  <IconButton icon="edit" label="Renommer" onClick={() => open(category)} />
                 </div>
               </article>
             ))}

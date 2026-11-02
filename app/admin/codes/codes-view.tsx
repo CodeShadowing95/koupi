@@ -9,6 +9,7 @@ import { RETEST_DAYS, staleCodes } from '@/lib/admin-stats';
 import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { Pagination, usePagination } from '@/components/admin-pagination';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
+import { IconButton, IconLink, StatusDot, type Tone } from '@/components/admin-card';
 
 const statusLabel: Record<Code['status'], { label: string; className: string }> = {
   verified: { label: 'Vérifié', className: 'adm-pill adm-pill-ok' },
@@ -21,6 +22,9 @@ const filters: { value: Filter; label: string }[] = [
   { value: 'all', label: 'Tous' }, { value: 'to_test', label: 'À tester' }, { value: 'retest', label: 'À retester' }, { value: 'pending', label: 'En attente' }, { value: 'verified', label: 'Vérifiés' }, { value: 'rejected', label: 'Rejetés' }, { value: 'archived', label: 'Archivés' },
 ];
 const matchesFilter = (code: Code, filter: Filter, stale: Set<string>) => filter === 'archived' ? Boolean(code.archived) : filter === 'retest' ? stale.has(code.id) : !code.archived && (filter === 'all' || code.status === filter);
+const statusTone: Record<Code['status'], Tone> = { verified: 'ok', to_test: 'warn', pending: 'muted', rejected: 'bad' };
+const shortTested = (iso: string | null) => iso ? `testé le ${new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}` : 'jamais testé';
+const cardMeta = (code: Code) => `${code.creator} · ${code.votes} vote${code.votes > 1 ? 's' : ''}${code.votes > 0 ? ` · ${code.success} %` : ''} · ${shortTested(code.lastTestedAt)}`;
 const testedLabel = (iso: string | null) => iso ? `Testé le ${new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}` : 'Jamais testé';
 const sortFields: SortField<Code>[] = [
   { key: 'created', label: 'Date d’ajout', value: code => code.createdAt },
@@ -53,6 +57,12 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
         {(code.status !== 'verified' || stale.has(code.id)) && <button type="button" className="adm-btn adm-btn-ok" disabled={busy === code.id} onClick={() => quick(code, 'verify')} title="Tu l’as essayé et il marche">✓ Marche</button>}
         {code.status !== 'rejected' && <button type="button" className="adm-btn adm-btn-no" disabled={busy === code.id} onClick={() => quick(code, 'reject')} title="Tu l’as essayé et il ne marche pas">✗ Ne marche pas</button>}
       </span>;
+  const iconActions = (code: Code) => code.archived
+    ? <IconButton icon="restore" label="Restaurer" disabled={busy === code.id} onClick={() => quick(code, 'restore')} />
+    : <>
+        {(code.status !== 'verified' || stale.has(code.id)) && <IconButton icon="check" tone="ok" label="Il marche (tu l’as essayé)" disabled={busy === code.id} onClick={() => quick(code, 'verify')} />}
+        {code.status !== 'rejected' && <IconButton icon="cross" tone="bad" label="Il ne marche pas (tu l’as essayé)" disabled={busy === code.id} onClick={() => quick(code, 'reject')} />}
+      </>;
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<Filter>('all');
   const [view, setView] = useAdminView();
@@ -118,15 +128,13 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
           <div className="adm-grid adm-page-enter" key={`grid-${current.page}`}>
             {current.items.map(code => (
               <article className="adm-card" key={code.id}>
-                <div className="adm-card-top"><span className="mono">{code.code}</span><span className={statusLabel[code.status].className}>{statusLabel[code.status].label}</span></div>
-                <h3>{code.tool} · {code.discount}</h3>
-                <p>{code.creator} · {code.votes} votes, {code.success} % de réussite</p>
-                {code.note && <p className="adm-note">Note : {code.note}</p>}
-                <p className="adm-tested">{testedLabel(code.lastTestedAt)}</p>
+                <div className="adm-card-row"><span className="mono" title={code.code}>{code.code}</span><StatusDot tone={statusTone[code.status]}>{statusLabel[code.status].label}</StatusDot></div>
+                <p className="adm-card-line" title={`${code.tool} · ${code.discount}`}>{code.tool} <span>· {code.discount}</span></p>
                 <div className="adm-card-foot">
-                  {actions(code)}
-                  <a href={code.source} target="_blank" rel="noopener noreferrer">Source ↗</a>
-                  <button type="button" className="adm-btn" style={{ marginLeft: 'auto' }} onClick={() => setEditing({ kind: 'edit', code })}>Modifier</button>
+                  <span className="adm-card-meta" title={[cardMeta(code), code.note && `Note : ${code.note}`].filter(Boolean).join('\n')}>{cardMeta(code)}</span>
+                  {iconActions(code)}
+                  <IconLink icon="external" label="Voir la source" href={code.source} external />
+                  <IconButton icon="edit" label="Modifier" onClick={() => setEditing({ kind: 'edit', code })} />
                 </div>
               </article>
             ))}
