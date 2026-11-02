@@ -6,8 +6,9 @@ import { type CodeFilters, type CodeSort, type CodeStatusFilter, DEFAULT_FILTERS
 import { routes } from '@/lib/routes';
 import { gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
 import { BoardingCoupon } from '@/components/site/boarding-coupon';
+import { AdminSelect, type SelectOption } from '@/components/admin-select';
 
-// « Tous les codes » : la recherche et les filtres (statut, catégorie, tri) dans une colonne à gauche,
+// « Tous les codes » : la recherche et les filtres (statut, catégorie dans une liste avec recherche, tri) à gauche,
 // les coupons à droite, trois par ligne. Les animations restent simples :
 // les coupons sortent en fondu quand on change un filtre, puis les nouveaux entrent.
 // Les filtres sont recopiés dans l'adresse pour pouvoir partager une recherche.
@@ -47,6 +48,10 @@ export function CodesBoard({ codes, tools, categories, initial }: Props) {
     }
     return counts;
   }, [codes, toolBySlug]);
+  const categoryOptions = useMemo<SelectOption[]>(() => [
+    { value: '', label: 'Toutes les catégories', hint: String(codes.length) },
+    ...categories.map(category => ({ value: category.name, label: category.name, hint: String(perCategory.get(category.name) ?? 0) })),
+  ], [categories, codes.length, perCategory]);
 
   // La recherche texte attend une courte pause dans la frappe avant de filtrer.
   useEffect(() => {
@@ -108,14 +113,11 @@ export function CodesBoard({ codes, tools, categories, initial }: Props) {
 
         <div className="k-board-group">
           <h2>Catégorie</h2>
-          <div className="k-board-cats">
-            <button type="button" className="k-board-cat" aria-pressed={!filters.category} onClick={() => update({ category: '' })}>Toutes<small>{codes.length}</small></button>
-            {categories.map(category => (
-              <button type="button" className="k-board-cat" key={category.slug} aria-pressed={filters.category === category.name} onClick={() => update({ category: category.name })}>
-                {category.name}<small>{perCategory.get(category.name) ?? 0}</small>
-              </button>
-            ))}
-          </div>
+          <AdminSelect
+            id="k-board-category" classPrefix="k-combo" ariaLabel="Catégorie"
+            value={filters.category} onChange={category => update({ category })}
+            options={categoryOptions} searchPlaceholder="Chercher une catégorie…"
+          />
         </div>
 
         <label className="k-board-group">

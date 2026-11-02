@@ -74,12 +74,12 @@ export function BoardingCoupon({ code, category, link }: Props) {
         )}
       </div>
 
-      <button type="button" className="k-pass-stub" onClick={tear} aria-label={torn ? `Recopier le code ${code.code}` : `Détacher le coupon : copie le code ${code.code} et ouvre ${code.tool}`}>
+      <button type="button" className="k-pass-stub" onClick={tear} aria-label={torn ? `Recopier le code ${code.code}` : `Copier le code ${code.code} et ouvrir ${code.tool}`}>
         <span className="k-pass-stub-code">
           <small>{torn ? (failed ? 'Copie à la main' : 'Copié ✓') : 'Code promo'}</small>
           <span className="k-pass-code">{code.code}</span>
         </span>
-        <span className="k-pass-action">{torn ? 'Recopier' : 'Détacher'}</span>
+        <span className="k-pass-action">{torn ? 'Recopier' : 'Copier'}</span>
       </button>
       <span className="k-sr" role="status">{torn ? (failed ? `Copie le code ${code.code} à la main` : `Code ${code.code} copié`) : ''}</span>
     </article>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Code, Tool } from './data';
-import { DEFAULT_FILTERS, featuredCodes, filterCodes, parseFilters } from './codes-board';
+import { compactCount, DEFAULT_FILTERS, featuredCodes, filterCodes, parseFilters } from './codes-board';
 
 const tool = (slug: string, category: string): Tool => ({ slug, name: slug, category, website: '', description: '', priority: 1, codes: 1 });
 const code = (id: string, over: Partial<Code> = {}): Code => ({
@@ -44,5 +44,24 @@ describe('parseFilters', () => {
   it('garde les valeurs connues et ignore le reste', () => {
     expect(parseFilters({ q: 'nord', category: 'VPN', status: 'to_test', sort: 'votes' })).toEqual({ query: 'nord', category: 'VPN', status: 'to_test', sort: 'votes' });
     expect(parseFilters({ status: 'pending', sort: 'x', q: ['a', 'b'] })).toEqual(DEFAULT_FILTERS);
+  });
+});
+
+describe('compactCount', () => {
+  it('donne le nombre exact sous 100', () => {
+    expect(compactCount(0)).toBe('0');
+    expect(compactCount(31)).toBe('31');
+    expect(compactCount(99)).toBe('99');
+  });
+  it('écrit +99 de 100 à 999', () => {
+    expect(compactCount(100)).toBe('+99');
+    expect(compactCount(999)).toBe('+99');
+  });
+  it('arrondit aux milliers puis aux millions, vers le bas', () => {
+    expect(compactCount(1000)).toBe('+1K');
+    expect(compactCount(2999)).toBe('+2K');
+    expect(compactCount(999_999)).toBe('+999K');
+    expect(compactCount(1_000_000)).toBe('+1M');
+    expect(compactCount(2_500_000)).toBe('+2M');
   });
 });

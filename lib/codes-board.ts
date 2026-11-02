@@ -47,3 +47,14 @@ export function parseFilters(params: Record<string, string | string[] | undefine
     sort: sort === 'recent' || sort === 'votes' ? sort : 'best',
   };
 }
+
+/**
+ * Nombre court pour le bouton « Voir plus de codes » : exact sous 100, puis « +99 »,
+ * « +1K », « +2K »… à partir de 1 000 et « +1M », « +2M »… à partir d'un million.
+ */
+export function compactCount(count: number): string {
+  if (count >= 1_000_000) return `+${Math.floor(count / 1_000_000)}M`;
+  if (count >= 1_000) return `+${Math.floor(count / 1_000)}K`;
+  if (count >= 100) return '+99';
+  return String(Math.max(0, Math.floor(count)));
+}

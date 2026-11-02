@@ -1,5 +1,5 @@
 'use client';
-// Liste déroulante du back-office avec un petit champ de recherche en tête,
+// Liste déroulante avec un petit champ de recherche en tête (back-office, et filtre des catégories du site),
 // pour retrouver vite une catégorie ou un outil quand la liste devient longue.
 // Clavier : flèches pour se déplacer, Entrée pour choisir, Échap pour fermer.
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
@@ -12,7 +12,7 @@ type Position = { left: number; width: number; top?: number; bottom?: number; ma
 const GAP = 6;
 const IDEAL_HEIGHT = 320;
 
-export function AdminSelect({ id, value, onChange, options, placeholder = 'Choisir…', searchPlaceholder = 'Rechercher…', required, variant = 'field', ariaLabel }: {
+export function AdminSelect({ id, value, onChange, options, placeholder = 'Choisir…', searchPlaceholder = 'Rechercher…', required, variant = 'field', ariaLabel, classPrefix = 'adm-combo' }: {
   id: string;
   value: string;
   onChange: (value: string) => void;
@@ -23,7 +23,10 @@ export function AdminSelect({ id, value, onChange, options, placeholder = 'Chois
   /** « field » dans un formulaire, « filter » dans une barre de filtres. */
   variant?: 'field' | 'filter';
   ariaLabel?: string;
+  /** Préfixe des classes CSS : « adm-combo » dans l'admin, « k-combo » sur le site public. */
+  classPrefix?: string;
 }) {
+  const p = classPrefix;
   const listId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -113,25 +116,25 @@ export function AdminSelect({ id, value, onChange, options, placeholder = 'Chois
   const activeId = active >= 0 && visible[active] ? `${listId}-${active}` : undefined;
 
   return (
-    <div className={`adm-combo adm-combo-${variant}`}>
+    <div className={`${p} ${p}-${variant}`}>
       <button
-        ref={triggerRef} id={id} type="button" className="adm-combo-trigger"
+        ref={triggerRef} id={id} type="button" className={`${p}-trigger`}
         aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? listId : undefined} aria-label={ariaLabel}
         onClick={() => (open ? close() : openList())} onKeyDown={onTriggerKey}
       >
-        <span className={selected ? 'adm-combo-value' : 'adm-combo-value adm-combo-placeholder'}>
+        <span className={selected ? `${p}-value` : `${p}-value ${p}-placeholder`}>
           {selected ? selected.label : placeholder}
-          {selected?.hint && <span className="adm-combo-hint"> · {selected.hint}</span>}
+          {selected?.hint && <span className={`${p}-hint`}> · {selected.hint}</span>}
         </span>
-        <svg className="adm-combo-chevron" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        <svg className={`${p}-chevron`} viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
       {required && (
         // Garde la validation native du formulaire (« Veuillez sélectionner… ») sans liste native visible.
-        <input className="adm-combo-native" tabIndex={-1} aria-hidden="true" required value={value} onChange={() => {}} onFocus={() => triggerRef.current?.focus()} />
+        <input className={`${p}-native`} tabIndex={-1} aria-hidden="true" required value={value} onChange={() => {}} onFocus={() => triggerRef.current?.focus()} />
       )}
       {open && position && (
-        <div ref={popupRef} className="adm-combo-pop" style={{ left: position.left, width: position.width, top: position.top, bottom: position.bottom, maxHeight: position.maxHeight }}>
-          <div className="adm-combo-search">
+        <div ref={popupRef} className={`${p}-pop`} style={{ left: position.left, width: position.width, top: position.top, bottom: position.bottom, maxHeight: position.maxHeight }}>
+          <div className={`${p}-search`}>
             <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2" /><path d="m20 20-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
             <input
               ref={searchRef} type="text" role="combobox" autoComplete="off" spellCheck={false}
@@ -140,17 +143,17 @@ export function AdminSelect({ id, value, onChange, options, placeholder = 'Chois
               onChange={event => { setQuery(event.target.value); setActive(0); }} onKeyDown={onSearchKey}
             />
           </div>
-          <ul ref={listRef} id={listId} role="listbox" className="adm-combo-list" aria-label={ariaLabel}>
-            {query.trim() && !visible.some(option => !option.pinned) && <li className="adm-combo-empty" role="presentation">Aucun résultat pour « {query.trim()} »</li>}
+          <ul ref={listRef} id={listId} role="listbox" className={`${p}-list`} aria-label={ariaLabel}>
+            {query.trim() && !visible.some(option => !option.pinned) && <li className={`${p}-empty`} role="presentation">Aucun résultat pour « {query.trim()} »</li>}
             {visible.map((option, index) => (
               <li
                 key={option.value} id={`${listId}-${index}`} data-index={index} role="option" aria-selected={option.value === value}
-                className={`adm-combo-option${index === active ? ' is-active' : ''}${option.pinned ? ' is-pinned' : ''}`}
+                className={`${p}-option${index === active ? ' is-active' : ''}${option.pinned ? ' is-pinned' : ''}`}
                 onPointerMove={() => setActive(index)} onPointerDown={event => event.preventDefault()} onClick={() => choose(option)}
               >
                 <span>{option.label}</span>
-                {option.hint && <span className="adm-combo-hint">{option.hint}</span>}
-                {option.value === value && <svg className="adm-combo-check" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+                {option.hint && <span className={`${p}-hint`}>{option.hint}</span>}
+                {option.value === value && <svg className={`${p}-check`} viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>}
               </li>
             ))}
           </ul>
