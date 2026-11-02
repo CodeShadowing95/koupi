@@ -58,7 +58,13 @@ function SeReperer() {
       <p>En bas du menu, <b>Voir le site</b> ouvre le site public dans un nouvel onglet : pratique pour vérifier ce que voit un visiteur.</p>
     </Section>
     <Section id="recherche" title="Tout trouver avec ⌘K">
-      <p>Appuie sur <Key>⌘</Key> <Key>K</Key> sur Mac, ou <Key>Ctrl</Key> <Key>K</Key> sur PC, depuis n’importe quelle page. Une fenêtre de recherche s’ouvre : tape un code, un outil, un créateur ou le nom d’une page, puis <Key>Entrée</Key>.</p>
+      <p>Appuie sur <Key>⌘</Key> <Key>K</Key> sur Mac, ou <Key>Ctrl</Key> <Key>K</Key> sur PC, depuis n’importe quelle page, ou clique sur « Rechercher » en haut. Avant même de taper, la fenêtre te propose tes derniers éléments ouverts (« Récents »), un « Accès rapide » au travail du jour (propositions, codes à tester et à retester, statistiques), les autres pages et les exports. Dès que tu tapes un code, un outil, un créateur ou le nom d’une page, les résultats remplacent ces suggestions, rangés par type, avec les lettres tapées en bleu.</p>
+      <Steps>
+        <Step title="Tape quelques lettres">Pas besoin de majuscules ni d’accents : « edi » trouve « Éditeur ».</Step>
+        <Step title="Filtre si besoin">Sous le champ, les filtres Tout, Pages, Codes, Outils, Créateurs et Propositions affichent, dès que tu tapes, le nombre de résultats de chaque type. Sans rien taper, choisir un filtre permet de parcourir ce type (par exemple tous les outils). Clique dessus ou appuie sur <Key>Tab</Key> pour passer de l’un à l’autre. Un code affiche aussi son statut à droite.</Step>
+        <Step title="Choisis avec les flèches">Les touches <Key>↑</Key> <Key>↓</Key> déplacent la sélection, ou survole un résultat avec la souris. « Voir les … » sous un groupe affiche tous ses résultats.</Step>
+        <Step title="Ouvre avec Entrée">La touche <Key>↵</Key> (ou un clic) ouvre la page, déjà filtrée sur ce que tu cherchais. <Key>Échap</Key> ferme la fenêtre.</Step>
+      </Steps>
       <Callout tone="tip">C’est le moyen le plus rapide de retrouver un code signalé par un visiteur : tape le code, tu tombes directement dessus.</Callout>
     </Section>
     <Section id="listes" title="Les listes : onglets, recherche, tri">
