@@ -467,7 +467,7 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 /* Comment ça marche : défilement horizontal épinglé (components/site/how-it-works.tsx) */
 .k-journey{position:relative;height:100svh;overflow:hidden}
 .k-journey-track{position:relative;display:flex;height:100%;width:max-content}
-.k-journey-svg{position:absolute;left:80vw;top:50%;width:calc(100% - 80vw);height:220px;translate:0 -50%;overflow:visible;pointer-events:none}
+.k-journey-svg{position:absolute;left:80vw;top:50%;width:calc(100% - 120vw);height:220px;translate:0 -50%;overflow:visible;pointer-events:none}
 .k-journey-line{fill:none;stroke:var(--coral);stroke-width:4;stroke-linecap:round;vector-effect:non-scaling-stroke}
 .k-journey-step{position:relative;flex:none;width:100vw;height:100%;display:flex;align-items:center;justify-content:center;padding:100px 8vw 60px;gap:4vw}
 .k-journey-step-0{width:80vw}
@@ -496,7 +496,7 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 @media (max-width:760px){
   .k-journey-step{flex-direction:column;align-items:flex-start;justify-content:center;padding:90px 24px 40px;gap:10px}
   .k-journey-step-0{width:100vw}
-  .k-journey-svg{left:100vw;width:calc(100% - 100vw)}
+  .k-journey-svg{left:100vw;width:calc(100% - 140vw)}
   .k-journey-num{font-size:120px}
   .k-journey-main{width:190px;padding:20px}
   .k-journey-main strong{font-size:38px}
