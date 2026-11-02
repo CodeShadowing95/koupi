@@ -38,7 +38,7 @@ Avant chaque commit : `npm run typecheck && npm test && npm run build` doivent p
 ## Façon de travailler
 
 - **Branches** : on part de `develop`. Chaque branche s'appelle `dev-<sujet>` (ex. `dev-votes`). La PR vise `develop`, jamais `main`. `develop` part en production par une PR de release vers `main` (merge commit, jamais squash), préparée par `npm run release` (voir `docs/release.md`).
-- **Titres de PR et commits** : strictement `<type>(<scope>): <description>`, en anglais, ex. `feat(votes): add vote buttons`. Le scope est obligatoire. Pas de préfixe de branche dans le titre. Un changement cassant prend un `!` (`feat(api)!: …`).
+- **Titres de PR et commits** : strictement `<type>(<scope>): <description>`, en anglais, ex. `feat(votes): Add vote buttons`. Le scope est obligatoire. La description commence toujours par une majuscule. Pas de préfixe de branche dans le titre. Un changement cassant prend un `!` (`feat(api)!: …`).
 - **Types** (pour les commits et les PR) :
 
   | Type | Quand l'utiliser |
