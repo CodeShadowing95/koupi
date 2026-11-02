@@ -1069,10 +1069,10 @@ html:has(> body > .ct){overflow:hidden}
 
 /* Accueil : colonne de droite (parcours des codes + Oubi et Lili, les IA à venir) */
 .adm-col{display:flex;flex-direction:column;gap:16px;min-width:0}
-.adm-ai{position:relative;flex:1;display:flex;flex-direction:column;gap:6px;margin-top:20px;padding:14px 16px 10px;border-radius:14px;color:#fff;background:linear-gradient(165deg,#3FA9F5 0%,#2F6FEA 38%,#5B4BF0 66%,#8B3AEA 100%);box-shadow:0 14px 30px -18px rgba(40,30,140,.7);min-width:0}
+.adm-ai{position:relative;flex:1;display:flex;flex-direction:column;gap:6px;padding:14px 16px 10px;border-radius:14px;color:#fff;background:linear-gradient(165deg,#3FA9F5 0%,#2F6FEA 38%,#5B4BF0 66%,#8B3AEA 100%);box-shadow:0 14px 30px -18px rgba(40,30,140,.7);min-width:0}
 .adm-ai::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(60% 40% at 10% 0%,rgba(255,255,255,.3),transparent 70%),radial-gradient(50% 35% at 100% 100%,rgba(255,227,138,.18),transparent 70%);pointer-events:none}
 .adm-ai>*{position:relative}
-.adm-ai-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-right:118px}
+.adm-ai-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .adm-ai-head h2{margin:0;font-size:16px;font-weight:700;font-family:var(--font-body);color:#fff}
 .adm-ai-head p{margin:0;font-size:12.5px;line-height:1.4;opacity:.9}
 .adm-ai-soon{display:inline-flex;align-items:center;gap:6px;padding:3px 9px 3px 8px;border-radius:999px;background:rgba(255,255,255,.2);color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
@@ -1080,7 +1080,6 @@ html:has(> body > .ct){overflow:hidden}
 @keyframes adm-ai-pulse{50%{opacity:.35;transform:scale(.8)}}
 .adm-ai-row{display:flex;align-items:center;gap:8px}
 .adm-ai-row+.adm-ai-row{border-top:1px dashed rgba(255,255,255,.35);padding-top:8px}
-.adm-ai-oubi{padding-right:118px;min-height:76px}
 .adm-ai-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
 .adm-ai-lili .adm-ai-text{align-items:flex-end;text-align:right}
 .adm-ai-text b{font-family:var(--font-display);font-weight:600;font-size:26px;line-height:1.05;letter-spacing:-.01em}
@@ -1092,7 +1091,7 @@ html:has(> body > .ct){overflow:hidden}
 .adm-ai-power i[data-on]{background:#fff}
 .adm-ai-lili .adm-ai-power i[data-on]{background:#FFE38A}
 .adm-ai-art{position:relative;flex:none;filter:drop-shadow(0 6px 10px rgba(15,20,80,.25));animation:adm-ai-float 4.5s ease-in-out infinite}
-.adm-ai-art-oubi{position:absolute!important;top:-34px;right:4px;width:124px}
+.adm-ai-art-oubi{width:108px;margin:-6px -4px -6px 0}
 .adm-ai-art-lili{width:132px;margin:-8px 0 -8px -10px;animation-delay:-2s}
 @keyframes adm-ai-float{50%{transform:translateY(-4px)}}
 .adm-ai-spark{transform-box:fill-box;transform-origin:center;animation:adm-ai-twinkle 2.8s ease-in-out infinite}
