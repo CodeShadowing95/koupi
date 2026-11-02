@@ -1,7 +1,6 @@
 // Carte « bientôt » de l'accueil admin : les deux assistants IA prévus (voir la spec des vérifications IA).
-// Oubi (Claude Haiku), l'éclaireur, cherche les codes ; Lili (Claude Opus), la vérificatrice, les contrôle.
-// Une seule carte façon widget ; Lili, plus puissante, est plus grande et mieux équipée.
-// Sur ordinateur, la carte prend la hauteur laissée libre à côté de « À faire » et se resserre si la place manque.
+// Oubi et Lili, les deux moitiés de « Koupi » : Oubi (Claude Haiku) cherche les codes, Lili (Claude Opus) les vérifie.
+// Une seule carte façon widget : Oubi déborde par le haut, Lili, plus puissante, est plus grand et mieux équipé.
 // Rien n'est encore branché.
 
 /** Oubi : petit disque-coupon bleu ciel, encoches sur les côtés, loupe à la main. */
@@ -67,6 +66,7 @@ function Power({ level }: { level: number }) {
 export function AdminAiTeaser() {
   return (
     <section className="adm-ai" aria-labelledby="ai-title">
+      <OubiArt />
       <div className="adm-ai-head">
         <h2 id="ai-title">Oubi et Lili arrivent</h2>
         <span className="adm-ai-soon"><span aria-hidden="true" />Bientôt</span>
@@ -78,7 +78,6 @@ export function AdminAiTeaser() {
           <p>Repère les codes dans les vidéos et les podcasts.</p>
           <Power level={2} />
         </div>
-        <OubiArt />
       </div>
       <div className="adm-ai-row adm-ai-lili">
         <LiliArt />
