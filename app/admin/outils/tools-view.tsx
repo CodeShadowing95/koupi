@@ -10,7 +10,8 @@ import { FormDialog, sendJson } from '@/components/admin-form-dialog';
 import { AdminSelect } from '@/components/admin-select';
 import { InfoTip } from '@/components/admin-info-tip';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
-import { AdminToolName } from '@/components/admin-tool-logo';
+import { AdminToolLogo, AdminToolName } from '@/components/admin-tool-logo';
+import { IconButton, IconLink, StatusDot } from '@/components/admin-card';
 
 type Filter = 'all' | 'published' | 'empty' | 'archived';
 const filters: { value: Filter; label: string }[] = [
@@ -65,6 +66,8 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
 
   const status = (tool: AdminTool) => tool.archived ? <span className="adm-pill adm-pill-bad">Archivé</span>
     : tool.visible > 0 ? <span className="adm-pill adm-pill-ok">Publié</span> : <span className="adm-pill">Sans code</span>;
+  const statusDot = (tool: AdminTool) => tool.archived ? <StatusDot tone="bad">Archivé</StatusDot>
+    : tool.visible > 0 ? <StatusDot tone="ok">Publié</StatusDot> : <StatusDot tone="muted">Sans code</StatusDot>;
   const codesLink = (tool: AdminTool) => <a href={`/admin/codes?q=${encodeURIComponent(tool.name)}`}>{tool.visible} visible{tool.visible > 1 ? 's' : ''} / {tool.codes}</a>;
 
   return (
@@ -115,13 +118,15 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
           <div className="adm-grid adm-page-enter" key={`grid-${current.page}`}>
             {current.items.map(tool => (
               <article className="adm-card" key={tool.id}>
-                <div className="adm-card-top"><AdminToolName slug={tool.slug} name={tool.name} />{status(tool)}</div>
-                <h3>{tool.category}</h3>
-                <p>Codes : {codesLink(tool)} · priorité {tool.priority}</p>
-                {tool.description && <p className="adm-note">{tool.description}</p>}
+                <div className="adm-card-row">
+                  <div className="adm-card-id"><AdminToolLogo slug={tool.slug} name={tool.name} /><div><b title={tool.name}>{tool.name}</b><small title={tool.description ?? undefined}>{tool.category}</small></div></div>
+                  {statusDot(tool)}
+                </div>
                 <div className="adm-card-foot">
-                  <a href={tool.website} target="_blank" rel="noopener noreferrer">Site ↗</a>
-                  <button type="button" className="adm-btn" style={{ marginLeft: 'auto' }} onClick={() => open(tool)}>Modifier</button>
+                  <span className="adm-card-meta">{codesLink(tool)}</span>
+                  <span className="adm-prio" title={`Priorité ${tool.priority}`}>P{tool.priority}</span>
+                  <IconLink icon="external" label="Site officiel" href={tool.website} external />
+                  <IconButton icon="edit" label="Modifier" onClick={() => open(tool)} />
                 </div>
               </article>
             ))}
