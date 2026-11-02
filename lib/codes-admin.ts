@@ -76,7 +76,7 @@ async function resolveTool(db: Db, input: Pick<CodeInput, 'toolSlug' | 'newTool'
 }
 
 /** Le créateur du même nom (même slug), créé s'il n'existe pas encore. */
-async function resolveCreator(db: Db, name: string): Promise<string> {
+export async function resolveCreator(db: Db, name: string): Promise<string> {
   const slug = slugify(name);
   await db.insert(creators).values({ slug, name }).onConflictDoNothing();
   const [creator] = await db.select({ id: creators.id }).from(creators).where(eq(creators.slug, slug)).limit(1);

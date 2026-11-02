@@ -1186,3 +1186,20 @@ html:has(> body > .ct){overflow:hidden}
 .adm-platform-icon.is-snapchat{color:#000}
 .adm-platform-icon.is-tiktok,.adm-platform-icon.is-x{box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
 .adm-ca-platform{display:inline-flex;align-items:center;gap:7px;margin-bottom:4px}
+
+/* Podcasts suivis */
+.adm-pod-search{display:flex;flex-direction:column;gap:12px;padding:16px;margin-bottom:24px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+.adm-pod-search h2,.adm-pod-title{margin:0;font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px}
+.adm-pod-title{margin:24px 0 12px}
+.adm-pod-search .adm-toolbar{margin:0}
+.adm-pod-starters{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:13px}
+.adm-pod-chip{height:30px;padding:0 11px;border:1px solid var(--line-strong);border-radius:999px;background:transparent;color:var(--ink-soft);font-size:13px;font-weight:600}
+.adm-pod-chip:hover:not(:disabled){border-color:var(--blue);color:var(--blue)}
+.adm-pod-results{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.adm-pod-result{display:flex;align-items:center;gap:12px;padding:8px;border:1px solid var(--line);border-radius:10px;min-width:0}
+.adm-pod-result img,.adm-pod-noimg{width:56px;height:56px;border-radius:8px;flex:none;object-fit:cover;background:var(--line)}
+.adm-pod-info{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.adm-pod-info b,.adm-pod-info small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adm-pod-info small{color:var(--muted);font-size:12px}
+.adm-pod-done{font-size:13px;font-weight:600;color:var(--ok);white-space:nowrap}
+@media (max-width:640px){.adm-pod-result{flex-wrap:wrap}.adm-pod-info{flex-basis:calc(100% - 68px)}}

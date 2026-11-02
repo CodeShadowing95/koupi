@@ -1,0 +1,62 @@
+import { describe, expect, it, vi } from 'vitest';
+import { applePodcasts, htmlToText } from './apple-podcasts';
+
+const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
+
+describe('htmlToText', () => {
+  it('garde le texte, les retours à la ligne et décode les entités', () => {
+    expect(htmlToText('<p>Code <b>KOUPI</b> &amp; -20&nbsp;%</p><p>Lien : &lt;ici&gt; &#233;t&#233;</p>')).toBe('Code KOUPI & -20 %\nLien : <ici> été');
+  });
+  it('ne décode pas deux fois', () => {
+    expect(htmlToText('&amp;lt;b&amp;gt;')).toBe('&lt;b&gt;');
+  });
+});
+
+describe('applePodcasts', () => {
+  it('cherche des podcasts dans la boutique française et ignore ce qui n’en est pas', async () => {
+    const fetchFn = vi.fn(async (_url: string) => json({ results: [
+      { kind: 'podcast', collectionId: 42, collectionName: ' Silicon Carne ', artistName: 'Carlos', feedUrl: 'https://feed.example/rss', collectionViewUrl: 'https://podcasts.apple.com/fr/podcast/id42', artworkUrl600: 'https://img.example/a.jpg', trackCount: 300, primaryGenreName: 'Technologies' },
+      { kind: 'song', collectionId: 7, collectionName: 'Pas un podcast' },
+      { kind: 'podcast', collectionId: 43, collectionName: 'Sans liens', feedUrl: 'javascript:alert(1)' },
+    ] }));
+    const feeds = await applePodcasts(fetchFn as unknown as typeof fetch).search('silicon carne');
+    const url = new URL(fetchFn.mock.calls[0][0]);
+    expect(url.pathname).toBe('/search');
+    expect(url.searchParams.get('term')).toBe('silicon carne');
+    expect(url.searchParams.get('media')).toBe('podcast');
+    expect(url.searchParams.get('country')).toBe('FR');
+    expect(feeds).toEqual([
+      { id: 42, title: 'Silicon Carne', author: 'Carlos', feedUrl: 'https://feed.example/rss', link: 'https://podcasts.apple.com/fr/podcast/id42', image: 'https://img.example/a.jpg', episodeCount: 300, genre: 'Technologies' },
+      { id: 43, title: 'Sans liens', author: '', feedUrl: '', link: '', image: '', episodeCount: 0, genre: '' },
+    ]);
+  });
+
+  it('relit un podcast par son identifiant, null s’il n’existe plus', async () => {
+    const fetchFn = vi.fn()
+      .mockResolvedValueOnce(json({ results: [{ kind: 'podcast', collectionId: 42, collectionName: 'Silicon Carne' }] }))
+      .mockResolvedValueOnce(json({ results: [] }));
+    const directory = applePodcasts(fetchFn as unknown as typeof fetch);
+    expect((await directory.podcast(42))?.title).toBe('Silicon Carne');
+    expect(await directory.podcast(99)).toBeNull();
+  });
+
+  it('lit les derniers épisodes avec leurs notes en texte, du plus récent au plus ancien', async () => {
+    const fetchFn = vi.fn(async (_url: string) => json({ results: [
+      { wrapperType: 'track', kind: 'podcast', collectionId: 42, collectionName: 'Silicon Carne' },
+      { wrapperType: 'podcastEpisode', trackId: 1, trackName: 'Ancien', releaseDate: '2026-10-01T05:00:00Z', description: '<p>Rien</p>', trackViewUrl: 'https://podcasts.apple.com/fr/podcast/id42?i=1' },
+      { wrapperType: 'podcastEpisode', trackId: 2, trackName: 'Récent', releaseDate: '2026-10-20T05:00:00Z', shortDescription: 'Code KOUPI10' },
+    ] }));
+    const episodes = await applePodcasts(fetchFn as unknown as typeof fetch).episodes(42, { max: 5 });
+    const url = new URL(fetchFn.mock.calls[0][0]);
+    expect(url.searchParams.get('entity')).toBe('podcastEpisode');
+    expect(url.searchParams.get('limit')).toBe('5');
+    expect(episodes.map(episode => episode.title)).toEqual(['Récent', 'Ancien']);
+    expect(episodes[0]).toMatchObject({ id: 2, description: 'Code KOUPI10', link: '' });
+    expect(episodes[1].publishedAt?.toISOString()).toBe('2026-10-01T05:00:00.000Z');
+  });
+
+  it('signale une erreur de l’annuaire', async () => {
+    const fetchFn = vi.fn(async (_url: string) => json({}, 503));
+    await expect(applePodcasts(fetchFn as unknown as typeof fetch).search('x')).rejects.toThrow('503');
+  });
+});

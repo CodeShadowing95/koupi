@@ -60,6 +60,12 @@ export const guideChapters: GuideChapter[] = [
     practice: { href: '/admin/verifications', label: 'Ouvrir les vérifications' },
   },
   {
+    slug: 'podcasts', part: 'moderate', title: 'Suivre des podcasts', minutes: 3,
+    summary: 'Choisir les podcasts que Koupi lit pour trouver des codes, les mettre en pause ou les retirer.',
+    goals: ['Trouver et suivre un podcast', 'Savoir à quel créateur ses codes sont crédités', 'Mettre en pause sans rien perdre'],
+    practice: { href: '/admin/podcasts', label: 'Ouvrir les podcasts suivis' },
+  },
+  {
     slug: 'outils', part: 'catalog', title: 'Gérer les outils', minutes: 4,
     summary: 'Ajouter un outil, régler sa priorité, l’archiver ou le restaurer.',
     goals: ['Ajouter un outil propre', 'Utiliser la priorité pour choisir quoi couvrir', 'Archiver sans rien perdre'],

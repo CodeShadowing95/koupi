@@ -52,7 +52,7 @@ function SeReperer() {
       <p>Le menu est rangé par grandes tâches, de haut en bas :</p>
       <Legend rows={[
         { term: 'Pilotage', meaning: <><b>Accueil</b> (ce qu’il y a à faire aujourd’hui) et <b>Statistiques</b> (les chiffres en détail).</> },
-        { term: 'Modération', meaning: <><b>Propositions</b> (les codes envoyés par les visiteurs) et <b>Codes</b> (tout le catalogue). Un nombre orange à côté veut dire « des éléments t’attendent ».</> },
+        { term: 'Modération', meaning: <><b>Propositions</b> (les codes envoyés par les visiteurs), <b>Codes</b> (tout le catalogue), <b>Vérifications</b> (les dossiers préparés avec un score) et <b>Podcasts suivis</b> (les podcasts que Koupi lit pour trouver des codes). Un nombre orange à côté veut dire « des éléments t’attendent ».</> },
         { term: 'Catalogue', meaning: <><b>Outils</b>, <b>Créateurs</b> et <b>Catégories</b> : ce qui organise le site.</> },
         { term: 'Apprendre', meaning: 'Ce guide.' },
       ]} />
@@ -304,6 +304,30 @@ function Verifications() {
   </>;
 }
 
+function Podcasts() {
+  return <>
+    <Section id="pourquoi" title="Pourquoi suivre des podcasts">
+      <p>Beaucoup de podcasts sont financés par des sponsors : l’animateur lit une publicité et donne un <b>code promo</b>, qu’il répète souvent dans les notes de l’épisode. Suivre un podcast, c’est demander à Koupi de lire ces notes à chaque nouvel épisode pour y repérer les codes.</p>
+      <Callout tone="rule">Un code trouvé dans un podcast n’est jamais publié tout seul : il arrive « En attente » dans <Link href="/admin/verifications">Vérifications</Link>, et c’est toi qui décides.</Callout>
+    </Section>
+    <Section id="ajouter" title="Ajouter un podcast">
+      <Steps>
+        <Step title="Cherche-le">Tape son nom dans <b>Ajouter un podcast</b> puis <b>Chercher</b>. Koupi interroge l’annuaire d’Apple Podcasts, gratuit et sans clé. Les noms sous le champ sont les podcasts conseillés pour démarrer : un clic lance la recherche.</Step>
+        <Step title="Vérifie que c’est le bon">L’auteur, le genre et le nombre d’épisodes aident à éviter les homonymes. <b>Écouter</b> ouvre sa page Apple Podcasts.</Step>
+        <Step title="Clique sur Suivre">Le podcast rejoint la liste des suivis. Koupi crée aussi son <b>créateur</b> (au nom du podcast) et y relie un compte « Podcast » : les codes trouvés seront crédités à ce créateur. Tu peux le renommer ou lui relier ses autres réseaux dans <Link href="/admin/createurs">Créateurs</Link>.</Step>
+      </Steps>
+    </Section>
+    <Section id="liste" title="La liste des suivis">
+      <Legend rows={[
+        { term: <StatusDot tone="ok">Lu chaque nuit</StatusDot>, meaning: 'Le podcast est suivi : ses nouveaux épisodes seront lus.' },
+        { term: <StatusDot tone="muted">En pause</StatusDot>, meaning: 'Le podcast reste dans la liste mais n’est plus lu. Pratique pour un podcast qui ne donne plus de codes, sans le perdre.' },
+      ]} />
+      <p><b>Dernière lecture</b> dit quand ses épisodes ont été lus pour la dernière fois. <b>Ne plus suivre</b> le retire de la liste : son créateur, son compte et ses codes restent.</p>
+      <Callout tone="tip">La lecture des épisodes arrive à l’étape suivante. En attendant, commence ta liste : les podcasts suivis seront lus dès qu’elle sera en ligne.</Callout>
+    </Section>
+  </>;
+}
+
 function Outils() {
   return <>
     <Section id="quoi" title="Ce qu’est un outil">
@@ -484,6 +508,7 @@ export const chapterContent: Record<string, () => ReactNode> = {
   propositions: Propositions,
   codes: Codes,
   verifications: Verifications,
+  podcasts: Podcasts,
   outils: Outils,
   createurs: Createurs,
   categories: Categories,

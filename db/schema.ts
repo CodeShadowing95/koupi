@@ -207,7 +207,7 @@ export const WATCHED_PLATFORMS = ['youtube', 'podcast'] as const;
 export const watchedSources = pgTable('watched_sources', {
   id: uuid('id').primaryKey().defaultRandom(),
   platform: text('platform', { enum: WATCHED_PLATFORMS }).notNull(),
-  /** Identifiant stable sur la plateforme (ID de chaîne YouTube, ID Podcast Index). */
+  /** Identifiant stable sur la plateforme (ID de chaîne YouTube, ID Apple Podcasts). */
   externalId: text('external_id').notNull(),
   feedUrl: text('feed_url'),
   title: text('title').notNull(),
