@@ -30,5 +30,5 @@ Le plan prévoyait l'API Podcast Index. Elle refuse désormais les inscriptions 
 - Apple limite à une vingtaine d'appels par minute : suffisant pour l'admin et une lecture de nuit, à étaler si la liste dépasse quelques dizaines de podcasts.
 - Un podcast absent d'Apple Podcasts ne peut pas être suivi pour l'instant.
 - Un code pour un outil absent du catalogue n'est pas relevé : l'admin ajoute l'outil d'abord.
-- Deux tâches planifiées Vercel (le maximum du plan gratuit).
+- Une deuxième tâche planifiée Vercel, une fois par jour.
 - Les notes d'épisode d'Apple peuvent être plus courtes que celles du flux RSS ; si des codes manquent, on lira le `feedUrl` gardé dans `watched_sources`.
