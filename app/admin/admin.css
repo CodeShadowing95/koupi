@@ -1208,3 +1208,5 @@ html:has(> body > .ct){overflow:hidden}
 .adm-pod-report ul{padding-left:18px}
 .adm-pod-report-actions{display:flex;gap:8px;flex-wrap:wrap}
 .adm-pod-report a.adm-btn-pri{color:var(--on-blue);text-decoration:none}
+.adm-pod-cell{display:flex;align-items:center;gap:10px;min-width:0}
+.adm-pod-cell img,.adm-pod-cell .adm-pod-noimg{width:40px;height:40px;border-radius:7px;flex:none;object-fit:cover;background:var(--line)}

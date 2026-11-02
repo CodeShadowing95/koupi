@@ -40,6 +40,19 @@ describe('applePodcasts', () => {
     expect(await directory.podcast(99)).toBeNull();
   });
 
+  it('relit plusieurs podcasts en un seul appel, sans appel s’il n’y en a aucun', async () => {
+    const fetchFn = vi.fn(async (_url: string) => json({ results: [
+      { kind: 'podcast', collectionId: 42, collectionName: 'A', artworkUrl600: 'https://img.example/a.jpg' },
+      { kind: 'podcast', collectionId: 43, collectionName: 'B' },
+    ] }));
+    const directory = applePodcasts(fetchFn as unknown as typeof fetch);
+    expect(await directory.podcasts([])).toEqual([]);
+    expect(fetchFn).not.toHaveBeenCalled();
+    const feeds = await directory.podcasts([42, 43, 42]);
+    expect(new URL(fetchFn.mock.calls[0][0]).searchParams.get('id')).toBe('42,43');
+    expect(feeds.map(feed => feed.image)).toEqual(['https://img.example/a.jpg', '']);
+  });
+
   it('lit les derniers épisodes avec leurs notes en texte, du plus récent au plus ancien', async () => {
     const fetchFn = vi.fn(async (_url: string) => json({ results: [
       { wrapperType: 'track', kind: 'podcast', collectionId: 42, collectionName: 'Silicon Carne' },
@@ -65,6 +78,7 @@ describe('podcastReader', () => {
   const directory = (podcast: boolean) => ({
     search: vi.fn(),
     podcast: vi.fn(async () => (podcast ? { id: 42, title: 'P', author: '', feedUrl: '', link: '', image: '', episodeCount: 1, genre: '' } : null)),
+    podcasts: vi.fn(),
     episodes: vi.fn(async () => [{ id: 7, title: 'Épisode 7', link: '', description: 'Code KOUPI', publishedAt: null }]),
   });
 
