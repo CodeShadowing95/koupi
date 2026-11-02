@@ -1,10 +1,11 @@
 // File de la page Vérifications : les codes qui attendent une décision (en attente ou à tester),
 // chacun avec sa dernière analyse. Les dossiers analysés passent devant, du plus sûr au moins sûr,
 // pour valider vite ce qui est clair ; les codes jamais analysés suivent, du plus ancien au plus récent.
-import { and, desc, eq, inArray, isNull } from 'drizzle-orm';
+// S'y ajoutent les retests : codes vérifiés dont une analyse plus récente que le dernier test n'est plus claire.
+import { and, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { codes, creators, tools, verificationChecks } from '@/db/schema';
-import type { QueueCheck, QueueItem } from './verification-display';
+import { verdictOf, type QueueCheck, type QueueItem } from './verification-display';
 
 export type { QueueCheck, QueueItem } from './verification-display';
 
@@ -24,7 +25,11 @@ export async function verificationQueue(db: Db): Promise<QueueItem[]> {
   }).from(codes)
     .innerJoin(tools, eq(codes.toolId, tools.id))
     .innerJoin(creators, eq(codes.creatorId, creators.id))
-    .where(and(isNull(codes.archivedAt), inArray(codes.status, ['pending', 'to_test'])));
+    .where(and(isNull(codes.archivedAt), or(
+      inArray(codes.status, ['pending', 'to_test']),
+      // Vérifié, mais relu par une analyse postérieure au dernier test (retest automatique ou manuel).
+      and(eq(codes.status, 'verified'), sql`exists (select 1 from ${verificationChecks} where ${verificationChecks.codeId} = ${codes.id} and ${verificationChecks.createdAt} > coalesce(${codes.lastTestedAt}, 'epoch'::timestamptz))`),
+    )));
   if (rows.length === 0) return [];
 
   const checks = await db.select().from(verificationChecks)
@@ -39,10 +44,12 @@ export async function verificationQueue(db: Db): Promise<QueueItem[]> {
     });
   }
 
-  return sortQueue(rows.map(row => ({
+  const items = rows.map(row => ({
     ...row,
     status: row.status as QueueItem['status'],
     createdAt: row.createdAt.toISOString(),
     check: latest.get(row.id) ?? null,
-  })));
+  }));
+  // Un code vérifié dont la relecture reste claire n'a besoin de rien : il ne remonte pas.
+  return sortQueue(items.filter(item => item.status !== 'verified' || verdictOf(item.check) !== 'clear'));
 }

@@ -283,6 +283,15 @@ function Verifications() {
         { term: <Key>R</Key>, meaning: 'Rejeter.' },
       ]} />
     </Section>
+    <Section id="retests" title="Les retests de nuit">
+      <p>Chaque nuit, Koupi relit la source des codes <b>vérifiés depuis plus de {RETEST_DAYS} jours</b>, jusqu’à 40 par nuit, les plus anciens d’abord. Il ne change rien tout seul.</p>
+      <p>Si la nouvelle analyse n’est plus claire (vidéo supprimée, code disparu de la description), le code arrive dans l’onglet <b>Retests</b>. Tu l’ouvres, puis :</p>
+      <Legend rows={[
+        { term: <Fake tone="pri">✓ Valider</Fake>, meaning: 'Le code est toujours bon : la date du test est remise à aujourd’hui et il quitte la liste.' },
+        { term: <Fake tone="no">✗ Rejeter</Fake>, meaning: 'Le code est mort : il quitte le site.' },
+      ]} />
+      <Callout tone="tip">Le bouton <b>Lancer les retests maintenant</b> fait le même travail tout de suite, sans attendre la nuit.</Callout>
+    </Section>
     <Section id="ia" title="L’IA, son coût et ses limites">
       <p>Le bandeau du haut dit si l’IA est <b>active</b>, <b>en attente d’activation</b> (pas encore de clé) ou si le <b>plafond du mois</b> est atteint. Sans IA, les contrôles automatiques marchent quand même.</p>
       <p>Quand elle est active, un petit modèle rapide lit chaque description. Un modèle plus fin relit seulement les dossiers douteux, ou quand tu cliques sur <b>Relire avec Opus</b>. La jauge montre la dépense du mois face au plafond.</p>

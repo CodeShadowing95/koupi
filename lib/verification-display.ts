@@ -15,7 +15,8 @@ export type QueueItem = {
   id: string;
   code: string;
   discount: string;
-  status: 'pending' | 'to_test';
+  /** verified : un retest dont l'analyse n'est plus claire (onglet « Retests »). */
+  status: 'pending' | 'to_test' | 'verified';
   tool: string;
   creator: string;
   sourceUrl: string;

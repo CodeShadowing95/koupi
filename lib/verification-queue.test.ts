@@ -87,6 +87,20 @@ describe('verificationQueue', () => {
     expect(queue[1].check).toBeNull();
   });
 
+  it('fait remonter un code vérifié seulement si sa relecture n’est plus claire', async () => {
+    const db = await freshDb();
+    const doubtful = await add(db, { code: 'OLD1', status: 'verified' });
+    const fine = await add(db, { code: 'OLD2', status: 'verified' });
+    const before = await add(db, { code: 'OLD3', status: 'verified' });
+    await recordVerificationCheck(db, { codeId: before, score: 10, reasons: [] });
+    await applyCodeAction(db, before, 'verify');
+    await recordVerificationCheck(db, { codeId: doubtful, score: 10, reasons: [] });
+    await recordVerificationCheck(db, { codeId: fine, score: 90, reasons: [] });
+    const queue = await verificationQueue(db);
+    expect(queue.map(entry => entry.id)).toEqual([doubtful]);
+    expect(queue[0].status).toBe('verified');
+  });
+
   it('rend une file vide sans requête de plus', async () => {
     expect(await verificationQueue(await freshDb())).toEqual([]);
   });

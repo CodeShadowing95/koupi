@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/db';
 import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-session';
-import { aiConfigFrom, anthropicCreate } from '@/lib/ai-extract';
 import { readJsonBody } from '@/lib/http';
-import { runVerification, youtubeReader } from '@/lib/verification-run';
+import { runVerification } from '@/lib/verification-run';
+import { verificationDeps } from '@/lib/verification-deps';
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -17,11 +17,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (!parsed.ok) return NextResponse.json({ error: 'Requête invalide.' }, { status: parsed.status });
   const mode = parsed.data.mode === 'review' ? 'review' : 'standard';
   try {
-    const config = aiConfigFrom(process.env);
-    const check = await runVerification(getDb(), id, {
-      readSource: youtubeReader(process.env.YOUTUBE_API_KEY),
-      ai: { config, create: config.apiKey ? anthropicCreate(config.apiKey) : null },
-    }, mode);
+    const check = await runVerification(getDb(), id, verificationDeps(), mode);
     if (!check) return NextResponse.json({ error: 'Code introuvable.' }, { status: 404 });
     return NextResponse.json({ ok: true, check });
   } catch (error) {
