@@ -10,16 +10,15 @@ import {
   type CommandFilter, type CommandItem, type CommandKind, type CommandStatus,
 } from '@/lib/admin-command';
 import { StatusDot, type Tone } from '@/components/admin-card';
+import { AdminIcon, type IconName } from '@/components/admin-icons';
+import { iconForHref } from '@/lib/admin-icon-for';
 
 const statusTone: Record<CommandStatus, Tone> = { verified: 'ok', to_test: 'warn', pending: 'muted', rejected: 'bad', archived: 'muted' };
 
-const kindIcon: Record<CommandKind, React.ReactNode> = {
-  page: <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5" />,
-  code: <path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4zM10 6v12" />,
-  tool: <path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z" />,
-  creator: <><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></>,
-  proposal: <><path d="M22 12h-6l-2 3h-4l-2-3H2" /><path d="M5.5 5h13L22 12v7H2v-7z" /></>,
-};
+// Mêmes icônes que le menu latéral ; les pages prennent celle de leur rubrique, les exports une flèche de téléchargement.
+const kindIcon: Record<Exclude<CommandKind, 'page'>, IconName> = { code: 'ticket', tool: 'tool', creator: 'users', proposal: 'inbox' };
+const itemIcon = (item: CommandItem): IconName => (item.kind === 'page' ? iconForHref(item.href) : kindIcon[item.kind]);
+const pageIcon = <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5" />;
 const allIcon = <><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></>;
 const icon = (path: React.ReactNode, size = 16) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{path}</svg>;
 const searchIcon = (size: number) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>;
@@ -115,7 +114,7 @@ export function CommandPalette() {
               {COMMAND_FILTERS.map(item => (
                 <button key={item} type="button" role="tab" aria-selected={filter === item} className="adm-cmd-chip" tabIndex={-1} data-empty={typed && counts[item] === 0 ? "" : undefined}
                   onClick={() => { setFilter(item); input.current?.focus(); }}>
-                  {icon(item === 'all' ? allIcon : kindIcon[item], 14)}
+                  {item === 'all' ? icon(allIcon, 14) : item === 'page' ? icon(pageIcon, 14) : <AdminIcon name={kindIcon[item]} size={14} stroke={1.8} />}
                   <span>{COMMAND_FILTER_LABELS[item]}</span>
                   {typed && <span className="adm-cmd-chip-n">{counts[item]}</span>}
                 </button>
@@ -132,7 +131,7 @@ export function CommandPalette() {
                       return (
                         <div key={`${item.kind}-${item.href}-${i}`} id={`cmd-${i}`} role="option" aria-selected={i === active} className="adm-cmd-item"
                           onMouseMove={() => setActive(i)} onClick={() => go(item)}>
-                          <span className="adm-cmd-icon" aria-hidden="true">{icon(kindIcon[item.kind])}</span>
+                          <span className="adm-cmd-icon" aria-hidden="true"><AdminIcon name={itemIcon(item)} size={16} stroke={1.8} /></span>
                           <span className="adm-cmd-text">
                             <b className={item.kind === 'code' || item.kind === 'proposal' ? 'mono' : undefined}>
                               {highlightParts(item.label, query).map((part, n) => part.match ? <mark key={n}>{part.text}</mark> : part.text)}
