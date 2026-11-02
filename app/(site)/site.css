@@ -479,3 +479,35 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-vote-done{font-size:13px;opacity:.8;margin:0}
 .k-vote-error{font-size:13px;color:#E5484D}
 @media (prefers-reduced-motion:reduce){.k-vote-btn{transition:none}.k-vote-btn:hover{transform:none}}
+
+/* « Ils ont donné le code » : orbite des créateurs (components/site/creators-orbit.tsx) */
+.k-orbit-wrap{overflow:hidden}
+.k-orbit-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:40px;align-items:center}
+.k-orbit-copy{display:flex;flex-direction:column;align-items:flex-start;gap:20px}
+.k-orbit-copy h2{font-size:clamp(40px,5.4vw,72px)}
+.k-orbit-copy>p{color:var(--text-soft);font-size:18px;max-width:480px}
+.k-orbit-list{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:10px;width:100%;max-width:520px}
+.k-orbit-list a{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:14px;border:1px solid var(--line);background:var(--surface);transition:background .25s,border-color .25s,transform .35s cubic-bezier(.2,.9,.3,1.3)}
+.k-orbit-list a:hover{background:var(--surface-2);border-color:var(--line-2);transform:translateX(8px)}
+.k-orbit-list strong{font-weight:700}
+.k-orbit-list span:last-child{margin-left:auto;color:var(--muted);font-size:14px;text-align:right}
+.k-orbit{--orbit-out:min(250px,40vw);--orbit-in:min(165px,27vw);position:relative;aspect-ratio:1;width:min(600px,100%);margin:0 auto;display:grid;place-items:center}
+.k-orbit-track{position:absolute;border-radius:50%;border:1.5px dashed rgba(255,255,255,.14)}
+.k-orbit-track-out{inset:calc(50% - var(--orbit-out))}
+.k-orbit-track-in{inset:calc(50% - var(--orbit-in));border-color:rgba(255,106,61,.25)}
+.k-orbit-ring{position:absolute;inset:0}
+.k-orbit-item{position:absolute;left:50%;top:50%;transform:rotate(var(--a)) translateY(calc(var(--d) * -1)) rotate(calc(var(--a) * -1))}
+.k-orbit-item>a{display:flex;flex-direction:column;align-items:center;gap:6px;translate:-50% -50%;transition:scale .3s cubic-bezier(.2,.9,.3,1.3)}
+.k-orbit-item>a:hover{scale:1.2}
+.k-orbit-item .k-av{width:56px;height:56px;font-size:18px;box-shadow:0 0 0 3px var(--bg),0 0 0 5px rgba(255,255,255,.18),0 16px 30px rgba(0,0,0,.5)}
+.k-orbit-item small{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;padding:3px 7px;border-radius:999px;background:var(--paper);color:var(--paper-ink);white-space:nowrap}
+.k-orbit-core{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:min(200px,36vw);aspect-ratio:1.25;border-radius:20px;background:var(--paper);color:var(--paper-ink);text-align:center;transform:rotate(-8deg);box-shadow:0 40px 80px -20px rgba(255,106,61,.45),0 0 0 6px rgba(255,247,232,.08);
+  -webkit-mask:radial-gradient(circle at 0 50%,transparent 12px,#000 13px) left/51% 100% no-repeat,radial-gradient(circle at 100% 50%,transparent 12px,#000 13px) right/51% 100% no-repeat;
+  mask:radial-gradient(circle at 0 50%,transparent 12px,#000 13px) left/51% 100% no-repeat,radial-gradient(circle at 100% 50%,transparent 12px,#000 13px) right/51% 100% no-repeat}
+.k-orbit-core strong{font-family:var(--display);font-size:clamp(48px,7vw,72px);line-height:1;letter-spacing:-.05em}
+.k-orbit-core span{font-size:13px;font-weight:700;color:var(--paper-muted)}
+.k-orbit-core .k-orbit-brand{font-family:var(--mono);font-size:10px;letter-spacing:.24em;color:var(--coral)}
+@media (max-width:760px){
+  .k-orbit-grid{grid-template-columns:1fr}
+  .k-orbit-item .k-av{width:42px;height:42px;font-size:14px}
+}

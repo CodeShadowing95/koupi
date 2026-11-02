@@ -9,6 +9,7 @@ import { MiniCoupon } from '@/components/site/coupon';
 import { ToolSeal } from '@/components/site/tool-logo';
 import { Counter } from '@/components/site/counter';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
+import { CreatorsOrbit } from '@/components/site/creators-orbit';
 
 const Arrow = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
@@ -20,6 +21,14 @@ export default async function Home() {
   const featured = live.filter(code => code.status === 'verified').slice(0, 6);
   const creators = new Set(live.map(code => code.creator));
   const toolOf = (name: string) => tools.find(tool => tool.name === name);
+  // Un créateur par entrée, avec son nombre de codes visibles et un exemple de code.
+  const orbit = [...new Map(live.map(code => [code.creatorSlug, code])).values()].slice(0, 12).map(code => ({
+    name: code.creator,
+    slug: code.creatorSlug,
+    codes: live.filter(other => other.creatorSlug === code.creatorSlug).length,
+    tool: code.tool,
+    discount: code.discount,
+  }));
   const best = [...live].sort((a, b) => b.success - a.success || b.votes - a.votes)[0];
 
   return (
@@ -73,6 +82,8 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      <CreatorsOrbit creators={orbit} total={creators.size} />
 
       <section className="k-section">
         <div className="k-wrap">
