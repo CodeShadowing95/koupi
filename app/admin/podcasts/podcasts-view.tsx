@@ -8,6 +8,7 @@ import { StatusDot } from '@/components/admin-card';
 import { sendJson } from '@/components/admin-form-dialog';
 import type { AdminPodcast } from '@/lib/podcasts-admin';
 import type { PodcastFeed } from '@/lib/apple-podcasts';
+import type { PodcastReadReport } from '@/lib/podcast-read';
 
 const dayFormat = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Paris' });
 const day = (iso: string) => dayFormat.format(new Date(iso));
@@ -19,6 +20,7 @@ export function PodcastsView({ podcasts, starters }: { podcasts: AdminPodcast[];
   const [searching, setSearching] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const [report, setReport] = useState<PodcastReadReport | null>(null);
   const followed = new Set(podcasts.map(podcast => podcast.feedId));
 
   async function search(term: string) {
@@ -48,6 +50,21 @@ export function PodcastsView({ podcasts, starters }: { podcasts: AdminPodcast[];
   }
   const follow = (feed: PodcastFeed) => act(`follow-${feed.id}`, () => sendJson('/api/admin/podcasts', 'POST', { podcastId: feed.id }));
   const toggle = (podcast: AdminPodcast) => act(`${podcast.id}-toggle`, () => sendJson(`/api/admin/podcasts/${podcast.id}`, 'PATCH', { active: !podcast.active }));
+  // Lecture des épisodes récents : de tous les podcasts actifs, ou d'un seul.
+  async function read(podcast?: AdminPodcast) {
+    setBusy(podcast ? `${podcast.id}-read` : 'read-all');
+    setError('');
+    setReport(null);
+    try {
+      const response = await fetch('/api/admin/podcasts/read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(podcast ? { id: podcast.id } : {}) });
+      const body = await response.json().catch(() => ({})) as PodcastReadReport & { error?: string };
+      if (!response.ok) setError(body.error ?? 'La lecture a échoué.');
+      else { setReport(body); router.refresh(); }
+    } catch {
+      setError('La lecture a échoué. Vérifie ta connexion.');
+    }
+    setBusy(null);
+  }
   const remove = (podcast: AdminPodcast) => {
     if (!window.confirm(`Ne plus suivre « ${podcast.title} » ? Son créateur et ses codes restent.`)) return;
     void act(`${podcast.id}-delete`, () => sendJson(`/api/admin/podcasts/${podcast.id}`, 'DELETE', {}));
@@ -62,7 +79,21 @@ export function PodcastsView({ podcasts, starters }: { podcasts: AdminPodcast[];
             <h1>Podcasts suivis</h1>
             <p>Les podcasts dont Koupi lit les nouveaux épisodes pour trouver des codes promo. Chaque code trouvé arrive dans Vérifications, où tu décides. Suivre un podcast crée aussi son créateur.</p>
           </div>
+          <div className="adm-head-actions">
+            <button type="button" className="adm-btn adm-btn-pri" disabled={busy !== null || !podcasts.some(podcast => podcast.active)} onClick={() => read()}>{busy === 'read-all' ? 'Lecture des épisodes…' : 'Lire les épisodes maintenant'}</button>
+          </div>
         </div>
+        {report && (
+          <div className="notice adm-pod-report" role="status">
+            <p>{report.podcasts} podcast{report.podcasts > 1 ? 's' : ''} lu{report.podcasts > 1 ? 's' : ''}, {report.episodes} épisode{report.episodes > 1 ? 's' : ''} récent{report.episodes > 1 ? 's' : ''}. {report.found.length === 0 ? 'Aucun nouveau code trouvé.' : `${report.found.length} nouveau${report.found.length > 1 ? 'x' : ''} code${report.found.length > 1 ? 's' : ''} en attente :`}</p>
+            {report.found.length > 0 && <ul>{report.found.map(item => <li key={`${item.podcast}-${item.tool}-${item.code}`}><b className="mono">{item.code}</b> pour {item.tool} <span className="muted">({item.podcast})</span></li>)}</ul>}
+            {report.failed.length > 0 && <p>Pas de réponse d’Apple pour : {report.failed.join(', ')}. Ils seront relus la prochaine fois.</p>}
+            <div className="adm-pod-report-actions">
+              {report.found.length > 0 && <Link href="/admin/verifications" className="adm-btn adm-btn-pri">Ouvrir les vérifications</Link>}
+              <button type="button" className="adm-btn" onClick={() => setReport(null)}>Fermer</button>
+            </div>
+          </div>
+        )}
 
         <section className="adm-pod-search" aria-labelledby="pod-search-title">
           <h2 id="pod-search-title">Ajouter un podcast</h2>
@@ -113,6 +144,7 @@ export function PodcastsView({ podcasts, starters }: { podcasts: AdminPodcast[];
                     <td className="adm-cell-muted">{podcast.lastFetchedAt ? day(podcast.lastFetchedAt) : 'Pas encore lu'}</td>
                     <td>
                       <div className="adm-cell-actions">
+                        <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => read(podcast)}>{busy === `${podcast.id}-read` ? 'Lecture…' : 'Lire'}</button>
                         <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => toggle(podcast)}>{podcast.active ? 'Mettre en pause' : 'Reprendre'}</button>
                         <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => remove(podcast)}>Ne plus suivre</button>
                       </div>

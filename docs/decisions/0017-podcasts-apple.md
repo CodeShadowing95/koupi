@@ -16,7 +16,9 @@ Le plan prévoyait l'API Podcast Index. Elle refuse désormais les inscriptions 
 - Un podcast suivi est une ligne de `watched_sources` (plateforme `podcast`, `external_id` = identifiant Apple). Pas de nouvelle table ni de migration.
 - Suivre un podcast crée son créateur (au nom du podcast, ou celui qui a déjà ce compte) et un compte `podcast` dans `creator_accounts` (ADR-0016). Ne plus suivre retire seulement la source : créateur, compte et codes restent.
 - Seul l'identifiant Apple est accepté du navigateur : titre et liens sont relus côté serveur dans l'annuaire.
-- Page admin `/admin/podcasts` (Modération). La lecture des épisodes (nuit + bouton) est l'étape suivante.
+- Page admin `/admin/podcasts` (Modération).
+- Lecture des épisodes (`lib/podcast-read.ts`) : chaque nuit à 3 h 30 UTC (`/api/cron/podcasts`, même `CRON_SECRET` que les retests) et à la demande depuis l'admin. Premier passage sur 45 jours, puis depuis la dernière lecture (marge de 7 jours). Les codes sont repérés sans IA (`lib/podcast-codes.ts` : « code », « coupon »… et un outil du catalogue sur la même ligne ou celle d'avant), ajoutés « En attente » et analysés aussitôt ; l'IA, quand elle est active, intervient dans cette analyse comme pour YouTube. Un code déjà connu pour l'outil n'est jamais recréé.
+- Les vérifications savent relire un épisode Apple Podcasts (`podcastReader`), en plus des vidéos YouTube.
 
 ## Alternatives envisagées
 - **Podcast Index** : très complet et ouvert, mais inscription impossible avec une adresse gratuite. Pourra remplacer Apple plus tard derrière la même interface `PodcastDirectory`.
@@ -27,4 +29,6 @@ Le plan prévoyait l'API Podcast Index. Elle refuse désormais les inscriptions 
 - Aucune clé à gérer pour les podcasts.
 - Apple limite à une vingtaine d'appels par minute : suffisant pour l'admin et une lecture de nuit, à étaler si la liste dépasse quelques dizaines de podcasts.
 - Un podcast absent d'Apple Podcasts ne peut pas être suivi pour l'instant.
+- Un code pour un outil absent du catalogue n'est pas relevé : l'admin ajoute l'outil d'abord.
+- Une deuxième tâche planifiée Vercel, une fois par jour.
 - Les notes d'épisode d'Apple peuvent être plus courtes que celles du flux RSS ; si des codes manquent, on lira le `feedUrl` gardé dans `watched_sources`.

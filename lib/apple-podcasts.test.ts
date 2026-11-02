@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { applePodcasts, htmlToText } from './apple-podcasts';
+import { appleEpisodeRef, applePodcasts, htmlToText, podcastReader } from './apple-podcasts';
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
 
@@ -58,5 +58,26 @@ describe('applePodcasts', () => {
   it('signale une erreur de l’annuaire', async () => {
     const fetchFn = vi.fn(async (_url: string) => json({}, 503));
     await expect(applePodcasts(fetchFn as unknown as typeof fetch).search('x')).rejects.toThrow('503');
+  });
+});
+
+describe('podcastReader', () => {
+  const directory = (podcast: boolean) => ({
+    search: vi.fn(),
+    podcast: vi.fn(async () => (podcast ? { id: 42, title: 'P', author: '', feedUrl: '', link: '', image: '', episodeCount: 1, genre: '' } : null)),
+    episodes: vi.fn(async () => [{ id: 7, title: 'Épisode 7', link: '', description: 'Code KOUPI', publishedAt: null }]),
+  });
+
+  it('lit l’identifiant d’un épisode dans un lien Apple', () => {
+    expect(appleEpisodeRef('https://podcasts.apple.com/fr/podcast/silicon-carne/id42?i=7')).toEqual({ podcastId: 42, episodeId: 7 });
+    expect(appleEpisodeRef('https://podcasts.apple.com/podcast/id42')).toBeNull();
+    expect(appleEpisodeRef('https://www.youtube.com/watch?v=abc')).toBeNull();
+  });
+
+  it('rend les notes de l’épisode, hors ligne si le podcast a disparu, null sinon', async () => {
+    expect(await podcastReader(directory(true))('https://podcasts.apple.com/podcast/id42?i=7')).toEqual({ online: true, title: 'Épisode 7', description: 'Code KOUPI' });
+    expect(await podcastReader(directory(true))('https://podcasts.apple.com/podcast/id42?i=8')).toBeNull();
+    expect(await podcastReader(directory(false))('https://podcasts.apple.com/podcast/id42?i=7')).toEqual({ online: false, title: '', description: '' });
+    expect(await podcastReader(directory(true))('https://example.com')).toBeNull();
   });
 });

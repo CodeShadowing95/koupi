@@ -5,6 +5,7 @@ import { Icon, StatusDot } from '@/components/admin-card';
 import { Callout, Demo, Key, Legend, Section, Step, Steps } from '@/components/admin-guide';
 import { FLAG_MAX_SUCCESS, FLAG_MIN_VOTES, RETEST_DAYS, TARGETS } from '@/lib/admin-stats';
 import { CLEAR_SCORE, CREATOR_LEVEL_LABELS, MIN_SUBSCRIBERS, REJECT_BELOW } from '@/lib/verification';
+import { FIRST_READ_DAYS } from '@/lib/podcast-read';
 
 /** Faux bouton : même apparence que dans l'admin, mais rien ne se passe au clic. */
 function Fake({ tone, children }: { tone?: 'pri' | 'ok' | 'no' | 'danger'; children: ReactNode }) {
@@ -251,7 +252,7 @@ function Verifications() {
     </Section>
     <Section id="analyse" title="Ce que fait une analyse">
       <Steps>
-        <Step title="Lire la source">Pour une vidéo YouTube, Koupi récupère sa description par l’API officielle. Les autres plateformes viendront ensuite : en attendant, ouvre la source toi-même.</Step>
+        <Step title="Lire la source">Pour une vidéo YouTube, Koupi récupère sa description par l’API officielle ; pour un épisode de podcast, ses notes dans Apple Podcasts. Les autres plateformes viendront ensuite : en attendant, ouvre la source toi-même.</Step>
         <Step title="Chercher le code">Le code doit figurer <b>mot pour mot</b> dans la description. Si oui, l’extrait apparaît avec le code surligné : c’est ta preuve.</Step>
         <Step title="Faire les contrôles">Source en ligne, doublon, signes de spam, votes des visiteurs, et <b>niveau du créateur</b> : +15 s’il est « Contrôlé par Koupi », +20 s’il est vérifié. Le niveau se règle dans <Link href="/admin/createurs">Créateurs</Link>.</Step>
         <Step title="Repérer la date de fin">Si la description donne une date (« jusqu’au 31/12 ») et que le code n’en a pas, l’IA remplit le champ <b>Valable jusqu’au</b>. Tu peux la corriger dans Codes.</Step>
@@ -323,7 +324,15 @@ function Podcasts() {
         { term: <StatusDot tone="muted">En pause</StatusDot>, meaning: 'Le podcast reste dans la liste mais n’est plus lu. Pratique pour un podcast qui ne donne plus de codes, sans le perdre.' },
       ]} />
       <p><b>Dernière lecture</b> dit quand ses épisodes ont été lus pour la dernière fois. <b>Ne plus suivre</b> le retire de la liste : son créateur, son compte et ses codes restent.</p>
-      <Callout tone="tip">La lecture des épisodes arrive à l’étape suivante. En attendant, commence ta liste : les podcasts suivis seront lus dès qu’elle sera en ligne.</Callout>
+    </Section>
+    <Section id="lecture" title="La lecture des épisodes">
+      <Steps>
+        <Step title="Chaque nuit">Koupi lit les épisodes récents de chaque podcast actif dans Apple Podcasts : ceux des {FIRST_READ_DAYS} derniers jours la première fois, puis ceux sortis depuis la lecture précédente.</Step>
+        <Step title="Repérer les codes">Dans les notes de chaque épisode, Koupi cherche un code annoncé par « code », « code promo » ou « coupon », et un <b>outil du catalogue</b> nommé sur la même ligne ou celle d’avant. Un code pour un outil absent du catalogue n’est pas relevé : ajoute d’abord l’outil dans <Link href="/admin/outils">Outils</Link>.</Step>
+        <Step title="L’envoyer en vérification">Chaque nouveau code est ajouté <b>En attente</b> (invisible sur le site), crédité au créateur du podcast, avec l’épisode comme source. Son dossier est analysé aussitôt et t’attend dans <Link href="/admin/verifications">Vérifications</Link>. Un code déjà connu pour cet outil n’est jamais recréé.</Step>
+      </Steps>
+      <p><b>Lire les épisodes maintenant</b>, en haut de la page, lance la lecture sans attendre la nuit ; <b>Lire</b>, sur une ligne, lit ce seul podcast, même en pause. Un résumé dit combien de codes ont été trouvés.</p>
+      <Callout tone="warn">La réduction est reprise de la ligne du code quand elle y figure (« -20 % », « 3 mois offerts »), sinon elle vaut « Voir l’épisode ». Corrige-la dans <Link href="/admin/codes">Codes</Link> avant de valider.</Callout>
     </Section>
   </>;
 }
