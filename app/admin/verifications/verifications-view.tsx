@@ -7,18 +7,22 @@ import type { AiStatus } from '@/lib/ai-extract';
 import { VERDICT_LABELS, formatUsd, highlightCode, modelLabel, verdictOf, type QueueItem, type Verdict } from '@/lib/verification-display';
 import { matchesSearch } from '@/lib/admin-search';
 import { Key } from '@/components/admin-guide';
+import { RETEST_DAYS } from '@/lib/admin-stats';
 
 type Ai = { status: AiStatus; spentUsdMicros: number; budgetUsdMicros: number; model: string; reviewModel: string };
-type Filter = 'all' | Verdict;
+type Filter = 'all' | Verdict | 'retest';
 const filters: { value: Filter; label: string }[] = [
   { value: 'all', label: 'Tout' },
   { value: 'clear', label: 'Dossiers clairs' },
   { value: 'doubt', label: 'À regarder' },
   { value: 'reject', label: 'Rejet proposé' },
   { value: 'none', label: 'Pas analysés' },
+  { value: 'retest', label: 'Retests' },
 ];
 const verdictClass: Record<Verdict, string> = { clear: 'is-ok', doubt: 'is-warn', reject: 'is-bad', none: 'is-none' };
-const statusLabel: Record<QueueItem['status'], string> = { pending: 'En attente', to_test: 'À tester' };
+const statusLabel: Record<QueueItem['status'], string> = { pending: 'En attente', to_test: 'À tester', verified: 'Vérifié, relu par un retest' };
+const isRetest = (item: QueueItem) => item.status === 'verified';
+const matchesFilter = (item: QueueItem, filter: Filter) => filter === 'retest' ? isRetest(item) : !isRetest(item) && (filter === 'all' || verdictOf(item.check) === filter);
 const dateTime = (iso: string) => new Date(iso).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
 type Decision = 'verify' | 'payment_test' | 'reject';
@@ -65,11 +69,11 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
   const stopBatch = useRef(false);
   const cards = useRef<(HTMLElement | null)[]>([]);
 
-  const countOf = (value: Filter) => value === 'all' ? queue.length : queue.filter(item => verdictOf(item.check) === value).length;
-  const visible = queue.filter(item => (filter === 'all' || verdictOf(item.check) === filter)
+  const countOf = (value: Filter) => queue.filter(item => matchesFilter(item, value)).length;
+  const visible = queue.filter(item => matchesFilter(item, filter)
     && matchesSearch([item.code, item.tool, item.creator, item.discount, item.sourceTitle], query));
   const current = visible[Math.min(selected, visible.length - 1)] ?? null;
-  const unanalyzed = queue.filter(item => !item.check);
+  const unanalyzed = queue.filter(item => !item.check && !isRetest(item));
   const aiActive = ai.status.state === 'active';
 
   const analyze = useCallback(async (item: QueueItem, mode: 'standard' | 'review' = 'standard') => {
@@ -92,6 +96,15 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
     setBusy('');
     router.refresh();
   }, [router]);
+
+  async function retestNow() {
+    setBusy('retest');
+    const response = await fetch('/api/admin/verifications/retest', { method: 'POST' }).catch(() => null);
+    const body = response?.ok ? await response.json() as { checked: number } : null;
+    setMessage(body ? (body.checked === 0 ? 'Aucun code vérifié à relire pour l’instant.' : `${body.checked} code${body.checked > 1 ? 's' : ''} vérifié${body.checked > 1 ? 's' : ''} relu${body.checked > 1 ? 's' : ''}. Ceux qui posent problème apparaissent ici.`) : 'Les retests n’ont pas pu se lancer. Réessaie dans un instant.');
+    setBusy('');
+    router.refresh();
+  }
 
   async function analyzeAll() {
     stopBatch.current = false;
@@ -157,7 +170,7 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
         <AiBanner ai={ai} youtubeReady={youtubeReady} />
 
         <div className="adm-tabs" role="group" aria-label="Verdict">
-          {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label} <span className="adm-tab-n">{countOf(item.value)}</span></button>)}
+          {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label} {item.value === 'retest' && countOf('retest') > 0 && filter !== 'retest' ? <span className="adm-count-badge">{countOf('retest')}</span> : <span className="adm-tab-n">{countOf(item.value)}</span>}</button>)}
         </div>
         <div className="adm-toolbar">
           <label htmlFor="vf-search" className="sr-only">Rechercher un code</label>
@@ -165,11 +178,17 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
           <span className="adm-count">{visible.length} sur {countOf(filter)}</span>
           <span className="adm-vf-keys" aria-label="Raccourcis clavier"><Key>J</Key><Key>K</Key> naviguer · <Key>A</Key> analyser · <Key>V</Key> valider · <Key>T</Key> testé au paiement · <Key>R</Key> rejeter</span>
         </div>
+        {filter === 'retest' && (
+          <div className="adm-hint adm-vf-retest-hint">
+            <span>Chaque nuit, Koupi relit la source des codes vérifiés depuis plus de {RETEST_DAYS} jours. Ceux dont l’analyse n’est plus claire arrivent ici : la source a peut-être disparu ou le code n’y figure plus. « Valider » confirme le code et le retire de la liste.</span>
+            <button type="button" className="adm-btn" disabled={Boolean(busy) || Boolean(batch)} onClick={retestNow}>{busy === 'retest' ? 'Retests en cours…' : 'Lancer les retests maintenant'}</button>
+          </div>
+        )}
         <p className="sr-only" role="status" aria-live="polite">{message}</p>
         {message && <p className="adm-hint" aria-hidden="true">{message}</p>}
 
         {visible.length === 0 ? (
-          <div className="adm-empty">{queue.length === 0 ? 'Rien à vérifier : tous les codes ont une décision.' : 'Aucun code ne correspond à ce filtre.'}</div>
+          <div className="adm-empty">{filter === 'retest' && !query ? 'Aucun code vérifié ne pose problème.' : queue.length === 0 ? 'Rien à vérifier : tous les codes ont une décision.' : 'Aucun code ne correspond à ce filtre.'}</div>
         ) : (
           <div className="adm-vf-list">
             {visible.map((item, index) => {

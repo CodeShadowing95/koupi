@@ -1119,3 +1119,4 @@ html:has(> body > .ct){overflow:hidden}
 .adm-vf-push{flex:1}
 @media(max-width:720px){.adm-vf-ai{grid-template-columns:1fr}.adm-vf-keys{display:none}.adm-vf-push{flex-basis:100%;height:0}}
 @media(prefers-reduced-motion:reduce){.adm-vf-card{transition:none}}
+.adm-vf-retest-hint{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}

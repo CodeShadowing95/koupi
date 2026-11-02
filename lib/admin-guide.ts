@@ -54,9 +54,9 @@ export const guideChapters: GuideChapter[] = [
     practice: { href: '/admin/codes?status=to_test', label: 'Voir les codes à tester' },
   },
   {
-    slug: 'verifications', part: 'moderate', title: 'Vérifier avec l’aide de l’IA', minutes: 6,
-    summary: 'La page Vérifications : le score, ses raisons, l’extrait de la source, et tes trois décisions.',
-    goals: ['Lire un score et ses raisons', 'Choisir entre Valider, Testé au paiement et Rejeter', 'Traiter la file au clavier', 'Savoir ce que fait l’IA, ce qu’elle coûte et ce qu’elle ne décide jamais'],
+    slug: 'verifications', part: 'moderate', title: 'Vérifier avec l’aide de l’IA', minutes: 7,
+    summary: 'La page Vérifications : le score, ses raisons, l’extrait de la source, tes trois décisions et les retests de nuit.',
+    goals: ['Lire un score et ses raisons', 'Choisir entre Valider, Testé au paiement et Rejeter', 'Traiter la file au clavier', 'Traiter les retests de nuit', 'Savoir ce que fait l’IA, ce qu’elle coûte et ce qu’elle ne décide jamais'],
     practice: { href: '/admin/verifications', label: 'Ouvrir les vérifications' },
   },
   {
