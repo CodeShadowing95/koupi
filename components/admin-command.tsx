@@ -4,10 +4,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { afterDialogClose } from '@/lib/admin-dialog';
+import { useBackdropClose } from '@/components/admin-backdrop';
 import { ADMIN_PAGES, COMMAND_KIND_LABELS, searchCommands, type CommandItem } from '@/lib/admin-command';
 
 export function CommandPalette() {
   const dialog = useRef<HTMLDialogElement>(null);
+  const backdrop = useBackdropClose(dialog);
   const input = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -66,7 +68,7 @@ export function CommandPalette() {
         <kbd suppressHydrationWarning>{mac ? '⌘' : 'Ctrl'} K</kbd>
       </button>
       <dialog ref={dialog} className="adm-dialog adm-cmd" aria-label="Recherche globale" onClose={() => afterDialogClose(() => { if (!dialog.current?.open) setOpen(false); })}
-        onClick={event => { if (event.target === dialog.current) dialog.current?.close(); }}>
+        {...backdrop}>
         {open && (
           <div className="adm-cmd-body">
             <div className="adm-cmd-field">

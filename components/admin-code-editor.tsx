@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { afterDialogClose } from '@/lib/admin-dialog';
+import { useBackdropClose } from '@/components/admin-backdrop';
 import type { Category, Code, CodeStatus } from '@/lib/data';
 import type { ToolOption } from '@/lib/codes-admin';
 import { AdminSelect } from '@/components/admin-select';
@@ -46,6 +47,7 @@ export function CodeEditor({ target, tools, categories, creators, onClose, onSav
   target: EditorTarget | null; tools: ToolOption[]; categories: Category[]; creators: string[]; onClose: () => void; onSaved?: () => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const backdrop = useBackdropClose(dialog);
   const router = useRouter();
   const [values, setValues] = useState<Initial>(() => initialValues(target ?? { kind: 'create' }, tools, categories));
   const [error, setError] = useState('');
@@ -102,7 +104,7 @@ export function CodeEditor({ target, tools, categories, creators, onClose, onSav
   }
 
   return (
-    <dialog ref={dialog} className="adm-dialog adm-drawer" aria-labelledby="code-editor-title" onClose={closed}>
+    <dialog ref={dialog} className="adm-dialog adm-drawer" aria-labelledby="code-editor-title" onClose={closed} {...backdrop}>
       <form className="adm-form" onSubmit={submit}>
         <div className="adm-dialog-head">
           <h2 id="code-editor-title">{title}</h2>

@@ -10,3 +10,8 @@ export function afterDialogClose(fn: () => void): void {
   if (reduce) fn();
   else window.setTimeout(fn, DIALOG_MS);
 }
+
+/** Vrai si le point (x, y) tombe en dehors du rectangle : un clic sur le voile, pas dans la fenêtre. */
+export function isOutside(rect: { left: number; top: number; right: number; bottom: number }, x: number, y: number): boolean {
+  return x < rect.left || x > rect.right || y < rect.top || y > rect.bottom;
+}

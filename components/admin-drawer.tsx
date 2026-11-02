@@ -4,6 +4,7 @@
 // en les fermant, on retrouve les détails à jour.
 import { useEffect, useRef, type ReactNode } from 'react';
 import { afterDialogClose } from '@/lib/admin-dialog';
+import { useBackdropClose } from '@/components/admin-backdrop';
 
 export function AdminDrawer({ open, onClose, label, eyebrow, title, aside, actions, children }: {
   open: boolean; onClose: () => void; label: string; eyebrow: string; title: ReactNode; aside?: ReactNode;
@@ -15,11 +16,10 @@ export function AdminDrawer({ open, onClose, label, eyebrow, title, aside, actio
     else dialog.current?.close();
   }, [open]);
   const close = () => dialog.current?.close();
+  const backdrop = useBackdropClose(dialog);
   return (
     <dialog ref={dialog} className="adm-dialog adm-drawer adm-drawer-detail" aria-label={label}
-      onClose={() => afterDialogClose(() => { if (!dialog.current?.open) onClose(); })}
-      // Un clic sur le voile (hors du panneau) le ferme.
-      onClick={event => { if (event.target === dialog.current) close(); }}>
+      onClose={() => afterDialogClose(() => { if (!dialog.current?.open) onClose(); })} {...backdrop}>
       {open && <div className="adm-drawer-body">
         <div className="adm-drawer-head">
           <div className="adm-drawer-title">

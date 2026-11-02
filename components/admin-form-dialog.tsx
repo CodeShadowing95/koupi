@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { afterDialogClose } from '@/lib/admin-dialog';
+import { useBackdropClose } from '@/components/admin-backdrop';
 
 export async function sendJson(url: string, method: string, body: unknown): Promise<string | null> {
   try {
@@ -22,6 +23,7 @@ export function FormDialog({ open, title, intro, submitLabel = 'Enregistrer', on
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const router = useRouter();
+  const backdrop = useBackdropClose(dialog);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -40,7 +42,7 @@ export function FormDialog({ open, title, intro, submitLabel = 'Enregistrer', on
   }
 
   return (
-    <dialog ref={dialog} className="adm-dialog adm-dialog-sm adm-drawer" aria-label={title} onClose={() => afterDialogClose(() => { if (!dialog.current?.open) onClose(); })}>
+    <dialog ref={dialog} className="adm-dialog adm-dialog-sm adm-drawer" aria-label={title} onClose={() => afterDialogClose(() => { if (!dialog.current?.open) onClose(); })} {...backdrop}>
       {open && (
         <form className="adm-form" onSubmit={submit}>
           <div className="adm-dialog-head">
