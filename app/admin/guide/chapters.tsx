@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { Icon, StatusDot } from '@/components/admin-card';
 import { Callout, Demo, Key, Legend, Section, Step, Steps } from '@/components/admin-guide';
 import { FLAG_MAX_SUCCESS, FLAG_MIN_VOTES, RETEST_DAYS, TARGETS } from '@/lib/admin-stats';
+import { CLEAR_SCORE, REJECT_BELOW } from '@/lib/verification';
 
 /** Faux bouton : même apparence que dans l'admin, mais rien ne se passe au clic. */
 function Fake({ tone, children }: { tone?: 'pri' | 'ok' | 'no' | 'danger'; children: ReactNode }) {
@@ -207,6 +208,7 @@ function Codes() {
         { term: 'En attente', meaning: 'Codes cachés à compléter.' },
         { term: 'Archivés', meaning: 'Codes mis de côté. Le bouton « Restaurer » les fait revenir.' },
       ]} />
+      <Callout tone="tip">Pour décider vite des codes en attente et à tester, la page <Link href="/admin/verifications">Vérifications</Link> prépare chaque dossier avec un score et la preuve trouvée dans la source. Voir <Link href="/admin/guide/verifications">Vérifier avec l’aide de l’IA</Link>.</Callout>
     </Section>
     <Section id="tester" title="Tester un code, pas à pas">
       <Steps>
@@ -236,6 +238,56 @@ function Codes() {
     </Section>
     <Section id="export" title="Exporter">
       <p><b>Exporter</b> télécharge tous les codes, archives comprises, en Excel ou en CSV. Utile pour un bilan ou pour préparer un message à une marque. Voir <Link href="/admin/guide/se-reperer#exporter">Exporter une liste</Link>.</p>
+    </Section>
+  </>;
+}
+
+function Verifications() {
+  return <>
+    <Section id="pourquoi" title="Pourquoi cette page">
+      <p>Quand les codes arrivent par dizaines, tout ouvrir à la main prend des heures. La page <b>Vérifications</b> prépare chaque dossier pour toi : Koupi lit la source, fait les contrôles et calcule un <b>score de confiance sur 100</b>. Tu n’as plus qu’à décider.</p>
+      <Callout tone="rule">Koupi propose, tu décides. Aucun code n’est publié ni rejeté sans ton clic.</Callout>
+    </Section>
+    <Section id="analyse" title="Ce que fait une analyse">
+      <Steps>
+        <Step title="Lire la source">Pour une vidéo YouTube, Koupi récupère sa description par l’API officielle. Les autres plateformes viendront ensuite : en attendant, ouvre la source toi-même.</Step>
+        <Step title="Chercher le code">Le code doit figurer <b>mot pour mot</b> dans la description. Si oui, l’extrait apparaît avec le code surligné : c’est ta preuve.</Step>
+        <Step title="Faire les contrôles">Source en ligne, doublon, signes de spam, votes des visiteurs.</Step>
+        <Step title="Calculer le score">Chaque contrôle ajoute ou retire des points. Les raisons sont listées sous l’extrait, avec leurs points.</Step>
+      </Steps>
+      <p>Le bouton <b>Analyser</b> lance l’analyse d’un code ; <b>Analyser les codes non analysés</b> les fait tous, l’un après l’autre.</p>
+    </Section>
+    <Section id="score" title="Lire le score">
+      <Legend rows={[
+        { term: <StatusDot tone="ok">Dossier clair</StatusDot>, meaning: `${CLEAR_SCORE} et plus. La preuve est là : un coup d’œil à l’extrait et tu valides.` },
+        { term: <StatusDot tone="warn">À regarder</StatusDot>, meaning: `De ${REJECT_BELOW} à ${CLEAR_SCORE - 1}. Il manque quelque chose : ouvre la source avant de décider.` },
+        { term: <StatusDot tone="bad">Rejet proposé</StatusDot>, meaning: `Moins de ${REJECT_BELOW}. Source disparue, code absent ou spam. Vérifie quand même avant de rejeter.` },
+        { term: <StatusDot tone="muted">Pas analysé</StatusDot>, meaning: 'Aucune analyse pour l’instant. Lance-la.' },
+      ]} />
+      <p>La file met devant les dossiers analysés, du plus sûr au moins sûr : tu valides vite ce qui est clair, puis tu prends le temps sur le reste.</p>
+    </Section>
+    <Section id="decider" title="Tes trois décisions">
+      <Legend rows={[
+        { term: <Fake tone="pri">✓ Valider</Fake>, meaning: <>La <b>source est vérifiée</b> : le code est bien donné par ce créateur. Le code passe en « Vérifié ».</> },
+        { term: <Fake tone="ok">Testé au paiement</Fake>, meaning: <>Tu as en plus essayé le code jusqu’à la page de paiement et la réduction s’applique. Le code est vérifié et garde la date de ce test.</> },
+        { term: <Fake tone="no">✗ Rejeter</Fake>, meaning: 'Le code est faux, mort ou ne vient pas du créateur. Il quitte le site.' },
+      ]} />
+      <Callout tone="why">« Source vérifiée » prouve que le code existe vraiment. « Testé au paiement » prouve qu’il marche aujourd’hui. Les deux rassurent le visiteur, mais pas de la même façon.</Callout>
+    </Section>
+    <Section id="clavier" title="Aller vite au clavier">
+      <Legend rows={[
+        { term: <><Key>J</Key> <Key>K</Key></>, meaning: 'Dossier suivant, dossier précédent.' },
+        { term: <Key>A</Key>, meaning: 'Analyser le dossier en cours.' },
+        { term: <Key>V</Key>, meaning: 'Valider.' },
+        { term: <Key>T</Key>, meaning: 'Testé au paiement.' },
+        { term: <Key>R</Key>, meaning: 'Rejeter.' },
+      ]} />
+    </Section>
+    <Section id="ia" title="L’IA, son coût et ses limites">
+      <p>Le bandeau du haut dit si l’IA est <b>active</b>, <b>en attente d’activation</b> (pas encore de clé) ou si le <b>plafond du mois</b> est atteint. Sans IA, les contrôles automatiques marchent quand même.</p>
+      <p>Quand elle est active, un petit modèle rapide lit chaque description. Un modèle plus fin relit seulement les dossiers douteux, ou quand tu cliques sur <b>Relire avec Opus</b>. La jauge montre la dépense du mois face au plafond.</p>
+      <Callout tone="warn">L’IA ne décide jamais du score : elle aide à repérer les codes dans un texte. Un code qu’elle croit voir mais qui n’est pas mot pour mot dans la source est écarté.</Callout>
+      <Callout tone="tip">Seuls les textes publics (titre et description) sont envoyés à l’IA. Aucune donnée de visiteur : la promesse « zéro pistage » tient.</Callout>
     </Section>
   </>;
 }
@@ -399,6 +451,7 @@ export const chapterContent: Record<string, () => ReactNode> = {
   'vie-d-un-code': VieDunCode,
   propositions: Propositions,
   codes: Codes,
+  verifications: Verifications,
   outils: Outils,
   createurs: Createurs,
   categories: Categories,

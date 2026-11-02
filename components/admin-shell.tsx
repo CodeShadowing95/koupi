@@ -18,6 +18,7 @@ const icons = {
   stats: <AdminIcon name="stats" />,
   inbox: <AdminIcon name="inbox" />,
   ticket: <AdminIcon name="ticket" />,
+  shield: <AdminIcon name="shield" />,
   tool: <AdminIcon name="tool" />,
   users: <AdminIcon name="users" />,
   folder: <AdminIcon name="folder" />,
@@ -37,6 +38,7 @@ function navGroups(toTest: number): { label: string; items: Item[] }[] {
   { label: 'Modération', items: [
     { href: '/admin/propositions', label: 'Propositions', icon: icons.inbox, badge: <PendingBadge /> },
     { href: '/admin/codes', label: 'Codes', icon: icons.ticket, badge: toTest ? <span className="adm-count-badge" aria-label={`${toTest} à tester`}>{toTest}</span> : null },
+    { href: '/admin/verifications', label: 'Vérifications', icon: icons.shield },
   ] },
   { label: 'Catalogue', items: [
     { href: '/admin/outils', label: 'Outils', icon: icons.tool },
