@@ -414,7 +414,7 @@ function Indicateurs() {
     </Section>
     <Section id="a-faire" title="La liste « À faire »">
       <p>Sur l’accueil, « À faire maintenant » est classée <b>par impact</b> : en haut, ce qui fait le plus de bien au catalogue. Fais-la de haut en bas, chaque lien ouvre la bonne liste déjà filtrée.</p>
-      <p>À droite, « Le parcours des codes » montre combien de codes sont à chaque étape. Juste en dessous, la carte <b>Oubi et Lili</b> présente les deux assistants IA à venir : Oubi repérera les codes dans les vidéos et les podcasts, Lili vérifiera chaque preuve et te préparera la décision. Ils ne sont pas encore actifs ; tu garderas toujours le dernier mot.</p>
+      <p>À droite, « Le parcours des codes » montre combien de codes sont à chaque étape. Juste en dessous, la carte <b>Oubi et Lili</b> présente les deux assistants IA à venir : Oubi, l’éclaireuse (Claude Haiku 5.5), repérera les codes dans les vidéos et les podcasts, Lili, la vérificatrice (Claude Opus 5.5), vérifiera chaque preuve et te préparera la décision. Ils ne sont pas encore actifs ; tu garderas toujours le dernier mot.</p>
     </Section>
     <Section id="audience" title="L’audience">
       <p>Les statistiques d’audience (codes copiés, liens ouverts, recherches sans résultat) sont comptées <b>sans pistage</b> : de simples compteurs anonymes, aucun cookie publicitaire. C’est une promesse du site.</p>

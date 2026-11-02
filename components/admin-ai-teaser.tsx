@@ -1,5 +1,5 @@
 // Carte « bientôt » de l'accueil admin : les deux assistants IA prévus (voir la spec des vérifications IA).
-// Oubi (Claude Haiku) cherche les codes, Lili (Claude Opus) les vérifie.
+// Oubi (Claude Haiku 5.5) cherche les codes, Lili (Claude Opus 5.5) les vérifie.
 // Une seule carte façon widget : Oubi à côté de son texte ; Lili, plus puissante, est plus grande et mieux équipée.
 // Rien n'est encore branché.
 
@@ -73,7 +73,7 @@ export function AdminAiTeaser() {
       <div className="adm-ai-row adm-ai-oubi">
         <div className="adm-ai-text">
           <b>Oubi</b>
-          <span>L’éclaireur · Claude Haiku</span>
+          <span>L’éclaireuse · Claude Haiku 5.5</span>
           <p>Repère les codes dans les vidéos et les podcasts.</p>
           <Power level={2} />
         </div>
@@ -83,7 +83,7 @@ export function AdminAiTeaser() {
         <LiliArt />
         <div className="adm-ai-text">
           <b>Lili</b>
-          <span>La vérificatrice · Claude Opus</span>
+          <span>La vérificatrice · Claude Opus 5.5</span>
           <p>Contrôle chaque preuve et te prépare la décision.</p>
           <Power level={5} />
         </div>
