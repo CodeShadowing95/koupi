@@ -7,6 +7,8 @@ export const MIN_SUBSCRIBERS = 1000;
 
 /** En dessous de ce score, le rejet est proposé (la décision reste à l'admin). */
 export const REJECT_BELOW = 20;
+/** Au-delà de ce score, un dossier est assez clair pour se passer d'une deuxième lecture par l'IA. */
+export const CLEAR_SCORE = 60;
 
 const BASE_SCORE = 30;
 

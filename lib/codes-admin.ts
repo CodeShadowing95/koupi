@@ -128,15 +128,16 @@ export async function updateCode(db: Db, id: string, input: CodeInput): Promise<
   return { ok: true, data: { id } };
 }
 
-export const CODE_QUICK_ACTIONS = ['verify', 'reject', 'to_test', 'pending', 'archive', 'restore'] as const;
+export const CODE_QUICK_ACTIONS = ['verify', 'payment_test', 'reject', 'to_test', 'pending', 'archive', 'restore'] as const;
 export type CodeQuickAction = typeof CODE_QUICK_ACTIONS[number];
 export function isQuickAction(value: unknown): value is CodeQuickAction { return (CODE_QUICK_ACTIONS as readonly unknown[]).includes(value); }
 
-const statusOf: Partial<Record<CodeQuickAction, CodeStatus>> = { verify: 'verified', reject: 'rejected', to_test: 'to_test', pending: 'pending' };
+const statusOf: Partial<Record<CodeQuickAction, CodeStatus>> = { verify: 'verified', payment_test: 'verified', reject: 'rejected', to_test: 'to_test', pending: 'pending' };
 
 /**
- * Action rapide depuis la liste : vérifié (testé, il marche), rejeté (testé, il ne marche pas),
- * à tester (visible sans test), en attente (masqué), archiver (retiré de partout) ou restaurer.
+ * Action rapide depuis la liste : vérifié (testé, il marche), testé au paiement (vérifié, et la réduction
+ * s'applique au paiement), rejeté (testé, il ne marche pas), à tester (visible sans test), en attente (masqué),
+ * archiver (retiré de partout) ou restaurer.
  */
 export async function applyCodeAction(db: Db, id: string, action: CodeQuickAction, note: string | null = null): Promise<Parsed<{ status: CodeStatus; archived: boolean }>> {
   const current = await currentCode(db, id);
@@ -150,8 +151,13 @@ export async function applyCodeAction(db: Db, id: string, action: CodeQuickActio
   }
   const status = statusOf[action]!;
   // Vérifier ou rejeter, c'est avoir testé : on note la date même si le statut ne change pas.
-  const lastTestedAt = action === 'verify' || action === 'reject' ? now : current.lastTestedAt;
-  await db.update(codes).set({ status, lastTestedAt, updatedAt: now }).where(eq(codes.id, id));
+  const tested = action === 'verify' || action === 'payment_test' || action === 'reject';
+  const lastTestedAt = tested ? now : current.lastTestedAt;
+  await db.update(codes).set({
+    status, lastTestedAt, updatedAt: now,
+    // Un code rejeté perd son test au paiement : s'il revient, il devra être retesté pour le retrouver.
+    ...(action === 'payment_test' ? { paymentTestedAt: now } : action === 'reject' ? { paymentTestedAt: null } : {}),
+  }).where(eq(codes.id, id));
   await db.insert(codeLogs).values({ codeId: id, action, previousStatus: current.status, nextStatus: status, note });
   return { ok: true, data: { status, archived: Boolean(current.archivedAt) } };
 }
