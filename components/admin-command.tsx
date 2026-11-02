@@ -1,12 +1,12 @@
 'use client';
 // Recherche globale du back-office : ⌘K (Mac) ou Ctrl+K, ou le bouton de la barre du haut.
-// S'ouvre vide ; les résultats apparaissent dès qu'on tape. Flèches pour choisir, Entrée pour ouvrir, Échap pour fermer.
+// À l'ouverture : récents, accès rapide, pages et exports ; dès qu'on tape, les résultats. Flèches pour choisir, Entrée pour ouvrir, Échap pour fermer.
 // L'index est rechargé à chaque ouverture.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { afterDialogClose } from '@/lib/admin-dialog';
 import {
-  ADMIN_PAGES, COMMAND_FILTERS, COMMAND_FILTER_LABELS, COMMAND_KIND_LABELS, COMMAND_STATUS_LABELS, countByKind, cycleFilter, highlightParts, searchCommands,
+  ADMIN_PAGES, COMMAND_FILTERS, COMMAND_FILTER_LABELS, COMMAND_STATUS_LABELS, RECENT_STORAGE_KEY, countByKind, cycleFilter, highlightParts, parseRecent, pushRecent, searchCommands, suggestCommands,
   type CommandFilter, type CommandItem, type CommandKind, type CommandStatus,
 } from '@/lib/admin-command';
 import { StatusDot, type Tone } from '@/components/admin-card';
@@ -35,9 +35,11 @@ export function CommandPalette() {
   const [active, setActive] = useState(0);
   const [filter, setFilter] = useState<CommandFilter>('all');
   const [mac, setMac] = useState(false);
+  const [recent, setRecent] = useState<string[]>([]);
 
   const show = useCallback(() => {
     setQuery(''); setActive(0); setFilter('all'); setOpen(true);
+    try { setRecent(parseRecent(localStorage.getItem(RECENT_STORAGE_KEY))); } catch { setRecent([]); }
     if (!dialog.current?.open) dialog.current?.showModal();
     setState('loading');
     fetch('/api/admin/search-index').then(async response => {
@@ -55,16 +57,17 @@ export function CommandPalette() {
     return () => window.removeEventListener('keydown', onKey);
   }, [show]);
 
-  const groups = useMemo(() => searchCommands(index, query, 5, filter), [index, query, filter]);
+  const typed = query.trim().length > 0;
+  const groups = useMemo(() => typed ? searchCommands(index, query, 5, filter) : suggestCommands(index, recent, filter), [index, query, filter, recent, typed]);
   const counts = useMemo(() => countByKind(index, query), [index, query]);
   const flat = groups.flatMap(group => group.items);
-  const typed = query.trim().length > 0;
   useEffect(() => { setActive(0); }, [query, filter]);
   useEffect(() => { document.getElementById(`cmd-${active}`)?.scrollIntoView({ block: 'nearest' }); }, [active]);
 
   function go(item: CommandItem | undefined) {
     if (!item) return;
     dialog.current?.close();
+    try { localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(pushRecent(recent, item.href))); } catch { /* navigation privée : pas de récents */ }
     // Les exports sont des fichiers : on les télécharge sans quitter la page.
     if (item.href.startsWith('/api/')) { window.location.href = item.href; return; }
     // Même page avec un autre filtre : on recharge pour que la liste lise le nouveau ?q=.
@@ -78,11 +81,11 @@ export function CommandPalette() {
     else if (event.key === 'Escape') { event.preventDefault(); dialog.current?.close(); }
     else if (event.key === 'Tab') {
       event.preventDefault();
-      // Une fois qu'on a tapé, on saute les types sans résultat.
+      // On saute les types sans élément.
       const step = event.shiftKey ? -1 : 1;
       setFilter(current => {
         let next = cycleFilter(current, step);
-        while (typed && next !== 'all' && counts[next] === 0) next = cycleFilter(next, step);
+        while (next !== 'all' && counts[next] === 0) next = cycleFilter(next, step);
         return next;
       });
     }
@@ -99,11 +102,11 @@ export function CommandPalette() {
       <dialog ref={dialog} className="adm-dialog adm-cmd" aria-label="Recherche globale" onClose={() => afterDialogClose(() => { if (!dialog.current?.open) setOpen(false); })}
         onClick={event => { if (event.target === dialog.current) dialog.current?.close(); }}>
         {open && (
-          <div className="adm-cmd-body" data-typed={typed ? '' : undefined}>
+          <div className="adm-cmd-body" data-filled={typed || groups.length > 0 ? '' : undefined}>
             <div className="adm-cmd-field">
               {searchIcon(18)}
               <input ref={input} autoFocus type="text" value={query} onChange={event => setQuery(event.target.value)} onKeyDown={onKeyDown}
-                placeholder="Commence à taper…" aria-label="Rechercher dans le back-office" role="combobox" aria-expanded={typed}
+                placeholder="Commence à taper…" aria-label="Rechercher dans le back-office" role="combobox" aria-expanded={flat.length > 0}
                 aria-controls="cmd-results" aria-activedescendant={flat.length ? `cmd-${active}` : undefined} aria-autocomplete="list" spellCheck={false} autoComplete="off" />
               {state === 'loading' && <span className="adm-cmd-spinner" aria-hidden="true" />}
               <kbd className="adm-cmd-kbd" suppressHydrationWarning>{mac ? '⌘' : 'Ctrl'} K</kbd>
@@ -121,8 +124,8 @@ export function CommandPalette() {
             <div className="adm-cmd-panel">
               <div className="adm-cmd-results" id="cmd-results" role="listbox" aria-label="Résultats">
                 {groups.map(group => (
-                  <div key={group.kind} role="group" aria-label={COMMAND_KIND_LABELS[group.kind]} className="adm-cmd-section">
-                    <div className="adm-cmd-group" aria-hidden="true">{COMMAND_KIND_LABELS[group.kind]}<span>{group.total}</span></div>
+                  <div key={group.id} role="group" aria-label={group.title} className="adm-cmd-section">
+                    <div className="adm-cmd-group" aria-hidden="true">{group.title}{group.kind && <span>{group.total}</span>}</div>
                     {group.items.map(item => {
                       position += 1;
                       const i = position;
@@ -142,11 +145,14 @@ export function CommandPalette() {
                         </div>
                       );
                     })}
-                    {group.total > group.items.length && (
-                      <button type="button" className="adm-cmd-more" tabIndex={-1} onClick={() => { setFilter(group.kind); input.current?.focus(); }}>
-                        Voir les {group.total} {COMMAND_FILTER_LABELS[group.kind].toLowerCase()}
-                      </button>
-                    )}
+                    {group.kind && group.total > group.items.length && (() => {
+                      const kind = group.kind;
+                      return (
+                        <button type="button" className="adm-cmd-more" tabIndex={-1} onClick={() => { setFilter(kind); input.current?.focus(); }}>
+                          Voir les {group.total} {COMMAND_FILTER_LABELS[kind].toLowerCase()}
+                        </button>
+                      );
+                    })()}
                   </div>
                 ))}
                 {typed && flat.length === 0 && (

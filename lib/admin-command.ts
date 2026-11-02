@@ -8,7 +8,8 @@ export type CommandKind = 'page' | 'code' | 'tool' | 'creator' | 'proposal';
 export type CommandStatus = Code['status'] | 'archived';
 export type CommandItem = { kind: CommandKind; label: string; detail: string; href: string; keywords?: string; status?: CommandStatus };
 export type CommandFilter = CommandKind | 'all';
-export type CommandGroup = { kind: CommandKind; items: CommandItem[]; total: number };
+/** Un groupe de résultats. kind est absent pour les groupes de suggestions (récents, accès rapide…), qui mêlent les types. */
+export type CommandGroup = { id: string; title: string; kind?: CommandKind; items: CommandItem[]; total: number };
 
 export const COMMAND_KIND_LABELS: Record<CommandKind, string> = { page: 'Pages', code: 'Codes', tool: 'Outils', creator: 'Créateurs', proposal: 'Propositions à traiter' };
 /** Libellés courts des filtres de la palette. */
@@ -52,8 +53,50 @@ export function buildCommandIndex(input: {
   ];
 }
 
+/** Pages proposées à l'ouverture, avant de taper : le travail du jour d'abord. */
+export const QUICK_HREFS = ['/admin/propositions', '/admin/codes?status=to_test', '/admin/codes?status=retest', '/admin/stats'];
+export const RECENT_STORAGE_KEY = 'koupi-admin-recent';
+const RECENT_MAX = 5;
+
+/** Ajoute un lien ouvert en tête des récents, sans doublon. */
+export function pushRecent(recent: string[], href: string, max = RECENT_MAX): string[] {
+  return [href, ...recent.filter(item => item !== href)].slice(0, max);
+}
+
+/** Lit la liste des récents stockée (tolère une valeur absente ou abîmée). */
+export function parseRecent(raw: string | null): string[] {
+  try {
+    const value: unknown = JSON.parse(raw ?? '[]');
+    return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string').slice(0, RECENT_MAX) : [];
+  } catch { return []; }
+}
+
 /**
- * Résultats groupés par type, dans un ordre fixe. Sans recherche : rien (la palette s'ouvre vide).
+ * Ce que montre la palette avant qu'on tape.
+ * « Tout » : récents, accès rapide, puis les autres pages et les exports. Un type choisi : ses premiers éléments, pour parcourir.
+ */
+export function suggestCommands(index: CommandItem[], recent: string[], filter: CommandFilter = 'all'): CommandGroup[] {
+  if (filter !== 'all') {
+    const all = index.filter(item => item.kind === filter);
+    return all.length ? [{ id: filter, title: COMMAND_KIND_LABELS[filter], kind: filter, items: all.slice(0, 50), total: all.length }] : [];
+  }
+  const byHref = new Map(index.map(item => [item.href, item]));
+  const pick = (hrefs: string[]) => hrefs.map(href => byHref.get(href)).filter((item): item is CommandItem => Boolean(item));
+  const recentItems = pick(recent);
+  const quick = pick(QUICK_HREFS).filter(item => !recent.includes(item.href));
+  const used = new Set([...recentItems, ...quick].map(item => item.href));
+  const pages = index.filter(item => item.kind === 'page' && !used.has(item.href) && !item.href.startsWith('/api/'));
+  const actions = index.filter(item => item.kind === 'page' && !used.has(item.href) && item.href.startsWith('/api/'));
+  return [
+    { id: 'recent', title: 'Récents', items: recentItems, total: recentItems.length },
+    { id: 'quick', title: 'Accès rapide', items: quick, total: quick.length },
+    { id: 'pages', title: 'Pages', items: pages, total: pages.length },
+    { id: 'actions', title: 'Exports', items: actions, total: actions.length },
+  ].filter(group => group.total > 0);
+}
+
+/**
+ * Résultats groupés par type, dans un ordre fixe. Sans recherche : rien (voir suggestCommands).
  * Avec le filtre « Tout », au plus `perKind` par groupe ; avec un type choisi, jusqu'à 50. `total` compte toutes les correspondances.
  */
 export function searchCommands(index: CommandItem[], query: string, perKind = 5, filter: CommandFilter = 'all'): CommandGroup[] {
@@ -63,16 +106,16 @@ export function searchCommands(index: CommandItem[], query: string, perKind = 5,
     .filter(kind => filter === 'all' || filter === kind)
     .map(kind => {
       const all = items.filter(item => item.kind === kind);
-      return { kind, items: all.slice(0, filter === 'all' ? perKind : 50), total: all.length };
+      return { id: kind, title: COMMAND_KIND_LABELS[kind], kind, items: all.slice(0, filter === 'all' ? perKind : 50), total: all.length };
     })
     .filter(group => group.total > 0);
 }
 
-/** Nombre de correspondances par type, pour les compteurs des filtres. */
+/** Nombre de correspondances par type, pour les compteurs des filtres. Sans recherche : la taille de chaque type. */
 export function countByKind(index: CommandItem[], query: string): Record<CommandFilter, number> {
   const counts: Record<CommandFilter, number> = { all: 0, page: 0, code: 0, tool: 0, creator: 0, proposal: 0 };
-  if (!query.trim()) return counts;
-  for (const item of index) if (matchesSearch([item.label, item.detail, item.keywords], query)) { counts[item.kind] += 1; counts.all += 1; }
+  const typed = query.trim().length > 0;
+  for (const item of index) if (!typed || matchesSearch([item.label, item.detail, item.keywords], query)) { counts[item.kind] += 1; counts.all += 1; }
   return counts;
 }
 

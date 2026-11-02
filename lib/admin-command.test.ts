@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Code } from './data';
-import { buildCommandIndex, countByKind, cycleFilter, highlightParts, searchCommands } from './admin-command';
+import { buildCommandIndex, countByKind, cycleFilter, highlightParts, parseRecent, pushRecent, searchCommands, suggestCommands } from './admin-command';
 
 const code = (id: string, value: string, tool: string): Code => ({
   id, tool, toolSlug: tool.toLowerCase(), creator: 'Ali', creatorSlug: 'ali', code: value, discount: '-20 %', status: 'to_test',
@@ -47,10 +47,42 @@ describe('searchCommands', () => {
   });
 });
 
+describe('suggestions before typing', () => {
+  it('shows recents first, then quick access, pages and exports, without duplicates', () => {
+    const groups = suggestCommands(index, ['/admin/stats', '/admin/codes?q=NOTION20', '/gone']);
+    expect(groups.map(group => group.id)).toEqual(['recent', 'quick', 'pages', 'actions']);
+    expect(groups[0].items.map(item => item.label)).toEqual(['Statistiques', 'NOTION20']);
+    expect(groups[1].items.map(item => item.href)).toEqual(['/admin/propositions', '/admin/codes?status=to_test', '/admin/codes?status=retest']);
+    const hrefs = groups.flatMap(group => group.items.map(item => item.href));
+    expect(new Set(hrefs).size).toBe(hrefs.length);
+    expect(groups[3].items.every(item => item.href.startsWith('/api/'))).toBe(true);
+  });
+  it('skips the recent group when there is none', () => {
+    expect(suggestCommands(index, [])[0].id).toBe('quick');
+  });
+  it('lets you browse one kind when a filter is chosen', () => {
+    const groups = suggestCommands(index, [], 'tool');
+    expect(groups).toHaveLength(1);
+    expect(groups[0]).toMatchObject({ kind: 'tool', total: 2 });
+  });
+});
+
+describe('recents', () => {
+  it('puts the last opened link first without duplicates and keeps five', () => {
+    expect(pushRecent(['/a', '/b'], '/b')).toEqual(['/b', '/a']);
+    expect(pushRecent(['1', '2', '3', '4', '5'], '6')).toEqual(['6', '1', '2', '3', '4']);
+  });
+  it('reads stored recents safely', () => {
+    expect(parseRecent(null)).toEqual([]);
+    expect(parseRecent('oops')).toEqual([]);
+    expect(parseRecent('["/a",3,"/b"]')).toEqual(['/a', '/b']);
+  });
+});
+
 describe('filters', () => {
   it('counts matches per kind', () => {
     expect(countByKind(index, 'notion')).toEqual({ all: 3, page: 0, code: 1, tool: 1, creator: 0, proposal: 1 });
-    expect(countByKind(index, '').all).toBe(0);
+    expect(countByKind(index, '')).toMatchObject({ all: index.length, code: 2, tool: 2, creator: 1, proposal: 1 });
   });
   it('cycles through filters both ways', () => {
     expect(cycleFilter('all', 1)).toBe('page');
