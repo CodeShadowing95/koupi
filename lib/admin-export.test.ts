@@ -70,7 +70,7 @@ describe('catalogue sheets', () => {
   });
 
   it('exports creators with the tools they recommend', () => {
-    expect(creatorsSheet([{ id: '1', slug: 'ali', name: 'Ali', codes: 2, visible: 0, tools: ['Notion', 'Qonto'] }]).rows).toEqual([['Ali', 2, 0, 'non', 'Notion, Qonto']]);
+    expect(creatorsSheet([{ id: '1', slug: 'ali', name: 'Ali', bio: null, codes: 2, visible: 0, tools: ['Notion', 'Qonto'] }]).rows).toEqual([['Ali', 2, 0, 'non', 'Notion, Qonto', '']]);
   });
 
   it('gives a 0 % coverage to an empty category', () => {

@@ -92,11 +92,14 @@ export const creators = pgTable('creators', {
   id: uuid('id').primaryKey().defaultRandom(),
   slug: text('slug').notNull().unique(),
   name: text('name').notNull(),
+  /** Courte présentation affichée en haut de sa page publique, écrite par l'admin (puis par le créateur). */
+  bio: text('bio'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, table => [
   check('creators_slug_format', sql`${table.slug} ~ '^[a-z0-9]+(-[a-z0-9]+)*$'`),
   check('creators_name_len', sql`char_length(trim(${table.name})) between 1 and 160`),
+  check('creators_bio_len', sql`${table.bio} is null or char_length(${table.bio}) between 1 and 400`),
 ]);
 
 export const CODE_STATUSES = ['pending', 'to_test', 'verified', 'rejected'] as const;

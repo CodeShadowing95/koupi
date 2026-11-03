@@ -1,0 +1,2 @@
+ALTER TABLE "creators" ADD COLUMN "bio" text;--> statement-breakpoint
+ALTER TABLE "creators" ADD CONSTRAINT "creators_bio_len" CHECK ("creators"."bio" is null or char_length("creators"."bio") between 1 and 400);

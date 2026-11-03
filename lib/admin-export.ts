@@ -58,8 +58,8 @@ export function toolsSheet(tools: AdminTool[]): ExportSheet {
 export function creatorsSheet(creators: AdminCreator[]): ExportSheet {
   return {
     name: 'Créateurs',
-    headers: ['Créateur', 'Codes', 'Codes visibles', 'Sur le site', 'Outils recommandés'],
-    rows: creators.map(creator => [creator.name, creator.codes, creator.visible, creator.visible > 0 ? 'oui' : 'non', creator.tools.join(', ')]),
+    headers: ['Créateur', 'Codes', 'Codes visibles', 'Sur le site', 'Outils recommandés', 'Présentation'],
+    rows: creators.map(creator => [creator.name, creator.codes, creator.visible, creator.visible > 0 ? 'oui' : 'non', creator.tools.join(', '), creator.bio ?? '']),
   };
 }
 

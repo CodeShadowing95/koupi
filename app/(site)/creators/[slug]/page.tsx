@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { isPublic } from '@/lib/data';
-import { getCatalog } from '@/lib/catalog-server';
+import { getCatalog, getCreatorProfile } from '@/lib/catalog-server';
+import { creatorCategories } from '@/lib/creator-profile';
 import { routes } from '@/lib/routes';
 import { creatorSlug, plural } from '@/lib/ui';
 import { ToolSeal } from '@/components/site/tool-logo';
@@ -22,6 +23,8 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
   }
   const creator = match.creator;
   const creatorCodes = codes.filter(code => code.creatorSlug === match.creatorSlug && isPublic(code));
+  const profile = await getCreatorProfile(match.creatorSlug);
+  const themes = creatorCategories(creatorCodes, tools);
   return (
     <main className="k-page">
       <div className="k-wrap">
@@ -32,7 +35,20 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
             <span className="k-eyebrow">Créateur</span>
             <h1 style={{ fontSize: 'clamp(40px,5vw,64px)' }}>{creator}</h1>
             {match.creatorLevel && <span><CreatorMark level={match.creatorLevel} dark /></span>}
+            {profile?.bio && <p className="k-creator-bio">{profile.bio}</p>}
             <p style={{ color: 'var(--text-soft)', fontSize: 18 }}>{plural(creatorCodes.length, 'code partagé', 'codes partagés')}, chacun avec la vidéo ou le post d&apos;où il vient.</p>
+            {themes.length > 0 && <ul className="k-creator-themes" aria-label="Thèmes">{themes.map(theme => <li key={theme} className="k-pill">{theme}</li>)}</ul>}
+            {profile && profile.accounts.length > 0 && (
+              <ul className="k-creator-accounts" aria-label={`Comptes de ${creator}`}>
+                {profile.accounts.map(account => (
+                  <li key={`${account.platform}-${account.handle}`}>
+                    <a className="k-chip" href={account.url} target="_blank" rel="noopener noreferrer me">
+                      {account.label} · {account.handle}{account.subscribers && <small>{account.subscribers}</small>}<span aria-hidden="true">↗</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <Link className="k-btn k-btn-ghost" href={routes.keyring}>Ajouter à mon trousseau</Link>
         </div>

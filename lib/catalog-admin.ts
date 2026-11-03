@@ -5,6 +5,7 @@ import type { Db } from '@/db';
 import { categories, codes, creators, tools } from '@/db/schema';
 import { slugify } from './slug';
 import { validUrl } from './codes-admin';
+import { parseCreatorBio } from './creator-bio';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 function text(value: unknown, max: number): string { return typeof value === 'string' ? value.trim().slice(0, max) : ''; }
@@ -72,11 +73,11 @@ export async function setToolArchived(db: Db, id: string, archived: boolean): Pr
 
 // ---------- Créateurs ----------
 
-export type AdminCreator = { id: string; slug: string; name: string; codes: number; visible: number; tools: string[] };
+export type AdminCreator = { id: string; slug: string; name: string; bio: string | null; codes: number; visible: number; tools: string[] };
 
 export async function listCreatorsAdmin(db: Db): Promise<AdminCreator[]> {
   const rows = await db.select({
-    id: creators.id, slug: creators.slug, name: creators.name,
+    id: creators.id, slug: creators.slug, name: creators.name, bio: creators.bio,
     codes: sql<number>`count(${codes.id}) filter (where ${codes.archivedAt} is null)::int`,
     visible: sql<number>`count(${codes.id}) filter (where ${visible})::int`,
     tools: sql<string[]>`coalesce(array_agg(distinct ${tools.name}) filter (where ${tools.name} is not null and ${codes.archivedAt} is null), '{}')`,
@@ -85,11 +86,14 @@ export async function listCreatorsAdmin(db: Db): Promise<AdminCreator[]> {
   return rows;
 }
 
-/** Renomme un créateur (orthographe, nom de chaîne). Son adresse sur le site reste la même. */
-export async function renameCreator(db: Db, id: string, rawName: unknown): Promise<Parsed<{ id: string }>> {
-  const name = text(rawName, 160);
+/** Modifie le profil d'un créateur : nom (orthographe, nom de chaîne) et présentation. Son adresse sur le site reste la même. */
+export async function updateCreatorProfile(db: Db, id: string, input: { name?: unknown; bio?: unknown }): Promise<Parsed<{ id: string }>> {
+  const name = text(input.name, 160);
   if (!name) return { ok: false, error: 'Indique le nom du créateur.' };
-  const rows = await db.update(creators).set({ name, updatedAt: new Date() }).where(eq(creators.id, id)).returning({ id: creators.id });
+  // Sans champ « bio » dans la requête, la présentation reste telle quelle.
+  const bio = input.bio === undefined ? null : parseCreatorBio(input.bio);
+  if (bio && !bio.ok) return bio;
+  const rows = await db.update(creators).set({ name, ...(bio ? { bio: bio.data } : {}), updatedAt: new Date() }).where(eq(creators.id, id)).returning({ id: creators.id });
   return rows.length ? { ok: true, data: { id } } : { ok: false, error: 'Créateur introuvable.' };
 }
 
