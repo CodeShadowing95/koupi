@@ -15,10 +15,12 @@ export default async function CodesPage({ searchParams }: { searchParams: Promis
   return (
     <main className="k-page">
       <div className="k-wrap">
-        <div className="k-page-head">
-          <span className="k-eyebrow">Tous les codes</span>
-          <h1>Choisis ton code,<br /><span className="k-grad">détache le talon.</span></h1>
-          <p>Chaque code vient d&apos;un créateur, avec sa source et son taux de réussite. Clique sur le talon : le code est copié et le site s&apos;ouvre avec son lien.</p>
+        <div className="k-codes-head">
+          <h1>Tous les codes</h1>
+          <p>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3" /><circle cx="6" cy="18" r="3" /><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12" /></svg>
+            Clique sur un talon&nbsp;: le code est copié et le site s&apos;ouvre.
+          </p>
         </div>
         <CodesBoard
           codes={live}

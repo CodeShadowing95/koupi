@@ -1019,3 +1019,8 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
   .k-board-empty-stub:hover{transform:none}
 }
 @media (prefers-reduced-motion:reduce){.k-board-last-head svg{animation:none}.k-board-last-ticket,.k-board-empty-stub,.k-board-relax button{transition:none}}
+/* En-tête compact de la page des codes : titre et consigne sur une ligne, les codes juste dessous */
+.k-codes-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;margin-bottom:22px}
+.k-codes-head h1{font-size:clamp(26px,3vw,34px);letter-spacing:-.03em}
+.k-codes-head p{display:inline-flex;align-items:center;gap:8px;margin:0;color:var(--text-soft);font-size:14.5px}
+.k-codes-head svg{flex:none;color:var(--coral)}
