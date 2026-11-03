@@ -5,6 +5,10 @@ const LABELS: Record<string, string> = {
   page_on: 'Page remise en ligne :',
   maintenance_on: 'Mode maintenance activé :',
   maintenance_off: 'Mode maintenance arrêté :',
+  creator_disabled: 'Compte créateur désactivé :',
+  creator_enabled: 'Compte créateur réactivé :',
+  creator_access_removed: 'Accès à la page retiré :',
+  creator_deleted: 'Compte créateur supprimé :',
 };
 
 export function auditLabel(action: string): string {

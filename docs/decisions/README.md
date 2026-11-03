@@ -25,6 +25,6 @@ Chaque décision importante est notée ici dans un fichier numéroté. On ne sup
 | [0019](0019-demandes-createurs.md) | Revendications et signalements des pages créateurs | Proposée |
 | [0020](0020-preuve-par-la-bio.md) | Preuve par la bio des comptes créateurs | Proposée |
 | [0021](0021-connexion-des-createurs.md) | Connexion des créateurs par lien magique | Proposée |
-| [0022](0022-administration-du-site.md) | Administration du site (pages, mode maintenance, journal) | Proposée |
+| [0022](0022-administration-du-site.md) | Administration du site (pages, mode maintenance, comptes créateurs, journal) | Proposée |
 
 Modèle : copier [`template.md`](template.md).

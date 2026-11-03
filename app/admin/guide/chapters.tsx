@@ -557,7 +557,7 @@ function Routine() {
 function Administration() {
   return <>
     <Section id="quoi" title="Ce que tu contrôles ici">
-      <p>La page <Link href="/admin/administration">Administration</Link> décide de ce que les visiteurs peuvent voir : tout le site, ou page par page. Elle ne sert pas à surveiller : Koupi n’y montre rien sur les visiteurs, et le journal ne note que tes propres gestes.</p>
+      <p>La page <Link href="/admin/administration">Administration</Link> décide de ce que les visiteurs peuvent voir (tout le site, ou page par page) et qui peut entrer dans l’espace créateur. Elle ne sert pas à surveiller : Koupi n’y montre rien sur les visiteurs, et le journal ne note que tes propres gestes.</p>
     </Section>
     <Section id="maintenance" title="Mettre le site en pause">
       <p>Le <b>mode maintenance</b> remplace tout le site par une page d’attente « On range le comptoir ». Les moteurs de recherche reçoivent un code qui veut dire « revenez plus tard » : le site ne perd pas sa place dans Google pour une courte pause.</p>
@@ -570,8 +570,17 @@ function Administration() {
       <p>Le changement s’applique en quelques secondes, sans redéploiement. Rallumer la page la remet en ligne de la même façon.</p>
       <Callout tone="rule">L’accueil, les mentions légales et la page confidentialité restent <b>toujours en ligne</b> : l’accueil est l’entrée du site, les deux autres sont obligatoires. Elles sont listées sans interrupteur.</Callout>
     </Section>
+    <Section id="comptes" title="Gérer les comptes créateurs">
+      <p>Un <b>compte créateur</b> naît la première fois qu’un créateur se connecte par e-mail à son espace. La liste montre seulement son e-mail, la page qu’il gère et sa dernière connexion : rien sur ce qu’il fait sur le site.</p>
+      <Legend rows={[
+        { term: 'Désactiver', meaning: 'Coupe sa session tout de suite et refuse ses connexions, jusqu’à ce que tu le réactives. Pour un compte suspect ou en litige.' },
+        { term: 'Retirer l’accès', meaning: 'Le compte reste mais ne gère plus sa page. Pour une erreur d’attribution ou une chaîne qui change de main.' },
+        { term: 'Supprimer', meaning: 'Efface son e-mail partout : compte, liens de connexion, revendications, journal. La page publique et les codes restent.' },
+      ]} />
+      <Callout tone="rule">Quand un créateur te demande d’effacer ses données (droit à l’effacement du RGPD), c’est <b>Supprimer</b> : tu as un mois pour le faire. S’il se reconnecte plus tard, un nouveau compte vide naît ; pour le bloquer, désactive-le plutôt.</Callout>
+    </Section>
     <Section id="journal" title="Le journal">
-      <p>Chaque geste fait ici (page coupée ou rallumée, pause, réouverture) est noté avec sa date et son heure. Le journal garde 12 mois, puis s’efface tout seul chaque nuit. Il ne contient aucune donnée sur les visiteurs.</p>
+      <p>Chaque geste fait ici (page coupée ou rallumée, pause, réouverture, compte désactivé, réactivé ou supprimé) est noté avec sa date et son heure. Le journal garde 12 mois, puis s’efface tout seul chaque nuit. Il ne contient aucune donnée sur les visiteurs.</p>
     </Section>
   </>;
 }

@@ -1,12 +1,20 @@
 'use client';
-// Espace Administration : mettre le site en pause, allumer ou couper chaque page publique, relire le journal.
+// Espace Administration : mettre le site en pause, allumer ou couper chaque page publique, gérer les comptes créateurs, relire le journal.
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SITE_PAGES, pageSettingKey, type PageKey, type SitePage } from '@/lib/site-pages';
 import { auditLabel, formatAuditDate } from '@/lib/admin-audit';
 import type { AuditEntry, SiteSwitchRow } from '@/lib/site-settings';
+import type { CreatorUserAction, CreatorUserItem } from '@/lib/creator-users-admin';
 
-type Props = { off: PageKey[]; maintenance: boolean; rows: SiteSwitchRow[]; journal: AuditEntry[] };
+type Props = { off: PageKey[]; maintenance: boolean; rows: SiteSwitchRow[]; journal: AuditEntry[]; creatorUsers: CreatorUserItem[] };
+
+const USER_QUESTIONS: Record<CreatorUserAction, (user: CreatorUserItem) => string> = {
+  disable: user => `Désactiver le compte ${user.email} ? Sa session s’arrête tout de suite et il ne pourra plus se connecter tant que tu ne le réactives pas.`,
+  enable: user => `Réactiver le compte ${user.email} ? Il pourra de nouveau se connecter.`,
+  'remove-access': user => `Retirer à ${user.email} l’accès à la page ${user.creator?.name ?? ''} ? Le compte reste, sans page.`,
+  delete: user => `Supprimer définitivement le compte ${user.email} ? Son e-mail est effacé partout (compte, liens, revendications, journal). La page publique et les codes restent. Impossible d’annuler.`,
+};
 
 function Switch({ on, label, disabled, onChange }: { on: boolean; label: string; disabled?: boolean; onChange?: () => void }) {
   return (
@@ -16,7 +24,7 @@ function Switch({ on, label, disabled, onChange }: { on: boolean; label: string;
   );
 }
 
-export function AdministrationView({ off, maintenance, rows, journal }: Props) {
+export function AdministrationView({ off, maintenance, rows, journal, creatorUsers }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -29,6 +37,23 @@ export function AdministrationView({ off, maintenance, rows, journal }: Props) {
     try {
       const response = await fetch('/api/admin/site-settings', {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target, enabled }),
+      });
+      const body = await response.json().catch(() => ({})) as { error?: string };
+      if (!response.ok) setError(body.error || 'Le changement n’a pas pu être enregistré.');
+      else router.refresh();
+    } catch {
+      setError('Le changement n’a pas pu être enregistré. Vérifie ta connexion.');
+    }
+    setBusy(null);
+  }
+
+  async function userAction(user: CreatorUserItem, action: CreatorUserAction) {
+    if (!window.confirm(USER_QUESTIONS[action](user))) return;
+    setBusy(user.id);
+    setError('');
+    try {
+      const response = await fetch('/api/admin/creator-users', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: user.id, action }),
       });
       const body = await response.json().catch(() => ({})) as { error?: string };
       if (!response.ok) setError(body.error || 'Le changement n’a pas pu être enregistré.');
@@ -55,7 +80,7 @@ export function AdministrationView({ off, maintenance, rows, journal }: Props) {
           <div>
             <span className="eyebrow">Administration</span>
             <h1>Administration du site</h1>
-            <p>Ce que les visiteurs peuvent voir : mettre tout le site en pause, couper ou rallumer une page. Chaque geste est noté dans le journal. Rien ici ne suit les visiteurs.</p>
+            <p>Ce que les visiteurs peuvent voir et qui peut entrer : mettre tout le site en pause, couper ou rallumer une page, gérer les comptes créateurs. Chaque geste est noté dans le journal. Rien ici ne suit les visiteurs.</p>
           </div>
         </div>
 
@@ -105,13 +130,51 @@ export function AdministrationView({ off, maintenance, rows, journal }: Props) {
           </div>
         </section>
 
+        <section className="adm-admin-block" aria-labelledby="users-title">
+          <div className="adm-admin-block-head">
+            <h2 id="users-title">Comptes créateurs</h2>
+            <span className="muted">{creatorUsers.length === 0 ? 'Aucun compte' : `${creatorUsers.length} compte${creatorUsers.length > 1 ? 's' : ''}`}</span>
+          </div>
+          <p className="adm-admin-note">Un compte naît quand un créateur se connecte par e-mail. On ne garde que son e-mail, la page qu’il gère et sa dernière connexion.</p>
+          {creatorUsers.length === 0
+            ? <p className="muted">Personne ne s’est encore connecté à l’espace créateur.</p>
+            : (
+              <div className="adm-table-wrap">
+                <table className="adm-table adm-users-table">
+                  <thead><tr><th scope="col">E-mail</th><th scope="col">Page gérée</th><th scope="col">Dernière connexion</th><th scope="col">État</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
+                  <tbody>
+                    {creatorUsers.map(user => (
+                      <tr key={user.id} className={user.disabledAt ? 'is-off' : undefined}>
+                        <td><b>{user.email}</b></td>
+                        <td>{user.creator ? <a href={`/creators/${user.creator.slug}`} target="_blank" rel="noreferrer">{user.creator.name}</a> : <span className="adm-cell-muted">Aucune</span>}</td>
+                        <td className="adm-cell-nowrap adm-cell-muted">{user.lastSignInAt ? formatAuditDate(user.lastSignInAt) : '—'}</td>
+                        <td>{user.disabledAt
+                          ? <span className="adm-pill adm-pill-bad" title={`Depuis le ${formatAuditDate(user.disabledAt)}`}>Désactivé</span>
+                          : <span className="adm-pill adm-pill-ok">Actif</span>}</td>
+                        <td>
+                          <div className="adm-users-actions">
+                            {user.disabledAt
+                              ? <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => userAction(user, 'enable')}>Réactiver</button>
+                              : <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => userAction(user, 'disable')}>Désactiver</button>}
+                            {user.creator && <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => userAction(user, 'remove-access')}>Retirer l’accès</button>}
+                            <button type="button" className="adm-btn adm-btn-danger" disabled={busy !== null} onClick={() => userAction(user, 'delete')}>Supprimer</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+        </section>
+
         <section className="adm-admin-block" aria-labelledby="journal-title">
           <div className="adm-admin-block-head">
             <h2 id="journal-title">Journal</h2>
             <span className="muted">Gardé 12 mois · aucune donnée sur les visiteurs</span>
           </div>
           {journal.length === 0
-            ? <p className="muted">Rien pour l’instant : chaque page coupée ou rallumée apparaîtra ici.</p>
+            ? <p className="muted">Rien pour l’instant : chaque page coupée ou rallumée, chaque geste sur un compte apparaîtra ici.</p>
             : (
               <ol className="adm-journal">
                 {journal.map(entry => (
