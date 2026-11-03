@@ -6,7 +6,7 @@ import { CodesBoard } from '@/components/site/codes-board';
 
 export const metadata: Metadata = {
   title: 'Tous les codes · Koupi',
-  description: 'Tous les codes promo donnés par les créateurs, vérifiés et reliés à leur source. Filtre par outil, catégorie ou statut.',
+  description: 'Tous les codes promo donnés par les créateurs, vérifiés et reliés à leur source. Filtre par outil, créateur, catégorie, type d’offre ou date de fin.',
 };
 
 export default async function CodesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -25,6 +25,7 @@ export default async function CodesPage({ searchParams }: { searchParams: Promis
           tools={tools}
           categories={categories.filter(category => category.count > 0).map(({ slug, name }) => ({ slug, name }))}
           initial={parseFilters(params)}
+          now={Date.now()}
         />
       </div>
     </main>

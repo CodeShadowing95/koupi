@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { Code, Tool } from './data';
-import { compactCount, DEFAULT_FILTERS, featuredCodes, filterCodes, parseFilters } from './codes-board';
+import {
+  activeFilters, compactCount, DEFAULT_FILTERS, facetCounts, featuredCodes, filterCodes, filtersToParams, offerKinds, parseFilters,
+} from './codes-board';
+
+const NOW = Date.parse('2026-11-03T12:00:00Z');
+const DAY = 86_400_000;
+const iso = (daysAgo: number) => new Date(NOW - daysAgo * DAY).toISOString();
+const day = (daysAhead: number) => new Date(NOW + daysAhead * DAY).toISOString().slice(0, 10);
 
 const tool = (slug: string, category: string): Tool => ({ slug, name: slug, category, website: '', description: '', priority: 1, codes: 1 });
 const code = (id: string, over: Partial<Code> = {}): Code => ({
@@ -8,6 +15,7 @@ const code = (id: string, over: Partial<Code> = {}): Code => ({
   source: '', sourceTitle: '', votes: 10, success: 50, lastTestedAt: null, paymentTestedAt: null, expiresOn: null, createdAt: '2026-11-01', ...over,
 });
 const tools = [tool('nord', 'VPN'), tool('canva', 'Design')];
+const run = (codes: Code[], patch: Partial<typeof DEFAULT_FILTERS>) => filterCodes(codes, tools, { ...DEFAULT_FILTERS, ...patch }, NOW).map(c => c.id);
 
 describe('featuredCodes', () => {
   it('met les vérifiés en premier, puis complète avec les codes à tester', () => {
@@ -19,31 +27,113 @@ describe('featuredCodes', () => {
   });
 });
 
-describe('filterCodes', () => {
-  const codes = [
-    code('a', { success: 90, votes: 5, createdAt: '2026-10-01' }),
-    code('b', { tool: 'Canva', toolSlug: 'canva', creator: 'Max', success: 70, votes: 40, status: 'to_test', createdAt: '2026-11-02' }),
-  ];
-  it('cherche dans l\'outil, le créateur et le code, sans accents ni casse', () => {
-    expect(filterCodes(codes, tools, { ...DEFAULT_FILTERS, query: 'lea' }).map(c => c.id)).toEqual(['a']);
-    expect(filterCodes(codes, tools, { ...DEFAULT_FILTERS, query: 'canva' }).map(c => c.id)).toEqual(['b']);
-    expect(filterCodes(codes, tools, { ...DEFAULT_FILTERS, query: 'B' }).map(c => c.id)).toEqual(['b']);
+describe('offerKinds', () => {
+  it('reconnaît le pourcentage, les mois offerts, l\'essai et le montant', () => {
+    expect(offerKinds('-25 %')).toEqual(['percent']);
+    expect(offerKinds('88 % + 4 mois offerts')).toEqual(['percent', 'months']);
+    expect(offerKinds('1 mois gratuit')).toEqual(['months']);
+    expect(offerKinds('Essai gratuit de 14 jours')).toEqual(['trial']);
+    expect(offerKinds('10 € offerts')).toEqual(['amount']);
+    expect(offerKinds('$20 off')).toEqual(['amount']);
   });
-  it('filtre par catégorie et par statut', () => {
-    expect(filterCodes(codes, tools, { ...DEFAULT_FILTERS, category: 'VPN' }).map(c => c.id)).toEqual(['a']);
-    expect(filterCodes(codes, tools, { ...DEFAULT_FILTERS, status: 'to_test' }).map(c => c.id)).toEqual(['b']);
-  });
-  it('trie par réussite, par votes ou par date', () => {
-    expect(filterCodes(codes, tools, DEFAULT_FILTERS).map(c => c.id)).toEqual(['a', 'b']);
-    expect(filterCodes(codes, tools, { ...DEFAULT_FILTERS, sort: 'votes' }).map(c => c.id)).toEqual(['b', 'a']);
-    expect(filterCodes(codes, tools, { ...DEFAULT_FILTERS, sort: 'recent' }).map(c => c.id)).toEqual(['b', 'a']);
+  it('range le reste dans « autre »', () => {
+    expect(offerKinds('Offre partenaire')).toEqual(['other']);
   });
 });
 
-describe('parseFilters', () => {
+describe('filterCodes', () => {
+  const codes = [
+    code('a', { success: 90, votes: 5, createdAt: '2026-10-01' }),
+    code('b', { tool: 'Canva', toolSlug: 'canva', creator: 'Max', creatorSlug: 'max', success: 70, votes: 40, status: 'to_test', createdAt: '2026-11-02' }),
+  ];
+  it('cherche dans l\'outil, le créateur et le code, sans accents ni casse', () => {
+    expect(run(codes, { query: 'lea' })).toEqual(['a']);
+    expect(run(codes, { query: 'canva' })).toEqual(['b']);
+    expect(run(codes, { query: 'B' })).toEqual(['b']);
+  });
+  it('filtre par catégorie et par statut', () => {
+    expect(run(codes, { category: 'VPN' })).toEqual(['a']);
+    expect(run(codes, { status: 'to_test' })).toEqual(['b']);
+  });
+  it('filtre par outil et par créateur', () => {
+    expect(run(codes, { tool: 'canva' })).toEqual(['b']);
+    expect(run(codes, { creator: 'lea' })).toEqual(['a']);
+  });
+  it('trie par réussite, par votes ou par date', () => {
+    expect(run(codes, {})).toEqual(['a', 'b']);
+    expect(run(codes, { sort: 'votes' })).toEqual(['b', 'a']);
+    expect(run(codes, { sort: 'recent' })).toEqual(['b', 'a']);
+  });
+  it('garde les codes qui remplissent tous les critères de confiance cochés', () => {
+    const list = [
+      code('paid', { paymentTestedAt: iso(60), lastTestedAt: iso(60), success: 85 }),
+      code('fresh', { lastTestedAt: iso(3), success: 60 }),
+      code('old', { lastTestedAt: iso(45), success: 95 }),
+      code('unverified', { status: 'to_test', paymentTestedAt: iso(1), success: 10 }),
+    ];
+    expect(run(list, { trust: ['payment'] })).toEqual(['paid']);
+    expect(run(list, { trust: ['recent'] })).toEqual(['fresh']);
+    expect(run(list, { trust: ['reliable'] })).toEqual(['old', 'paid']);
+    expect(run(list, { trust: ['reliable', 'payment'] })).toEqual(['paid']);
+  });
+  it('filtre par type d\'offre', () => {
+    const list = [code('pct', { discount: '-20 %' }), code('mois', { discount: '3 mois offerts' }), code('mix', { discount: '60 % + 2 mois offerts' })];
+    expect(run(list, { offer: 'months' })).toEqual(['mois', 'mix']);
+    expect(run(list, { offer: 'percent' })).toEqual(['pct', 'mix']);
+  });
+  it('filtre par échéance : bientôt (7 jours) ou sans date de fin', () => {
+    const list = [code('soon', { expiresOn: day(3) }), code('later', { expiresOn: day(30) }), code('none'), code('past', { expiresOn: day(-2) })];
+    expect(run(list, { deadline: 'soon' })).toEqual(['soon']);
+    expect(run(list, { deadline: 'none' })).toEqual(['none']);
+  });
+  it('ne garde que les codes ajoutés ces 7 derniers jours', () => {
+    const list = [code('new', { createdAt: iso(2) }), code('old', { createdAt: iso(20) })];
+    expect(run(list, { fresh: true })).toEqual(['new']);
+  });
+});
+
+describe('facetCounts', () => {
+  it('compte chaque option en tenant compte des autres filtres, mais pas du sien', () => {
+    const codes = [
+      code('a', { status: 'verified', discount: '-10 %', paymentTestedAt: iso(1) }),
+      code('b', { status: 'to_test', discount: '2 mois offerts' }),
+      code('c', { status: 'to_test', discount: '-5 %', toolSlug: 'canva', tool: 'Canva' }),
+    ];
+    const counts = facetCounts(codes, tools, { ...DEFAULT_FILTERS, status: 'to_test', offer: 'percent' }, NOW);
+    expect(counts.status).toEqual({ all: 2, verified: 1, to_test: 1 });
+    expect(counts.offer.percent).toBe(1);
+    expect(counts.offer.months).toBe(1);
+    expect(counts.tool).toEqual({ canva: 1 });
+    expect(counts.trust.payment).toBe(0);
+  });
+});
+
+describe('parseFilters et filtersToParams', () => {
   it('garde les valeurs connues et ignore le reste', () => {
-    expect(parseFilters({ q: 'nord', category: 'VPN', status: 'to_test', sort: 'votes' })).toEqual({ query: 'nord', category: 'VPN', status: 'to_test', sort: 'votes' });
-    expect(parseFilters({ status: 'pending', sort: 'x', q: ['a', 'b'] })).toEqual(DEFAULT_FILTERS);
+    expect(parseFilters({ q: 'nord', category: 'VPN', status: 'to_test', sort: 'votes' }))
+      .toEqual({ ...DEFAULT_FILTERS, query: 'nord', category: 'VPN', status: 'to_test', sort: 'votes' });
+    expect(parseFilters({ status: 'pending', sort: 'x', q: ['a', 'b'], trust: 'x,payment,payment', offer: 'free', deadline: 'never', fresh: 'oui' }))
+      .toEqual({ ...DEFAULT_FILTERS, trust: ['payment'] });
+  });
+  it('fait l\'aller-retour avec l\'adresse', () => {
+    const filters = { ...DEFAULT_FILTERS, tool: 'nord', creator: 'lea', trust: ['recent', 'payment'] as const, offer: 'trial' as const, deadline: 'soon' as const, fresh: true };
+    const params = filtersToParams({ ...filters, trust: [...filters.trust] });
+    expect(params.toString()).toBe('tool=nord&creator=lea&trust=recent%2Cpayment&offer=trial&deadline=soon&fresh=1');
+    expect(parseFilters(Object.fromEntries(params))).toEqual({ ...filters, trust: ['recent', 'payment'] });
+    expect(filtersToParams(DEFAULT_FILTERS).toString()).toBe('');
+  });
+});
+
+describe('activeFilters', () => {
+  it('liste chaque filtre actif avec ce qu\'il faut changer pour le retirer', () => {
+    const pills = activeFilters({ ...DEFAULT_FILTERS, query: 'nord', trust: ['payment', 'recent'], fresh: true }, { tool: () => '', creator: () => '' });
+    expect(pills.map(pill => pill.label)).toEqual(['« nord »', 'Testé au paiement', 'Vérifié ces 30 jours', 'Ajoutés cette semaine']);
+    expect(pills[1].patch).toEqual({ trust: ['recent'] });
+    expect(pills[3].patch).toEqual({ fresh: false });
+  });
+  it('affiche le nom de l\'outil et du créateur', () => {
+    const pills = activeFilters({ ...DEFAULT_FILTERS, tool: 'nord', creator: 'lea' }, { tool: slug => `Outil ${slug}`, creator: slug => `Créa ${slug}` });
+    expect(pills.map(pill => pill.label)).toEqual(['Outil nord', 'Créa lea']);
   });
 });
 
