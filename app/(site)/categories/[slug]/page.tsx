@@ -5,8 +5,15 @@ import { getCatalog } from '@/lib/catalog-server';
 import { parseCategoryFilters } from '@/lib/category-browse';
 import { routes } from '@/lib/routes';
 import { CategoryBrowser } from '@/components/site/category-browser';
+import { PageHead } from '@/components/site/page-head';
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> };
+
+export async function generateMetadata({ params }: Pick<Props, 'params'>) {
+  const { slug } = await params;
+  const category = (await getCatalog()).categories.find(item => item.slug === slug);
+  return category ? { title: `Codes promo ${category.name} · Koupi`, description: `Les codes promo des créateurs pour les outils ${category.name}, reliés à leur source et vérifiés.` } : {};
+}
 
 export default async function Category({ params, searchParams }: Props) {
   const [{ slug }, query] = await Promise.all([params, searchParams]);
@@ -19,12 +26,12 @@ export default async function Category({ params, searchParams }: Props) {
   return (
     <main className="k-page">
       <div className="k-wrap">
-        <nav className="k-crumbs" aria-label="Fil d'Ariane"><Link href={routes.categories}>Catégories</Link><span aria-hidden="true">/</span><span aria-current="page" style={{ color: 'var(--text)' }}>{category.name}</span></nav>
-        <div className="k-page-head" style={{ marginTop: 24 }}>
-          <span className="k-eyebrow">Catégorie</span>
-          <h1>{category.name}</h1>
-          <p>Compare les codes des créateurs pour les outils de cette catégorie.</p>
-        </div>
+        <PageHead
+          crumbs={[{ label: 'Catégories', href: routes.categories }, { label: category.name }]}
+          eyebrow="Catégorie"
+          title={category.name}
+          lead="Compare les codes des créateurs pour les outils de cette catégorie."
+        />
         {categoryTools.length === 0 ? (
           <div className="k-empty"><h2>Pas encore d&apos;outil ici.</h2><p>Tu connais un code pour un outil de cette catégorie ?</p><Link className="k-btn k-btn-paper k-btn-ticket" href={routes.submit()}>Proposer un code</Link></div>
         ) : (

@@ -9,6 +9,9 @@ import { bumpCounter, normalizeQuery } from '@/lib/audience';
 import { routes } from '@/lib/routes';
 import { SearchBar } from '@/components/site/search-bar';
 import { ToolCard } from '@/components/site/tool-card';
+import { PageHead } from '@/components/site/page-head';
+
+export const metadata = { title: 'Recherche · Koupi', robots: { index: false, follow: true } };
 
 export default async function SearchResults({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q } = await searchParams;
@@ -23,11 +26,9 @@ export default async function SearchResults({ searchParams }: { searchParams: Pr
   return (
     <main className="k-page">
       <div className="k-wrap">
-        <div className="k-page-head">
-          <span className="k-eyebrow">Recherche</span>
-          <h1>Résultats pour « {query} »</h1>
+        <PageHead eyebrow="Recherche" title={query ? <>Résultats pour « {query} »</> : 'Recherche'}>
           <SearchBar tools={tools} initial={query} />
-        </div>
+        </PageHead>
         {creators.length > 0 && (
           <section className="k-search-creators" aria-labelledby="search-creators">
             <h2 id="search-creators">Créateurs</h2>

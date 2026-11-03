@@ -4,6 +4,7 @@ import { buildDirectory, directoryOptions, parseDirectoryFilter } from '@/lib/cr
 import { routes } from '@/lib/routes';
 import { plural } from '@/lib/ui';
 import { CreatorsDirectory } from '@/components/site/creators-directory';
+import { PageHead } from '@/components/site/page-head';
 
 export const metadata: Metadata = {
   title: 'Les créateurs · Koupi',
@@ -20,11 +21,11 @@ export default async function Creators({ searchParams }: { searchParams: Promise
   return (
     <main className="k-page">
       <div className="k-wrap">
-        <div className="k-page-head">
-          <span className="k-eyebrow">Créateurs</span>
-          <h1>Les créateurs</h1>
-          <p>{plural(all.length, 'créateur donne', 'créateurs donnent')} des codes promo pour des outils en ligne. Chaque code renvoie à la vidéo ou au post d&apos;où il vient.</p>
-        </div>
+        <PageHead
+          eyebrow="Créateurs"
+          title="Les créateurs"
+          lead={<>{plural(all.length, 'créateur donne', 'créateurs donnent')} des codes promo pour des outils en ligne. Chaque code renvoie à la vidéo ou au post d&apos;où il vient.</>}
+        />
 
         <CreatorsDirectory entries={all} options={options} initial={parseDirectoryFilter(params, options)} />
       </div>
