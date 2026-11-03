@@ -23,5 +23,6 @@ Chaque décision importante est notée ici dans un fichier numéroté. On ne sup
 | [0017](0017-podcasts-apple.md) | Podcasts suivis avec l’annuaire Apple Podcasts | Proposée |
 | [0018](0018-profil-createur.md) | Profil public des créateurs | Proposée |
 | [0019](0019-demandes-createurs.md) | Revendications et signalements des pages créateurs | Proposée |
+| [0020](0020-preuve-par-la-bio.md) | Preuve par la bio des comptes créateurs | Proposée |
 
 Modèle : copier [`template.md`](template.md).

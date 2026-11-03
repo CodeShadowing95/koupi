@@ -1225,3 +1225,13 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-req-facts dt{color:var(--muted);font-size:13px}
 .adm-req-facts dd{margin:0;min-width:0;overflow-wrap:anywhere}
 @media(max-width:640px){.adm-req-facts{grid-template-columns:1fr}.adm-req-facts dd{margin-bottom:6px}}
+
+/* Preuve par la bio sur un compte créateur (ADR-0020) */
+.adm-claim{display:flex;flex-direction:column;gap:8px;padding-top:8px;border-top:1px dashed var(--line)}
+.adm-claim-head{display:flex;align-items:center;gap:6px;font-size:13px}
+.adm-claim-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.adm-claim-row .adm-ca-hint{flex:1;min-width:160px}
+.adm-claim-code{font-family:var(--font-mono);font-size:15px;font-weight:700;letter-spacing:.04em;color:var(--blue);background:var(--blue-soft);border:1px dashed var(--blue);border-radius:8px;padding:5px 10px}
+.adm-claim-ok{flex:1;font-size:13px;font-weight:600;color:var(--blue)}
+.adm-claim .notice{padding:10px 12px;font-size:13px}
+.notice-info{background:var(--blue-soft);color:var(--blue-dark)}

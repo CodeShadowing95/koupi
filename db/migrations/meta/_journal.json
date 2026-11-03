@@ -71,6 +71,13 @@
       "when": 1793689960718,
       "tag": "0009_creator_requests",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793697681407,
+      "tag": "0010_creator_claim_code",
+      "breakpoints": true
     }
   ]
 }

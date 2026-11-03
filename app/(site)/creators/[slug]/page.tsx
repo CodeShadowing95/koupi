@@ -67,8 +67,10 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
                 <ul className="k-creator-networks" aria-label={`Comptes de ${creator}`}>
                   {profile.accounts.map(account => (
                     <li key={`${account.platform}-${account.handle}`}>
-                      <a href={account.url} target="_blank" rel="noopener noreferrer me" title={`${account.label} · ${account.handle}`} aria-label={`${account.label} · ${account.handle}`}>
+                      <a href={account.url} target="_blank" rel="noopener noreferrer me" className={account.proven ? 'is-proven' : undefined}
+                        title={`${account.label} · ${account.handle}${account.proven ? ' · compte prouvé par le créateur' : ''}`} aria-label={`${account.label} · ${account.handle}${account.proven ? ', compte prouvé par le créateur' : ''}`}>
                         <PlatformIcon platform={account.platform} size={30} className="k-platform-icon" />
+                        {account.proven && <span className="k-chip-proof is-badge" aria-hidden="true">✓</span>}
                       </a>
                     </li>
                   ))}
@@ -86,7 +88,8 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
                 <ul className="k-creator-accounts" aria-label={`Comptes de ${creator} en détail`}>
                   {profile.accounts.map(account => (
                     <li key={`${account.platform}-${account.handle}`}>
-                      <a className="k-chip" href={account.url} target="_blank" rel="noopener noreferrer me">
+                      <a className="k-chip" href={account.url} target="_blank" rel="noopener noreferrer me" title={account.proven ? 'Compte prouvé par le créateur' : undefined}>
+                        {account.proven && <span className="k-chip-proof" aria-label="Compte prouvé par le créateur">✓</span>}
                         <PlatformIcon platform={account.platform} size={20} className="k-platform-icon" />
                         {account.label} · {account.handle}{account.subscribers && <small>{account.subscribers}</small>}<span aria-hidden="true">↗</span>
                       </a>

@@ -409,6 +409,9 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-creator-themes{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0;padding:0}
 .k-creator-themes .k-pill{padding:6px 12px}
 .k-creator-accounts{display:flex;flex-wrap:wrap;gap:10px;list-style:none;margin:4px 0 0;padding:0}
+.k-chip-proof{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-right:6px;border-radius:50%;background:#7FB2FF;color:#0A1F44;font-size:10px;font-weight:900;line-height:1;flex:none}
+.k-creator-networks a.is-proven{position:relative}
+.k-chip-proof.is-badge{position:absolute;right:-4px;bottom:-4px;margin:0;width:15px;height:15px;font-size:9px;box-shadow:0 0 0 2px var(--bg)}
 .k-creator-managed{margin:0;font-size:14px;color:var(--muted)}
 .k-creator-managed b{color:var(--text-soft);font-weight:600}
 .k-creator-managed a{color:var(--blue-soft);text-decoration:underline;text-underline-offset:3px}

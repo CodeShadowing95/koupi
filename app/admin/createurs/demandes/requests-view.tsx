@@ -75,6 +75,9 @@ export function RequestsView({ requests }: { requests: AdminCreatorRequest[] }) 
                     <dt>E-mail</dt><dd>{request.email ? (reply ? <a href={reply}>{request.email}</a> : request.email) : <span className="muted">Non donné</span>}</dd>
                     {request.message && <><dt>Message</dt><dd style={{ whiteSpace: 'pre-line' }}>{request.message}</dd></>}
                   </dl>
+                  {request.kind === 'claim' && request.status === 'new' && (
+                    <p className="adm-ca-hint">Pour qu’il prouve que le compte est le sien : ouvre sa <a href={`/admin/createurs?q=${encodeURIComponent(request.creator.name)}`}>fiche admin</a>, relie ce compte s’il ne l’est pas, puis <b>Donner un code</b> et envoie-lui le message.</p>
+                  )}
                   <div className="field">
                     <label htmlFor={`note-${request.id}`}>Note pour toi <span className="muted">(facultatif)</span></label>
                     <input id={`note-${request.id}`} maxLength={500} value={notes[request.id] ?? request.adminNote ?? ''} onChange={event => setNotes({ ...notes, [request.id]: event.target.value })} placeholder="Ex. Code dans la description vérifié le 3/11, compte relié." />

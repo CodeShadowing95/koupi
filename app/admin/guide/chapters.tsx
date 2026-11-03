@@ -401,7 +401,7 @@ function Createurs() {
       <Legend rows={[
         { term: <StatusDot tone="muted">{CREATOR_LEVEL_LABELS.spotted}</StatusDot>, meaning: 'Koupi connaît son nom, mais personne n’a encore contrôlé ses comptes. C’est le niveau de départ.' },
         { term: <StatusDot tone="ok">{CREATOR_LEVEL_LABELS.checked}</StatusDot>, meaning: `Tu as contrôlé un de ses comptes et il a au moins ${MIN_SUBSCRIBERS} abonnés, ou ce compte a le badge certifié du réseau.` },
-        { term: <StatusDot tone="info">{CREATOR_LEVEL_LABELS.verified}</StatusDot>, meaning: 'Le créateur a prouvé lui-même que le compte est à lui. Ce sera possible avec l’espace créateur, plus tard.' },
+        { term: <StatusDot tone="info">{CREATOR_LEVEL_LABELS.verified}</StatusDot>, meaning: 'Le créateur a prouvé lui-même qu’un compte est à lui, avec un code dans sa bio (voir plus bas).' },
       ]} />
       <p>Le filtre <b>À contrôler</b> liste les créateurs déjà sur le site mais encore repérés : commence par eux.</p>
       <p>Sur le site, un créateur contrôlé ou vérifié porte une coche verte à côté de son nom, et la mention <b>✓ Contrôlé par Koupi</b> (ou <b>✓ Créateur vérifié</b>) sur sa page. Un créateur repéré n’a aucune marque.</p>
@@ -415,6 +415,16 @@ function Createurs() {
       <p>Pour YouTube et les podcasts, tu n’as souvent rien à faire : le compte se relie <b>tout seul</b>. Quand tu ajoutes un code dont la source est une vidéo YouTube, Koupi retrouve la chaîne qui l’a publiée et la relie au créateur. Pour les créateurs déjà en base, le bouton <b>Relier les comptes</b> en haut de la page le fait pour tous d’un coup : la chaîne YouTube d’après leurs vidéos, et le podcast d’après leurs épisodes Apple Podcasts. Le nombre sur le bouton compte les créateurs sans aucun compte et ceux dont un compte peut encore être retrouvé ; un podcast que tu suis a déjà son compte, il n’y est pas. La tâche de nuit rattrape ceux qui arrivent par l’import. Un compte relié ainsi n’est pas contrôlé : c’est toujours toi qui coches. Koupi liste ensuite les créateurs restés sans compte en disant d’où viennent leurs codes (Instagram, TikTok, Spotify, un site web, aucun code…) ou ce qui a bloqué (vidéos de plusieurs chaînes, deux noms pour la même chaîne) : ceux-là se font à la main.</p>
       <p><b>Actualiser</b> relit les abonnés d’une chaîne YouTube (1 unité du quota YouTube, sur 10 000 par jour). <b>Retirer</b> enlève le compte, pas le créateur ni ses codes.</p>
       <Callout tone="warn">Un même compte ne peut être relié qu’à un seul créateur. Si Koupi refuse, il te dit à qui il est déjà relié : c’est souvent un doublon de nom à corriger.</Callout>
+    </Section>
+    <Section id="preuve" title="Faire prouver un compte par la bio">
+      <p>Seul le vrai propriétaire d’un compte peut modifier sa bio. C’est la preuve la plus simple : tu donnes un code au créateur, il l’ajoute à la bio du compte, et Koupi le retrouve. Le créateur passe alors <b>Créateur vérifié</b>, et ce compte porte une coche bleue sur sa page.</p>
+      <Steps>
+        <Step title="Donne un code">Dans le panneau du créateur, sous le compte, <b>Donner un code</b>. Koupi crée un code du type KOUPI-7F3K2Q, valable 14 jours.</Step>
+        <Step title="Envoie-le">« Copier le message » prépare un e-mail prêt à envoyer, avec le code et la marche à suivre. Envoie-le à l’adresse laissée dans sa demande.</Step>
+        <Step title="Retrouve le code">YouTube : <b>Lire la bio</b> lit la description de la chaîne (1 unité de quota). Si le code y est, c’est fait. Autres réseaux : ouvre le profil toi-même et clique <b>J’ai vu le code dans la bio</b>.</Step>
+      </Steps>
+      <p>Une fois prouvé, le créateur peut retirer le code de sa bio. <b>Nouveau code</b> remplace un code perdu ou expiré, <b>Annuler</b> arrête la preuve en cours, et <b>Retirer la preuve</b> enlève la vérification si tu découvres une erreur.</p>
+      <Callout tone="warn">Vérifie que c’est bien le compte relié à la fiche, pas un compte qui lui ressemble. Un imposteur peut mettre le code dans la bio de son propre faux compte : la preuve ne vaut que pour un compte que tu as déjà contrôlé.</Callout>
     </Section>
     <Section id="noms" title="Garder des noms propres">
       <p>Les majuscules ne comptent pas, mais « Le Grand JD » et « LeGrandJD » font deux créateurs différents, avec deux pages à moitié vides. Utilise toujours le nom exact de la chaîne et choisis-le dans la liste proposée quand tu tapes.</p>
@@ -432,7 +442,7 @@ function Createurs() {
         <Step title="Réponds">Le bouton <b>Répondre par e-mail</b> ouvre un e-mail à son adresse. Pour une revendication, demande-lui une preuve simple (un mot écrit dans la bio du compte, par exemple). Corrige la fiche s’il s’agit d’une erreur.</Step>
         <Step title="Range-la">Ajoute une note pour t’en souvenir, puis <b>Marquer traitée</b>, ou <b>Écarter</b> si c’est du spam. <b>Rouvrir</b> la remet dans « À traiter ».</Step>
       </Steps>
-      <Callout tone="warn">Une revendication ne prouve rien à elle seule : n’importe qui peut écrire « je suis MrBeast ». Ne change jamais le niveau d’un créateur sur la seule foi d’un e-mail. La vérification par la bio arrivera avec l’espace créateur.</Callout>
+      <Callout tone="warn">Une revendication ne prouve rien à elle seule : n’importe qui peut écrire « je suis MrBeast ». Ne change jamais le niveau d’un créateur sur la seule foi d’un e-mail : demande-lui la preuve par la bio.</Callout>
       <Callout tone="why">Une revendication, c’est un créateur qui vient de lui-même. C’est le meilleur moment pour lui répondre vite et lui montrer ce que Koupi fait pour lui.</Callout>
     </Section>
     <Section id="exporter" title="Exporter les créateurs">
