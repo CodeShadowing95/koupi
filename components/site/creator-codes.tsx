@@ -1,6 +1,6 @@
 'use client';
 // Codes d'un créateur sur sa page : recherche, et deux vues comme sur « Tous les codes ».
-// « Liste » : le coupon couché, deux par ligne sur grand écran. « Cartes » : le coupon debout compact (mêmes infos que la liste),
+// « Liste » : le coupon couché, trois par ligne sur grand écran. « Cartes » : le coupon debout compact (mêmes infos que la liste),
 // quatre par ligne. Le choix de vue est partagé avec la page des codes (même préférence de ce navigateur).
 import { useEffect, useMemo, useState } from 'react';
 import type { Code, Tool } from '@/lib/data';
@@ -55,7 +55,7 @@ export function CreatorCodes({ codes, tools, creator }: { codes: Code[]; tools: 
           )}
           <p role="status">{query ? <><strong>{shown.length}</strong> sur {codes.length}</> : <><strong>{codes.length}</strong> {codes.length > 1 ? 'codes' : 'code'}</>}</p>
           <div className="k-board-views" role="group" aria-label="Affichage des codes">
-            <button type="button" aria-pressed={view === 'list'} onClick={() => choose('list')} title="Liste : deux codes par ligne, l’essentiel">
+            <button type="button" aria-pressed={view === 'list'} onClick={() => choose('list')} title="Liste : trois codes par ligne, l’essentiel">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="6.5" rx="2" /><rect x="3" y="13.5" width="18" height="6.5" rx="2" /><path d="M15 4v6.5M15 13.5V20" strokeDasharray="1.5 2" /></svg>
               Liste
             </button>
