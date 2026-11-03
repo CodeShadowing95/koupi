@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/site/site-pages';
 import type { Code } from '@/lib/data';
 import { routes } from '@/lib/routes';
 

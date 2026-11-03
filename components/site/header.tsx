@@ -1,5 +1,5 @@
 'use client';
-import Link from 'next/link';
+import Link, { useIsOff } from '@/components/site/site-pages';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -19,6 +19,8 @@ const links = [
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const isOff = useIsOff();
+  const shown = links.filter(link => !isOff(link.href));
   const [scrolled, setScrolled] = useState(false);
   const [sound, setSound] = useState(true);
   const [open, setOpen] = useState(false);
@@ -65,7 +67,7 @@ export function SiteHeader() {
           <Image src="/koupi-logo-dark.png" alt="Koupi" width={971} height={348} priority />
         </Link>
         <nav className="k-nav" aria-label="Navigation principale">
-          {links.map(link => (
+          {shown.map(link => (
             <Link key={link.href} className="k-nav-link" href={link.href} aria-current={pathname.startsWith(link.href) ? 'page' : undefined}>{link.label}</Link>
           ))}
           <button
@@ -102,7 +104,7 @@ export function SiteHeader() {
       </div>
       <div className="k-menu" id="k-menu" data-open={open} inert={!open}>
         <nav className="k-wrap k-menu-in" aria-label="Menu">
-          {links.map(link => (
+          {shown.map(link => (
             <Link key={link.href} className="k-menu-link" href={link.href} aria-current={pathname.startsWith(link.href) ? 'page' : undefined}
               onClick={() => setOpen(false)}>
               {link.label}

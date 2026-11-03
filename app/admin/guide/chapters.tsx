@@ -6,6 +6,7 @@ import { Callout, Demo, Key, Legend, Section, Step, Steps } from '@/components/a
 import { FLAG_MAX_SUCCESS, FLAG_MIN_VOTES, RETEST_DAYS, TARGETS } from '@/lib/admin-stats';
 import { CLEAR_SCORE, CREATOR_LEVEL_LABELS, MIN_SUBSCRIBERS, REJECT_BELOW } from '@/lib/verification';
 import { FIRST_READ_DAYS } from '@/lib/podcast-read';
+import { SITE_PAGES } from '@/lib/site-pages';
 
 /** Faux bouton : même apparence que dans l'admin, mais rien ne se passe au clic. */
 function Fake({ tone, children }: { tone?: 'pri' | 'ok' | 'no' | 'danger'; children: ReactNode }) {
@@ -553,6 +554,28 @@ function Routine() {
   </>;
 }
 
+function Administration() {
+  return <>
+    <Section id="quoi" title="Ce que tu contrôles ici">
+      <p>La page <Link href="/admin/administration">Administration</Link> décide de ce que les visiteurs peuvent voir : tout le site, ou page par page. Elle ne sert pas à surveiller : Koupi n’y montre rien sur les visiteurs, et le journal ne note que tes propres gestes.</p>
+    </Section>
+    <Section id="maintenance" title="Mettre le site en pause">
+      <p>Le <b>mode maintenance</b> remplace tout le site par une page d’attente « On range le comptoir ». Les moteurs de recherche reçoivent un code qui veut dire « revenez plus tard » : le site ne perd pas sa place dans Google pour une courte pause.</p>
+      <p>Toi, connecté à l’admin, tu continues de voir le site normalement : pratique pour vérifier une mise à jour avant de rouvrir. Les propositions et les votes sont refusés pendant la pause ; la tâche de nuit, elle, continue.</p>
+      <Callout tone="warn">Pense à rouvrir : tant que l’interrupteur est sur « En pause », plus aucun visiteur ne voit un code.</Callout>
+    </Section>
+    <Section id="pages" title="Couper une page">
+      <p>Chaque page publique a son interrupteur. Une page coupée répond « page introuvable » (erreur 404), elle et tout ce qui est en dessous : couper Catégories coupe aussi chaque page de catégorie. Elle disparaît en même temps du menu, du pied de page et de la recherche ; ailleurs, ses liens deviennent du texte simple et ses boutons disparaissent.</p>
+      <Legend rows={SITE_PAGES.filter(page => !page.locked).map(page => ({ term: page.label, meaning: page.effect }))} />
+      <p>Le changement s’applique en quelques secondes, sans redéploiement. Rallumer la page la remet en ligne de la même façon.</p>
+      <Callout tone="rule">L’accueil, les mentions légales et la page confidentialité restent <b>toujours en ligne</b> : l’accueil est l’entrée du site, les deux autres sont obligatoires. Elles sont listées sans interrupteur.</Callout>
+    </Section>
+    <Section id="journal" title="Le journal">
+      <p>Chaque geste fait ici (page coupée ou rallumée, pause, réouverture) est noté avec sa date et son heure. Le journal garde 12 mois, puis s’efface tout seul chaque nuit. Il ne contient aucune donnée sur les visiteurs.</p>
+    </Section>
+  </>;
+}
+
 export const chapterContent: Record<string, () => ReactNode> = {
   introduction: Introduction,
   'se-reperer': SeReperer,
@@ -566,4 +589,5 @@ export const chapterContent: Record<string, () => ReactNode> = {
   categories: Categories,
   indicateurs: Indicateurs,
   routine: Routine,
+  administration: Administration,
 };

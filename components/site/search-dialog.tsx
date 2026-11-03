@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
 import { SearchBar } from './search-bar';
+import { useIsOff } from './site-pages';
 import type { Tool } from '@/lib/data';
 
 const Icon = () => (
@@ -17,6 +18,7 @@ export function SearchDialog({ tools, placeholder = 'Hostinger, NordVPN, ElevenL
   const dialog = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
   const { contextSafe } = useGSAP({ scope: dialog });
+  const isOff = useIsOff();
 
   const show = contextSafe(() => {
     const el = dialog.current;
@@ -42,6 +44,9 @@ export function SearchDialog({ tools, placeholder = 'Hostinger, NordVPN, ElevenL
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [show]);
+
+  // Sans fiches outils ni page de résultats, la recherche ne mènerait nulle part.
+  if (isOff('/tools/x') && isOff('/search')) return null;
 
   return (
     <div className="k-search">

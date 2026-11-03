@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/site/site-pages';
 import { notFound } from 'next/navigation';
 import { isPublic, type Code } from '@/lib/data';
 import { getCatalog } from '@/lib/catalog-server';

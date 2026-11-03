@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/site/site-pages';
 import { searchCreators, searchTools } from '@/lib/data';
 import { getCatalog, getCreatorFacts } from '@/lib/catalog-server';
 import { buildDirectory } from '@/lib/creator-directory';

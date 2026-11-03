@@ -1236,3 +1236,33 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-claim .notice{padding:10px 12px;font-size:13px}
 .notice-info{background:var(--blue-soft);color:var(--blue-dark)}
 .adm-req-access{font-size:13px;font-weight:600;color:var(--ok)}
+
+/* Espace Administration : mode maintenance, interrupteurs des pages, journal. */
+.adm-switch{position:relative;width:40px;height:22px;flex:none;border:0;border-radius:999px;background:var(--line-strong);padding:0;cursor:pointer;transition:background .2s}
+.adm-switch span{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
+.adm-switch[aria-checked="true"]{background:var(--ok)}
+.adm-switch[aria-checked="true"] span{transform:translateX(18px)}
+.adm-switch:disabled{cursor:not-allowed;opacity:.55}
+.adm-switch:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.adm-maint{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:18px 20px;margin-bottom:28px;background:var(--card);border:1.5px solid var(--line);border-radius:12px}
+.adm-maint.is-on{border-color:var(--warn);background:var(--warn-bg)}
+.adm-maint h2{margin:0 0 4px;font-size:17px}
+.adm-maint p{margin:0;font-size:14px;color:var(--ink-soft);max-width:62ch}
+.adm-maint small{display:block;margin-top:6px;color:var(--muted);font-size:12px}
+.adm-maint-action{display:flex;align-items:center;gap:12px}
+.adm-maint-state{font-size:13px;font-weight:700;color:var(--ok)}
+.adm-maint-state.is-on{color:var(--warn)}
+.adm-maint.is-on .adm-switch[aria-checked="true"]{background:var(--warn)}
+.adm-admin-block{margin-bottom:28px}
+.adm-admin-block-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px}
+.adm-admin-block-head h2{margin:0;font-size:17px}
+.adm-admin-block-head .muted{font-size:13px}
+.adm-pages-table tr.is-off td{background:var(--bad-bg)}
+.adm-pages-table code{font-size:12.5px}
+.adm-page-off{display:inline-block;margin-left:8px;padding:1px 7px;border-radius:999px;background:var(--bad);color:#fff;font-size:11px;font-weight:700}
+.adm-journal{list-style:none;margin:0;padding:0;background:var(--card);border:1.5px solid var(--line);border-radius:12px}
+.adm-journal li{display:flex;gap:16px;padding:10px 14px;font-size:14px;border-bottom:1px solid var(--line)}
+.adm-journal li:last-child{border-bottom:0}
+.adm-journal time{flex:none;width:150px;color:var(--muted);font-size:13px}
+@media(max-width:720px){.adm-maint{flex-direction:column;align-items:flex-start}.adm-journal li{flex-direction:column;gap:2px}.adm-journal time{width:auto}}
+@media(prefers-reduced-motion:reduce){.adm-switch,.adm-switch span{transition:none}}

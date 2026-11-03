@@ -1,5 +1,5 @@
 'use client';
-import Link from 'next/link';
+import Link from '@/components/site/site-pages';
 import { useEffect, useMemo, useState } from 'react';
 import type { Code, Tool } from '@/lib/data';
 import type { CodeSort, CodeStatusFilter } from '@/lib/codes-board';

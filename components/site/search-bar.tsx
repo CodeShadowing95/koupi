@@ -5,6 +5,7 @@ import { searchTools, type Tool } from '@/lib/data';
 import { routes } from '@/lib/routes';
 import { plural } from '@/lib/ui';
 import { ToolLogo } from './tool-logo';
+import { useIsOff } from './site-pages';
 
 type Props = {
   /** Outils publiés, passés par la page (lus en base côté serveur). */
@@ -24,6 +25,7 @@ type Props = {
 // raccourci « / » pour la rejoindre depuis n'importe où sur la page.
 export function SearchBar({ tools, placeholder = 'Hostinger, NordVPN, ElevenLabs…', autoFocusShortcut = true, initial = '', variant = 'bar', onNavigate, onDismiss }: Props) {
   const router = useRouter();
+  const isOff = useIsOff();
   const [query, setQuery] = useState(initial);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -55,8 +57,9 @@ export function SearchBar({ tools, placeholder = 'Hostinger, NordVPN, ElevenLabs
 
   function go(index: number) {
     const tool = suggestions[index];
-    if (tool) router.push(routes.tool(tool.slug));
-    else if (query.trim()) router.push(routes.search(query.trim()));
+    // Une page coupée par l'admin n'est jamais ouverte : fiche outil, sinon page de résultats.
+    if (tool && !isOff(routes.tool(tool.slug))) router.push(routes.tool(tool.slug));
+    else if (query.trim() && !isOff(routes.search(query.trim()))) router.push(routes.search(query.trim()));
     else return;
     setOpen(false);
     onNavigate?.();

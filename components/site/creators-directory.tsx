@@ -1,5 +1,5 @@
 'use client';
-import Link from 'next/link';
+import Link from '@/components/site/site-pages';
 import { useEffect, useMemo, useState } from 'react';
 import { directoryCounts, directoryParams, filterDirectory, type DirectoryEntry, type DirectoryFilter, type DirectorySort } from '@/lib/creator-directory-filter';
 import { PLATFORM_LABELS, type CreatorPlatform } from '@/lib/creator-accounts-display';

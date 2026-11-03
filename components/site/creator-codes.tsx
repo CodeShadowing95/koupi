@@ -2,7 +2,7 @@
 // Codes d'un créateur sur sa page : recherche, et deux vues comme sur « Tous les codes ».
 // « Liste » : le coupon couché habituel, deux par ligne. « Cartes » : le coupon debout compact (mêmes infos que la liste),
 // quatre par ligne. Le choix de vue est partagé avec la page des codes (même préférence de ce navigateur).
-import Link from 'next/link';
+import Link from '@/components/site/site-pages';
 import { useEffect, useMemo, useState } from 'react';
 import type { Code, Tool } from '@/lib/data';
 import { routes } from '@/lib/routes';
