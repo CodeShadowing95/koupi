@@ -85,6 +85,20 @@
       "when": 1793703443414,
       "tag": "0011_creator_sign_in",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793718068893,
+      "tag": "0012_site_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793718846022,
+      "tag": "0013_creator_users_disabled",
+      "breakpoints": true
     }
   ]
 }

@@ -16,8 +16,9 @@ export default function Privacy() {
           <p>Les e-mails sont utilisés uniquement pour les alertes demandées et la confirmation associée. Tu peux demander leur suppression à <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>
           <h2>Espace créateur</h2>
           <p>Un créateur qui se connecte à son espace donne son adresse e-mail. Elle sert à lui envoyer son lien de connexion et à le recontacter au sujet de sa page, rien d&apos;autre. Le lien marche une seule fois, pendant 20 minutes. Une fois connecté, un cookie de session (nécessaire au fonctionnement, sans pistage) le garde connecté 30 jours au plus. Les e-mails partent par Resend, notre prestataire d&apos;envoi.</p>
+          <p>L&apos;éditeur du site voit, pour chaque compte créateur, son e-mail, la page qu&apos;il gère et la date de sa dernière connexion, rien de plus. Il peut désactiver un compte (par exemple en cas d&apos;usurpation), lui retirer l&apos;accès à une page ou le supprimer. Sur demande, la suppression efface ton e-mail du compte, des liens de connexion, des revendications et du journal d&apos;administration ; ta page publique et ses codes restent, car ils viennent de tes contenus publics.</p>
           <h2>Durées et droits</h2>
-          <p>Les données sont conservées le temps nécessaire au fonctionnement du service. Tu peux demander l&apos;accès, la correction ou la suppression de tes données.</p>
+          <p>Les données sont conservées le temps nécessaire au fonctionnement du service. Le journal d&apos;administration, qui note les gestes de l&apos;éditeur (page coupée, compte désactivé…), est effacé au bout de 12 mois. Tu peux demander l&apos;accès, la correction ou la suppression de tes données à <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> ; la réponse arrive sous un mois.</p>
         </div>
       </div>
     </main>

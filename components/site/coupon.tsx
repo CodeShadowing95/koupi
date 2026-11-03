@@ -1,5 +1,5 @@
 'use client';
-import Link from 'next/link';
+import Link from '@/components/site/site-pages';
 import { useRef, useState } from 'react';
 import { gsap, MOTION_OK, MOTION_REDUCED, useGSAP } from '@/lib/gsap';
 import { copyText, openCreatorLink } from '@/lib/copy';

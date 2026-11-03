@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/components/site/site-pages';
 import { redirect } from 'next/navigation';
 import { getDb } from '@/db';
 import { isPublic } from '@/lib/data';
