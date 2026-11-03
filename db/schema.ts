@@ -314,3 +314,37 @@ export const creatorRequests = pgTable('creator_requests', {
 ]);
 
 export type CreatorRequestRow = typeof creatorRequests.$inferSelect;
+
+// Comptes Koupi des créateurs (ADR-0021) : on se connecte par un lien reçu par e-mail, sans mot de passe.
+// creatorId reste vide tant que l'admin n'a pas donné l'accès à une page (après la preuve par la bio).
+export const creatorUsers = pgTable('creator_users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: text('email').notNull(),
+  creatorId: uuid('creator_id').references(() => creators.id, { onDelete: 'set null' }),
+  accessGrantedAt: timestamp('access_granted_at', { withTimezone: true }),
+  lastSignInAt: timestamp('last_sign_in_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  uniqueIndex('creator_users_email_idx').on(table.email),
+  index('creator_users_creator_idx').on(table.creatorId),
+  check('creator_users_email_format', sql`${table.email} = lower(${table.email}) and char_length(${table.email}) between 3 and 320 and position('@' in ${table.email}) > 1`),
+]);
+
+// Liens de connexion envoyés par e-mail : seule l'empreinte SHA-256 du jeton est gardée, valable 20 minutes, une seule fois.
+export const creatorSignInTokens = pgTable('creator_sign_in_tokens', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: text('email').notNull(),
+  tokenHash: text('token_hash').notNull(),
+  /** Page revendiquée au moment de la demande, pour revenir dessus après la connexion. */
+  creatorSlug: text('creator_slug'),
+  ipHash: text('ip_hash').notNull(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  usedAt: timestamp('used_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  uniqueIndex('creator_sign_in_tokens_hash_idx').on(table.tokenHash),
+  index('creator_sign_in_tokens_email_idx').on(table.email),
+  check('creator_sign_in_tokens_hash_len', sql`char_length(${table.tokenHash}) = 64`),
+]);
+
+export type CreatorUserRow = typeof creatorUsers.$inferSelect;

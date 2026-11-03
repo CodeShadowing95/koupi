@@ -20,6 +20,7 @@ export function SiteFooter() {
               <li><Link href={routes.creators()}>Créateurs</Link></li>
               <li><Link href={routes.keyring}>Mon trousseau</Link></li>
               <li><Link href={routes.submit()}>Proposer un code</Link></li>
+              <li><Link href={routes.forCreators()}>Pour les créateurs</Link></li>
             </ul>
           </div>
           <div>
