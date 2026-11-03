@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/components/site/site-pages';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { isPublic, type Code } from '@/lib/data';
 import { getCatalog, getCreatorFacts, getCreatorProfile } from '@/lib/catalog-server';

@@ -1,5 +1,5 @@
 'use client';
-import Link from 'next/link';
+import Link from '@/components/site/site-pages';
 import { useState } from 'react';
 import type { Code } from '@/lib/data';
 import { routes } from '@/lib/routes';

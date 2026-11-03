@@ -348,3 +348,26 @@ export const creatorSignInTokens = pgTable('creator_sign_in_tokens', {
 ]);
 
 export type CreatorUserRow = typeof creatorUsers.$inferSelect;
+
+// Interrupteurs du site (ADR-0022) : une ligne par page publique désactivable (« page:<clé> ») et le mode maintenance
+// (« maintenance »). Une clé absente garde sa valeur par défaut : page en ligne, maintenance coupée.
+export const siteSettings = pgTable('site_settings', {
+  key: text('key').primaryKey(),
+  enabled: boolean('enabled').notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  check('site_settings_key_format', sql`${table.key} ~ '^(maintenance|page:[a-z-]{2,40})$'`),
+]);
+
+// Journal de l'espace Administration : un geste de l'admin par ligne (page coupée, maintenance, compte créateur…).
+// Ni IP ni navigateur. Les lignes de plus de 12 mois sont effacées par la tâche de nuit.
+export const adminAuditLog = pgTable('admin_audit_log', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  action: text('action').notNull(),
+  target: text('target').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  index('admin_audit_log_created_idx').on(table.createdAt),
+  check('admin_audit_log_action_len', sql`char_length(${table.action}) between 1 and 60`),
+  check('admin_audit_log_target_len', sql`char_length(${table.target}) between 1 and 200`),
+]);

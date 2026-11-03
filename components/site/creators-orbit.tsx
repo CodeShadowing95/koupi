@@ -1,5 +1,5 @@
 'use client';
-import Link from 'next/link';
+import Link from '@/components/site/site-pages';
 import { useRef } from 'react';
 import { routes } from '@/lib/routes';
 import { gsap, MOTION_OK, ScrollTrigger, useGSAP } from '@/lib/gsap';

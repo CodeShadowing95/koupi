@@ -32,6 +32,7 @@ export const ADMIN_PAGES: CommandItem[] = [
   { kind: 'page', label: 'Créateurs', detail: 'Catalogue', href: '/admin/createurs' },
   { kind: 'page', label: 'Catégories', detail: 'Catalogue', href: '/admin/categories' },
   { kind: 'page', label: 'Guide de l’admin', detail: 'Apprendre', href: '/admin/guide', keywords: 'aide routine' },
+  { kind: 'page', label: 'Administration', detail: 'Administration', href: '/admin/administration', keywords: 'pages maintenance pause journal couper désactiver' },
   ...([['codes', 'les codes'], ['propositions', 'les propositions'], ['outils', 'les outils'], ['createurs', 'les créateurs'], ['categories', 'les catégories']] as const).map(([type, name]): CommandItem => (
     { kind: 'page', label: `Exporter ${name} (Excel)`, detail: 'Fichier .xlsx pour un tableur', href: `/api/admin/export?type=${type}&format=xlsx`, keywords: 'export excel xlsx csv tableur telecharger' }
   )),

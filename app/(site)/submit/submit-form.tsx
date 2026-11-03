@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
+import Link from '@/components/site/site-pages';
 import { Turnstile, type TurnstileHandle } from '@/components/turnstile';
 import type { Category } from '@/lib/data';
 import { routes } from '@/lib/routes';
