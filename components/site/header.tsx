@@ -2,9 +2,12 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { isSoundEnabled, setSoundEnabled } from '@/lib/coupon-sound';
 import { routes } from '@/lib/routes';
+
+// Sous 980 px, les liens passent dans un menu déroulant ouvert par le bouton burger :
+// il se ferme au changement de page, avec Échap, au clic à côté, et bloque le défilement de la page derrière.
 
 const links = [
   { href: routes.codes, label: 'Codes' },
@@ -18,6 +21,31 @@ export function SiteHeader() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [sound, setSound] = useState(true);
+  const [open, setOpen] = useState(false);
+  const header = useRef<HTMLElement>(null);
+  const burger = useRef<HTMLButtonElement>(null);
+
+  // Un changement de page referme le menu.
+  useEffect(() => { setOpen(false); }, [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') { setOpen(false); burger.current?.focus(); } };
+    const onClick = (event: MouseEvent) => { if (!header.current?.contains(event.target as Node)) setOpen(false); };
+    // Revenu en grand écran, le menu n'a plus lieu d'être.
+    const wide = window.matchMedia('(min-width: 981px)');
+    const onWide = () => { if (wide.matches) setOpen(false); };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('mousedown', onClick);
+    wide.addEventListener('change', onWide);
+    document.documentElement.classList.add('k-menu-lock');
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousedown', onClick);
+      wide.removeEventListener('change', onWide);
+      document.documentElement.classList.remove('k-menu-lock');
+    };
+  }, [open]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -30,7 +58,7 @@ export function SiteHeader() {
   }, []);
 
   return (
-    <header className={`k-header${scrolled ? ' is-scrolled' : ''}`}>
+    <header ref={header} className={`k-header${scrolled || open ? ' is-scrolled' : ''}${open ? ' is-menu-open' : ''}`}>
       <a className="k-skip" href="#contenu">Aller au contenu</a>
       <div className="k-wrap k-header-in">
         <Link className="k-logo" href={routes.home} aria-label="Koupi, accueil">
@@ -56,6 +84,32 @@ export function SiteHeader() {
           </button>
           {/* Un vrai petit coupon : papier crème festonné, perforation, talon corail « % » qui se décolle au survol. */}
           <Link className="k-nav-coupon" href={routes.submit()}>
+            <span className="k-nav-coupon-main k-paper">Proposer un code</span>
+            <span className="k-nav-coupon-stub" aria-hidden="true">%</span>
+          </Link>
+          <button
+            ref={burger}
+            type="button"
+            className="k-icon-btn k-burger"
+            aria-expanded={open}
+            aria-controls="k-menu"
+            aria-label={open ? 'Fermer le menu' : 'Ouvrir le menu'}
+            onClick={() => setOpen(value => !value)}
+          >
+            <span aria-hidden="true" /><span aria-hidden="true" /><span aria-hidden="true" />
+          </button>
+        </nav>
+      </div>
+      <div className="k-menu" id="k-menu" data-open={open} inert={!open}>
+        <nav className="k-wrap k-menu-in" aria-label="Menu">
+          {links.map(link => (
+            <Link key={link.href} className="k-menu-link" href={link.href} aria-current={pathname.startsWith(link.href) ? 'page' : undefined}
+              onClick={() => setOpen(false)}>
+              {link.label}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </Link>
+          ))}
+          <Link className="k-nav-coupon is-large k-menu-coupon" href={routes.submit()} onClick={() => setOpen(false)}>
             <span className="k-nav-coupon-main k-paper">Proposer un code</span>
             <span className="k-nav-coupon-stub" aria-hidden="true">%</span>
           </Link>

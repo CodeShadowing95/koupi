@@ -1252,3 +1252,28 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 @media (max-width:980px){.k-creator-rows{grid-template-columns:minmax(0,1fr)}.k-creator-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:520px){.k-creator-cards{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:600px){.k-creator-search{flex-basis:100%}}
+
+/* Navigation mobile : bouton burger et menu déroulant sous la barre (sous 980 px) */
+.k-burger{display:none;position:relative;flex-direction:column;justify-content:center;align-items:center;gap:4px}
+.k-burger span{display:block;width:18px;height:2px;border-radius:2px;background:currentColor;transition:transform .25s ease,opacity .2s ease}
+.k-burger[aria-expanded="true"] span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.k-burger[aria-expanded="true"] span:nth-child(2){opacity:0}
+.k-burger[aria-expanded="true"] span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+.k-menu{display:none}
+@media (max-width:980px){
+  .k-nav-link{display:none}
+  .k-burger{display:inline-flex}
+  .k-menu{display:block;position:absolute;left:0;right:0;top:100%;max-height:calc(100dvh - 76px);overflow-y:auto;background:#07081A;border-bottom:1px solid var(--line);box-shadow:0 30px 60px -20px rgba(0,0,0,.8);
+    opacity:0;visibility:hidden;transform:translateY(-8px);transition:opacity .22s ease,transform .22s ease,visibility 0s linear .22s}
+  .k-menu[data-open="true"]{opacity:1;visibility:visible;transform:none;transition:opacity .22s ease,transform .22s ease}
+  .k-menu-in{display:flex;flex-direction:column;padding:12px 0 28px}
+  .k-menu-link{display:flex;align-items:center;justify-content:space-between;padding:16px 4px;border-bottom:1px solid var(--line);font-size:20px;font-weight:600;color:var(--text-soft)}
+  .k-menu-link svg{color:var(--muted);transition:transform .2s}
+  .k-menu-link:hover,.k-menu-link[aria-current="page"]{color:#fff}
+  .k-menu-link:hover svg{transform:translateX(3px)}
+  .k-menu-link[aria-current="page"] svg{color:var(--blue-soft)}
+  .k-menu-coupon{display:none;align-self:flex-start;margin-top:24px}
+  .k-menu-lock{overflow:hidden}
+}
+@media (max-width:640px){.k-header .k-menu-coupon{display:inline-flex}}
+@media (prefers-reduced-motion:reduce){.k-menu,.k-menu[data-open="true"],.k-burger span{transition:none}}
