@@ -36,11 +36,12 @@ function shortDate(iso: string) {
 
 /**
  * compact : carte de la page créateur, mêmes infos que la vue liste plus les pouces (sans « Donné par » ni réussite, votes et date).
+ * light : version allégée de l'accueil (logo et sceau, outil, créateur, réduction, talon), sans votes, chiffres ni source.
  * linkTool : le papier du coupon (nom de l'outil compris) mène à sa fiche, sauf sur la fiche elle-même.
  */
-type Props = { code: Code; category?: string; link: string; compact?: boolean; linkTool?: boolean };
+type Props = { code: Code; category?: string; link: string; compact?: boolean; light?: boolean; linkTool?: boolean };
 
-export function BoardingCoupon({ code, category, link, compact = false, linkTool = true }: Props) {
+export function BoardingCoupon({ code, category, link, compact = false, light = false, linkTool = true }: Props) {
   const [torn, setTorn] = useState(false);
   const [failed, setFailed] = useState(false);
   const badge = codeBadge(code, { withDate: false });
@@ -63,7 +64,7 @@ export function BoardingCoupon({ code, category, link, compact = false, linkTool
   };
 
   return (
-    <article className={`k-pass${torn ? ' is-torn' : ''}${compact ? ' is-compact' : ''}`} data-code-id={code.id}>
+    <article className={`k-pass${torn ? ' is-torn' : ''}${compact ? ' is-compact' : ''}${light ? ' is-light' : ''}`} data-code-id={code.id}>
       <div className="k-pass-main k-paper">
         <header className="k-pass-head">
           <span className="k-pass-logo">
@@ -77,12 +78,14 @@ export function BoardingCoupon({ code, category, link, compact = false, linkTool
             {linkTool && code.toolSlug
               ? <Link href={routes.tool(code.toolSlug)} className="k-pass-tool" aria-label={`Voir la fiche ${code.tool}`}><strong>{code.tool}</strong></Link>
               : <strong>{code.tool}</strong>}
-            {category && <small>{category}</small>}
+            {light
+              ? <small className="k-pass-light-by">par {code.creator}<CreatorMark level={code.creatorLevel} compact /></small>
+              : category && <small>{category}</small>}
           </span>
-          <CodeThumbs code={code} />
+          {!light && <CodeThumbs code={code} />}
         </header>
 
-        {compact
+        {compact || light
           ? <p className="k-pass-discount">{code.discount}</p>
           : <>
         <p className="k-pass-by">
@@ -105,7 +108,7 @@ export function BoardingCoupon({ code, category, link, compact = false, linkTool
         </dl>
           </>}
 
-        {code.source && (
+        {!light && code.source && (
           <a className="k-pass-source" href={code.source} target="_blank" rel="noopener noreferrer" title={code.sourceTitle || undefined}>
             {platform === 'youtube'
               ? <svg className="k-pass-source-yt" width="20" height="14" viewBox="0 0 20 14" aria-hidden="true"><rect width="20" height="14" rx="4" fill="#FF0000" /><path d="M8 4v6l5.2-3z" fill="#fff" /></svg>
