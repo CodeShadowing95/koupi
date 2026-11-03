@@ -1,4 +1,5 @@
 import { CONTACT_EMAIL } from '@/lib/site-contact';
+import { PageHead } from '@/components/site/page-head';
 
 export const metadata = { title: 'Transparence · Koupi' };
 
@@ -6,11 +7,7 @@ export default function Transparency() {
   return (
     <main className="k-page">
       <div className="k-wrap">
-        <div className="k-page-head">
-          <span className="k-eyebrow">Notre promesse</span>
-          <h1>On préfère être clairs.</h1>
-          <p>Koupi est construit pour que les créateurs gardent le crédit de leur travail.</p>
-        </div>
+        <PageHead eyebrow="Notre promesse" title="On préfère être clairs." lead="Koupi est construit pour que les créateurs gardent le crédit de leur travail." />
         <div className="k-prose">
           <div className="k-panel k-panel-glow">
             <h2>Comment on gagne de l&apos;argent</h2>
@@ -22,7 +19,7 @@ export default function Transparency() {
           <p>Chaque code vient d&apos;une vidéo, d&apos;un épisode ou d&apos;un post public. Avant de le publier, on vérifie qu&apos;il y figure bien, donné par le créateur. Quand on a pu l&apos;essayer jusqu&apos;à la page de paiement, on le dit aussi. La date est affichée, puis les votes de la communauté indiquent s&apos;il fonctionne encore.</p>
           <p>On contrôle aussi les créateurs. Quand on a vérifié qu&apos;un compte est réel, actif et publie bien sous ce nom (avec au moins 1 000 abonnés, ou le badge certifié du réseau), le créateur porte la marque <b>✓ Contrôlé par Koupi</b>. Un créateur peut aussi prouver lui-même qu&apos;un compte est le sien : on lui donne un code, il l&apos;ajoute à la bio de ce compte, et on le retrouve. Lui seul peut modifier cette bio. Il devient alors <b>Créateur vérifié</b>, et ce compte porte une coche bleue sur sa page.</p>
           <p>Un outil d&apos;IA nous aide à lire les descriptions des vidéos pour y repérer les codes. Il ne reçoit que ces textes publics, jamais tes données, et la décision de publier reste humaine.</p>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <div className="k-status-row">
             <span className="k-status k-status-ok is-dark">Testé au paiement : la réduction s&apos;appliquait</span>
             <span className="k-status k-status-ok is-dark">Source vérifiée : le code vient bien du créateur</span>
             <span className="k-status k-status-warn is-dark">À tester : signalé ou pas encore testé</span>

@@ -10,6 +10,7 @@ import { VoteButtons } from '@/components/site/vote-buttons';
 import { CodeBadge } from '@/components/site/code-badge';
 import { CreatorMark } from '@/components/site/creator-mark';
 import { expiryOf } from '@/lib/code-expiry';
+import { Crumbs } from '@/components/site/page-head';
 
 function votesLabel(code: Code) {
   return code.votes < 3 ? 'Pas encore assez de votes pour un taux de réussite.' : `Marche pour ${code.success} % des ${code.votes} personnes qui ont voté.`;
@@ -23,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ToolPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const { tools, codes } = await getCatalog();
+  const { tools, codes, categories } = await getCatalog();
   const tool = tools.find(item => item.slug === slug);
   if (!tool) notFound();
   const active = codes.filter(code => code.toolSlug === tool.slug && isPublic(code));
@@ -31,19 +32,16 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
   const trusted = (code: Code) => code.status === 'verified' && expiryOf(code.expiresOn).state !== 'expired';
   const sorted = [...active].sort((a, b) => (trusted(a) ? 0 : 1) - (trusted(b) ? 0 : 1) || b.success - a.success);
   const [best, ...others] = sorted;
+  const category = categories.find(item => item.name === tool.category);
 
   return (
     <main className="k-page">
       <div className="k-wrap">
-        <nav className="k-crumbs" aria-label="Fil d'Ariane">
-          <Link href={routes.home}>Accueil</Link><span aria-hidden="true">/</span>
-          <Link href={routes.categories}>{tool.category}</Link><span aria-hidden="true">/</span>
-          <span aria-current="page" style={{ color: 'var(--text)' }}>{tool.name}</span>
-        </nav>
-        <div className="k-tool-layout" style={{ marginTop: 28 }}>
+        <Crumbs items={[{ label: tool.category, href: category ? routes.category(category.slug) : routes.categories }, { label: tool.name }]} />
+        <div className="k-tool-layout">
           <section>
             <div className="k-tool-head">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div className="k-tool-kicker">
                 <ToolSeal tool={tool.slug} name={tool.name} />
                 <span className="k-eyebrow">Code promo {tool.name}</span>
               </div>
@@ -58,7 +56,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
             {best ? (
               <TearTicket code={best.code} codeId={best.id} link={best.creatorLink || tool.website} creator={best.creator} discount={best.discount} tool={tool.name} seal={<ToolSeal tool={tool.slug} name={tool.name} size="lg" />}>
                 <div className="k-ticket-who">
-                  <CreatorAvatar name={best.creator} style={{ width: 52, height: 52 }} />
+                  <CreatorAvatar name={best.creator} className="k-ticket-avatar" />
                   <span>
                     <strong><Link href={routes.creator(best.creatorSlug)}>{best.creator}</Link><CreatorMark level={best.creatorLevel} compact /></strong>
                     <span>l&apos;a donné dans « {best.sourceTitle} » · <a href={best.source} target="_blank" rel="noopener noreferrer">voir la vidéo ↗</a></span>
@@ -67,7 +65,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                 <span className="k-ticket-discount">{best.discount}</span>
                 <div className="k-ticket-meta"><CodeBadge code={best} /><span>Lien du créateur ouvert tel quel</span></div>
                 <div className="k-ticket-votes">
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>{votesLabel(best)}</span>
+                  <span className="k-ticket-votes-label">{votesLabel(best)}</span>
                   {best.votes >= 3 && <div className="k-meter"><span style={{ width: `${best.success}%` }} /></div>}
                   <VoteButtons codeId={best.id} code={best.code} />
                 </div>
@@ -81,8 +79,8 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
             )}
 
             {others.length > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginTop: 64 }}>
-                <h2 style={{ fontSize: 32 }} data-reveal>Les autres codes {tool.name}</h2>
+              <div className="k-tool-others">
+                <h2 data-reveal>Les autres codes {tool.name}</h2>
                 <div className="k-code-list">
                   {others.map(code => (
                     <div className="k-coupon-card" key={code.id} data-reveal>
@@ -96,7 +94,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                         subtitle={code.sourceTitle}
                       />
                       <div className="k-coupon-meta">
-                        <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}><CodeBadge code={code} dark />{votesLabel(code)}</span>
+                        <span className="k-coupon-meta-group"><CodeBadge code={code} dark />{votesLabel(code)}</span>
                         <a href={code.source} target="_blank" rel="noopener noreferrer">Source ↗</a>
                         <VoteButtons codeId={code.id} code={code.code} />
                       </div>

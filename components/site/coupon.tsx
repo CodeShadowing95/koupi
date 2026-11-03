@@ -157,7 +157,7 @@ export function TearTicket({ code, codeId, link, creator, discount, tool, seal, 
           <span className="k-ticket-foil" aria-hidden="true" />
           <span className="k-ticket-label">Code promo</span>
           <span className="k-ticket-code">{code}</span>
-          <span style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <span className="k-ticket-stack">
             <span className="k-ticket-action">{torn ? 'Recopier' : 'Copier et ouvrir'}</span>
             {!torn && (
               <span className="k-ticket-hint">
@@ -222,7 +222,7 @@ export function MiniCoupon({ code, codeId, title, subtitle, avatar, className = 
     <>
       <div className="k-coupon-main k-paper">
         {avatar}
-        <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <span className="k-coupon-text">
           <strong>{title}</strong>
           <span>{subtitle}</span>
         </span>

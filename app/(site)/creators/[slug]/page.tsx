@@ -14,6 +14,7 @@ import { CreatorRequest } from '@/components/site/creator-request';
 import { CreatorMore } from '@/components/site/creator-more';
 import { CodeRow, CreatorCodes } from '@/components/site/creator-codes';
 import { PlatformIcon } from '@/components/platform-icon';
+import { Crumbs } from '@/components/site/page-head';
 
 function publicCodesOf(codes: Code[], slug: string) {
   return codes.filter(code => code.creatorSlug === slug && isPublic(code));
@@ -51,7 +52,7 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
   return (
     <main className="k-page">
       <div className="k-wrap">
-        <nav className="k-crumbs" aria-label="Fil d'Ariane"><Link href={routes.home}>Accueil</Link><span aria-hidden="true">/</span><Link href={routes.creators()}>Créateurs</Link><span aria-hidden="true">/</span><span aria-current="page" style={{ color: 'var(--text)' }}>{creator}</span></nav>
+        <Crumbs items={[{ label: 'Créateurs', href: routes.creators() }, { label: creator }]} />
         {/* L'essentiel d'abord : qui, combien de codes, où le suivre. Le reste se déplie avec « Plus d'infos ». */}
         <header className="k-creator-head">
           <CreatorAvatar name={creator} size="lg" />

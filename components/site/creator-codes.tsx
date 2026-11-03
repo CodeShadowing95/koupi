@@ -32,7 +32,7 @@ export function CodeRow({ code, tool, reveal }: { code: Code; tool?: Tool; revea
       />
       <div className="k-coupon-meta">
         <CodeBadge code={code} dark withDate={false} />
-        <span style={{ display: 'flex', gap: 16 }}>
+        <span className="k-coupon-meta-group is-links">
           <a href={code.source} target="_blank" rel="noopener noreferrer">Source ↗</a>
           {tool && <Link href={routes.tool(tool.slug)}>Fiche {tool.name} →</Link>}
         </span>

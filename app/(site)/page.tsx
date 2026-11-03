@@ -41,14 +41,14 @@ export default async function Home() {
     <main>
       <Hero codes={codes} tools={tools} />
 
-      <div aria-hidden="true" style={{ position: 'relative', paddingBlock: 20 }}>
+      <div aria-hidden="true" className="k-bands">
         <Marquee items={[...tools.map(tool => tool.name), ...tools.map(tool => tool.name)]} />
         <Marquee className="k-band-2" reverse speed={330} items={[...creators, ...creators].map(name => `de ${name}`)} />
       </div>
 
       <HowItWorks example={featured[0] && { tool: featured[0].tool, code: featured[0].code, discount: featured[0].discount, creator: featured[0].creator }} />
 
-      <section className="k-section" style={{ paddingTop: 40 }}>
+      <section className="k-section is-tight">
         <div className="k-wrap">
           <div className="k-section-head" data-reveal>
             <span className="k-eyebrow">Codes du moment</span>
@@ -108,7 +108,7 @@ export default async function Home() {
           <div className="k-bento">
             <article className="k-tile k-tile-a" data-reveal>
               <span className="k-eyebrow">100 % pro-créateurs</span>
-              <h3 style={{ fontSize: 38, maxWidth: 520 }}>Le code reste celui du créateur. Toujours.</h3>
+              <h3 className="k-tile-title">Le code reste celui du créateur. Toujours.</h3>
               <p>On ne remplace jamais son code par un code à nous. Son lien est ouvert tel quel, sans suivi ajouté : sa commission lui revient.</p>
               <div className="k-flow" aria-hidden="true">
                 <span className="k-flow-node"><span className="k-av k-av-3">TU</span>Toi</span>
@@ -131,7 +131,7 @@ export default async function Home() {
             <article className="k-tile k-tile-d" data-reveal>
               <h3>Testé, daté, voté</h3>
               <p>de {best.creator} pour {best.tool} marche pour {best.success} % des {best.votes} personnes qui ont voté.</p>
-              <div className="k-meter" style={{ marginTop: 'auto' }}><span style={{ width: `${best.success}%` }} /></div>
+              <div className="k-meter is-bottom"><span style={{ width: `${best.success}%` }} /></div>
             </article>
             <article className="k-tile k-tile-e" data-reveal>
               <h3>Zéro pub, zéro faux bouton</h3>
@@ -142,10 +142,10 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="k-section" style={{ paddingTop: 40 }}>
+      <section className="k-section is-tight">
         <div className="k-wrap">
-          <div className="k-section-head" data-reveal style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', maxWidth: 'none', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="k-section-head is-split" data-reveal>
+            <div className="k-section-head-text">
               <span className="k-eyebrow">Explorer</span>
               <h2>Par catégorie</h2>
             </div>
@@ -155,15 +155,15 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="k-section" style={{ paddingTop: 40 }}>
+      <section className="k-section is-tight">
         <div className="k-wrap">
           <div className="k-cta" data-reveal>
             <div>
               <span className="k-eyebrow">Contribuer</span>
-              <h2 style={{ marginTop: 14 }}>Tu as vu passer un code dans une vidéo&nbsp;?</h2>
+              <h2>Tu as vu passer un code dans une vidéo&nbsp;?</h2>
               <p>Envoie-le avec le lien de la vidéo. On le vérifie, on crédite le créateur, et il aide les suivants.</p>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
+            <div className="k-cta-actions">
               <Link className="k-nav-coupon is-large" href={routes.submit()}>
                 <span className="k-nav-coupon-main k-paper">Proposer un code</span>
                 <span className="k-nav-coupon-stub" aria-hidden="true">%</span>
