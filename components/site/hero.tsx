@@ -9,6 +9,10 @@ import { ToolSeal } from './tool-logo';
 import { toolLogo, withLogosFirst } from '@/lib/tool-logos';
 import { CreatorAvatar } from './creator-avatar';
 import { flipFace, nextFlip, type FlipState } from '@/lib/hero-flip';
+import { copyText, openCreatorLink } from '@/lib/copy';
+import { track } from '@/lib/track';
+import { playCouponSnip } from '@/lib/coupon-sound';
+import { CODE_COPIED_EVENT, type CopiedCode } from '@/lib/vote-invite';
 
 /** Temps entre deux coupons qui se retournent, et durée d'un demi-tour (axe horizontal). */
 const FLIP_EVERY = 4.2;
@@ -19,6 +23,45 @@ const rotating = ['NordVPN', 'o2switch', 'ElevenLabs', 'Shopify', 'Qonto', 'Babb
 const Check = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5" /></svg>
 );
+
+/**
+ * Petit coupon incliné du hero : le papier mène à la fiche de l'outil, le talon copie le code
+ * et ouvre le lien du créateur, comme les autres coupons du site.
+ */
+function HeroCoupon({ slot, code, toolSlug, website }: { slot: number; code: Code; toolSlug: string; website?: string }) {
+  const [copied, setCopied] = useState(false);
+  // Le coupon s'est retourné sur un autre code : on efface « Copié ».
+  useEffect(() => { setCopied(false); }, [code.id]);
+
+  const copy = async () => {
+    const copying = copyText(code.code);
+    track('copy', code.id);
+    playCouponSnip();
+    window.dispatchEvent(new CustomEvent<CopiedCode>(CODE_COPIED_EVENT, { detail: { id: code.id, code: code.code, tool: code.tool, creator: code.creator } }));
+    setCopied(true);
+    await copying;
+    const link = code.creatorLink || website;
+    window.setTimeout(() => { if (link) { track('open', code.id); openCreatorLink(link); } }, 450);
+    window.setTimeout(() => setCopied(false), 2400);
+  };
+
+  return (
+    <div className={`k-coupon k-float k-float-${slot + 1}${copied ? ' is-copied' : ''}`}>
+      <Link href={routes.tool(toolSlug)} className="k-coupon-main k-paper" aria-label={`Voir la fiche ${code.tool} : ${code.discount}, code de ${code.creator}`}>
+        <ToolSeal key={code.id} tool={toolSlug} name={code.tool} />
+        <span className="k-coupon-text">
+          <strong>{code.tool}, {code.discount}</strong>
+          <span><span className="k-by"><CreatorAvatar name={code.creator} size="xs" />de {code.creator}</span></span>
+        </span>
+      </Link>
+      <button type="button" className="k-coupon-stub" onClick={copy} aria-label={`Copier le code ${code.code} et ouvrir le lien du créateur`}>
+        <small>{copied ? 'Copié ✓' : 'Copier'}</small>
+        <span className="k-coupon-code">{code.code}</span>
+      </button>
+      <span className="k-sr" role="status">{copied ? `Code ${code.code} copié` : ''}</span>
+    </div>
+  );
+}
 
 export function Hero({ codes, tools }: { codes: Code[]; tools: Tool[] }) {
   const root = useRef<HTMLElement>(null);
@@ -167,16 +210,7 @@ export function Hero({ codes, tools }: { codes: Code[]; tools: Tool[] }) {
           <div className="k-hero-stack">
             {slots.map((code, index) => (
               // La clé suit la place, pas le code : le coupon reste le même élément quand il se retourne.
-              <Link key={`slot-${index}`} href={routes.tool(slugOf(code.tool))} className={`k-coupon k-float k-float-${index + 1}`}>
-                <div className="k-coupon-main k-paper">
-                  <ToolSeal key={code.id} tool={slugOf(code.tool)} name={code.tool} />
-                  <span className="k-coupon-text">
-                    <strong>{code.tool}, {code.discount}</strong>
-                    <span><span className="k-by"><CreatorAvatar name={code.creator} size="xs" />de {code.creator}</span></span>
-                  </span>
-                </div>
-                <span className="k-coupon-stub"><small>Code</small><span className="k-coupon-code">{code.code}</span></span>
-              </Link>
+              <HeroCoupon key={`slot-${index}`} slot={index} code={code} toolSlug={slugOf(code.tool)} website={tools.find(tool => tool.name === code.tool)?.website} />
             ))}
           </div>
         </div>
