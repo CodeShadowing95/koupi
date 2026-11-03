@@ -1,6 +1,6 @@
 import { desc, eq, gte, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
-import { verificationChecks, type VerificationCheckRow, type VerificationReason } from '@/db/schema';
+import { toolSuggestions, verificationChecks, type VerificationCheckRow, type VerificationReason } from '@/db/schema';
 
 export type CheckInput = {
   codeId?: string | null;
@@ -43,9 +43,13 @@ export function startOfMonthUtc(now: Date = new Date()): Date {
 }
 
 // Dépense IA depuis une date, en millionièmes de dollar : sert au plafond mensuel.
+/** Dépense de l'IA depuis une date : analyses des codes, plus analyses des outils à ajouter (ADR-0024). */
 export async function aiSpendSince(db: Db, since: Date): Promise<number> {
-  const [row] = await db.select({ total: sql<string>`coalesce(sum(${verificationChecks.costUsdMicros}), 0)` })
+  const [checks] = await db.select({ total: sql<string>`coalesce(sum(${verificationChecks.costUsdMicros}), 0)` })
     .from(verificationChecks)
     .where(gte(verificationChecks.createdAt, since));
-  return Number(row?.total ?? 0);
+  const [tools] = await db.select({ total: sql<string>`coalesce(sum(${toolSuggestions.analysisCostUsdMicros}), 0)` })
+    .from(toolSuggestions)
+    .where(gte(toolSuggestions.analyzedAt, since));
+  return Number(checks?.total ?? 0) + Number(tools?.total ?? 0);
 }

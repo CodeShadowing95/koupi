@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import { boolean, check, date, index, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import type { ToolAnalysis } from '../lib/tool-analysis';
 
 // Propositions de codes envoyées par le public, en attente de modération.
 export const submissions = pgTable('submissions', {
@@ -292,6 +293,11 @@ export const toolSuggestions = pgTable('tool_suggestions', {
   status: text('status', { enum: TOOL_SUGGESTION_STATUSES }).notNull().default('open'),
   toolId: uuid('tool_id').references(() => tools.id),
   codeId: uuid('code_id').references(() => codes.id),
+  /** Dernière analyse du site par l'IA (ADR-0024) : résumé, catégorie proposée. Null tant qu'il n'y en a pas. */
+  analysis: jsonb('analysis').$type<ToolAnalysis>(),
+  /** Coût cumulé des analyses par l'IA, en millionièmes de dollar, compté dans le plafond du mois. */
+  analysisCostUsdMicros: integer('analysis_cost_usd_micros').notNull().default(0),
+  analyzedAt: timestamp('analyzed_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   resolvedAt: timestamp('resolved_at', { withTimezone: true }),
 }, table => [

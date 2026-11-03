@@ -14,7 +14,7 @@ import type { AdminPodcast } from '@/lib/podcasts-admin';
 import type { PodcastFeed } from '@/lib/apple-podcasts';
 import type { PodcastReadReport } from '@/lib/podcast-read';
 import type { AdminToolSuggestion } from '@/lib/tool-suggestions';
-import { ToolSuggestionsPanel, type CatalogToolOption, type CategoryOption } from './tool-suggestions-panel';
+import { ToolSuggestionsPanel, type AiAvailability, type CatalogToolOption, type CategoryOption } from './tool-suggestions-panel';
 
 type Filter = 'all' | 'active' | 'paused' | 'never' | 'codes';
 const filters: { value: Filter; label: string }[] = [
@@ -36,9 +36,9 @@ const day = (iso: string) => dayFormat.format(new Date(iso));
 
 type Panel = 'list' | 'add' | 'tools';
 
-export function PodcastsView({ podcasts, images, starters, suggestions, categories, tools, initialTab }: {
+export function PodcastsView({ podcasts, images, starters, suggestions, categories, tools, ai, initialTab }: {
   podcasts: AdminPodcast[]; images: Record<string, string>; starters: string[];
-  suggestions: AdminToolSuggestion[]; categories: CategoryOption[]; tools: CatalogToolOption[]; initialTab?: Panel;
+  suggestions: AdminToolSuggestion[]; categories: CategoryOption[]; tools: CatalogToolOption[]; ai: AiAvailability; initialTab?: Panel;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState('');
@@ -156,7 +156,7 @@ export function PodcastsView({ podcasts, images, starters, suggestions, categori
 
         {error && <div className="notice notice-error" role="alert">{error}</div>}
 
-        {panel === 'tools' ? <ToolSuggestionsPanel suggestions={suggestions} categories={categories} tools={tools} /> : panel === 'add' ? (
+        {panel === 'tools' ? <ToolSuggestionsPanel suggestions={suggestions} categories={categories} tools={tools} ai={ai} /> : panel === 'add' ? (
           <section className="adm-pod-search" id="pod-panel-add" role="tabpanel" aria-labelledby="pod-tab-add">
             <p className="muted">Cherche un podcast dans l’annuaire Apple Podcasts, puis clique sur <b>Suivre</b>. Il rejoint l’onglet Suivis.</p>
             <form className="adm-toolbar" onSubmit={event => { event.preventDefault(); void search(query); }}>
