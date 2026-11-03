@@ -19,5 +19,5 @@ Le niveau « Créateur vérifié » (ADR-0016) suppose que le créateur prouve l
 
 ## Conséquences
 - Deux colonnes de plus, vides au départ. Aucun créateur ne change de niveau tant que l'admin n'a rien fait.
-- La preuve ne vaut que pour le compte relié à la fiche : l'admin doit avoir contrôlé ce compte, sinon un imposteur pourrait prouver un faux compte. Le guide le rappelle.
+- La preuve ne vaut que pour le compte relié à la fiche : l'admin doit avoir contrôlé ce compte, sinon un imposteur pourrait prouver un faux compte. Depuis le 3 novembre 2026, le serveur refuse de donner, lire ou confirmer un code sur un compte non contrôlé (`admin_checked_at` vide).
 - Le journal des tentatives (`account_verifications`) et la preuve faite par le créateur depuis son espace viendront avec la connexion des créateurs.
