@@ -1235,3 +1235,4 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-claim-ok{flex:1;font-size:13px;font-weight:600;color:var(--blue)}
 .adm-claim .notice{padding:10px 12px;font-size:13px}
 .notice-info{background:var(--blue-soft);color:var(--blue-dark)}
+.adm-req-access{font-size:13px;font-weight:600;color:var(--ok)}
