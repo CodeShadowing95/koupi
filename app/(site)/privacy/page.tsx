@@ -1,3 +1,5 @@
+import { CONTACT_EMAIL } from '@/lib/site-contact';
+
 export const metadata = { title: 'Confidentialité · Koupi' };
 
 export default function Privacy() {
@@ -9,7 +11,7 @@ export default function Privacy() {
         <h2>Mesure d&apos;audience</h2>
         <p>Pour savoir quels codes servent, Koupi compte chaque jour combien de fois un code est copié, combien de fois le lien d&apos;un créateur est ouvert, et quelles recherches ne trouvent aucun outil. Ce sont de simples totaux par jour : pas de cookie, pas de service tiers, aucun identifiant qui permette de te reconnaître ou de suivre ta visite.</p>
         <h2>Données envoyées</h2>
-        <p>Les e-mails sont utilisés uniquement pour les alertes demandées et la confirmation associée. Tu peux demander leur suppression à [Adresse de contact].</p>
+        <p>Les e-mails sont utilisés uniquement pour les alertes demandées et la confirmation associée. Tu peux demander leur suppression à <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>
         <h2>Durées et droits</h2>
         <p>Les données sont conservées le temps nécessaire au fonctionnement du service. Tu peux demander l&apos;accès, la correction ou la suppression de tes données.</p>
       </div>
