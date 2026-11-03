@@ -3,6 +3,7 @@
 // Un vote par code, gardé dans ce navigateur pour ne pas reposer la question.
 // Aucun compte ni cookie : le serveur limite les abus avec l'IP hachée, sans la garder avec le vote.
 import { useEffect, useState } from 'react';
+import { CODE_VOTED_EVENT } from '@/lib/vote-invite';
 
 const STORAGE_KEY = 'koupi-votes';
 export type Vote = 'up' | 'down';
@@ -17,7 +18,18 @@ export function useCodeVote(codeId: string) {
   const [fresh, setFresh] = useState(false);
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
-  useEffect(() => { setVoted(readVotes()[codeId] ?? null); }, [codeId]);
+  useEffect(() => {
+    setVoted(readVotes()[codeId] ?? null);
+    // Un vote donné ailleurs sur la page (coupon ou fenêtre « Laisse un 👍 ») met ce bouton à jour aussi.
+    const onVoted = (event: Event) => {
+      const detail = (event as CustomEvent<{ id: string; value: Vote }>).detail;
+      if (detail?.id !== codeId) return;
+      setVoted(detail.value);
+      setFresh(true);
+    };
+    window.addEventListener(CODE_VOTED_EVENT, onVoted);
+    return () => window.removeEventListener(CODE_VOTED_EVENT, onVoted);
+  }, [codeId]);
 
   async function vote(worked: boolean) {
     setSending(true);
@@ -29,6 +41,7 @@ export function useCodeVote(codeId: string) {
         try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...readVotes(), [codeId]: value })); } catch { /* stockage indisponible */ }
         setVoted(value);
         setFresh(true);
+        window.dispatchEvent(new CustomEvent(CODE_VOTED_EVENT, { detail: { id: codeId, value } }));
         setMessage(response.ok ? 'Merci, c’est noté. Ton vote aide les suivants.' : body.error || 'Déjà noté, merci !');
       } else setMessage(body.error || 'Le vote n’a pas pu être envoyé.');
     } catch {
