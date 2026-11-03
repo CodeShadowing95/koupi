@@ -5,7 +5,8 @@ import { isPublic, type Code } from '@/lib/data';
 import { getCatalog } from '@/lib/catalog-server';
 import { routes } from '@/lib/routes';
 import { isTrusted, sortToolCodes, toolPageDescription, toolPageTitle, votesSummary } from '@/lib/tool-page';
-import { MiniCoupon, TearTicket } from '@/components/site/coupon';
+import { TearTicket } from '@/components/site/coupon';
+import { BoardingCoupon } from '@/components/site/boarding-coupon';
 import { ToolSeal } from '@/components/site/tool-logo';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { VoteButtons } from '@/components/site/vote-buttons';
@@ -102,26 +103,13 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
             {others.length > 0 && (
               <div className="k-tool-others">
                 <h2 data-reveal>Les autres codes {tool.name}</h2>
-                <div className="k-code-list">
+                <ul className="k-pass-rows">
                   {others.map(code => (
-                    <div className="k-coupon-card" key={code.id} data-reveal>
-                      <MiniCoupon
-                        codeId={code.id}
-                        className="k-row-coupon"
-                        code={code.code}
-                        link={code.creatorLink || tool.website}
-                        avatar={<CreatorAvatar name={code.creator} />}
-                        title={<>{code.creator}<CreatorMark level={code.creatorLevel} compact /> · {code.discount}</>}
-                        subtitle={code.sourceTitle}
-                      />
-                      <div className="k-coupon-meta">
-                        <span className="k-coupon-meta-group"><CodeBadge code={code} dark />{votesLabel(code)}</span>
-                        <a href={code.source} target="_blank" rel="noopener noreferrer">Source ↗</a>
-                        <VoteButtons code={code} />
-                      </div>
-                    </div>
+                    <li key={code.id} data-reveal>
+                      <BoardingCoupon code={code} link={code.creatorLink || tool.website} linkTool={false} />
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
             )}
           </section>

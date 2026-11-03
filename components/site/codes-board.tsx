@@ -367,7 +367,7 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
           </Link>
         </div>
       ) : (
-        <ul className="k-board-list">
+        <ul className={`k-board-list${view === 'list' ? ' k-pass-rows' : ''}`}>
           {visible.map(code => {
             const tool = toolBySlug.get(code.toolSlug);
             return (

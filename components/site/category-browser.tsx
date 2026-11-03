@@ -1,15 +1,11 @@
 'use client';
-import Link from '@/components/site/site-pages';
 import { useEffect, useMemo, useState } from 'react';
 import type { Code, Tool } from '@/lib/data';
 import type { CodeSort, CodeStatusFilter } from '@/lib/codes-board';
 import { browseCategory, categoryParams, type CategoryFilters, DEFAULT_CATEGORY_FILTERS, hasCategoryFilter } from '@/lib/category-browse';
-import { routes } from '@/lib/routes';
 import { plural } from '@/lib/ui';
-import { MiniCoupon } from './coupon';
-import { ToolSeal } from './tool-logo';
+import { BoardingCoupon } from './boarding-coupon';
 import { ToolCard } from './tool-card';
-import { CodeBadge } from './code-badge';
 
 // Page d'une catégorie : une barre pour affiner (recherche, statut, outil, tri) au-dessus des codes et des outils.
 // Les codes s'affichent par lots de 6 (« Voir plus de codes »). Les filtres sont recopiés dans l'adresse
@@ -102,27 +98,16 @@ export function CategoryBrowser({ codes, tools, initial, now }: Props) {
       ) : (
         <>
           {visible.length > 0 && (
-            <div className="k-coupon-grid">
+            <ul className="k-pass-grid">
               {visible.map(code => {
                 const tool = tools.find(item => item.slug === code.toolSlug);
                 return (
-                  <div className="k-coupon-card" key={code.id}>
-                    <MiniCoupon
-                      codeId={code.id}
-                      code={code.code}
-                      link={code.creatorLink || tool?.website || '#'}
-                      avatar={<ToolSeal tool={tool?.slug ?? code.tool} name={code.tool} />}
-                      title={<>{code.tool} · {code.discount}</>}
-                      subtitle={<>de {code.creator}</>}
-                    />
-                    <div className="k-coupon-meta">
-                      <CodeBadge code={code} dark withDate={false} />
-                      {tool && <Link href={routes.tool(tool.slug)}>Voir la fiche →</Link>}
-                    </div>
-                  </div>
+                  <li key={code.id}>
+                    <BoardingCoupon code={code} link={code.creatorLink || tool?.website || '#'} />
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           )}
           {view.codes.length > limit && (
             <div className="k-cat-more">

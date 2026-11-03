@@ -14,10 +14,11 @@ import { TrustGlyph } from '@/components/site/trust';
 import { PLATFORM_LABELS } from '@/lib/creator-accounts-display';
 import { sourcePlatform } from '@/lib/source-platform';
 import { CodeThumbs } from '@/components/site/code-thumbs';
+import { CreatorMark } from '@/components/site/creator-mark';
 import { CODE_COPIED_EVENT, type CopiedCode } from '@/lib/vote-invite';
 
-// Le coupon de la page « Tous les codes » : même papier et même talon bleu que sur l'accueil,
-// posé debout (talon en bas) pour tenir à trois par ligne, avec le créateur et les infos utiles (réduction, réussite, votes, date). Un clic sur le talon le détache
+// Le coupon du site : un seul modèle pour tous les codes (accueil, catégories, page Codes, créateurs, autres codes d'un outil).
+// Posé debout (talon en bas) dans une grille `.k-pass-grid`, couché (talon à droite) dans une liste `.k-pass-rows`. Même papier et même talon bleu, avec le créateur et les infos utiles (réduction, réussite, votes, date). Un clic sur le talon le détache
 // (bruit de déchirure), copie le code et ouvre le lien du créateur.
 // « Ça a marché ? » se vote avec les pouces à droite du nom de l'outil : 👍 avec le nombre de votes positifs, 👎 à côté.
 // Le pouce choisi reste coloré ; un vote tout juste donné ajoute +1 au compteur.
@@ -32,10 +33,13 @@ function shortDate(iso: string) {
   return year && month && day ? `${day} ${MONTHS[month - 1]} ${year}` : '';
 }
 
-/** compact : carte de la page créateur, mêmes infos que la vue liste plus les pouces (sans « Donné par » ni réussite, votes et date). */
-type Props = { code: Code; category?: string; link: string; compact?: boolean };
+/**
+ * compact : carte de la page créateur, mêmes infos que la vue liste plus les pouces (sans « Donné par » ni réussite, votes et date).
+ * linkTool : le nom de l'outil mène à sa fiche (sauf sur la fiche elle-même).
+ */
+type Props = { code: Code; category?: string; link: string; compact?: boolean; linkTool?: boolean };
 
-export function BoardingCoupon({ code, category, link, compact = false }: Props) {
+export function BoardingCoupon({ code, category, link, compact = false, linkTool = true }: Props) {
   const [torn, setTorn] = useState(false);
   const [failed, setFailed] = useState(false);
   const badge = codeBadge(code, { withDate: false });
@@ -69,7 +73,9 @@ export function BoardingCoupon({ code, category, link, compact = false }: Props)
             </span>
           </span>
           <span className="k-pass-title">
-            <strong>{code.tool}</strong>
+            {linkTool && code.toolSlug
+              ? <Link href={routes.tool(code.toolSlug)} className="k-pass-tool"><strong>{code.tool}</strong></Link>
+              : <strong>{code.tool}</strong>}
             {category && <small>{category}</small>}
           </span>
           <CodeThumbs code={code} />
@@ -85,7 +91,7 @@ export function BoardingCoupon({ code, category, link, compact = false }: Props)
               <span className="k-pass-platform"><PlatformIcon platform={platform} size={16} className="k-platform-icon" />{PLATFORM_LABELS[platform]}</span>
             )}
           </span>
-          <Link href={routes.creator(code.creatorSlug)} className="k-pass-who"><CreatorAvatar name={code.creator} size="xs" /><span className="k-pass-who-name">{code.creator}</span></Link>
+          <Link href={routes.creator(code.creatorSlug)} className="k-pass-who"><CreatorAvatar name={code.creator} size="xs" /><span className="k-pass-who-name">{code.creator}</span><CreatorMark level={code.creatorLevel} compact /></Link>
         </p>
 
         <dl className="k-pass-facts">
