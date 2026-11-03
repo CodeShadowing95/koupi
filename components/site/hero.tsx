@@ -1,13 +1,18 @@
 'use client';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
-import type { Code, Tool } from '@/lib/data';
+import { isPublic, type Code, type Tool } from '@/lib/data';
 import { routes } from '@/lib/routes';
 import { SearchDialog } from './search-dialog';
 import { MiniCoupon } from './coupon';
 import { ToolSeal } from './tool-logo';
-import { withLogosFirst } from '@/lib/tool-logos';
+import { toolLogo, withLogosFirst } from '@/lib/tool-logos';
 import { CreatorAvatar } from './creator-avatar';
+import { flipFace, nextFlip, type FlipState } from '@/lib/hero-flip';
+
+/** Temps entre deux coupons qui se retournent, et durée d'un demi-tour (axe horizontal). */
+const FLIP_EVERY = 4.2;
+const FLIP_DURATION = 1.7;
 
 const rotating = ['NordVPN', 'o2switch', 'ElevenLabs', 'Shopify', 'Qonto', 'Babbel'];
 
@@ -19,11 +24,26 @@ export function Hero({ codes, tools }: { codes: Code[]; tools: Tool[] }) {
   const root = useRef<HTMLElement>(null);
   // Quatre coupons, un par outil, de préférence des outils dont on a le logo. Ils remplacent l'ancienne ligne « Populaires ».
   const onePerTool = codes.filter((code, index, all) => code.status === 'verified' && all.findIndex(other => other.status === 'verified' && other.tool === code.tool) === index);
-  const latest = withLogosFirst(onePerTool, code => code.tool).slice(0, 4);
+  // Réserve des coupons qui se retournent : les autres outils, codes vérifiés d'abord puis codes publics à tester.
+  const shown = new Set(onePerTool.map(code => code.tool));
+  const others = codes.filter((code, index, all) => isPublic(code) && code.status !== 'verified' && !shown.has(code.tool)
+    && all.findIndex(other => isPublic(other) && other.status !== 'verified' && other.tool === code.tool) === index);
+  // Les autres outils attendent en réserve : un coupon se retourne de temps en temps pour en montrer un.
+  const pool = [...withLogosFirst(onePerTool, code => code.tool), ...withLogosFirst(others, code => code.tool)];
+  const [slots, setSlots] = useState(() => pool.slice(0, 4));
+  const flipState = useRef<FlipState<Code>>({ slots: pool.slice(0, 4), queue: pool.slice(4) });
   const slugOf = (name: string) => tools.find(tool => tool.name === name)?.slug ?? '';
   const verified = codes.filter(code => code.status === 'verified');
   const verifiedCount = verified.length;
   const successRate = Math.round(verified.reduce((sum, code) => sum + code.success, 0) / Math.max(1, verifiedCount));
+
+  // Les logos de la réserve sont chargés à l'avance : le nouveau logo est prêt quand le coupon se retourne.
+  useEffect(() => {
+    for (const code of flipState.current.queue) {
+      const logo = toolLogo(slugOf(code.tool)) ?? toolLogo(code.tool);
+      if (logo) new Image().src = logo.src;
+    }
+  }, []); // une seule fois, au montage
 
   useGSAP(() => {
     const mm = gsap.matchMedia();
@@ -73,9 +93,50 @@ export function Hero({ codes, tools }: { codes: Code[]; tools: Tool[] }) {
         root.current?.addEventListener('pointerleave', leave);
       }
 
+      // … se retournent un par un (demi-tour sur l'axe horizontal) pour montrer un autre code…
+      let visible = true;
+      let lastSlot = -1;
+      const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; });
+      if (root.current) observer.observe(root.current);
+      const flipOne = () => {
+        const next = nextFlip(flipState.current, lastSlot);
+        const card = next && root.current?.querySelector<HTMLElement>(`.k-float-${next.slot + 1}`);
+        // On ne retourne pas un coupon que la personne survole ou a sélectionné au clavier.
+        if (!next || !card || !visible || document.hidden || card.matches(':hover, :focus-within')) {
+          timer = gsap.delayedCall(FLIP_EVERY, flipOne);
+          return;
+        }
+        lastSlot = next.slot;
+        let swapped = false;
+        const turn = { angle: 0 };
+        gsap.set(card, { transformPerspective: 1600 });
+        gsap.to(turn, {
+          angle: 180,
+          duration: FLIP_DURATION,
+          ease: 'sine.inOut',
+          onUpdate: () => {
+            const face = flipFace(turn.angle);
+            // Léger soulèvement pendant le tour, pour un mouvement plus doux.
+            gsap.set(card, { rotationX: face.rotation, scale: 1 + 0.03 * Math.sin((turn.angle / 180) * Math.PI) });
+            if (face.swapped && !swapped) {
+              swapped = true;
+              flipState.current = next.state;
+              setSlots(next.state.slots);
+            }
+          },
+          onComplete: () => {
+            gsap.set(card, { rotationX: 0, scale: 1 });
+            timer = gsap.delayedCall(FLIP_EVERY, flipOne);
+          },
+        });
+      };
+      let timer = gsap.delayedCall(FLIP_EVERY + 1, flipOne);
+      const stopFlips = () => { timer.kill(); observer.disconnect(); };
+
       // … et s'écartent quand on fait défiler.
       gsap.to('.k-float-1', { yPercent: -40, ease: 'none', scrollTrigger: { trigger: root.current, start: 'top top', end: 'bottom top', scrub: true } });
       gsap.to('.k-float-3', { yPercent: 30, ease: 'none', scrollTrigger: { trigger: root.current, start: 'top top', end: 'bottom top', scrub: true } });
+      return stopFlips;
     });
   }, { scope: root });
 
@@ -98,20 +159,21 @@ export function Hero({ codes, tools }: { codes: Code[]; tools: Tool[] }) {
           </div>
         </div>
 
-        <div className="k-hero-stage" aria-label="Derniers codes vérifiés" role="region">
+        <div className="k-hero-stage" aria-label="Codes du moment" role="region">
           <div className="k-stage-badge" aria-hidden="true">
             <span className="k-dot" />
             <span><strong>{successRate} %</strong> de réussite<br />selon les votes</span>
           </div>
           <div className="k-hero-stack">
-            {latest.map((code, index) => (
+            {slots.map((code, index) => (
               <MiniCoupon
                 codeId={code.id}
-                key={code.id}
+                // La clé suit la place, pas le code : le coupon reste le même élément quand il se retourne.
+                key={`slot-${index}`}
                 className={`k-float k-float-${index + 1}`}
                 href={routes.tool(slugOf(code.tool))}
                 code={code.code}
-                avatar={<ToolSeal tool={slugOf(code.tool)} name={code.tool} />}
+                avatar={<ToolSeal key={code.id} tool={slugOf(code.tool)} name={code.tool} />}
                 title={<>{code.tool}, {code.discount}</>}
                 subtitle={<span className="k-by"><CreatorAvatar name={code.creator} size="xs" />de {code.creator}</span>}
               />
