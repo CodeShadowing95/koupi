@@ -31,7 +31,7 @@ function shortDate(iso: string) {
   return year && month && day ? `${day} ${MONTHS[month - 1]} ${year}` : '';
 }
 
-/** compact : carte de la page créateur, mêmes infos que la vue liste (sans « Donné par » ni réussite, votes et date). */
+/** compact : carte de la page créateur, mêmes infos que la vue liste plus les pouces (sans « Donné par » ni réussite, votes et date). */
 type Props = { code: Code; category?: string; link: string; compact?: boolean };
 
 export function BoardingCoupon({ code, category, link, compact = false }: Props) {
