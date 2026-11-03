@@ -19,6 +19,8 @@ export type Code = {
   creatorLevel?: Exclude<CreatorLevel, 'spotted'>;
   /** Seulement dans l'admin : code retiré du site et des statistiques. */
   archived?: boolean;
+  /** Nom du podcast suivi d'où vient l'épisode source (« Entendu dans GDIY, épisode #574 »). */
+  podcast?: string;
 };
 export type Catalog = {
   categories: Category[];
