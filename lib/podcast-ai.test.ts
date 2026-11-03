@@ -1,0 +1,48 @@
+import { describe, expect, it } from 'vitest';
+import type { ExtractedCode } from './ai-extract';
+import { mergeAiCodes, PROMO_HINT } from './podcast-ai';
+
+const tools = [{ id: 't-nord', name: 'NordVPN', domain: 'nordvpn.com' }, { id: 't-qonto', name: 'Qonto', domain: 'qonto.com' }];
+const ai = (code: string, extra: Partial<ExtractedCode> = {}): ExtractedCode => ({ code, tool: '', discount: '', conditions: '', expiresOn: '', evidence: `code ${code}`, ...extra });
+
+describe('mergeAiCodes', () => {
+  it('complète la réduction et la date d’un code déjà repéré, sans le doubler', () => {
+    const scan = { found: [{ toolId: 't-nord', code: 'CARNE', discount: 'Voir l’épisode', evidence: 'NordVPN code CARNE' }], unknown: [] };
+    const merged = mergeAiCodes(scan, [ai('carne', { tool: 'NordVPN', discount: '-60 % sur 2 ans', expiresOn: '2026-12-31' })], tools);
+    expect(merged.found).toEqual([{ toolId: 't-nord', code: 'CARNE', discount: '-60 % sur 2 ans', evidence: 'NordVPN code CARNE', expiresOn: '2026-12-31' }]);
+    expect(scan.found[0].discount).toBe('Voir l’épisode');
+  });
+
+  it('suit l’IA quand elle rattache un code à un autre outil que le repérage sans IA', () => {
+    const scan = { found: [{ toolId: 't-nord', code: 'GDIY', discount: 'Voir l’épisode', evidence: 'NordVPN, et Gradium : code GDIY sur gradium.ai' }, { toolId: 't-nord', code: 'BANQUE', discount: '-5 %', evidence: 'NordVPN, Qonto : code BANQUE' }], unknown: [] };
+    const merged = mergeAiCodes(scan, [ai('GDIY', { tool: 'Gradium', discount: '-10 %', evidence: 'Gradium : code GDIY sur gradium.ai' }), ai('BANQUE', { tool: 'Qonto' })], tools);
+    expect(merged.found).toMatchObject([{ toolId: 't-qonto', code: 'BANQUE', discount: '-5 %' }]);
+    expect(merged.unknown).toMatchObject([{ name: 'Gradium', domain: 'gradium.ai', code: 'GDIY', discount: '-10 %' }]);
+  });
+
+  it('relie un code lu par l’IA à l’outil du catalogue, par son nom ou son site', () => {
+    const merged = mergeAiCodes({ found: [], unknown: [] }, [
+      ai('BANQUE', { tool: 'Qonto Business', discount: '1 mois offert' }),
+      ai('VPN60', { tool: 'un VPN', evidence: 'sur nordvpn.com/carne avec VPN60' }),
+    ], tools);
+    expect(merged.found).toMatchObject([{ toolId: 't-qonto', code: 'BANQUE', discount: '1 mois offert' }, { toolId: 't-nord', code: 'VPN60', discount: 'Voir l’épisode' }]);
+  });
+
+  it('garde en outil à ajouter un code dont l’outil manque au catalogue', () => {
+    const merged = mergeAiCodes({ found: [], unknown: [] }, [
+      ai('GDIY', { tool: 'Gradium', discount: '-10%', evidence: 'le code GDIY sur https://gradium.ai' }),
+      ai('SANSRIEN', { tool: '', evidence: 'code SANSRIEN' }),
+      ai('LIEN', { tool: '', evidence: 'code LIEN sur cuure.com' }),
+    ], tools);
+    expect(merged.unknown).toEqual([
+      { name: 'Gradium', domain: 'gradium.ai', code: 'GDIY', discount: '-10%', evidence: 'le code GDIY sur https://gradium.ai' },
+      { name: 'Cuure', domain: 'cuure.com', code: 'LIEN', discount: 'Voir l’épisode', evidence: 'code LIEN sur cuure.com' },
+    ]);
+  });
+
+  it('n’appelle l’IA que si les notes parlent d’une offre', () => {
+    expect(PROMO_HINT.test('Avec le code CARNE')).toBe(true);
+    expect(PROMO_HINT.test('-20 % sur tout')).toBe(true);
+    expect(PROMO_HINT.test('Une discussion sur la musique')).toBe(false);
+  });
+});
