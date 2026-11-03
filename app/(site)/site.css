@@ -109,6 +109,30 @@ html:has(.kp),body:has(.kp){margin:0;background:#07081A}
 .k-nav-coupon.is-large .k-nav-coupon-stub{width:34px;font-size:17px}
 .k-creator-rotator-name{display:inline-block;max-width:min(24ch,100%);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;vertical-align:bottom;color:var(--text)}
 @media (prefers-reduced-motion:reduce){.k-nav-coupon-stub{transition:none}.k-nav-coupon:hover .k-nav-coupon-main::before{transition:none;transform:translateX(-120%)}}
+/* Navigation mobile : bouton burger et menu déroulant sous la barre (sous 980 px) */
+.k-burger{display:none;position:relative;flex-direction:column;justify-content:center;align-items:center;gap:4px}
+.k-burger span{display:block;width:18px;height:2px;border-radius:2px;background:currentColor;transition:transform .25s ease,opacity .2s ease}
+.k-burger[aria-expanded="true"] span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.k-burger[aria-expanded="true"] span:nth-child(2){opacity:0}
+.k-burger[aria-expanded="true"] span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+.k-menu{display:none}
+@media (max-width:980px){
+  .k-nav-link{display:none}
+  .k-burger{display:inline-flex}
+  .k-menu{display:block;position:absolute;left:0;right:0;top:100%;max-height:calc(100dvh - 76px);overflow-y:auto;background:#07081A;border-bottom:1px solid var(--line);box-shadow:0 30px 60px -20px rgba(0,0,0,.8);
+    opacity:0;visibility:hidden;transform:translateY(-8px);transition:opacity .22s ease,transform .22s ease,visibility 0s linear .22s}
+  .k-menu[data-open="true"]{opacity:1;visibility:visible;transform:none;transition:opacity .22s ease,transform .22s ease}
+  .k-menu-in{display:flex;flex-direction:column;padding:12px 0 28px}
+  .k-menu-link{display:flex;align-items:center;justify-content:space-between;padding:16px 4px;border-bottom:1px solid var(--line);font-size:20px;font-weight:600;color:var(--text-soft)}
+  .k-menu-link svg{color:var(--muted);transition:transform .2s}
+  .k-menu-link:hover,.k-menu-link[aria-current="page"]{color:#fff}
+  .k-menu-link:hover svg{transform:translateX(3px)}
+  .k-menu-link[aria-current="page"] svg{color:var(--blue-soft)}
+  .k-menu-coupon{display:none;align-self:flex-start;margin-top:24px}
+  .k-menu-lock{overflow:hidden}
+}
+@media (max-width:640px){.k-header .k-menu-coupon{display:inline-flex}}
+@media (prefers-reduced-motion:reduce){.k-menu,.k-menu[data-open="true"],.k-burger span{transition:none}}
 
 /* Pastilles, étiquettes, statuts */
 .k-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 8px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);font-size:13px;font-weight:600;color:var(--text-soft)}
