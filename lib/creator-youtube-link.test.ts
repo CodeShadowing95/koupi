@@ -82,7 +82,6 @@ describe('linkYoutubeChannels', () => {
       { creator: 'Jean', reason: 'Même chaîne que Jean D. : doublon de nom à corriger.' },
       { creator: 'Jean D.', reason: 'Même chaîne que Jean : doublon de nom à corriger.' },
       { creator: 'Mix', reason: 'Ses vidéos viennent de 2 chaînes différentes : relie la bonne à la main.' },
-      { creator: 'Pod', reason: 'Aucune vidéo YouTube parmi ses sources.' },
     ]);
   });
 

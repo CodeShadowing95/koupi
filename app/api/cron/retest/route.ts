@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/db';
 import { safeEqual } from '@/lib/admin-session';
-import { linkYoutubeChannels, youtubeBatch } from '@/lib/creator-youtube-link';
+import { applePodcasts } from '@/lib/apple-podcasts';
+import { linkCreatorAccounts } from '@/lib/creator-account-link';
+import { youtubeBatch } from '@/lib/creator-youtube-link';
 import { runRetests } from '@/lib/retest';
 import { verificationDeps } from '@/lib/verification-deps';
 
@@ -16,10 +18,10 @@ export async function GET(request: NextRequest) {
   if (!safeEqual(request.headers.get('authorization') ?? '', `Bearer ${secret}`)) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   try {
     const report = await runRetests(getDb(), verificationDeps());
-    // Les créateurs arrivés par l'import de data/ n'ont pas de chaîne reliée : on la relie la nuit.
-    const youtube = youtubeBatch(process.env.YOUTUBE_API_KEY);
-    const channels = youtube ? await linkYoutubeChannels(getDb(), youtube).catch(error => { console.error('cron channel link failed', error); return null; }) : null;
-    return NextResponse.json({ ok: true, ...report, channelsLinked: channels?.linked.length ?? 0 });
+    // Les créateurs arrivés par l'import de data/ n'ont pas de compte relié : on relie chaîne YouTube et podcast la nuit.
+    const accounts = await linkCreatorAccounts(getDb(), { youtube: youtubeBatch(process.env.YOUTUBE_API_KEY), podcasts: applePodcasts() })
+      .catch(error => { console.error('cron accounts link failed', error); return null; });
+    return NextResponse.json({ ok: true, ...report, accountsLinked: accounts?.linked.length ?? 0 });
   } catch (error) {
     console.error('cron retest failed', error);
     return NextResponse.json({ error: 'Retests impossibles pour le moment.' }, { status: 500 });

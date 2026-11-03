@@ -16,7 +16,7 @@ import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer'
 import type { AdminCreatorAccount } from '@/lib/creator-accounts-display';
 import { CREATOR_LEVEL_LABELS, type CreatorLevel } from '@/lib/verification';
 import { CreatorAccountsPanel, LevelDot } from './creator-accounts-panel';
-import { LinkChannelsButton } from './link-channels';
+import { LinkAccountsButton } from './link-accounts';
 
 type Creator = AdminCreator & { accounts: AdminCreatorAccount[]; level: CreatorLevel };
 const LEVEL_ORDER: Record<CreatorLevel, number> = { spotted: 0, checked: 1, verified: 2 };
@@ -40,7 +40,7 @@ const sortFields: SortField<Creator>[] = [
   { key: 'visible', label: 'Codes visibles', value: creator => creator.visible },
 ];
 
-export function CreatorsView({ creators, youtubeReady }: { creators: Creator[]; youtubeReady: boolean }) {
+export function CreatorsView({ creators, toLink, youtubeReady }: { creators: Creator[]; toLink: number; youtubeReady: boolean }) {
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
   // Les liens des autres pages ouvrent la liste déjà filtrée (?q=…).
@@ -69,7 +69,7 @@ export function CreatorsView({ creators, youtubeReady }: { creators: Creator[]; 
             <h1>Créateurs</h1>
             <p>Les personnes à qui appartiennent les codes. Un créateur est ajouté automatiquement avec son premier code ; ici, tu corriges son nom, tu relies ses comptes et tu le contrôles.</p>
           </div>
-          <div className="adm-head-actions"><LinkChannelsButton missing={creators.filter(creator => !creator.accounts.some(account => account.platform === 'youtube')).length} youtubeReady={youtubeReady} /><ExportMenu type="createurs" /></div>
+          <div className="adm-head-actions"><LinkAccountsButton toLink={toLink} youtubeReady={youtubeReady} /><ExportMenu type="createurs" /></div>
         </div>
         <div className="adm-tabs" role="group" aria-label="Filtre">
           {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label} <span className="adm-tab-n">{countOf(item.value)}</span></button>)}
