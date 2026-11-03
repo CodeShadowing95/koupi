@@ -3,9 +3,13 @@ import '@/app/(site)/site.css';
 import { SiteHeader } from '@/components/site/header';
 import { SiteFooter } from '@/components/site/footer';
 import { PageHead } from '@/components/site/page-head';
+import { SitePagesProvider } from '@/components/site/site-pages';
+import { getSiteState } from '@/lib/site-settings-server';
 
-export default function NotFound() {
+export default async function NotFound() {
+  const { off } = await getSiteState();
   return (
+    <SitePagesProvider off={off}>
     <div className="kp">
       <div className="k-bg" aria-hidden="true"><span className="k-glow k-glow-blue" /><span className="k-glow k-glow-coral" /></div>
       <SiteHeader />
@@ -18,5 +22,6 @@ export default function NotFound() {
       </main>
       <SiteFooter />
     </div>
+    </SitePagesProvider>
   );
 }

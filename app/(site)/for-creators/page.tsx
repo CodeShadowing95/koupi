@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/components/site/site-pages';
 import { isPublic } from '@/lib/data';
 import { getCatalog, getCreatorFacts, getCreatorProfile } from '@/lib/catalog-server';
 import { currentCreatorAccount } from '@/lib/creator-current';

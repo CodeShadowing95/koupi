@@ -1423,3 +1423,7 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 @media(max-width:900px){.k-fc-grid{grid-template-columns:1fr;grid-template-areas:'pitch' 'card' 'perks';gap:32px}.k-fc-card{position:static}}
 @media(max-width:640px){.k-fc-inline{flex-direction:column}.k-cs-row{grid-template-columns:1fr auto;grid-template-areas:'code n' 'tool status'}.k-cs-row.is-head{display:none}.k-cs-code{grid-area:code}.k-cs-n{grid-area:n}.k-cs-row>span:nth-child(2){grid-area:tool}.k-cs-row>span:nth-child(3){grid-area:status;justify-self:end}}
 @media(prefers-reduced-motion:reduce){.k-fc-spinner{animation:none}}
+
+/* Page de maintenance (app/maintenance) : le site en pause, sans menu. */
+.k-maintenance{min-height:100vh;display:flex;align-items:center}
+.k-maintenance-logo{width:132px;height:auto;margin-bottom:12px}

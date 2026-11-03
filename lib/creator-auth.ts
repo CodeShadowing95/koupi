@@ -2,10 +2,11 @@
 // valable 20 minutes et une seule fois. Seule l'empreinte du jeton est gardée en base.
 // Se connecter ne donne accès à aucune page : l'admin relie l'e-mail à un créateur après la preuve par la bio.
 import { createHash, randomBytes } from 'node:crypto';
-import { and, asc, desc, eq, gt, gte, isNull, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, gte, isNotNull, isNull, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { codes, creatorAccounts, creatorRequests, creatorSignInTokens, creatorUsers, creators, dailyCounters } from '@/db/schema';
 import { monthStart } from './creator-directory';
+import { CONTACT_EMAIL } from './site-contact';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -69,6 +70,7 @@ export async function createSignInLink(db: Db, input: SignInRequest, context: Si
   return { ok: true, data: { link: `${context.appUrl}/creator/sign-in?token=${encodeURIComponent(token)}`, creatorName } };
 }
 
+export const DISABLED = `Ce compte est désactivé. Si tu penses que c’est une erreur, écris-nous à ${CONTACT_EMAIL}.`;
 const EXPIRED = 'Ce lien ne marche plus : il a déjà servi ou il a plus de 20 minutes. Demande-en un nouveau, ça prend dix secondes.';
 
 /** Utilise un lien : une seule fois, avant son expiration. Crée le compte Koupi du créateur à la première connexion. */
@@ -78,6 +80,9 @@ export async function consumeSignInToken(db: Db, token: string, now = new Date()
     .where(and(eq(creatorSignInTokens.tokenHash, hashToken(token)), isNull(creatorSignInTokens.usedAt), gt(creatorSignInTokens.expiresAt, now)))
     .returning({ email: creatorSignInTokens.email, slug: creatorSignInTokens.creatorSlug });
   if (!used) return { ok: false, error: EXPIRED };
+  const [blocked] = await db.select({ id: creatorUsers.id }).from(creatorUsers)
+    .where(and(eq(creatorUsers.email, used.email), isNotNull(creatorUsers.disabledAt))).limit(1);
+  if (blocked) return { ok: false, error: DISABLED };
   const [user] = await db.insert(creatorUsers).values({ email: used.email, lastSignInAt: now, createdAt: now })
     .onConflictDoUpdate({ target: creatorUsers.email, set: { lastSignInAt: now } })
     .returning({ id: creatorUsers.id });
@@ -92,9 +97,11 @@ export type CreatorAccount = {
   claims: { slug: string; name: string }[];
 };
 
+/** Compte du créateur connecté. null s'il n'existe plus ou s'il est désactivé : la session ne vaut alors plus rien. */
 export async function loadCreatorAccount(db: Db, userId: string): Promise<CreatorAccount | null> {
   const [row] = await db.select({ id: creatorUsers.id, email: creatorUsers.email, creator: { id: creators.id, slug: creators.slug, name: creators.name } })
-    .from(creatorUsers).leftJoin(creators, eq(creators.id, creatorUsers.creatorId)).where(eq(creatorUsers.id, userId)).limit(1);
+    .from(creatorUsers).leftJoin(creators, eq(creators.id, creatorUsers.creatorId))
+    .where(and(eq(creatorUsers.id, userId), isNull(creatorUsers.disabledAt))).limit(1);
   if (!row) return null;
   const claims = await db.selectDistinct({ slug: creators.slug, name: creators.name }).from(creatorRequests)
     .innerJoin(creators, eq(creators.id, creatorRequests.creatorId))

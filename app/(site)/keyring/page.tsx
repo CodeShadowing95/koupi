@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/site/site-pages';
 import { routes } from '@/lib/routes';
 import { PageHead } from '@/components/site/page-head';
 

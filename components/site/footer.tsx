@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { SiteLinkItem } from '@/components/site/site-pages';
 import Image from 'next/image';
 import { routes } from '@/lib/routes';
 import { usesLogoDev } from '@/lib/tool-logos';
@@ -16,20 +16,20 @@ export function SiteFooter() {
           <div>
             <h3>Explorer</h3>
             <ul>
-              <li><Link href={routes.codes}>Tous les codes</Link></li>
-              <li><Link href={routes.categories}>Catégories</Link></li>
-              <li><Link href={routes.creators()}>Créateurs</Link></li>
-              <li><Link href={routes.keyring}>Mon trousseau</Link></li>
-              <li><Link href={routes.submit()}>Proposer un code</Link></li>
-              <li><Link href={routes.forCreators()}>Pour les créateurs</Link></li>
+              <SiteLinkItem href={routes.codes}>Tous les codes</SiteLinkItem>
+              <SiteLinkItem href={routes.categories}>Catégories</SiteLinkItem>
+              <SiteLinkItem href={routes.creators()}>Créateurs</SiteLinkItem>
+              <SiteLinkItem href={routes.keyring}>Mon trousseau</SiteLinkItem>
+              <SiteLinkItem href={routes.submit()}>Proposer un code</SiteLinkItem>
+              <SiteLinkItem href={routes.forCreators()}>Pour les créateurs</SiteLinkItem>
             </ul>
           </div>
           <div>
             <h3>Koupi</h3>
             <ul>
-              <li><Link href={routes.transparency}>Transparence</Link></li>
-              <li><Link href={routes.legal}>Mentions légales</Link></li>
-              <li><Link href={routes.privacy}>Confidentialité</Link></li>
+              <SiteLinkItem href={routes.transparency}>Transparence</SiteLinkItem>
+              <SiteLinkItem href={routes.legal}>Mentions légales</SiteLinkItem>
+              <SiteLinkItem href={routes.privacy}>Confidentialité</SiteLinkItem>
             </ul>
           </div>
         </div>

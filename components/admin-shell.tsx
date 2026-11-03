@@ -24,6 +24,7 @@ const icons = {
   users: <AdminIcon name="users" />,
   folder: <AdminIcon name="folder" />,
   book: <AdminIcon name="book" />,
+  settings: <AdminIcon name="settings" />,
   external: <AdminIcon name="external" />,
   menu: <AdminIcon name="menu" />,
   close: <AdminIcon name="close" />,
@@ -50,6 +51,9 @@ function navGroups(toTest: number): { label: string; items: Item[] }[] {
   ] },
   { label: 'Apprendre', items: [
     { href: '/admin/guide', label: 'Guide de l’admin', icon: icons.book },
+  ] },
+  { label: 'Administration', items: [
+    { href: '/admin/administration', label: 'Administration', icon: icons.settings },
   ] },
   ];
 }

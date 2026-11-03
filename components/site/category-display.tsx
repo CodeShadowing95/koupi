@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/site/site-pages';
 import type { Code, Tool } from '@/lib/data';
 import { topCodesFor } from '@/lib/category-display';
 import { routes } from '@/lib/routes';

@@ -21,6 +21,7 @@ export const guideParts: GuidePart[] = [
   { id: 'moderate', title: 'Modérer', description: 'Décider ce qui entre dans le catalogue public.' },
   { id: 'catalog', title: 'Le catalogue', description: 'Ranger les outils, les créateurs et les catégories.' },
   { id: 'steer', title: 'Piloter', description: 'Lire les chiffres et tenir une routine.' },
+  { id: 'admin', title: 'Administrer', description: 'Ce que les visiteurs peuvent voir du site.' },
 ];
 
 export const guideChapters: GuideChapter[] = [
@@ -94,6 +95,12 @@ export const guideChapters: GuideChapter[] = [
     summary: 'Dix minutes par jour, trente par semaine, une heure par mois. Et le lexique.',
     goals: ['Avoir une routine simple', 'Parler le langage du métier'],
     practice: { href: '/admin', label: 'Commencer la routine du jour' },
+  },
+  {
+    slug: 'administration', part: 'admin', title: 'Administrer le site', minutes: 6,
+    summary: 'Mettre le site en pause, couper ou rallumer une page publique, gérer les comptes créateurs, relire le journal.',
+    goals: ['Mettre tout le site en pause et le rouvrir', 'Couper une page et savoir ce qui disparaît avec elle', 'Savoir quelles pages restent toujours en ligne', 'Désactiver, retirer l’accès ou supprimer un compte créateur', 'Relire le journal de tes gestes'],
+    practice: { href: '/admin/administration', label: 'Ouvrir l’administration' },
   },
 ];
 

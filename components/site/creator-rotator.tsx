@@ -2,7 +2,7 @@
 // Lien « ou découvre les codes de X » de l'accueil : le nom de la chaîne change toutes les quelques secondes.
 // Seul le nom bouge (fondu court). Pause au survol, au focus, quand l'onglet est caché ou la section hors écran.
 // Avec prefers-reduced-motion, on garde un seul nom tiré au hasard, sans animation.
-import Link from 'next/link';
+import Link from '@/components/site/site-pages';
 import { useEffect, useRef, useState } from 'react';
 import { gsap, MOTION_OK, MOTION_REDUCED, useGSAP } from '@/lib/gsap';
 import { routes } from '@/lib/routes';
