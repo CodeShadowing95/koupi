@@ -21,7 +21,7 @@ import { AdminSelect, type SelectOption } from '@/components/admin-select';
 // les coupons sortent en fondu quand on change un filtre, puis les nouveaux entrent.
 // Les filtres sont recopiés dans l'adresse pour pouvoir partager une recherche.
 // Deux vues : « Cartes » (coupon debout, toutes les infos, trois par ligne) et « Liste » (un coupon couché par ligne,
-// talon à droite, l'essentiel). Au changement, chaque coupon se transforme sur place (GSAP Flip) ; le choix est retenu.
+// talon à droite, l'essentiel), affichée par défaut. Au changement, chaque coupon se transforme sur place (GSAP Flip) ; le choix est retenu.
 // Les filtres courants (recherche, statut, catégorie, tri) sont toujours visibles ; les autres se déplient
 // avec « Plus de filtres », ouvert d'emblée si l'un d'eux est déjà choisi (lien partagé).
 
@@ -61,13 +61,13 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
   const [shown, setShown] = useState<CodeFilters>(initial);
   const [limit, setLimit] = useState(PAGE);
   const entered = useRef(0);
-  const [view, setView] = useState<View>('cards');
+  const [view, setView] = useState<View>('list');
   const [moreOpen, setMoreOpen] = useState(() => { const params = filtersToParams(initial); return MORE_KEYS.some(key => params.has(key)); });
 
   // La vue choisie la dernière fois (préférence de ce navigateur seulement).
   useEffect(() => {
-    // « brief » : ancien nom de la vue liste, encore gardé par certains navigateurs.
-    try { if (['list', 'brief'].includes(window.localStorage.getItem(VIEW_KEY) ?? '')) setView('list'); } catch { /* stockage indisponible */ }
+    // La liste est affichée par défaut ; seules les cartes choisies explicitement sont retenues.
+    try { if (window.localStorage.getItem(VIEW_KEY) === 'cards') setView('cards'); } catch { /* stockage indisponible */ }
   }, []);
 
   const switchView = (next: View) => {
@@ -284,13 +284,13 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
         <p role="status"><strong>{results.length}</strong> {results.length > 1 ? 'codes trouvés' : 'code trouvé'}</p>
         <div className="k-board-tools">
           <div className="k-board-views" role="group" aria-label="Affichage des codes">
-            <button type="button" aria-pressed={view === 'cards'} onClick={() => switchView('cards')} title="Cartes : toutes les infos, trois par ligne">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="7.5" height="18" rx="2" /><rect x="13.5" y="3" width="7.5" height="18" rx="2" /><path d="M3 15h7.5M13.5 15H21" strokeDasharray="1.5 2" /></svg>
-              Cartes
-            </button>
             <button type="button" aria-pressed={view === 'list'} onClick={() => switchView('list')} title="Liste : un code par ligne, l'essentiel">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="6.5" rx="2" /><rect x="3" y="13.5" width="18" height="6.5" rx="2" /><path d="M15 4v6.5M15 13.5V20" strokeDasharray="1.5 2" /></svg>
               Liste
+            </button>
+            <button type="button" aria-pressed={view === 'cards'} onClick={() => switchView('cards')} title="Cartes : toutes les infos, trois par ligne">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="7.5" height="18" rx="2" /><rect x="13.5" y="3" width="7.5" height="18" rx="2" /><path d="M3 15h7.5M13.5 15H21" strokeDasharray="1.5 2" /></svg>
+              Cartes
             </button>
           </div>
         </div>
