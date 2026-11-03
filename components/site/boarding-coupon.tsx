@@ -9,10 +9,12 @@ import { playCouponSnip, playCouponTear } from '@/lib/coupon-sound';
 import { ToolLogo } from '@/components/site/tool-logo';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { CodeBadge } from '@/components/site/code-badge';
+import { useCodeVote } from '@/components/site/use-code-vote';
 
 // Le coupon de la page « Tous les codes » : même papier et même talon bleu que sur l'accueil,
 // posé debout (talon en bas) pour tenir à trois par ligne, avec le créateur et les infos utiles (réduction, réussite, votes, date). Un clic sur le talon le détache
 // (bruit de déchirure), copie le code et ouvre le lien du créateur.
+// « Ça a marché ? » se vote sur le coupon même : le vote y laisse un tampon (« Ça marche » ou « Raté »).
 
 const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 /** Date courte en français, calculée sans fuseau pour que le serveur et le navigateur affichent la même chose. */
@@ -26,6 +28,7 @@ type Props = { code: Code; category?: string; link: string };
 export function BoardingCoupon({ code, category, link }: Props) {
   const [torn, setTorn] = useState(false);
   const [failed, setFailed] = useState(false);
+  const { voted, fresh, message, sending, vote } = useCodeVote(code.id);
 
   const tear = async () => {
     track('copy', code.id);
@@ -65,6 +68,27 @@ export function BoardingCoupon({ code, category, link }: Props) {
             ? <div><dt>Expire</dt><dd>{shortDate(code.expiresOn)}</dd></div>
             : <div><dt>Ajouté</dt><dd>{shortDate(code.createdAt)}</dd></div>}
         </dl>
+
+        <div className={`k-pass-vote${voted ? ' is-done' : ''}`} role="group" aria-label={`Le code ${code.code} a-t-il marché ?`}>
+          {voted ? (
+            <>
+              <span className="k-pass-vote-done">{fresh ? 'Merci, c’est noté !' : 'Ton vote'}</span>
+              <span className={`k-pass-stamp is-${voted}${fresh ? ' is-new' : ''}`}>{voted === 'up' ? 'Ça marche' : 'Raté'}</span>
+              <span className="k-sr" role="status">{message}</span>
+            </>
+          ) : (
+            <>
+              <span>Ça a marché&nbsp;?</span>
+              <button type="button" className="is-up" disabled={sending} onClick={() => vote(true)} aria-label="Oui, le code a marché" title="Oui, il a marché">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" /></svg>
+              </button>
+              <button type="button" className="is-down" disabled={sending} onClick={() => vote(false)} aria-label="Non, le code n’a pas marché" title="Non, il n’a pas marché">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+              </button>
+              {message && <span className="k-pass-vote-error" role="alert">{message}</span>}
+            </>
+          )}
+        </div>
 
         {code.source && (
           <a className="k-pass-source" href={code.source} target="_blank" rel="noopener noreferrer">

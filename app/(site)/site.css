@@ -915,3 +915,89 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 @media (min-width:901px){.k-board{grid-template-columns:280px minmax(0,1fr)}}
 .k-board-seg button{padding:0 6px}
 .k-board-seg button .k-board-count{margin-left:2px;padding:0 3px;font-size:10px}
+/* Coupon de la page des codes : vote « Ça a marché ? » et tampon laissé par le vote */
+.k-pass-main{position:relative}
+.k-pass-vote{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-height:30px;font-size:13px;font-weight:700;color:var(--paper-ink)}
+.k-pass-vote>span:first-child{margin-right:auto}
+.k-pass-vote button{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;border:1.5px dashed rgba(23,21,15,.35);background:transparent;color:var(--paper-ink);transition:transform .2s cubic-bezier(.3,1.6,.5,1),background .2s,border-color .2s,color .2s}
+.k-pass-vote button.is-up:hover:not(:disabled){border-style:solid;border-color:#138A55;background:#138A55;color:#fff;transform:rotate(-8deg) scale(1.08)}
+.k-pass-vote button.is-down:hover:not(:disabled){border-style:solid;border-color:#D9482B;background:#D9482B;color:#fff;transform:rotate(8deg) scale(1.08)}
+.k-pass-vote button:disabled{opacity:.45;cursor:wait}
+.k-pass-vote-done{font-size:12.5px;font-weight:600;color:var(--paper-muted)}
+.k-pass-vote-error{flex-basis:100%;font-size:12px;color:#C23A1E}
+.k-pass-stamp{position:relative;margin:2px 4px 2px auto;padding:5px 11px;border:3px solid currentColor;border-radius:9px;outline:1.5px solid currentColor;outline-offset:2px;
+  font-family:var(--mono);font-size:14px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;line-height:1;white-space:nowrap;pointer-events:none;
+  transform:rotate(-8deg);opacity:.8;mix-blend-mode:multiply;
+  -webkit-mask:repeating-radial-gradient(circle at 30% 40%,#000 0 2px,rgba(0,0,0,.72) 2.5px 3px);mask:repeating-radial-gradient(circle at 30% 40%,#000 0 2px,rgba(0,0,0,.72) 2.5px 3px)}
+.k-pass-stamp.is-up{color:#138A55}
+.k-pass-stamp.is-down{color:#D9482B}
+@keyframes k-stamp{0%{opacity:0;transform:scale(2.6) rotate(4deg)}55%{opacity:.85;transform:scale(.92) rotate(-9deg)}100%{opacity:.8;transform:scale(1) rotate(-8deg)}}
+@keyframes k-thud{0%,100%{transform:none}35%{transform:translateY(2px) scale(.992)}}
+.k-pass-stamp.is-new{animation:k-stamp .42s cubic-bezier(.2,.9,.3,1.2) both}
+.k-pass:has(.k-pass-stamp.is-new) .k-pass-main{animation:k-thud .28s .2s ease-out}
+.k-board.is-brief .k-pass-vote{display:none}
+.k-board.is-brief .k-pass.is-torn .k-pass-vote{display:flex}
+.k-board.is-brief .k-pass-vote.is-done{display:flex;min-height:0}
+.k-board.is-brief .k-pass-vote.is-done .k-pass-vote-done{display:none}
+.k-board.is-brief .k-pass-stamp{margin:0 auto 0 2px;font-size:10.5px;padding:3px 7px;border-width:2px}
+@media (prefers-reduced-motion:reduce){.k-pass-stamp.is-new,.k-pass:has(.k-pass-stamp.is-new) .k-pass-main{animation:none}.k-pass-vote button{transition:none}}
+/* Bandeau « Dernière chance » : codes qui expirent sous 7 jours */
+.k-board-last{display:flex;flex-direction:column;gap:12px;padding:14px 16px 16px;border-radius:18px;overflow:hidden;border:1px solid rgba(255,106,61,.35);
+  background:linear-gradient(100deg,rgba(255,106,61,.16),rgba(255,106,61,.04) 60%,transparent),rgba(13,15,43,.6)}
+.k-board-last-head{display:flex;align-items:center;gap:12px;color:var(--coral)}
+.k-board-last-head svg{flex:none;animation:k-tick 1.2s steps(2) infinite}
+.k-board-last-head p{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;margin:0;color:var(--text-soft);font-size:14px}
+.k-board-last-head strong{color:#fff;font-family:var(--display);font-size:17px}
+.k-board-last-head .k-link{margin-left:auto;border:0;background:none;padding:0;font-size:14px;white-space:nowrap}
+.k-board-last ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.k-board-last-ticket{display:flex;align-items:center;gap:10px;width:100%;min-height:58px;padding:8px 8px 8px 10px;border:0;border-radius:12px;text-align:left;
+  background:var(--paper);color:var(--paper-ink);
+  -webkit-mask:radial-gradient(circle 6px at calc(100% - 52px) 0,#0000 98%,#000) top/100% 51% no-repeat,radial-gradient(circle 6px at calc(100% - 52px) 100%,#0000 98%,#000) bottom/100% 51% no-repeat;
+  mask:radial-gradient(circle 6px at calc(100% - 52px) 0,#0000 98%,#000) top/100% 51% no-repeat,radial-gradient(circle 6px at calc(100% - 52px) 100%,#0000 98%,#000) bottom/100% 51% no-repeat;
+  transition:transform .2s cubic-bezier(.3,1.5,.5,1)}
+.k-board-last-ticket:hover{transform:translateY(-2px) rotate(-1deg)}
+.k-board-last-ticket .k-tool-logo{flex:none;width:32px;height:32px;border-radius:9px}
+.k-board-last-text{display:flex;flex-direction:column;min-width:0;flex:1}
+.k-board-last-text strong{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.k-board-last-text small{font-size:12px;font-weight:700;color:var(--coral);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.k-board-last-days{flex:none;display:grid;place-items:center;width:40px;align-self:stretch;margin-left:4px;border-left:2px dashed rgba(23,21,15,.25);
+  font-family:var(--mono);font-size:13px;font-weight:900;color:#C23A1E}
+@keyframes k-tick{50%{transform:rotate(8deg)}}
+@media (max-width:1180px){.k-board-last ul{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:600px){.k-board-last ul{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -16px;padding:0 16px}.k-board-last li{flex:0 0 78%;scroll-snap-align:start}}
+
+/* Aucun résultat : un coupon vierge, avec les filtres à retirer et un talon « Propose-le » */
+.k-board-empty{display:flex;max-width:760px;filter:drop-shadow(0 26px 40px rgba(0,0,0,.35))}
+.k-board-empty-main{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:26px 28px;border-radius:20px 0 0 20px;
+  -webkit-mask:radial-gradient(circle 10px at 100% 0,#0000 98%,#000) top/100% 51% no-repeat,radial-gradient(circle 10px at 100% 100%,#0000 98%,#000) bottom/100% 51% no-repeat;
+  mask:radial-gradient(circle 10px at 100% 0,#0000 98%,#000) top/100% 51% no-repeat,radial-gradient(circle 10px at 100% 100%,#0000 98%,#000) bottom/100% 51% no-repeat}
+.k-board-empty-tag{padding:4px 10px;border-radius:999px;border:1.5px dashed rgba(23,21,15,.35);font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--paper-muted)}
+.k-board-empty-main h2{font-size:28px;color:var(--paper-ink)}
+.k-board-empty-main p{margin:0;color:var(--paper-muted);font-weight:600}
+.k-board-relax{display:flex;flex-direction:column;gap:10px}
+.k-board-relax ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.k-board-relax button{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:0 6px 0 14px;border-radius:999px;border:0;background:var(--paper-ink);color:var(--paper);font-size:13.5px;font-weight:700;transition:transform .2s}
+.k-board-relax button:hover{transform:translateY(-1px)}
+.k-board-relax button span{padding:3px 9px;border-radius:999px;background:var(--coral);color:#fff;font-size:12px}
+.k-board-empty-lines{display:flex;flex-direction:column;gap:12px;width:100%;margin:6px 0 0}
+.k-board-empty-lines div{display:flex;align-items:flex-end;gap:10px}
+.k-board-empty-lines dt{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--paper-muted)}
+.k-board-empty-lines dd{flex:1;height:1px;margin:0 0 3px;border-bottom:2px dotted rgba(23,21,15,.3)}
+.k-board-empty-stub{flex:none;display:flex;flex-direction:column;justify-content:center;gap:6px;width:190px;padding:20px;border-radius:0 20px 20px 0;border-left:2px dashed rgba(255,255,255,.55);
+  background:linear-gradient(160deg,var(--coral),#E5482A);color:#fff;transform-origin:0 100%;transition:transform .35s cubic-bezier(.3,1.4,.5,1);
+  -webkit-mask:radial-gradient(circle 10px at 0 0,#0000 98%,#000) top/100% 51% no-repeat,radial-gradient(circle 10px at 0 100%,#0000 98%,#000) bottom/100% 51% no-repeat;
+  mask:radial-gradient(circle 10px at 0 0,#0000 98%,#000) top/100% 51% no-repeat,radial-gradient(circle 10px at 0 100%,#0000 98%,#000) bottom/100% 51% no-repeat}
+.k-board-empty-stub small{font-size:12.5px;font-weight:600;opacity:.85}
+.k-board-empty-stub strong{font-family:var(--display);font-size:24px}
+.k-board-empty-stub:hover{transform:rotate(4deg) translate(4px,2px)}
+@media (max-width:600px){
+  .k-board-empty{flex-direction:column}
+  .k-board-empty-main{border-radius:20px 20px 0 0;padding:22px;
+    -webkit-mask:radial-gradient(circle 10px at 0 100%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 100%,#0000 98%,#000) right/51% 100% no-repeat;
+    mask:radial-gradient(circle 10px at 0 100%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 100%,#0000 98%,#000) right/51% 100% no-repeat}
+  .k-board-empty-stub{width:auto;border-radius:0 0 20px 20px;border-left:0;border-top:2px dashed rgba(255,255,255,.55);
+    -webkit-mask:radial-gradient(circle 10px at 0 0,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 0,#0000 98%,#000) right/51% 100% no-repeat;
+    mask:radial-gradient(circle 10px at 0 0,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 0,#0000 98%,#000) right/51% 100% no-repeat}
+  .k-board-empty-stub:hover{transform:none}
+}
+@media (prefers-reduced-motion:reduce){.k-board-last-head svg{animation:none}.k-board-last-ticket,.k-board-empty-stub,.k-board-relax button{transition:none}}
