@@ -891,6 +891,14 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-pass-tool{display:block;min-width:0;color:inherit}
 .k-pass-tool strong{display:block}
 .k-pass-tool:hover{color:var(--blue)}
+/* Tout le papier du coupon (avant le talon) mène à la fiche outil : le lien du nom s'étend sur le papier.
+   Les autres liens et boutons du papier (créateur, pouces, vidéo, sceau) restent au-dessus et gardent leur action. */
+.k-pass-tool::after{content:"";position:absolute;inset:0;z-index:1;border-radius:inherit}
+.k-pass-main:has(.k-pass-tool){cursor:pointer}
+.k-pass-main:has(.k-pass-tool) :is(a:not(.k-pass-tool),button){position:relative;z-index:2}
+.k-pass-main:has(.k-pass-tool) .k-codeseal{z-index:2}
+.kp .k-pass-tool:focus-visible{outline:none}
+.k-pass-main:has(.k-pass-tool:focus-visible){outline:2px solid var(--blue-soft);outline-offset:3px}
 .k-pass-by{display:flex;flex-direction:column;gap:4px;min-width:0;margin:0}
 .k-pass-by-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .k-pass-by .k-status{flex:none}
@@ -1068,9 +1076,9 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-board-views button[aria-pressed="true"]{background:var(--paper);color:var(--paper-ink)}
 /* Coupon couché (`.k-pass-rows`) : un par ligne, sur toute la largeur. Colonnes : outil, créateur, réduction, talon à droite.
    Sert à la vue « Liste » des codes, aux codes d'un créateur et aux autres codes d'un outil. La mise en page suit la largeur
-   de la liste (requêtes de conteneur), pas celle de l'écran : la même liste tient dans une colonne étroite. */
-.k-pass-rows{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:12px;container:k-rows/inline-size}
-.k-pass-rows>li{min-width:0}
+   de chaque ligne (requêtes de conteneur), pas celle de l'écran : la même liste tient dans une colonne étroite. */
+.k-pass-rows{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.k-pass-rows>li{min-width:0;container:k-rows/inline-size}
 .k-board-list.k-pass-rows{grid-template-columns:minmax(0,1fr);gap:12px}
 .k-pass-rows .k-pass{flex-direction:row;height:auto;min-width:0;filter:drop-shadow(0 12px 22px rgba(0,0,0,.4))}
 .k-pass-rows .k-pass-main{display:grid;grid-template-columns:36px minmax(0,1fr) minmax(0,1.1fr) minmax(0,1.25fr) auto;align-items:center;column-gap:16px;row-gap:8px;
@@ -1114,6 +1122,13 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
   .k-pass-rows .k-pass-stub{flex-direction:column;align-items:stretch;justify-content:center;gap:8px;width:122px;padding:12px 12px 12px 16px}
   .k-pass-rows .k-pass-action{text-align:center}
   .k-pass-rows .k-pass-code{font-size:var(--fs-sm)}
+}
+/* Assez de place (trois par ligne sur la page créateur, deux sur tablette) : les pouces montent en haut, à droite du nom de l'outil.
+   Sur téléphone, ils restent sur la ligne du créateur pour laisser au nom de l'outil toute la place. */
+@container k-rows (min-width:380px) and (max-width:600px){
+  .k-pass-rows .k-pass-title{grid-column:2}
+  .k-pass-rows .k-pass-thumbs{grid-row:1;grid-column:3}
+  .k-pass-rows .k-pass-by{grid-column:1/-1}
 }
 @media (max-width:600px){
   .k-board-bar{flex-wrap:wrap}
@@ -1385,6 +1400,10 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-pass.is-compact .k-pass-stub{padding:13px 16px;gap:8px}
 .k-pass.is-compact .k-pass-code{font-size:var(--fs-base)}
 .k-creator-cards>li{min-width:0}
+/* Page créateur : trois coupons couchés par ligne sur grand écran, deux sur tablette, un sur téléphone. */
+:is(.k-creator-codes,.k-creator-expired) .k-pass-rows{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 18px}
+@media (max-width:1100px){:is(.k-creator-codes,.k-creator-expired) .k-pass-rows{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:700px){:is(.k-creator-codes,.k-creator-expired) .k-pass-rows{grid-template-columns:minmax(0,1fr)}}
 .k-creator-codes-empty{margin:8px 0;color:var(--text-soft)}
 @media (max-width:1100px){.k-creator-cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:980px){.k-creator-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}

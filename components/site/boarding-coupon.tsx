@@ -35,7 +35,7 @@ function shortDate(iso: string) {
 
 /**
  * compact : carte de la page créateur, mêmes infos que la vue liste plus les pouces (sans « Donné par » ni réussite, votes et date).
- * linkTool : le nom de l'outil mène à sa fiche (sauf sur la fiche elle-même).
+ * linkTool : le papier du coupon (nom de l'outil compris) mène à sa fiche, sauf sur la fiche elle-même.
  */
 type Props = { code: Code; category?: string; link: string; compact?: boolean; linkTool?: boolean };
 
@@ -74,7 +74,7 @@ export function BoardingCoupon({ code, category, link, compact = false, linkTool
           </span>
           <span className="k-pass-title">
             {linkTool && code.toolSlug
-              ? <Link href={routes.tool(code.toolSlug)} className="k-pass-tool"><strong>{code.tool}</strong></Link>
+              ? <Link href={routes.tool(code.toolSlug)} className="k-pass-tool" aria-label={`Voir la fiche ${code.tool}`}><strong>{code.tool}</strong></Link>
               : <strong>{code.tool}</strong>}
             {category && <small>{category}</small>}
           </span>
