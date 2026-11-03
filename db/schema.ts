@@ -272,6 +272,40 @@ export const creatorAccounts = pgTable('creator_accounts', {
   check('creator_accounts_claim_code_pending', sql`${table.claimCode} is null or (${table.claimStatus} = 'pending' and ${table.claimCodeAt} is not null)`),
 ]);
 
+export const TOOL_SUGGESTION_STATUSES = ['open', 'added', 'ignored'] as const;
+
+// Codes repérés dans un podcast pour un outil absent du catalogue (voir ADR-0018). L'admin ajoute l'outil
+// (le code part alors en vérification) ou ignore la suggestion. Rien n'est visible sur le site.
+export const toolSuggestions = pgTable('tool_suggestions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  /** Nom deviné de l'outil (domaine du lien ou mot avant « : »). */
+  name: text('name').notNull(),
+  /** Domaine trouvé à côté du code (gradium.ai), en minuscules. */
+  domain: text('domain'),
+  code: text('code').notNull(),
+  discount: text('discount').notNull(),
+  evidence: text('evidence').notNull().default(''),
+  sourceUrl: text('source_url').notNull(),
+  sourceTitle: text('source_title').notNull().default(''),
+  podcastId: uuid('podcast_id').references(() => watchedSources.id, { onDelete: 'set null' }),
+  creatorId: uuid('creator_id').references(() => creators.id, { onDelete: 'set null' }),
+  status: text('status', { enum: TOOL_SUGGESTION_STATUSES }).notNull().default('open'),
+  toolId: uuid('tool_id').references(() => tools.id),
+  codeId: uuid('code_id').references(() => codes.id),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+}, table => [
+  uniqueIndex('tool_suggestions_tool_code_idx').on(sql`lower(coalesce(${table.domain}, ${table.name}))`, sql`lower(${table.code})`),
+  index('tool_suggestions_status_idx').on(table.status),
+  check('tool_suggestions_name_len', sql`char_length(trim(${table.name})) between 1 and 120`),
+  check('tool_suggestions_code_len', sql`char_length(trim(${table.code})) between 1 and 120`),
+  check('tool_suggestions_discount_len', sql`char_length(trim(${table.discount})) between 1 and 240`),
+  check('tool_suggestions_domain_format', sql`${table.domain} is null or ${table.domain} ~ '^[a-z0-9-]+(\\.[a-z0-9-]+)+$'`),
+  check('tool_suggestions_source_http', sql`${table.sourceUrl} ~* '^https?://'`),
+]);
+
+export type ToolSuggestionRow = typeof toolSuggestions.$inferSelect;
+
 export type Submission = typeof submissions.$inferSelect;
 export type CategoryRow = typeof categories.$inferSelect;
 export type ToolRow = typeof tools.$inferSelect;

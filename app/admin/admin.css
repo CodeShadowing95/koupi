@@ -1269,3 +1269,13 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-journal time{flex:none;width:150px;color:var(--muted);font-size:13px}
 @media(max-width:720px){.adm-maint{flex-direction:column;align-items:flex-start}.adm-journal li{flex-direction:column;gap:2px}.adm-journal time{width:auto}}
 @media(prefers-reduced-motion:reduce){.adm-switch,.adm-switch span{transition:none}}
+/* Outils à ajouter (page Podcasts) */
+@media (max-width:640px){.adm-pod-panels{flex-wrap:wrap;width:auto}.adm-pod-panel-tab{flex:1 1 auto;justify-content:center}}
+.adm-pod-panel-tab{white-space:nowrap}
+.adm-sugg-intro{margin:0 0 14px;font-size:14px}
+.adm-sugg .adm-card-row{align-items:flex-start}
+.adm-sugg-tool{display:flex;flex-direction:column;gap:2px;min-width:0}
+.adm-sugg-tool b,.adm-sugg-tool a{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adm-sugg-tool a{font-size:12px}
+.adm-sugg-code{flex:none;margin-left:auto;padding:3px 8px;border:1px dashed var(--line-strong);border-radius:7px;font-size:13px;font-weight:700;letter-spacing:.04em}
+.adm-sugg-evidence{margin:0;font-size:12px;font-style:italic;color:var(--ink-soft);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}

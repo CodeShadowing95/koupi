@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findPromoCodes } from './podcast-codes';
+import { domainOf, findPromoCodes, scanPromoCodes } from './podcast-codes';
 
 const tools = [
   { id: 't-nord', name: 'NordVPN' },
@@ -38,5 +38,47 @@ describe('findPromoCodes', () => {
     const found = findPromoCodes('Notion et NordVPN nous soutiennent. Chez NordVPN, code KOUPI.\nRappel NordVPN : code KOUPI', tools);
     expect(found).toHaveLength(1);
     expect(found[0]).toMatchObject({ toolId: 't-nord', code: 'KOUPI', discount: 'Voir l’épisode' });
+  });
+});
+
+describe('scanPromoCodes', () => {
+  const gdiy = [
+    'Je vous ai négocié un code promo : -10% avec le code GDIY sur https://gradium.ai/',
+    'Un grand MERCI à nos sponsors :',
+    'Qonto: https://qonto.com/r/2i7tk9',
+    'Cuure : https://cuure.com/product-onely',
+    '(code DOIT)',
+    'Notre film est dispo : https://taap.it/rewrosY (code FILM sur youtube.com)',
+  ].join('\n');
+
+  it('garde les codes d’outils absents du catalogue, avec le nom deviné du lien voisin', () => {
+    const { found, unknown } = scanPromoCodes(gdiy, tools);
+    expect(found).toEqual([]);
+    expect(unknown).toEqual([
+      { name: 'Gradium', domain: 'gradium.ai', code: 'GDIY', discount: '-10%', evidence: 'Je vous ai négocié un code promo : -10% avec le code GDIY sur https://gradium.ai/' },
+      { name: 'Cuure', domain: 'cuure.com', code: 'DOIT', discount: 'Voir l’épisode', evidence: 'Cuure : https://cuure.com/product-onely\n(code DOIT)' },
+    ]);
+  });
+
+  it('reconnaît un outil du catalogue par son site', () => {
+    const { found, unknown } = scanPromoCodes('Le code GDIY sur gradium.ai', [...tools, { id: 't-gradium', name: 'Gradium Voice', domain: 'gradium.ai' }]);
+    expect(found).toMatchObject([{ toolId: 't-gradium', code: 'GDIY' }]);
+    expect(unknown).toEqual([]);
+  });
+
+  it('devine le nom au début de la ligne sans lien', () => {
+    expect(scanPromoCodes('Alan : 1 mois offert avec le code SANTE', tools).unknown).toMatchObject([{ name: 'Alan', domain: null, code: 'SANTE', discount: '1 mois offert' }]);
+  });
+
+  it('ne garde rien sans indice sur l’outil', () => {
+    expect(scanPromoCodes('utilisez le code MERCI', tools).unknown).toEqual([]);
+  });
+});
+
+describe('domainOf', () => {
+  it('rend le domaine sans www', () => {
+    expect(domainOf('https://www.NordVPN.com/fr')).toBe('nordvpn.com');
+    expect(domainOf('gradium.ai')).toBe('gradium.ai');
+    expect(domainOf('pas une url')).toBeNull();
   });
 });
