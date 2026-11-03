@@ -42,3 +42,9 @@ export function searchTools(tools: Tool[], query: string) {
   const q = normalize(query);
   return tools.filter(tool => normalize(tool.name).includes(q));
 }
+
+/** Créateurs dont le nom contient la recherche (sans accents ni espaces). Vide si la recherche est vide. */
+export function searchCreators<T extends { name: string }>(creators: T[], query: string): T[] {
+  const q = normalize(query);
+  return q ? creators.filter(creator => normalize(creator.name).includes(q)) : [];
+}

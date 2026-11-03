@@ -17,6 +17,7 @@ export function SiteFooter() {
             <ul>
               <li><Link href={routes.codes}>Tous les codes</Link></li>
               <li><Link href={routes.categories}>Catégories</Link></li>
+              <li><Link href={routes.creators()}>Créateurs</Link></li>
               <li><Link href={routes.keyring}>Mon trousseau</Link></li>
               <li><Link href={routes.submit()}>Proposer un code</Link></li>
             </ul>

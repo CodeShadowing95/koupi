@@ -27,7 +27,7 @@ export default function Transparency() {
             <span className="k-status k-status-bad is-dark">Expiré : ne marche plus</span>
           </div>
           <h2>Ce qu&apos;on fait de tes données</h2>
-          <p>Pas de compte, pas de cookie publicitaire. Le trousseau reste dans ton navigateur. Un e-mail sert uniquement aux alertes que tu demandes. Les adresses IP ne sont jamais stockées en clair.</p>
+          <p>Pas de compte, pas de cookie publicitaire. Le trousseau reste dans ton navigateur. Un e-mail sert uniquement aux alertes que tu demandes. Les adresses IP ne sont jamais stockées en clair. Quand tu copies un code, on ajoute 1 au total du jour pour ce code, rien d&apos;autre : c&apos;est ce total qu&apos;affiche la page d&apos;un créateur (« copies ce mois-ci »).</p>
           <h2>Les logos des outils</h2>
           <p>Les logos servent seulement à reconnaître chaque outil et restent la propriété de leurs marques. Ils viennent de <a href="https://logo.dev" target="_blank" rel="noopener">Logo.dev</a>, de Simple Icons (licence CC0) ou du site officiel de l&apos;outil. Ils sont téléchargés une fois, et sont servis par Koupi : ton navigateur ne contacte aucun service tiers pour les afficher.</p>
           <h2>Tu es créateur ?</h2>
