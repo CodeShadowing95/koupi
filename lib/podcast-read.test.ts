@@ -38,7 +38,7 @@ describe('readPodcasts', () => {
       episode(2, 'NordVPN, code VIEUX', daysAgo(90)),
       episode(3, 'Pas de sponsor'),
     ] }), { now });
-    expect(report).toEqual({ podcasts: 1, episodes: 2, found: [{ podcast: 'Silicon Carne', code: 'CARNE', tool: 'NordVPN' }], failed: [] });
+    expect(report).toEqual({ podcasts: 1, episodes: 2, found: [{ podcast: 'Silicon Carne', code: 'CARNE', tool: 'NordVPN' }], suggested: [], failed: [] });
     const [code] = await db.select().from(schema.codes);
     const [podcast] = await listPodcasts(db);
     expect(code).toMatchObject({ code: 'CARNE', discount: '-60 %', status: 'pending', creatorId: podcast.creatorId, sourceTitle: 'Épisode 1', sourceUrl: 'https://podcasts.apple.com/fr/podcast/silicon-carne/id42?i=1' });
@@ -70,6 +70,18 @@ describe('readPodcasts', () => {
     expect(report.found).toHaveLength(1);
     const [silicon] = await db.select().from(schema.watchedSources).where(eq(schema.watchedSources.externalId, '42'));
     expect(silicon.lastFetchedAt).toBeNull();
+  });
+
+  it('garde en suggestion le code d’un outil absent du catalogue, une seule fois', async () => {
+    const dir = directory({ 42: [episode(7, 'Gradium : la voix par IA, -10 % avec le code GDIY sur https://gradium.ai')] });
+    const report = await readPodcasts(db, dir, { now });
+    expect(report.found).toEqual([]);
+    expect(report.suggested).toEqual([{ podcast: 'Silicon Carne', code: 'GDIY', tool: 'gradium.ai' }]);
+    await readPodcasts(db, dir, { now: new Date(now.getTime() + 86_400_000) });
+    const rows = await db.select().from(schema.toolSuggestions);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ name: 'Gradium', domain: 'gradium.ai', code: 'GDIY', discount: '-10 %', status: 'open', sourceTitle: 'Épisode 7' });
+    expect(await db.select().from(schema.codes)).toHaveLength(0);
   });
 
   it('prépare le dossier de vérification de chaque code trouvé', async () => {

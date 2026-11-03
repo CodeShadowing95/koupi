@@ -314,7 +314,7 @@ function Podcasts() {
     </Section>
     <Section id="ajouter" title="Ajouter un podcast">
       <Steps>
-        <Step title="Cherche-le">La page a deux onglets : <b>Suivis</b> (ta liste) et <b>+ Ajouter un podcast</b>. Dans le second, tape le nom du podcast puis <b>Chercher</b>. Koupi interroge l’annuaire d’Apple Podcasts, gratuit et sans clé. Les noms sous le champ sont les podcasts conseillés pour démarrer : un clic lance la recherche.</Step>
+        <Step title="Cherche-le">La page a trois onglets : <b>Suivis</b> (ta liste), <b>+ Ajouter un podcast</b> et <b>Outils à ajouter</b> (voir plus bas). Dans le deuxième, tape le nom du podcast puis <b>Chercher</b>. Koupi interroge l’annuaire d’Apple Podcasts, gratuit et sans clé. Les noms sous le champ sont les podcasts conseillés pour démarrer : un clic lance la recherche.</Step>
         <Step title="Vérifie que c’est le bon">L’auteur, le genre et le nombre d’épisodes aident à éviter les homonymes. <b>Écouter</b> ouvre sa page Apple Podcasts.</Step>
         <Step title="Clique sur Suivre">Le podcast rejoint l’onglet Suivis. Koupi crée aussi son <b>créateur</b> (au nom du podcast) et y relie un compte « Podcast » : les codes trouvés seront crédités à ce créateur. Tu peux le renommer ou lui relier ses autres réseaux dans <Link href="/admin/createurs">Créateurs</Link>.</Step>
       </Steps>
@@ -330,11 +330,20 @@ function Podcasts() {
     <Section id="lecture" title="La lecture des épisodes">
       <Steps>
         <Step title="Chaque nuit">Koupi lit les épisodes récents de chaque podcast actif dans Apple Podcasts : ceux des {FIRST_READ_DAYS} derniers jours la première fois, puis ceux sortis depuis la lecture précédente.</Step>
-        <Step title="Repérer les codes">Dans les notes de chaque épisode, Koupi cherche un code annoncé par « code », « code promo » ou « coupon », et un <b>outil du catalogue</b> nommé sur la même ligne ou celle d’avant. Un code pour un outil absent du catalogue n’est pas relevé : ajoute d’abord l’outil dans <Link href="/admin/outils">Outils</Link>.</Step>
+        <Step title="Repérer les codes">Dans les notes de chaque épisode, Koupi cherche un code annoncé par « code », « code promo » ou « coupon », et un <b>outil du catalogue</b> nommé (ou son site cité) sur la même ligne ou celle d’avant. Si l’outil n’est pas au catalogue, le code est gardé dans l’onglet <b>Outils à ajouter</b>.</Step>
         <Step title="L’envoyer en vérification">Chaque nouveau code est ajouté <b>En attente</b> (invisible sur le site), crédité au créateur du podcast, avec l’épisode comme source. Son dossier est analysé aussitôt et t’attend dans <Link href="/admin/verifications">Vérifications</Link>. Un code déjà connu pour cet outil n’est jamais recréé.</Step>
       </Steps>
       <p><b>Lire les épisodes maintenant</b>, en haut de la page, lance la lecture sans attendre la nuit ; <b>Lire</b>, sur une ligne, lit ce seul podcast, même en pause. Un résumé dit combien de codes ont été trouvés.</p>
       <Callout tone="warn">La réduction est reprise de la ligne du code quand elle y figure (« -20 % », « 3 mois offerts »), sinon elle vaut « Voir l’épisode ». Corrige-la dans <Link href="/admin/codes">Codes</Link> avant de valider.</Callout>
+    </Section>
+    <Section id="outils-a-ajouter" title="Les outils à ajouter">
+      <p>Beaucoup de sponsors de podcasts sont des outils que Koupi ne suit pas encore (« code GDIY sur gradium.ai »). Plutôt que de perdre ces codes, Koupi les garde dans l’onglet <b>Outils à ajouter</b>, avec le nom deviné de l’outil, son site quand un lien est cité, le code, la réduction, l’extrait des notes et l’épisode.</p>
+      <Steps>
+        <Step title="Vérifie l’outil">Le nom est deviné sans IA, d’après le lien voisin (gradium.ai devient « Gradium ») ou le mot qui ouvre la ligne (« Cuure : … »). Ouvre le site et l’épisode pour t’assurer que c’est bien un outil en ligne qui a sa place dans Koupi.</Step>
+        <Step title="Ajoute l’outil">Le bouton <b>Ajouter l’outil</b> ouvre le formulaire pré-rempli : choisis la catégorie, corrige le nom ou le site si besoin. Si l’outil existe déjà sous un autre nom, choisis <b>Déjà dans le catalogue</b> et sélectionne-le.</Step>
+        <Step title="Le code part en vérification">Le code, et ceux des autres suggestions du même site, arrivent <b>En attente</b> dans <Link href="/admin/verifications">Vérifications</Link>, crédités au créateur du podcast. L’outil reste hors du site tant qu’il n’a pas de code validé.</Step>
+      </Steps>
+      <p>La croix <b>Ignorer</b> écarte une suggestion (un lien de suivi, une émission, un produit hors sujet). Elle ne reviendra pas aux lectures suivantes.</p>
     </Section>
   </>;
 }

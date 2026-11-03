@@ -13,6 +13,8 @@ import { sendJson } from '@/components/admin-form-dialog';
 import type { AdminPodcast } from '@/lib/podcasts-admin';
 import type { PodcastFeed } from '@/lib/apple-podcasts';
 import type { PodcastReadReport } from '@/lib/podcast-read';
+import type { AdminToolSuggestion } from '@/lib/tool-suggestions';
+import { ToolSuggestionsPanel, type CatalogToolOption, type CategoryOption } from './tool-suggestions-panel';
 
 type Filter = 'all' | 'active' | 'paused' | 'never' | 'codes';
 const filters: { value: Filter; label: string }[] = [
@@ -32,7 +34,12 @@ const sortFields: SortField<AdminPodcast>[] = [
 const dayFormat = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Paris' });
 const day = (iso: string) => dayFormat.format(new Date(iso));
 
-export function PodcastsView({ podcasts, images, starters }: { podcasts: AdminPodcast[]; images: Record<string, string>; starters: string[] }) {
+type Panel = 'list' | 'add' | 'tools';
+
+export function PodcastsView({ podcasts, images, starters, suggestions, categories, tools, initialTab }: {
+  podcasts: AdminPodcast[]; images: Record<string, string>; starters: string[];
+  suggestions: AdminToolSuggestion[]; categories: CategoryOption[]; tools: CatalogToolOption[]; initialTab?: Panel;
+}) {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<PodcastFeed[] | null>(null);
@@ -41,7 +48,7 @@ export function PodcastsView({ podcasts, images, starters }: { podcasts: AdminPo
   const [error, setError] = useState('');
   const [report, setReport] = useState<PodcastReadReport | null>(null);
   const followed = new Set(podcasts.map(podcast => podcast.feedId));
-  const [panel, setPanel] = useState<'list' | 'add'>(podcasts.length ? 'list' : 'add');
+  const [panel, setPanel] = useState<Panel>(initialTab ?? (podcasts.length ? 'list' : 'add'));
   const [filter, setFilter] = useState<Filter>('all');
   const [listQuery, setListQuery] = useState('');
   const [view, setView] = useAdminView();
@@ -132,6 +139,7 @@ export function PodcastsView({ podcasts, images, starters }: { podcasts: AdminPo
           <div className="notice adm-pod-report" role="status">
             <p>{report.podcasts} podcast{report.podcasts > 1 ? 's' : ''} lu{report.podcasts > 1 ? 's' : ''}, {report.episodes} épisode{report.episodes > 1 ? 's' : ''} récent{report.episodes > 1 ? 's' : ''}. {report.found.length === 0 ? 'Aucun nouveau code trouvé.' : `${report.found.length} nouveau${report.found.length > 1 ? 'x' : ''} code${report.found.length > 1 ? 's' : ''} en attente :`}</p>
             {report.found.length > 0 && <ul>{report.found.map(item => <li key={`${item.podcast}-${item.tool}-${item.code}`}><b className="mono">{item.code}</b> pour {item.tool} <span className="muted">({item.podcast})</span></li>)}</ul>}
+            {report.suggested.length > 0 && <p>{report.suggested.length} code{report.suggested.length > 1 ? 's' : ''} pour des outils absents du catalogue : {report.suggested.map(item => `${item.code} (${item.tool})`).join(', ')}. <button type="button" className="adm-link-btn" onClick={() => setPanel('tools')}>Voir les outils à ajouter</button></p>}
             {report.failed.length > 0 && <p>Pas de réponse d’Apple pour : {report.failed.join(', ')}. Ils seront relus la prochaine fois.</p>}
             <div className="adm-pod-report-actions">
               {report.found.length > 0 && <Link href="/admin/verifications" className="adm-btn adm-btn-pri">Ouvrir les vérifications</Link>}
@@ -143,11 +151,12 @@ export function PodcastsView({ podcasts, images, starters }: { podcasts: AdminPo
         <div className="adm-pod-panels" role="tablist" aria-label="Podcasts">
           <button type="button" role="tab" id="pod-tab-list" aria-controls="pod-panel-list" aria-selected={panel === 'list'} className="adm-pod-panel-tab" onClick={() => setPanel('list')}>Suivis <span className="adm-tab-n">{podcasts.length}</span></button>
           <button type="button" role="tab" id="pod-tab-add" aria-controls="pod-panel-add" aria-selected={panel === 'add'} className="adm-pod-panel-tab" onClick={() => setPanel('add')}>+ Ajouter un podcast</button>
+          <button type="button" role="tab" id="pod-tab-tools" aria-controls="pod-panel-tools" aria-selected={panel === 'tools'} className="adm-pod-panel-tab" onClick={() => setPanel('tools')}>Outils à ajouter {suggestions.length > 0 && <span className="adm-tab-n">{suggestions.length}</span>}</button>
         </div>
 
         {error && <div className="notice notice-error" role="alert">{error}</div>}
 
-        {panel === 'add' ? (
+        {panel === 'tools' ? <ToolSuggestionsPanel suggestions={suggestions} categories={categories} tools={tools} /> : panel === 'add' ? (
           <section className="adm-pod-search" id="pod-panel-add" role="tabpanel" aria-labelledby="pod-tab-add">
             <p className="muted">Cherche un podcast dans l’annuaire Apple Podcasts, puis clique sur <b>Suivre</b>. Il rejoint l’onglet Suivis.</p>
             <form className="adm-toolbar" onSubmit={event => { event.preventDefault(); void search(query); }}>

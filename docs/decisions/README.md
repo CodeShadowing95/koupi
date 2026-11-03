@@ -26,5 +26,6 @@ Chaque décision importante est notée ici dans un fichier numéroté. On ne sup
 | [0020](0020-preuve-par-la-bio.md) | Preuve par la bio des comptes créateurs | Proposée |
 | [0021](0021-connexion-des-createurs.md) | Connexion des créateurs par lien magique | Proposée |
 | [0022](0022-administration-du-site.md) | Administration du site (pages, mode maintenance, comptes créateurs, journal) | Proposée |
+| [0023](0023-outils-a-ajouter.md) | Outils à ajouter, depuis les codes lus dans les podcasts | Proposée |
 
 Modèle : copier [`template.md`](template.md).
