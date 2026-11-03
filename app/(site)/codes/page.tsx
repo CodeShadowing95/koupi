@@ -3,6 +3,7 @@ import { isPublic } from '@/lib/data';
 import { getCatalog } from '@/lib/catalog-server';
 import { parseFilters } from '@/lib/codes-board';
 import { CodesBoard } from '@/components/site/codes-board';
+import { VoteInvite } from '@/components/site/vote-invite';
 
 export const metadata: Metadata = {
   title: 'Tous les codes · Koupi',
@@ -30,6 +31,7 @@ export default async function CodesPage({ searchParams }: { searchParams: Promis
           now={Date.now()}
         />
       </div>
+      <VoteInvite trigger="copy" />
     </main>
   );
 }

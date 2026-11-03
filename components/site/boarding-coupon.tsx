@@ -13,6 +13,7 @@ import { codeBadge } from '@/lib/code-badge';
 import { PLATFORM_LABELS } from '@/lib/creator-accounts-display';
 import { sourcePlatform } from '@/lib/source-platform';
 import { useCodeVote } from '@/components/site/use-code-vote';
+import { CODE_COPIED_EVENT, type CopiedCode } from '@/lib/vote-invite';
 
 // Le coupon de la page « Tous les codes » : même papier et même talon bleu que sur l'accueil,
 // posé debout (talon en bas) pour tenir à trois par ligne, avec le créateur et les infos utiles (réduction, réussite, votes, date). Un clic sur le talon le détache
@@ -50,13 +51,15 @@ export function BoardingCoupon({ code, category, link }: Props) {
     }
     const copying = copyText(code.code);
     playCouponTear();
+    // Prévient la fenêtre « Laisse un 👍 » : elle s'ouvrira au retour du visiteur.
+    window.dispatchEvent(new CustomEvent<CopiedCode>(CODE_COPIED_EVENT, { detail: { id: code.id, code: code.code, tool: code.tool, creator: code.creator } }));
     setTorn(true);
     setFailed(!(await copying));
     window.setTimeout(() => { if (link && link !== '#') track('open', code.id); openCreatorLink(link); }, 850);
   };
 
   return (
-    <article className={`k-pass${torn ? ' is-torn' : ''}`}>
+    <article className={`k-pass${torn ? ' is-torn' : ''}`} data-code-id={code.id}>
       <div className="k-pass-main k-paper">
         <header className="k-pass-head">
           <span className="k-pass-logo">
