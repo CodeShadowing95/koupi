@@ -1123,6 +1123,13 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
   .k-pass-rows .k-pass-action{text-align:center}
   .k-pass-rows .k-pass-code{font-size:var(--fs-sm)}
 }
+/* Assez de place (trois par ligne sur la page créateur, deux sur tablette) : les pouces montent en haut, à droite du nom de l'outil.
+   Sur téléphone, ils restent sur la ligne du créateur pour laisser au nom de l'outil toute la place. */
+@container k-rows (min-width:380px) and (max-width:600px){
+  .k-pass-rows .k-pass-title{grid-column:2}
+  .k-pass-rows .k-pass-thumbs{grid-row:1;grid-column:3}
+  .k-pass-rows .k-pass-by{grid-column:1/-1}
+}
 @media (max-width:600px){
   .k-board-bar{flex-wrap:wrap}
   .k-board-views button{padding:0 10px}
