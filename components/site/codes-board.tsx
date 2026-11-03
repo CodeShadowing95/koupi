@@ -20,8 +20,10 @@ import { AdminSelect, type SelectOption } from '@/components/admin-select';
 // propose les filtres à retirer et invite à proposer un code. Les animations restent simples :
 // les coupons sortent en fondu quand on change un filtre, puis les nouveaux entrent.
 // Les filtres sont recopiés dans l'adresse pour pouvoir partager une recherche.
-// Deux vues : « étendue » (coupon debout, toutes les infos) et « brève » (coupon couché, talon à droite,
-// l'essentiel). Au changement, chaque coupon se transforme sur place (GSAP Flip) ; le choix est retenu.
+// Deux vues : « Cartes » (coupon debout, toutes les infos, trois par ligne) et « Liste » (un coupon couché par ligne,
+// talon à droite, l'essentiel). Au changement, chaque coupon se transforme sur place (GSAP Flip) ; le choix est retenu.
+// Les filtres courants (recherche, statut, catégorie, tri) sont toujours visibles ; les autres se déplient
+// avec « Plus de filtres », ouvert d'emblée si l'un d'eux est déjà choisi (lien partagé).
 
 const PAGE = 12; // 4 lignes de 3 coupons
 const STATUSES: { value: CodeStatusFilter; label: string }[] = [
@@ -41,12 +43,14 @@ type Props = {
   now: number;
 };
 
-type View = 'wide' | 'brief';
+type View = 'cards' | 'list';
 const VIEW_KEY = 'koupi-codes-view';
 // Les morceaux du coupon qui glissent vers leur nouvelle place quand on change de vue.
 const FLIP_TARGETS = '.k-board-item, .k-pass, .k-pass-main, .k-pass-stub, .k-pass-head, .k-pass-head .k-tool-logo, .k-pass-title strong, .k-pass-who, .k-pass-facts .is-wide, .k-pass-stub-code, .k-pass-action';
 
 const count = (value: number | undefined) => String(value ?? 0);
+/** Filtres rangés derrière « Plus de filtres » (noms de paramètres dans l'adresse). */
+const MORE_KEYS = ['tool', 'creator', 'trust', 'offer', 'deadline', 'fresh'];
 
 const reduced = () => typeof window !== 'undefined' && !window.matchMedia(MOTION_OK).matches;
 
@@ -57,12 +61,13 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
   const [shown, setShown] = useState<CodeFilters>(initial);
   const [limit, setLimit] = useState(PAGE);
   const entered = useRef(0);
-  const [view, setView] = useState<View>('wide');
-  const [moreOpen, setMoreOpen] = useState(false);
+  const [view, setView] = useState<View>('cards');
+  const [moreOpen, setMoreOpen] = useState(() => { const params = filtersToParams(initial); return MORE_KEYS.some(key => params.has(key)); });
 
   // La vue choisie la dernière fois (préférence de ce navigateur seulement).
   useEffect(() => {
-    try { if (window.localStorage.getItem(VIEW_KEY) === 'brief') setView('brief'); } catch { /* stockage indisponible */ }
+    // « brief » : ancien nom de la vue liste, encore gardé par certains navigateurs.
+    try { if (['list', 'brief'].includes(window.localStorage.getItem(VIEW_KEY) ?? '')) setView('list'); } catch { /* stockage indisponible */ }
   }, []);
 
   const switchView = (next: View) => {
@@ -73,7 +78,7 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
     const state = Flip.getState(box.querySelectorAll(FLIP_TARGETS));
     flushSync(() => setView(next));
     Flip.from(state, {
-      duration: 0.7, ease: 'power3.inOut', nested: true, stagger: 0.015,
+      duration: 0.7, ease: 'power3.inOut', nested: true, stagger: { amount: 0.2 },
       onEnter: elements => gsap.fromTo(elements, { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, duration: 0.35, delay: 0.45 }),
     });
   };
@@ -108,7 +113,7 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
     creator: slug => creatorNames.get(slug) ?? '',
   }), now)), [results.length, codes, tools, shown, now, toolBySlug, creatorNames]);
   // Filtres repliés sur mobile : combien sont choisis parmi ceux qu'on ne voit pas.
-  const hiddenActive = pills.filter(pill => pill.key !== 'q' && pill.key !== 'status').length;
+  const hiddenActive = pills.filter(pill => !['q', 'status', 'category'].includes(pill.key)).length;
 
   // La recherche texte attend une courte pause dans la frappe avant de filtrer.
   useEffect(() => {
@@ -148,7 +153,7 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
   });
 
   return (
-    <div className={`k-board${view === 'brief' ? ' is-brief' : ''}`} ref={root}>
+    <div className={`k-board${view === 'list' ? ' is-list' : ''}`} ref={root}>
       <aside className="k-board-side" aria-label="Filtres">
         <form role="search" onSubmit={event => event.preventDefault()}>
           <label className="k-board-search">
@@ -160,31 +165,42 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
 
         <div className="k-board-group">
           <h2>Statut</h2>
-          <div className="k-board-seg">
+          <div className="k-board-checks" role="radiogroup" aria-label="Statut">
             {STATUSES.map(status => (
-              <button type="button" key={status.value} aria-pressed={filters.status === status.value} onClick={() => update({ status: status.value })}>
-                {status.label} <span className="k-board-count">{counts.status[status.value]}</span>
+              <button type="button" role="radio" key={status.value} className="k-board-check is-radio" aria-checked={filters.status === status.value}
+                onClick={() => update({ status: status.value })}>
+                <span className="k-board-box" aria-hidden="true" />
+                <span>{status.label}</span>
+                <span className="k-board-count">{counts.status[status.value]}</span>
               </button>
             ))}
           </div>
         </div>
 
+        <div className="k-board-group">
+          <h2>Catégorie</h2>
+          <AdminSelect
+            id="k-board-category" classPrefix="k-combo" ariaLabel="Catégorie"
+            value={filters.category} onChange={category => update({ category })}
+            options={categoryOptions} searchPlaceholder="Chercher une catégorie…"
+          />
+        </div>
+
+        <label className="k-board-group">
+          <h2>Trier par</h2>
+          <select className="k-board-select" value={filters.sort} onChange={event => update({ sort: event.target.value as CodeSort })}>
+            {SORTS.map(sort => <option key={sort.value} value={sort.value}>{sort.label}</option>)}
+          </select>
+        </label>
+
         <button type="button" className="k-board-toggle" aria-expanded={moreOpen} aria-controls="k-board-more" onClick={() => setMoreOpen(open => !open)}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
-          {moreOpen ? 'Masquer les filtres' : 'Plus de filtres'}
+          {moreOpen ? 'Moins de filtres' : 'Plus de filtres'}
           {hiddenActive > 0 && <span className="k-board-count is-on">{hiddenActive}</span>}
+          <svg className="k-board-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
         </button>
 
         <div className={`k-board-extra${moreOpen ? ' is-open' : ''}`} id="k-board-more">
-          <div className="k-board-group">
-            <h2>Catégorie</h2>
-            <AdminSelect
-              id="k-board-category" classPrefix="k-combo" ariaLabel="Catégorie"
-              value={filters.category} onChange={category => update({ category })}
-              options={categoryOptions} searchPlaceholder="Chercher une catégorie…"
-            />
-          </div>
-
           <div className="k-board-group">
             <h2>Outil</h2>
             <AdminSelect
@@ -257,12 +273,6 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
             <span className="k-board-count">{counts.fresh}</span>
           </button>
 
-          <label className="k-board-group">
-            <h2>Trier par</h2>
-            <select className="k-board-select" value={filters.sort} onChange={event => update({ sort: event.target.value as CodeSort })}>
-              {SORTS.map(sort => <option key={sort.value} value={sort.value}>{sort.label}</option>)}
-            </select>
-          </label>
         </div>
       </aside>
 
@@ -271,13 +281,13 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
         <p role="status"><strong>{results.length}</strong> {results.length > 1 ? 'codes trouvés' : 'code trouvé'}</p>
         <div className="k-board-tools">
           <div className="k-board-views" role="group" aria-label="Affichage des codes">
-            <button type="button" aria-pressed={view === 'wide'} onClick={() => switchView('wide')} title="Vue étendue : toutes les infos">
+            <button type="button" aria-pressed={view === 'cards'} onClick={() => switchView('cards')} title="Cartes : toutes les infos, trois par ligne">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="7.5" height="18" rx="2" /><rect x="13.5" y="3" width="7.5" height="18" rx="2" /><path d="M3 15h7.5M13.5 15H21" strokeDasharray="1.5 2" /></svg>
-              Étendue
+              Cartes
             </button>
-            <button type="button" aria-pressed={view === 'brief'} onClick={() => switchView('brief')} title="Vue brève : l'essentiel">
+            <button type="button" aria-pressed={view === 'list'} onClick={() => switchView('list')} title="Liste : un code par ligne, l'essentiel">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="6.5" rx="2" /><rect x="3" y="13.5" width="18" height="6.5" rx="2" /><path d="M15 4v6.5M15 13.5V20" strokeDasharray="1.5 2" /></svg>
-              Brève
+              Liste
             </button>
           </div>
         </div>
