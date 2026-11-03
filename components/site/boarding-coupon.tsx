@@ -116,7 +116,9 @@ export function BoardingCoupon({ code, category, link, compact = false }: Props)
 
         {code.source && (
           <a className="k-pass-source" href={code.source} target="_blank" rel="noopener noreferrer">
-            {platform && platform !== 'other'
+            {platform === 'youtube'
+              ? <svg className="k-pass-source-yt" width="20" height="14" viewBox="0 0 20 14" aria-hidden="true"><rect width="20" height="14" rx="4" fill="#FF0000" /><path d="M8 4v6l5.2-3z" fill="#fff" /></svg>
+              : platform && platform !== 'other'
               ? <PlatformIcon platform={platform} size={16} className="k-platform-icon" />
               : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18" /></svg>}
             <span>{code.sourceTitle || 'Voir la source'}</span>

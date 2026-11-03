@@ -1129,6 +1129,9 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-platform-icon{display:inline-flex;align-items:center;justify-content:center;flex:none;border-radius:5px;color:#fff}
 .k-platform-icon.is-snapchat{color:#000}
 .k-pass-source .k-platform-icon{border-radius:4px}
+/* Le logo garde ses couleurs de marque : le corail des icônes de source ne doit pas le recolorer. */
+.k-pass-source .k-platform-icon svg{color:inherit}
+.k-pass-source svg.k-pass-source-yt{color:inherit}
 /* Fenêtre « Laisse un 👍 » (components/site/vote-invite.tsx) et son bouton en bas à droite */
 .k-invite-overlay{position:fixed;inset:0;z-index:900;display:grid;place-items:center;padding:20px;background:rgba(6,7,22,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);overflow-y:auto}
 .k-invite{position:relative;width:min(470px,100%);padding:30px 28px 24px;border-radius:22px;box-shadow:0 40px 90px -30px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.06);transform-origin:50% 50%;
