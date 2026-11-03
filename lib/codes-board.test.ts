@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Code, Tool } from './data';
 import {
-  activeFilters, compactCount, DEFAULT_FILTERS, facetCounts, featuredCodes, filterCodes, filtersToParams, offerKinds, parseFilters,
+  activeFilters, compactCount, lastChanceCodes, relaxSuggestions, DEFAULT_FILTERS, facetCounts, featuredCodes, filterCodes, filtersToParams, offerKinds, parseFilters,
 } from './codes-board';
 
 const NOW = Date.parse('2026-11-03T12:00:00Z');
@@ -134,6 +134,30 @@ describe('activeFilters', () => {
   it('affiche le nom de l\'outil et du créateur', () => {
     const pills = activeFilters({ ...DEFAULT_FILTERS, tool: 'nord', creator: 'lea' }, { tool: slug => `Outil ${slug}`, creator: slug => `Créa ${slug}` });
     expect(pills.map(pill => pill.label)).toEqual(['Outil nord', 'Créa lea']);
+  });
+});
+
+describe('lastChanceCodes', () => {
+  it('garde les codes qui expirent sous 7 jours, les plus pressés d\'abord', () => {
+    const list = [code('later', { expiresOn: day(20) }), code('three', { expiresOn: day(3) }), code('none'), code('one', { expiresOn: day(1) }), code('past', { expiresOn: day(-1) })];
+    const out = lastChanceCodes(list, NOW);
+    expect(out.map(item => item.code.id)).toEqual(['one', 'three']);
+    expect(out[0].label).toBe('Expire dans 1 jour');
+  });
+  it('respecte la limite', () => {
+    expect(lastChanceCodes([code('a', { expiresOn: day(2) }), code('b', { expiresOn: day(3) })], NOW, 1)).toHaveLength(1);
+  });
+});
+
+describe('relaxSuggestions', () => {
+  it('propose les filtres à retirer qui redonnent le plus de codes', () => {
+    const list = [code('a', { discount: '-10 %' }), code('b', { discount: '-20 %', toolSlug: 'canva' }), code('c', { discount: '2 mois offerts', toolSlug: 'canva' })];
+    const filters = { ...DEFAULT_FILTERS, tool: 'nord', offer: 'months' as const, fresh: true };
+    const pills = activeFilters(filters, { tool: () => 'Nord', creator: () => '' });
+    expect(relaxSuggestions(list, tools, filters, pills, NOW).map(item => [item.key, item.count])).toEqual([['tool', 1], ['offer', 1]]);
+    // Codes anciens : retirer un seul filtre ne suffit pas, on ne propose rien.
+    const old = list.map(c => ({ ...c, createdAt: iso(30) }));
+    expect(relaxSuggestions(old, tools, filters, pills, NOW)).toEqual([]);
   });
 });
 

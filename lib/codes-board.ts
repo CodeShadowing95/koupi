@@ -228,3 +228,29 @@ export function compactCount(count: number): string {
   if (count >= 100) return '+99';
   return String(Math.max(0, Math.floor(count)));
 }
+
+export type LastChance = { code: Code; daysLeft: number; label: string };
+
+/** Bandeau « Dernière chance » : les codes dont la date de fin tombe dans les 7 jours, les plus pressés d'abord. */
+export function lastChanceCodes(codes: Code[], now = Date.now(), limit = 4): LastChance[] {
+  const out: LastChance[] = [];
+  for (const code of codes) {
+    const expiry = expiryOf(code.expiresOn, new Date(now));
+    if (expiry.state === 'soon' || expiry.state === 'today') out.push({ code, daysLeft: expiry.daysLeft, label: expiry.label });
+  }
+  return out.sort((a, b) => a.daysLeft - b.daysLeft || b.code.success - a.code.success).slice(0, limit);
+}
+
+export type Relax = ActiveFilter & { count: number };
+
+/**
+ * Aucun résultat : quels filtres retirer pour en retrouver ? Chaque filtre actif, avec le nombre de codes
+ * qu'on aurait sans lui, les plus utiles d'abord (seulement ceux qui en redonnent).
+ */
+export function relaxSuggestions(codes: Code[], tools: Tool[], filters: CodeFilters, pills: ActiveFilter[], now = Date.now(), limit = 3): Relax[] {
+  return pills
+    .map(pill => ({ ...pill, count: filterCodes(codes, tools, { ...filters, ...pill.patch }, now).length }))
+    .filter(pill => pill.count > 0)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
+}

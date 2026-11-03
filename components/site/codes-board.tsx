@@ -5,16 +5,19 @@ import { flushSync } from 'react-dom';
 import type { Code, Tool } from '@/lib/data';
 import {
   activeFilters, type CodeFilters, type CodeSort, type CodeStatusFilter, DEADLINES, DEFAULT_FILTERS, facetCounts, filterCodes,
-  filtersToParams, OFFERS, type TrustFilter, TRUSTS,
+  filtersToParams, lastChanceCodes, OFFERS, relaxSuggestions, type TrustFilter, TRUSTS,
 } from '@/lib/codes-board';
 import { routes } from '@/lib/routes';
 import { Flip, gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
 import { BoardingCoupon } from '@/components/site/boarding-coupon';
+import { ToolLogo } from '@/components/site/tool-logo';
 import { AdminSelect, type SelectOption } from '@/components/admin-select';
 
 // « Tous les codes » : la recherche et les filtres à gauche (statut, catégorie, outil, créateur, confiance,
 // type d'offre, échéance, nouveautés, tri), chacun avec le nombre de codes qu'il donnerait,
-// les coupons à droite, trois par ligne. Les filtres choisis s'affichent en pastilles au-dessus des coupons. Les animations restent simples :
+// les coupons à droite, trois par ligne. Les filtres choisis s'affichent en pastilles au-dessus des coupons.
+// Un bandeau « Dernière chance » montre les codes qui expirent sous 7 jours. Sans résultat, un coupon vierge
+// propose les filtres à retirer et invite à proposer un code. Les animations restent simples :
 // les coupons sortent en fondu quand on change un filtre, puis les nouveaux entrent.
 // Les filtres sont recopiés dans l'adresse pour pouvoir partager une recherche.
 // Deux vues : « étendue » (coupon debout, toutes les infos) et « brève » (coupon couché, talon à droite,
@@ -99,6 +102,11 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
     tool: slug => toolBySlug.get(slug)?.name ?? '',
     creator: slug => creatorNames.get(slug) ?? '',
   });
+  const lastChance = useMemo(() => lastChanceCodes(codes, now, 99), [codes, now]);
+  const relax = useMemo(() => (results.length > 0 ? [] : relaxSuggestions(codes, tools, shown, activeFilters(shown, {
+    tool: slug => toolBySlug.get(slug)?.name ?? '',
+    creator: slug => creatorNames.get(slug) ?? '',
+  }), now)), [results.length, codes, tools, shown, now, toolBySlug, creatorNames]);
   // Filtres repliés sur mobile : combien sont choisis parmi ceux qu'on ne voit pas.
   const hiddenActive = pills.filter(pill => pill.key !== 'q' && pill.key !== 'status').length;
 
@@ -134,6 +142,7 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
   const update = (patch: Partial<CodeFilters>) => setFilters(current => ({ ...current, ...patch }));
   const reset = () => { setQuery(''); setFilters(current => ({ ...DEFAULT_FILTERS, sort: current.sort })); };
   const remove = (patch: Partial<CodeFilters>) => { if ('query' in patch) setQuery(''); update(patch); };
+  const toFilters = () => root.current?.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
   const toggleTrust = (trust: TrustFilter) => update({
     trust: filters.trust.includes(trust) ? filters.trust.filter(t => t !== trust) : [...filters.trust, trust],
   });
@@ -274,6 +283,28 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
         </div>
       </div>
 
+      {lastChance.length > 0 && filters.deadline !== 'soon' && (
+        <section className="k-board-last" aria-label="Dernière chance">
+          <div className="k-board-last-head">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2.5 2M9 2h6" /></svg>
+            <p><strong>Dernière chance</strong><span>{lastChance.length} {lastChance.length > 1 ? 'codes expirent' : 'code expire'} sous 7 jours</span></p>
+            <button type="button" className="k-link" onClick={() => { update({ deadline: 'soon' }); toFilters(); }}>Tout voir</button>
+          </div>
+          <ul>
+            {lastChance.slice(0, 4).map(({ code, daysLeft }) => (
+              <li key={code.id}>
+                <button type="button" className="k-board-last-ticket" onClick={() => { update({ deadline: 'soon', tool: code.toolSlug }); toFilters(); }}
+                  aria-label={`${code.tool}, ${code.discount}, ${daysLeft === 0 ? 'expire aujourd’hui' : `expire dans ${daysLeft} jour${daysLeft > 1 ? 's' : ''}`}`}>
+                  <ToolLogo tool={code.toolSlug} name={code.tool} />
+                  <span className="k-board-last-text"><strong>{code.tool}</strong><small>{code.discount}</small></span>
+                  <span className="k-board-last-days">{daysLeft === 0 ? 'Auj.' : `J-${daysLeft}`}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {pills.length > 0 && (
         <ul className="k-board-pills" aria-label="Filtres choisis">
           {pills.map(pill => (
@@ -289,10 +320,37 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
       )}
 
       {results.length === 0 ? (
-        <div className="k-empty k-board-item">
-          <h2>Aucun code pour cette recherche.</h2>
-          <p>Essaie un autre outil ou une autre catégorie. Tu as vu passer un code dans une vidéo&nbsp;? Propose-le.</p>
-          <Link className="k-btn k-btn-paper k-btn-ticket" href={routes.submit()}>Proposer un code</Link>
+        <div className="k-board-empty k-board-item">
+          <div className="k-board-empty-main k-paper">
+            <span className="k-board-empty-tag">Coupon vierge</span>
+            <h2>Aucun code ne correspond.</h2>
+            {relax.length > 0 ? (
+              <div className="k-board-relax">
+                <p>Retire un filtre pour en retrouver&nbsp;:</p>
+                <ul>
+                  {relax.map(pill => (
+                    <li key={pill.key}>
+                      <button type="button" onClick={() => remove(pill.patch)}>
+                        Sans {pill.label} <span>{pill.count} {pill.count > 1 ? 'codes' : 'code'}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p>Essaie un autre outil ou une autre catégorie.</p>
+            )}
+            <dl className="k-board-empty-lines" aria-hidden="true">
+              <div><dt>Outil</dt><dd /></div>
+              <div><dt>Code</dt><dd /></div>
+              <div><dt>Vu chez</dt><dd /></div>
+            </dl>
+          </div>
+          <Link className="k-board-empty-stub" href={routes.submit(shown.tool || undefined)}>
+            <small>Tu as vu passer un code&nbsp;?</small>
+            <strong>Propose-le</strong>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </Link>
         </div>
       ) : (
         <ul className="k-board-list">
