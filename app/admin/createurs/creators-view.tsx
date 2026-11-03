@@ -10,7 +10,7 @@ import { Pagination, usePagination } from '@/components/admin-pagination';
 import { FormDialog, sendJson } from '@/components/admin-form-dialog';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
 import { IconButton, IconLink, StatusDot } from '@/components/admin-card';
-import { initials } from '@/lib/admin-card';
+import { AdminCreatorAvatar } from '@/components/admin-creator-avatar';
 import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
 import type { AdminCreatorAccount } from '@/lib/creator-accounts-display';
@@ -90,7 +90,7 @@ export function CreatorsView({ creators, youtubeReady }: { creators: Creator[]; 
               <tbody>
                 {current.items.map(creator => (
                   <tr key={creator.id} data-open onClick={openOnClick(() => setSelectedId(creator.id))}>
-                    <td className="adm-cell-wrap"><button type="button" className="adm-open adm-open-wrap" title={`Voir le détail de ${creator.name}`} onClick={() => setSelectedId(creator.id)}><b>{creator.name}</b></button></td>
+                    <td className="adm-cell-wrap"><span className="adm-cell-id"><AdminCreatorAvatar name={creator.name} small /><button type="button" className="adm-open adm-open-wrap" title={`Voir le détail de ${creator.name}`} onClick={() => setSelectedId(creator.id)}><b>{creator.name}</b></button></span></td>
                     <td className="adm-cell-nowrap"><LevelDot level={creator.level} /></td>
                     <td className="adm-cell-nowrap">{codesLink(creator)}</td>
                     <td className="adm-cell-wrap adm-cell-muted">{creator.tools.join(', ') || '—'}</td>
@@ -105,7 +105,7 @@ export function CreatorsView({ creators, youtubeReady }: { creators: Creator[]; 
             {current.items.map(creator => (
               <article className="adm-card" key={creator.id} data-open onClick={openOnClick(() => setSelectedId(creator.id))}>
                 <div className="adm-card-row">
-                  <div className="adm-card-id"><span className="adm-avatar" aria-hidden="true">{initials(creator.name)}</span><div><button type="button" className="adm-open" title={`Voir le détail de ${creator.name}`} onClick={() => setSelectedId(creator.id)}><b>{creator.name}</b></button><small title={creator.tools.join(', ')}>{creator.tools.join(', ') || 'Aucun outil'}</small></div></div>
+                  <div className="adm-card-id"><AdminCreatorAvatar name={creator.name} /><div><button type="button" className="adm-open" title={`Voir le détail de ${creator.name}`} onClick={() => setSelectedId(creator.id)}><b>{creator.name}</b></button><small title={creator.tools.join(', ')}>{creator.tools.join(', ') || 'Aucun outil'}</small></div></div>
                   <LevelDot level={creator.level} />
                 </div>
                 <div className="adm-card-foot">
@@ -120,7 +120,7 @@ export function CreatorsView({ creators, youtubeReady }: { creators: Creator[]; 
         <Pagination current={current} onChange={goTo} label="créateurs" size={size} onSizeChange={changeSize} />
 
         <AdminDrawer open={selected !== null} onClose={() => setSelectedId(null)} label={`Détail de ${selected?.name ?? ''}`} eyebrow="Créateur"
-          title={selected && <span className="adm-drawer-name"><span className="adm-avatar" aria-hidden="true">{initials(selected.name)}</span>{selected.name}</span>}
+          title={selected && <span className="adm-drawer-name"><AdminCreatorAvatar name={selected.name} />{selected.name}</span>}
           aside={selected && (selected.visible > 0 ? <StatusDot tone="ok">Sur le site</StatusDot> : <StatusDot tone="muted">Masqué</StatusDot>)}
           actions={selected && <>
             <a className="adm-btn" href={`/admin/codes?q=${encodeURIComponent(selected.name)}`}>Voir ses codes</a>

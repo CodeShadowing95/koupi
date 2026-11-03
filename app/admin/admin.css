@@ -840,6 +840,9 @@ html:has(> body > .ct){overflow:hidden}
 .adm-drawer-name{display:inline-flex;align-items:center;gap:12px;min-width:0}
 .adm-drawer-name .adm-tool-logo,.adm-drawer-name .adm-avatar{width:36px;height:36px;border-radius:9px;font-size:13px}
 .adm-drawer-name .adm-avatar{border-radius:50%}
+.adm-avatar-photo{object-fit:cover;background:var(--line);border:1px solid var(--line)}
+.adm-avatar-sm{width:24px;height:24px;font-size:10px}
+.adm-cell-id{display:inline-flex;align-items:center;gap:8px}
 .adm-drawer-content .adm-cat-cover{min-width:0}
 
 /* Guide de l'admin : sommaire en chapitres et pages de chapitre (classes gd-). */

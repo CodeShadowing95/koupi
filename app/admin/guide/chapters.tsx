@@ -383,6 +383,7 @@ function Createurs() {
     </Section>
     <Section id="fiche" title="Lire la fiche d’un créateur">
       <p>Clique sur un créateur : le panneau montre son niveau, son nombre de codes, ses <b>comptes sur les réseaux</b>, les <b>outils qu’il recommande</b> et le lien vers sa page publique. <b>Voir ses codes</b> ouvre la liste des codes filtrée sur lui.</p>
+      <p>Sa <b>photo de profil</b> s’affiche sur sa carte, dans le tableau et dans le panneau quand on l’a récupérée depuis sa chaîne YouTube (commande <code>npm run avatars</code>). Sinon, ce sont ses initiales.</p>
       <Callout tone="tip">Un créateur qui recommande déjà trois outils en a souvent d’autres. Regarde ses dernières vidéos : c’est la façon la plus rapide de trouver de nouveaux codes.</Callout>
     </Section>
     <Section id="profil" title="Écrire son profil">
