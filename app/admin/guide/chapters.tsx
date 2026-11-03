@@ -419,12 +419,13 @@ function Createurs() {
     <Section id="preuve" title="Faire prouver un compte par la bio">
       <p>Seul le vrai propriétaire d’un compte peut modifier sa bio. C’est la preuve la plus simple : tu donnes un code au créateur, il l’ajoute à la bio du compte, et Koupi le retrouve. Le créateur passe alors <b>Créateur vérifié</b>, et ce compte porte une coche bleue sur sa page.</p>
       <Steps>
+        <Step title="Contrôle le compte d’abord">Coche <b>J’ai contrôlé ce compte</b> après avoir vérifié que c’est la vraie chaîne du créateur. Sans ce contrôle, Koupi refuse de donner un code.</Step>
         <Step title="Donne un code">Dans le panneau du créateur, sous le compte, <b>Donner un code</b>. Koupi crée un code du type KOUPI-7F3K2Q, valable 14 jours.</Step>
         <Step title="Envoie-le">« Copier le message » prépare un e-mail prêt à envoyer, avec le code et la marche à suivre. Envoie-le à l’adresse laissée dans sa demande.</Step>
         <Step title="Retrouve le code">YouTube : <b>Lire la bio</b> lit la description de la chaîne (1 unité de quota). Si le code y est, c’est fait. Autres réseaux : ouvre le profil toi-même et clique <b>J’ai vu le code dans la bio</b>.</Step>
       </Steps>
       <p>Une fois prouvé, le créateur peut retirer le code de sa bio. <b>Nouveau code</b> remplace un code perdu ou expiré, <b>Annuler</b> arrête la preuve en cours, et <b>Retirer la preuve</b> enlève la vérification si tu découvres une erreur.</p>
-      <Callout tone="warn">Vérifie que c’est bien le compte relié à la fiche, pas un compte qui lui ressemble. Un imposteur peut mettre le code dans la bio de son propre faux compte : la preuve ne vaut que pour un compte que tu as déjà contrôlé.</Callout>
+      <Callout tone="warn">Koupi lit toujours le compte relié à la fiche, jamais celui envoyé dans la demande. Un imposteur peut mettre le code dans la bio de son propre faux compte, mais ça ne prouve rien pour la page du vrai. Pour TikTok ou Instagram, ouvre bien le profil relié à la fiche. C’est pour ça que le contrôle du compte passe avant : si un faux compte était relié par erreur, la preuve le validerait.</Callout>
     </Section>
     <Section id="noms" title="Garder des noms propres">
       <p>Les majuscules ne comptent pas, mais « Le Grand JD » et « LeGrandJD » font deux créateurs différents, avec deux pages à moitié vides. Utilise toujours le nom exact de la chaîne et choisis-le dans la liste proposée quand tu tapes.</p>

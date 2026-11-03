@@ -42,6 +42,9 @@ export function AccountClaim({ account, disabled, youtubeReady }: { account: Adm
   }
 
   const off = disabled || busy !== null;
+  // Garde-fou : pas de preuve sur un compte que l'admin n'a pas contrôlé (le serveur refuse aussi).
+  const checked = account.adminCheckedAt !== null;
+  const uncheckedHint = 'Contrôle d’abord ce compte (case ci-dessus) : c’est la garantie que la preuve porte sur le vrai compte du créateur, pas sur une copie.';
   return (
     <div className="adm-claim">
       <div className="adm-claim-head">
@@ -61,19 +64,20 @@ export function AccountClaim({ account, disabled, youtubeReady }: { account: Adm
             <button type="button" className="adm-btn" onClick={() => copy('code')}>{copied === 'code' ? 'Copié' : 'Copier le code'}</button>
             <button type="button" className="adm-btn" onClick={() => copy('message')}>{copied === 'message' ? 'Copié' : 'Copier le message'}</button>
           </div>
+          {!checked && <p className="adm-ca-hint">{uncheckedHint}</p>}
           <p className="adm-ca-hint">Donné le {day(account.claimCodeAt)}, valable jusqu’au {expiry(account.claimCodeAt)}. Envoie le message au créateur, puis {readable ? 'lis la bio quand il te dit l’avoir ajouté.' : `ouvre son profil ${PLATFORM_LABELS[account.platform]} et confirme quand tu vois le code.`}</p>
           <div className="adm-claim-row">
             {readable
-              ? <button type="button" className="adm-btn adm-btn-pri" disabled={off || !youtubeReady} title={youtubeReady ? 'Lit la description de la chaîne sur YouTube (1 unité de quota)' : 'La clé YouTube manque'} onClick={() => run('check')}>{busy === 'check' ? 'Lecture…' : 'Lire la bio'}</button>
-              : <button type="button" className="adm-btn adm-btn-pri" disabled={off} onClick={() => run('confirm')}>J’ai vu le code dans la bio</button>}
-            <button type="button" className="adm-btn" disabled={off} onClick={() => run('start')}>Nouveau code</button>
+              ? <button type="button" className="adm-btn adm-btn-pri" disabled={off || !youtubeReady || !checked} title={youtubeReady ? 'Lit la description de la chaîne sur YouTube (1 unité de quota)' : 'La clé YouTube manque'} onClick={() => run('check')}>{busy === 'check' ? 'Lecture…' : 'Lire la bio'}</button>
+              : <button type="button" className="adm-btn adm-btn-pri" disabled={off || !checked} onClick={() => run('confirm')}>J’ai vu le code dans la bio</button>}
+            <button type="button" className="adm-btn" disabled={off || !checked} onClick={() => run('start')}>Nouveau code</button>
             <button type="button" className="adm-btn" disabled={off} onClick={() => run('cancel')}>Annuler</button>
           </div>
         </>
       ) : (
         <div className="adm-claim-row">
-          <span className="adm-ca-hint">{account.claimStatus === 'revoked' ? 'Preuve retirée.' : 'Le créateur n’a pas encore prouvé que ce compte est le sien.'}</span>
-          <button type="button" className="adm-btn" disabled={off} onClick={() => run('start')}>{busy === 'start' ? 'Création…' : 'Donner un code'}</button>
+          <span className="adm-ca-hint">{!checked ? uncheckedHint : account.claimStatus === 'revoked' ? 'Preuve retirée.' : 'Le créateur n’a pas encore prouvé que ce compte est le sien.'}</span>
+          <button type="button" className="adm-btn" disabled={off || !checked} title={checked ? undefined : 'Contrôle d’abord ce compte'} onClick={() => run('start')}>{busy === 'start' ? 'Création…' : 'Donner un code'}</button>
         </div>
       )}
       {notice && <div className={`notice ${notice.tone === 'error' ? 'notice-error' : 'notice-info'}`} role={notice.tone === 'error' ? 'alert' : 'status'}>{notice.text}</div>}

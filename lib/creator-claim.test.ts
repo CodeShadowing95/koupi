@@ -61,8 +61,8 @@ describe('preuve par la bio', () => {
     await migrate(db as never, { migrationsFolder: 'db/migrations' });
     [{ id: creatorId }] = await db.insert(schema.creators).values({ slug: 'ana', name: 'Ana' }).returning();
     const accounts = await db.insert(schema.creatorAccounts).values([
-      { creatorId, platform: 'youtube', externalId: CHANNEL_ID, handle: '@ana', url: 'https://www.youtube.com/@ana' },
-      { creatorId, platform: 'tiktok', handle: '@ana.tt', url: 'https://tiktok.com/@ana.tt' },
+      { creatorId, platform: 'youtube', externalId: CHANNEL_ID, handle: '@ana', url: 'https://www.youtube.com/@ana', adminCheckedAt: now },
+      { creatorId, platform: 'tiktok', handle: '@ana.tt', url: 'https://tiktok.com/@ana.tt', adminCheckedAt: now },
     ]).returning();
     [youtube, tiktok] = accounts.map(account => account.id);
   });
@@ -108,6 +108,18 @@ describe('preuve par la bio', () => {
     expect(await creatorLevelFor(db, creatorId)).toBe('spotted');
     expect(await runClaimAction(db, youtube, 'revoke', { readDescription: null, now })).toEqual({ ok: false, error: 'Ce compte n’est pas prouvé par le créateur.' });
     expect(await runClaimAction(db, '00000000-0000-0000-0000-000000000000', 'start', { readDescription: null, now })).toEqual({ ok: false, error: 'Compte introuvable.' });
+  });
+
+  it('refuse toute preuve sur un compte que l’admin n’a pas contrôlé', async () => {
+    await db.update(schema.creatorAccounts).set({ adminCheckedAt: null }).where(eq(schema.creatorAccounts.id, tiktok));
+    expect(await runClaimAction(db, tiktok, 'start', { readDescription: null, now, newCode: code })).toEqual({ ok: false, error: expect.stringContaining('Contrôle d’abord ce compte') });
+    expect((await row(tiktok)).claimStatus).toBe('none');
+
+    await runClaimAction(db, youtube, 'start', { readDescription: null, now, newCode: code });
+    await db.update(schema.creatorAccounts).set({ adminCheckedAt: null }).where(eq(schema.creatorAccounts.id, youtube));
+    expect(await runClaimAction(db, youtube, 'check', { readDescription: bio('KOUPI-AB3CD7'), now })).toEqual({ ok: false, error: expect.stringContaining('Contrôle d’abord ce compte') });
+    expect(await runClaimAction(db, youtube, 'confirm', { readDescription: null, now })).toEqual({ ok: false, error: expect.stringContaining('Contrôle d’abord ce compte') });
+    expect(await creatorLevelFor(db, creatorId)).toBe('spotted');
   });
 
   it('la base refuse un code mal formé ou sans preuve en cours', async () => {

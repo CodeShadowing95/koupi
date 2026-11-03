@@ -63,16 +63,20 @@ export async function runClaimAction(db: Db, accountId: string, action: ClaimAct
     return { ok: true, data: { status: 'verified', code: null, found: true } };
   };
   const pending = account.claimStatus === 'pending' && account.claimCode && account.claimCodeAt;
+  // Garde-fou : la preuve ne vaut que si l'admin a d'abord contrôlé que ce compte est le bon (pas une copie).
+  const unchecked: Parsed<ClaimResult> = { ok: false, error: 'Contrôle d’abord ce compte (coche « J’ai contrôlé ce compte ») : la preuve ne vaut que pour le vrai compte du créateur.' };
 
   switch (action) {
     case 'start': {
       if (account.claimStatus === 'verified') return { ok: false, error: 'Ce compte est déjà prouvé par le créateur.' };
+      if (!account.adminCheckedAt) return unchecked;
       const code = (deps.newCode ?? newClaimCode)();
       await set({ claimStatus: 'pending', claimMethod: 'bio_code', claimCode: code, claimCodeAt: now });
       return { ok: true, data: { status: 'pending', code } };
     }
     case 'check': {
       if (!pending) return { ok: false, error: 'Aucune preuve en cours sur ce compte.' };
+      if (!account.adminCheckedAt) return unchecked;
       if (claimCodeExpired(account.claimCodeAt!, now)) return { ok: false, error: `Le code a plus de ${CLAIM_CODE_DAYS} jours : donne-lui un nouveau code.` };
       if (account.platform !== 'youtube' || !account.externalId) return { ok: false, error: 'Koupi ne lit que les bios YouTube : regarde le profil toi-même, puis confirme.' };
       if (!deps.readDescription) return { ok: false, error: 'La clé YouTube (YOUTUBE_API_KEY) manque : la bio ne peut pas être lue.' };
@@ -85,6 +89,7 @@ export async function runClaimAction(db: Db, accountId: string, action: ClaimAct
     }
     case 'confirm': {
       if (!pending) return { ok: false, error: 'Aucune preuve en cours sur ce compte.' };
+      if (!account.adminCheckedAt) return unchecked;
       if (claimCodeExpired(account.claimCodeAt!, now)) return { ok: false, error: `Le code a plus de ${CLAIM_CODE_DAYS} jours : donne-lui un nouveau code.` };
       return verify();
     }
