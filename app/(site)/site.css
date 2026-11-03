@@ -1132,6 +1132,9 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-platform-icon{display:inline-flex;align-items:center;justify-content:center;flex:none;border-radius:5px;color:#fff}
 .k-platform-icon.is-snapchat{color:#000}
 .k-pass-source .k-platform-icon{border-radius:4px}
+/* Le logo garde ses couleurs de marque : le corail des icônes de source ne doit pas le recolorer. */
+.k-pass-source .k-platform-icon svg{color:inherit}
+.k-pass-source svg.k-pass-source-yt{color:inherit}
 /* Fenêtre « Laisse un 👍 » (components/site/vote-invite.tsx) et son bouton en bas à droite */
 .k-invite-overlay{position:fixed;inset:0;z-index:900;display:grid;place-items:center;padding:20px;background:rgba(6,7,22,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);overflow-y:auto}
 .k-invite{position:relative;width:min(470px,100%);padding:30px 28px 24px;border-radius:22px;box-shadow:0 40px 90px -30px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.06);transform-origin:50% 50%;
@@ -1222,9 +1225,21 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-creator-search input::placeholder{color:var(--muted)}
 .k-creator-search input:focus{border-color:var(--blue-soft);box-shadow:0 0 0 3px rgba(140,155,255,.22)}
 .k-creator-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 22px}
-.k-creator-cards{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px 18px}
+.k-creator-cards{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px 18px}
+/* Carte compacte : logo, outil, réduction, source et talon, comme la vue liste */
+.k-pass.is-compact .k-pass-main{gap:12px;padding:16px 16px 14px}
+.k-pass.is-compact .k-pass-head{gap:10px}
+.k-pass.is-compact .k-pass-title{flex:1 1 0}
+.k-pass.is-compact .k-pass-title small{display:none}
+.k-pass.is-compact .k-pass-thumbs button{height:24px;padding:0 6px;font-size:12.5px}
+.k-pass.is-compact .k-pass-title strong{font-size:17px}
+.k-pass.is-compact .k-pass-discount{margin:0;font-family:var(--display);font-weight:800;font-size:21px;line-height:1.15;letter-spacing:-.02em;color:var(--coral);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.k-pass.is-compact .k-pass-source{font-size:12px}
+.k-pass.is-compact .k-pass-stub{padding:13px 16px;gap:8px}
+.k-pass.is-compact .k-pass-code{font-size:15px}
 .k-creator-cards>li{min-width:0}
 .k-creator-codes-empty{margin:8px 0;color:var(--text-soft)}
-@media (max-width:1180px){.k-creator-cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:1100px){.k-creator-cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:980px){.k-creator-rows{grid-template-columns:minmax(0,1fr)}.k-creator-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:600px){.k-creator-cards{grid-template-columns:minmax(0,1fr)}.k-creator-search{flex-basis:100%}}
+@media (max-width:520px){.k-creator-cards{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:600px){.k-creator-search{flex-basis:100%}}

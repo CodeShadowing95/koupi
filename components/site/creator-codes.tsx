@@ -1,6 +1,6 @@
 'use client';
 // Codes d'un créateur sur sa page : recherche, et deux vues comme sur « Tous les codes ».
-// « Liste » : le coupon couché habituel, deux par ligne. « Cartes » : le coupon debout de la page des codes,
+// « Liste » : le coupon couché habituel, deux par ligne. « Cartes » : le coupon debout compact (mêmes infos que la liste),
 // quatre par ligne. Le choix de vue est partagé avec la page des codes (même préférence de ce navigateur).
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -70,7 +70,7 @@ export function CreatorCodes({ codes, tools, creator }: { codes: Code[]; tools: 
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="6.5" rx="2" /><rect x="3" y="13.5" width="18" height="6.5" rx="2" /><path d="M15 4v6.5M15 13.5V20" strokeDasharray="1.5 2" /></svg>
               Liste
             </button>
-            <button type="button" aria-pressed={view === 'cards'} onClick={() => choose('cards')} title="Cartes : toutes les infos, quatre par ligne">
+            <button type="button" aria-pressed={view === 'cards'} onClick={() => choose('cards')} title="Cartes : l’essentiel, quatre par ligne">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="7.5" height="18" rx="2" /><rect x="13.5" y="3" width="7.5" height="18" rx="2" /><path d="M3 15h7.5M13.5 15H21" strokeDasharray="1.5 2" /></svg>
               Cartes
             </button>
@@ -83,7 +83,7 @@ export function CreatorCodes({ codes, tools, creator }: { codes: Code[]; tools: 
             <ul className="k-creator-cards">
               {shown.map(code => {
                 const tool = toolOf.get(code.toolSlug);
-                return <li key={code.id}><BoardingCoupon code={code} category={tool?.category} link={code.creatorLink || tool?.website || '#'} /></li>;
+                return <li key={code.id}><BoardingCoupon compact code={code} category={tool?.category} link={code.creatorLink || tool?.website || '#'} /></li>;
               })}
             </ul>
           )

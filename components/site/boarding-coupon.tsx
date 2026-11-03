@@ -31,9 +31,10 @@ function shortDate(iso: string) {
   return year && month && day ? `${day} ${MONTHS[month - 1]} ${year}` : '';
 }
 
-type Props = { code: Code; category?: string; link: string };
+/** compact : carte de la page créateur, mêmes infos que la vue liste plus les pouces (sans « Donné par » ni réussite, votes et date). */
+type Props = { code: Code; category?: string; link: string; compact?: boolean };
 
-export function BoardingCoupon({ code, category, link }: Props) {
+export function BoardingCoupon({ code, category, link, compact = false }: Props) {
   const [torn, setTorn] = useState(false);
   const [failed, setFailed] = useState(false);
   const { voted, fresh, message, sending, vote } = useCodeVote(code.id);
@@ -59,7 +60,7 @@ export function BoardingCoupon({ code, category, link }: Props) {
   };
 
   return (
-    <article className={`k-pass${torn ? ' is-torn' : ''}`} data-code-id={code.id}>
+    <article className={`k-pass${torn ? ' is-torn' : ''}${compact ? ' is-compact' : ''}`} data-code-id={code.id}>
       <div className="k-pass-main k-paper">
         <header className="k-pass-head">
           <span className="k-pass-logo">
@@ -90,6 +91,9 @@ export function BoardingCoupon({ code, category, link }: Props) {
           </div>
         </header>
 
+        {compact
+          ? <p className="k-pass-discount">{code.discount}</p>
+          : <>
         <p className="k-pass-by">
           <span className="k-pass-by-top">
             <small>Donné par</small>
@@ -108,10 +112,13 @@ export function BoardingCoupon({ code, category, link }: Props) {
             ? <div><dt>Expire</dt><dd>{shortDate(code.expiresOn)}</dd></div>
             : <div><dt>Ajouté</dt><dd>{shortDate(code.createdAt)}</dd></div>}
         </dl>
+          </>}
 
         {code.source && (
           <a className="k-pass-source" href={code.source} target="_blank" rel="noopener noreferrer">
-            {platform && platform !== 'other'
+            {platform === 'youtube'
+              ? <svg className="k-pass-source-yt" width="20" height="14" viewBox="0 0 20 14" aria-hidden="true"><rect width="20" height="14" rx="4" fill="#FF0000" /><path d="M8 4v6l5.2-3z" fill="#fff" /></svg>
+              : platform && platform !== 'other'
               ? <PlatformIcon platform={platform} size={16} className="k-platform-icon" />
               : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18" /></svg>}
             <span>{code.sourceTitle || 'Voir la source'}</span>
