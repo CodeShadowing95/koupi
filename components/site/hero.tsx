@@ -12,7 +12,7 @@ import { flipFace, nextFlip, type FlipState } from '@/lib/hero-flip';
 
 /** Temps entre deux coupons qui se retournent, et durée d'un demi-tour (axe horizontal). */
 const FLIP_EVERY = 4.2;
-const FLIP_DURATION = 1.1;
+const FLIP_DURATION = 1.7;
 
 const rotating = ['NordVPN', 'o2switch', 'ElevenLabs', 'Shopify', 'Qonto', 'Babbel'];
 
@@ -109,15 +109,15 @@ export function Hero({ codes, tools }: { codes: Code[]; tools: Tool[] }) {
         lastSlot = next.slot;
         let swapped = false;
         const turn = { angle: 0 };
-        gsap.set(card, { transformPerspective: 1100 });
+        gsap.set(card, { transformPerspective: 1600 });
         gsap.to(turn, {
           angle: 180,
           duration: FLIP_DURATION,
-          ease: 'power2.inOut',
+          ease: 'sine.inOut',
           onUpdate: () => {
             const face = flipFace(turn.angle);
             // Léger soulèvement pendant le tour, pour un mouvement plus doux.
-            gsap.set(card, { rotationX: face.rotation, scale: 1 + 0.05 * Math.sin((turn.angle / 180) * Math.PI) });
+            gsap.set(card, { rotationX: face.rotation, scale: 1 + 0.03 * Math.sin((turn.angle / 180) * Math.PI) });
             if (face.swapped && !swapped) {
               swapped = true;
               flipState.current = next.state;
