@@ -1,0 +1,4 @@
+ALTER TABLE "creator_accounts" ADD COLUMN "claim_code" text;--> statement-breakpoint
+ALTER TABLE "creator_accounts" ADD COLUMN "claim_code_at" timestamp with time zone;--> statement-breakpoint
+ALTER TABLE "creator_accounts" ADD CONSTRAINT "creator_accounts_claim_code_format" CHECK ("creator_accounts"."claim_code" is null or "creator_accounts"."claim_code" ~ '^KOUPI-[A-Z0-9]{6}$');--> statement-breakpoint
+ALTER TABLE "creator_accounts" ADD CONSTRAINT "creator_accounts_claim_code_pending" CHECK ("creator_accounts"."claim_code" is null or ("creator_accounts"."claim_status" = 'pending' and "creator_accounts"."claim_code_at" is not null));

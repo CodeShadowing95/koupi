@@ -251,6 +251,9 @@ export const creatorAccounts = pgTable('creator_accounts', {
   claimStatus: text('claim_status', { enum: CLAIM_STATUSES }).notNull().default('none'),
   claimMethod: text('claim_method', { enum: CLAIM_METHODS }),
   claimedAt: timestamp('claimed_at', { withTimezone: true }),
+  /** Code de preuve à placer dans la bio du compte (KOUPI-XXXXXX), tant que la preuve est en cours. Voir ADR-0020. */
+  claimCode: text('claim_code'),
+  claimCodeAt: timestamp('claim_code_at', { withTimezone: true }),
   lastRecheckedAt: timestamp('last_rechecked_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -265,6 +268,8 @@ export const creatorAccounts = pgTable('creator_accounts', {
   check('creator_accounts_external_id_len', sql`${table.externalId} is null or char_length(trim(${table.externalId})) between 1 and 200`),
   check('creator_accounts_url_http', sql`${table.url} ~* '^https?://'`),
   check('creator_accounts_subscribers_positive', sql`${table.subscribers} is null or ${table.subscribers} >= 0`),
+  check('creator_accounts_claim_code_format', sql`${table.claimCode} is null or ${table.claimCode} ~ '^KOUPI-[A-Z0-9]{6}$'`),
+  check('creator_accounts_claim_code_pending', sql`${table.claimCode} is null or (${table.claimStatus} = 'pending' and ${table.claimCodeAt} is not null)`),
 ]);
 
 export type Submission = typeof submissions.$inferSelect;

@@ -379,6 +379,7 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-creator-themes{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0;padding:0}
 .k-creator-themes .k-pill{padding:6px 12px}
 .k-creator-accounts{display:flex;flex-wrap:wrap;gap:10px;list-style:none;margin:4px 0 0;padding:0}
+.k-chip-proof{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-right:6px;border-radius:50%;background:#7FB2FF;color:#0A1F44;font-size:10px;font-weight:900;line-height:1;flex:none}
 .k-creator-side{display:flex;flex-direction:column;align-items:flex-start;gap:16px}
 .k-creator-copies{display:flex;flex-direction:column;gap:2px;max-width:220px}
 .k-creator-copies b{font-family:var(--display);font-weight:800;font-size:44px;line-height:1;letter-spacing:-.03em;color:var(--text)}

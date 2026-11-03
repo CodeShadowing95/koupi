@@ -66,6 +66,8 @@ function toAdmin(row: CreatorAccountRow): AdminCreatorAccount {
     subscribers: row.subscribers, subscribersAt: row.subscribersAt?.toISOString() ?? null,
     platformVerified: row.platformVerified, adminCheckedAt: row.adminCheckedAt?.toISOString() ?? null,
     level: accountLevelOf(row),
+    claimStatus: row.claimStatus, claimCode: row.claimCode, claimCodeAt: row.claimCodeAt?.toISOString() ?? null,
+    claimedAt: row.claimedAt?.toISOString() ?? null,
   };
 }
 

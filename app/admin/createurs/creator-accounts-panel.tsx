@@ -7,6 +7,7 @@ import { FormDialog, sendJson } from '@/components/admin-form-dialog';
 import { InfoTip } from '@/components/admin-info-tip';
 import { PlatformIcon } from '@/components/platform-icon';
 import { CREATOR_LEVEL_LABELS, MIN_SUBSCRIBERS, type CreatorLevel } from '@/lib/verification';
+import { AccountClaim } from './account-claim';
 import { PLATFORM_LABELS, formatSubscribers, type AdminCreatorAccount, type CreatorPlatform } from '@/lib/creator-accounts-display';
 
 const LEVEL_TONES: Record<CreatorLevel, Tone> = { spotted: 'muted', checked: 'ok', verified: 'info' };
@@ -103,6 +104,7 @@ export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtube
                   <span style={{ flex: 1 }} />
                   <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => remove(account)}>Retirer</button>
                 </div>
+                <AccountClaim account={account} disabled={busy !== null} youtubeReady={youtubeReady} />
               </li>
             );
           })}

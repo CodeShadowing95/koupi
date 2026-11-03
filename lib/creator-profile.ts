@@ -6,23 +6,24 @@ import { creatorAccounts, creators } from '@/db/schema';
 import { PLATFORM_LABELS, formatSubscribers, type CreatorPlatform } from './creator-accounts-display';
 import type { Code, Tool } from './data';
 
-export type PublicCreatorAccount = { platform: CreatorPlatform; label: string; handle: string; url: string; subscribers: string | null };
+export type PublicCreatorAccount = { platform: CreatorPlatform; label: string; handle: string; url: string; subscribers: string | null; proven: boolean };
 export type CreatorProfile = { bio: string | null; accounts: PublicCreatorAccount[] };
 
 const PLATFORM_ORDER: CreatorPlatform[] = ['youtube', 'tiktok', 'instagram', 'snapchat', 'twitch', 'x', 'podcast', 'other'];
 
 /** Comptes rangés pour l'affichage : par réseau (YouTube d'abord), puis le plus suivi en premier. */
-export function publicAccounts(rows: { platform: CreatorPlatform; handle: string; url: string; subscribers: number | null }[]): PublicCreatorAccount[] {
+/** proven : le créateur a prouvé que ce compte est le sien (preuve par la bio, ADR-0020). */
+export function publicAccounts(rows: { platform: CreatorPlatform; handle: string; url: string; subscribers: number | null; claimStatus?: string }[]): PublicCreatorAccount[] {
   return [...rows]
     .sort((a, b) => PLATFORM_ORDER.indexOf(a.platform) - PLATFORM_ORDER.indexOf(b.platform) || (b.subscribers ?? -1) - (a.subscribers ?? -1))
-    .map(row => ({ platform: row.platform, label: PLATFORM_LABELS[row.platform], handle: row.handle, url: row.url, subscribers: formatSubscribers(row.subscribers) }));
+    .map(row => ({ platform: row.platform, label: PLATFORM_LABELS[row.platform], handle: row.handle, url: row.url, subscribers: formatSubscribers(row.subscribers), proven: row.claimStatus === 'verified' }));
 }
 
 /** null si aucun créateur n'a cette adresse. */
 export async function loadCreatorProfile(db: Db, slug: string): Promise<CreatorProfile | null> {
   const [creator] = await db.select({ id: creators.id, bio: creators.bio }).from(creators).where(eq(creators.slug, slug)).limit(1);
   if (!creator) return null;
-  const rows = await db.select({ platform: creatorAccounts.platform, handle: creatorAccounts.handle, url: creatorAccounts.url, subscribers: creatorAccounts.subscribers })
+  const rows = await db.select({ platform: creatorAccounts.platform, handle: creatorAccounts.handle, url: creatorAccounts.url, subscribers: creatorAccounts.subscribers, claimStatus: creatorAccounts.claimStatus })
     .from(creatorAccounts).where(eq(creatorAccounts.creatorId, creator.id)).orderBy(asc(creatorAccounts.createdAt));
   return { bio: creator.bio, accounts: publicAccounts(rows) };
 }

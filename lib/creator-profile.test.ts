@@ -17,6 +17,11 @@ describe('publicAccounts', () => {
     expect(accounts[0]).toMatchObject({ label: 'YouTube', subscribers: '12 400 abonnés' });
     expect(accounts[1].subscribers).toBeNull();
     expect(accounts[2].label).toBe('Instagram');
+    expect(accounts.every(account => !account.proven)).toBe(true);
+  });
+  it('marque le compte prouvé par le créateur', () => {
+    const [account] = publicAccounts([{ platform: 'youtube', handle: '@ana', url: 'https://youtube.com/@ana', subscribers: 1, claimStatus: 'verified' }]);
+    expect(account.proven).toBe(true);
   });
 });
 
@@ -36,7 +41,7 @@ describe('loadCreatorProfile', () => {
     await db.insert(schema.creatorAccounts).values({ creatorId: ana.id, platform: 'tiktok', handle: '@ana', url: 'https://tiktok.com/@ana', subscribers: 1 });
     expect(await loadCreatorProfile(db, 'ana')).toEqual({
       bio: 'Je teste des outils IA.',
-      accounts: [{ platform: 'tiktok', label: 'TikTok', handle: '@ana', url: 'https://tiktok.com/@ana', subscribers: '1 abonné' }],
+      accounts: [{ platform: 'tiktok', label: 'TikTok', handle: '@ana', url: 'https://tiktok.com/@ana', subscribers: '1 abonné', proven: false }],
     });
     expect(await loadCreatorProfile(db, 'personne')).toBeNull();
   });

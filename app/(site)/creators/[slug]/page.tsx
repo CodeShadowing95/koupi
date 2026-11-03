@@ -90,8 +90,8 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
               <ul className="k-creator-accounts" aria-label={`Comptes de ${creator}`}>
                 {profile.accounts.map(account => (
                   <li key={`${account.platform}-${account.handle}`}>
-                    <a className="k-chip" href={account.url} target="_blank" rel="noopener noreferrer me">
-                      {account.label} · {account.handle}{account.subscribers && <small>{account.subscribers}</small>}<span aria-hidden="true">↗</span>
+                    <a className="k-chip" href={account.url} target="_blank" rel="noopener noreferrer me" title={account.proven ? 'Compte prouvé par le créateur' : undefined}>
+                      {account.proven && <span className="k-chip-proof" aria-label="Compte prouvé par le créateur">✓</span>}{account.label} · {account.handle}{account.subscribers && <small>{account.subscribers}</small>}<span aria-hidden="true">↗</span>
                     </a>
                   </li>
                 ))}
