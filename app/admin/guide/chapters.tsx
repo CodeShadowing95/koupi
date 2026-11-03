@@ -443,6 +443,12 @@ function Createurs() {
         <Step title="Réponds">Le bouton <b>Répondre par e-mail</b> ouvre un e-mail à son adresse. Pour une revendication, demande-lui une preuve simple (un mot écrit dans la bio du compte, par exemple). Corrige la fiche s’il s’agit d’une erreur.</Step>
         <Step title="Range-la">Ajoute une note pour t’en souvenir, puis <b>Marquer traitée</b>, ou <b>Écarter</b> si c’est du spam. <b>Rouvrir</b> la remet dans « À traiter ».</Step>
       </Steps>
+      <p>Depuis la connexion des créateurs, « C’est ta page ? » mène à la page <b>Pour les créateurs</b> : la personne voit les chiffres de la page, laisse son e-mail et reçoit un lien pour se connecter. La revendication arrive ici en même temps, avec le compte principal de la page comme « compte annoncé ».</p>
+      <Steps>
+        <Step title="Fais prouver le compte">Contrôle le compte, puis donne un code à mettre dans la bio (voir « Faire prouver un compte par la bio »).</Step>
+        <Step title="Donne l’accès">Une fois le compte prouvé, <b>Donner l’accès à son espace</b> sur la revendication. À sa prochaine visite, la personne voit ses codes et leurs copies du mois. Koupi refuse tant qu’aucun compte du créateur n’est prouvé.</Step>
+        <Step title="Retire-le si besoin">« Retirer l’accès » la remet dans un espace vide, sans toucher à la page.</Step>
+      </Steps>
       <Callout tone="warn">Une revendication ne prouve rien à elle seule : n’importe qui peut écrire « je suis MrBeast ». Ne change jamais le niveau d’un créateur sur la seule foi d’un e-mail : demande-lui la preuve par la bio.</Callout>
       <Callout tone="why">Une revendication, c’est un créateur qui vient de lui-même. C’est le meilleur moment pour lui répondre vite et lui montrer ce que Koupi fait pour lui.</Callout>
     </Section>

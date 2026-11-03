@@ -1,10 +1,12 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { Turnstile, type TurnstileHandle } from '@/components/turnstile';
+import { routes } from '@/lib/routes';
 
 // « C'est ta page ? » et « Signaler une erreur » sur la page d'un créateur.
 // Une fenêtre (dialog natif : focus gardé dedans, Échap pour fermer) avec un petit formulaire.
-// Avant l'espace créateur, la demande arrive dans l'admin et on recontacte la personne par e-mail.
+// « C'est ta page ? » mène à /for-creators (connexion par lien, ADR-0021). Le signalement arrive dans l'admin.
 
 const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
 type Kind = 'claim' | 'report';
@@ -61,7 +63,7 @@ export function CreatorRequest({ slug, name }: { slug: string; name: string }) {
   return (
     <>
       <p className="k-creator-request">
-        <button type="button" className="k-link-btn is-strong" onClick={() => open('claim')}>C’est ta page ? Revendique-la</button>
+        <Link className="k-link-btn is-strong" href={routes.forCreators(slug)}>C’est ta page ? Revendique-la</Link>
         <span aria-hidden="true">·</span>
         <button type="button" className="k-link-btn" onClick={() => open('report')}>Signaler une erreur</button>
       </p>
