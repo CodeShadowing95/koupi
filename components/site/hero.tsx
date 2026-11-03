@@ -1,18 +1,18 @@
 'use client';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
 import { isPublic, type Code, type Tool } from '@/lib/data';
 import { routes } from '@/lib/routes';
 import { SearchDialog } from './search-dialog';
 import { MiniCoupon } from './coupon';
 import { ToolSeal } from './tool-logo';
-import { withLogosFirst } from '@/lib/tool-logos';
+import { toolLogo, withLogosFirst } from '@/lib/tool-logos';
 import { CreatorAvatar } from './creator-avatar';
 import { flipFace, nextFlip, type FlipState } from '@/lib/hero-flip';
 
-/** Temps entre deux coupons qui se retournent, et durée d'un tour complet. */
+/** Temps entre deux coupons qui se retournent, et durée d'un demi-tour (axe horizontal). */
 const FLIP_EVERY = 4.2;
-const FLIP_DURATION = 1.6;
+const FLIP_DURATION = 1.1;
 
 const rotating = ['NordVPN', 'o2switch', 'ElevenLabs', 'Shopify', 'Qonto', 'Babbel'];
 
@@ -36,6 +36,14 @@ export function Hero({ codes, tools }: { codes: Code[]; tools: Tool[] }) {
   const verified = codes.filter(code => code.status === 'verified');
   const verifiedCount = verified.length;
   const successRate = Math.round(verified.reduce((sum, code) => sum + code.success, 0) / Math.max(1, verifiedCount));
+
+  // Les logos de la réserve sont chargés à l'avance : le nouveau logo est prêt quand le coupon se retourne.
+  useEffect(() => {
+    for (const code of flipState.current.queue) {
+      const logo = toolLogo(slugOf(code.tool)) ?? toolLogo(code.tool);
+      if (logo) new Image().src = logo.src;
+    }
+  }, []); // une seule fois, au montage
 
   useGSAP(() => {
     const mm = gsap.matchMedia();
@@ -85,7 +93,7 @@ export function Hero({ codes, tools }: { codes: Code[]; tools: Tool[] }) {
         root.current?.addEventListener('pointerleave', leave);
       }
 
-      // … se retournent un par un pour montrer un autre code…
+      // … se retournent un par un (demi-tour sur l'axe horizontal) pour montrer un autre code…
       let visible = true;
       let lastSlot = -1;
       const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; });
@@ -103,13 +111,13 @@ export function Hero({ codes, tools }: { codes: Code[]; tools: Tool[] }) {
         const turn = { angle: 0 };
         gsap.set(card, { transformPerspective: 1100 });
         gsap.to(turn, {
-          angle: 360,
+          angle: 180,
           duration: FLIP_DURATION,
           ease: 'power2.inOut',
           onUpdate: () => {
             const face = flipFace(turn.angle);
             // Léger soulèvement pendant le tour, pour un mouvement plus doux.
-            gsap.set(card, { rotationY: face.rotation, scale: 1 + 0.05 * Math.sin((turn.angle / 360) * Math.PI) });
+            gsap.set(card, { rotationX: face.rotation, scale: 1 + 0.05 * Math.sin((turn.angle / 180) * Math.PI) });
             if (face.swapped && !swapped) {
               swapped = true;
               flipState.current = next.state;
@@ -117,7 +125,7 @@ export function Hero({ codes, tools }: { codes: Code[]; tools: Tool[] }) {
             }
           },
           onComplete: () => {
-            gsap.set(card, { rotationY: 0, scale: 1 });
+            gsap.set(card, { rotationX: 0, scale: 1 });
             timer = gsap.delayedCall(FLIP_EVERY, flipOne);
           },
         });
@@ -165,7 +173,7 @@ export function Hero({ codes, tools }: { codes: Code[]; tools: Tool[] }) {
                 className={`k-float k-float-${index + 1}`}
                 href={routes.tool(slugOf(code.tool))}
                 code={code.code}
-                avatar={<ToolSeal tool={slugOf(code.tool)} name={code.tool} />}
+                avatar={<ToolSeal key={code.id} tool={slugOf(code.tool)} name={code.tool} />}
                 title={<>{code.tool}, {code.discount}</>}
                 subtitle={<span className="k-by"><CreatorAvatar name={code.creator} size="xs" />de {code.creator}</span>}
               />

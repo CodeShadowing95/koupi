@@ -20,8 +20,9 @@ export function nextFlip<T>(state: FlipState<T>, lastSlot: number, random: () =>
 }
 
 /**
- * Angle affiché pendant un tour complet (0 → 360°) : le coupon passe deux fois sur la tranche (90° et 270°).
- * On le ramène entre -90° et 90° pour qu'il montre toujours sa face, jamais un texte à l'envers.
+ * Angle affiché pendant le retournement (0 → 180° pour un demi-tour, jusqu'à 360° pour un tour complet).
+ * Le coupon passe sur la tranche à 90° (et 270°). On le ramène entre -90° et 90° pour qu'il montre
+ * toujours sa face, jamais un texte à l'envers.
  * `swapped` dit si le nouveau code doit déjà être affiché (après la première tranche).
  */
 export function flipFace(angle: number): { rotation: number; swapped: boolean } {
