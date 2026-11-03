@@ -63,7 +63,7 @@ export const guideChapters: GuideChapter[] = [
   {
     slug: 'podcasts', part: 'moderate', title: 'Suivre des podcasts', minutes: 5,
     summary: 'Choisir les podcasts que Koupi lit pour trouver des codes, lancer une lecture, les mettre en pause ou les retirer.',
-    goals: ['Trouver et suivre un podcast', 'Savoir comment Koupi repère un code dans un épisode', 'Savoir à quel créateur ses codes sont crédités', 'Mettre en pause sans rien perdre', 'Ajouter en un clic l’outil d’un code trouvé hors catalogue', 'Faire analyser un site par l’IA et créer une catégorie'],
+    goals: ['Trouver et suivre un podcast, ou en découvrir dans les classements', 'Savoir comment Koupi repère un code dans un épisode', 'Savoir à quel créateur ses codes sont crédités', 'Mettre en pause sans rien perdre', 'Ajouter en un clic l’outil d’un code trouvé hors catalogue', 'Faire analyser un site par l’IA et créer une catégorie'],
     practice: { href: '/admin/podcasts', label: 'Ouvrir les podcasts suivis' },
   },
   {

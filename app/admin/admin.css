@@ -1286,3 +1286,7 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-sugg .adm-card-foot{flex-wrap:wrap;row-gap:6px}
 .adm-sugg .adm-sugg-analysis>p:first-child{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .adm-dialog .adm-sugg-analysis>p:first-child{display:block}
+/* Découvrir des podcasts (classement Apple) */
+.adm-pod-chip[aria-pressed="true"],.adm-pod-chip[aria-pressed="true"]:hover:not(:disabled){border-color:var(--blue);background:var(--blue);color:var(--on-blue)}
+.adm-pod-top-note{margin:0;font-size:13px}
+.adm-pod-rank{flex:none;width:28px;text-align:center;font-size:14px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
