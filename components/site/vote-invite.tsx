@@ -45,10 +45,22 @@ const REASONS = [
 /** Vote direct pour le code que le visiteur vient d'essayer. */
 function QuickVote({ copied, onVoted }: { copied: CopiedCode; onVoted: () => void }) {
   const { voted, message, sending, vote } = useCodeVote(copied.id);
+  // Seul un vote donné ici range la fenêtre toute seule. Un vote déjà enregistré dans ce navigateur
+  // (lu au chargement) ne doit pas la fermer avant que le visiteur ait pu la lire.
+  const asked = useRef(false);
   const done = useRef(false);
   useEffect(() => {
-    if (voted && !done.current) { done.current = true; onVoted(); }
+    if (voted && asked.current && !done.current) { done.current = true; onVoted(); }
   }, [voted, onVoted]);
+  const answer = (worked: boolean) => { asked.current = true; void vote(worked); };
+  if (voted && !asked.current) {
+    return (
+      <div className="k-invite-quick is-done" role="status">
+        <span className="k-invite-quick-mark"><Thumb size={20} filled down={voted === 'down'} /></span>
+        <p><strong>Tu as déjà voté pour <code>{copied.code}</code>, merci !</strong> Pense au 👍 pour les prochains codes que tu essaies.</p>
+      </div>
+    );
+  }
   if (voted) {
     return (
       <div className="k-invite-quick is-done" role="status">
@@ -63,8 +75,8 @@ function QuickVote({ copied, onVoted }: { copied: CopiedCode; onVoted: () => voi
     <div className="k-invite-quick">
       <p>Tu viens d’essayer <code>{copied.code}</code> sur <strong>{copied.tool}</strong>. Il a marché&nbsp;?</p>
       <div className="k-invite-quick-actions">
-        <button type="button" className="k-invite-yes" disabled={sending} onClick={() => vote(true)}><Thumb size={17} /> Oui, il a marché</button>
-        <button type="button" className="k-invite-no" disabled={sending} onClick={() => vote(false)}><Thumb size={17} down /> Non</button>
+        <button type="button" className="k-invite-yes" disabled={sending} onClick={() => answer(true)}><Thumb size={17} /> Oui, il a marché</button>
+        <button type="button" className="k-invite-no" disabled={sending} onClick={() => answer(false)}><Thumb size={17} down /> Non</button>
       </div>
       {message && <p className="k-invite-error" role="alert">{message}</p>}
     </div>
@@ -84,6 +96,8 @@ export function VoteInvite({ trigger = 'copy' }: { trigger?: InviteTrigger }) {
   const primaryRef = useRef<HTMLButtonElement>(null);
   const closing = useRef(false);
   const reopened = useRef(false);
+  // Heure d'ouverture : un clic sur le fond juste après (par exemple pour revenir dans la fenêtre du navigateur) ne ferme pas.
+  const openedAt = useRef(0);
 
   const send = useCallback((event: InviteEvent) => {
     const next = nextPhase(phaseRef.current, event, trigger);
@@ -128,6 +142,7 @@ export function VoteInvite({ trigger = 'copy' }: { trigger?: InviteTrigger }) {
   useEffect(() => {
     if (phase !== 'open') return;
     markInviteSeen(window.localStorage);
+    openedAt.current = Date.now();
     const overlay = overlayRef.current;
     const panel = panelRef.current;
     if (!overlay || !panel) return;
@@ -242,7 +257,7 @@ export function VoteInvite({ trigger = 'copy' }: { trigger?: InviteTrigger }) {
         </button>
       )}
       {open && (
-        <div ref={overlayRef} className="k-invite-overlay" onMouseDown={event => { if (event.target === event.currentTarget) close(); }}>
+        <div ref={overlayRef} className="k-invite-overlay" onMouseDown={event => { if (event.target === event.currentTarget && Date.now() - openedAt.current > 1500) close(); }}>
           <div ref={panelRef} className="k-invite k-paper" role="dialog" aria-modal="true" aria-labelledby="k-invite-title" aria-describedby="k-invite-lead">
             <span className="k-invite-tint" aria-hidden="true" />
             <button type="button" className="k-invite-close" onClick={close} aria-label="Fermer">
