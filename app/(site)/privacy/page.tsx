@@ -1,3 +1,5 @@
+import { CONTACT_EMAIL } from '@/lib/site-contact';
+
 export const metadata = { title: 'Confidentialité · Koupi' };
 
 export default function Privacy() {
@@ -9,7 +11,7 @@ export default function Privacy() {
         <h2>Mesure d&apos;audience</h2>
         <p>Pour savoir quels codes servent, Koupi compte chaque jour combien de fois un code est copié, combien de fois le lien d&apos;un créateur est ouvert, et quelles recherches ne trouvent aucun outil. Ce sont de simples totaux par jour : pas de cookie, pas de service tiers, aucun identifiant qui permette de te reconnaître ou de suivre ta visite.</p>
         <h2>Données envoyées</h2>
-        <p>Les e-mails sont utilisés uniquement pour les alertes demandées et la confirmation associée. Tu peux demander leur suppression à [Adresse de contact].</p>
+        <p>Les e-mails sont utilisés uniquement pour les alertes demandées et la confirmation associée. Tu peux demander leur suppression à <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>
         <h2>Espace créateur</h2>
         <p>Un créateur qui se connecte à son espace donne son adresse e-mail. Elle sert à lui envoyer son lien de connexion et à le recontacter au sujet de sa page, rien d&apos;autre. Le lien marche une seule fois, pendant 20 minutes. Une fois connecté, un cookie de session (nécessaire au fonctionnement, sans pistage) le garde connecté 30 jours au plus. Les e-mails partent par Resend, notre prestataire d&apos;envoi.</p>
         <h2>Durées et droits</h2>

@@ -1,3 +1,5 @@
+import { CONTACT_EMAIL } from '@/lib/site-contact';
+
 export const metadata = { title: 'Transparence · Koupi' };
 
 export default function Transparency() {
@@ -31,7 +33,7 @@ export default function Transparency() {
           <h2>Les logos des outils</h2>
           <p>Les logos servent seulement à reconnaître chaque outil et restent la propriété de leurs marques. Ils viennent de <a href="https://logo.dev" target="_blank" rel="noopener">Logo.dev</a>, de Simple Icons (licence CC0) ou du site officiel de l&apos;outil. Ils sont téléchargés une fois, et sont servis par Koupi : ton navigateur ne contacte aucun service tiers pour les afficher.</p>
           <h2>Tu es créateur ?</h2>
-          <p>Tu veux confirmer, corriger ou retirer un code ? Écris-nous à <strong>[Adresse de contact]</strong>.</p>
+          <p>Tu veux confirmer, corriger ou retirer un code ? Écris-nous à <a href={`mailto:${CONTACT_EMAIL}`}><strong>{CONTACT_EMAIL}</strong></a>.</p>
         </div>
       </div>
     </main>
