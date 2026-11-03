@@ -21,7 +21,7 @@ function replyLink(request: AdminCreatorRequest) {
   return `mailto:${request.email}?subject=${encodeURIComponent(subject)}`;
 }
 
-export function RequestsView({ requests }: { requests: AdminCreatorRequest[] }) {
+export function RequestsView({ requests, granted }: { requests: AdminCreatorRequest[]; granted: string[] }) {
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>('new');
   const [busy, setBusy] = useState<string | null>(null);
@@ -35,6 +35,20 @@ export function RequestsView({ requests }: { requests: AdminCreatorRequest[] }) 
     setError('');
     const note = notes[request.id];
     const failed = await sendJson(`/api/admin/creator-requests/${request.id}`, 'PATCH', note === undefined ? { status } : { status, adminNote: note });
+    setBusy(null);
+    if (failed) setError(failed); else router.refresh();
+  }
+
+  // Accès à l'espace créateur (ADR-0021) : seulement après la preuve par la bio, le serveur le vérifie.
+  const hasAccess = (request: AdminCreatorRequest) => Boolean(request.email) && granted.includes(`${request.email!.toLowerCase()}|${request.creator.id}`);
+  async function setAccess(request: AdminCreatorRequest, grant: boolean) {
+    const question = grant
+      ? `Donner à ${request.email} l’accès à l’espace de ${request.creator.name} ? Fais-le seulement si cette personne a prouvé un compte par la bio.`
+      : `Retirer à ${request.email} l’accès à l’espace de ${request.creator.name} ?`;
+    if (!window.confirm(question)) return;
+    setBusy(request.id);
+    setError('');
+    const failed = await sendJson(`/api/admin/creator-requests/${request.id}/access`, 'POST', { grant });
     setBusy(null);
     if (failed) setError(failed); else router.refresh();
   }
@@ -76,7 +90,7 @@ export function RequestsView({ requests }: { requests: AdminCreatorRequest[] }) 
                     {request.message && <><dt>Message</dt><dd style={{ whiteSpace: 'pre-line' }}>{request.message}</dd></>}
                   </dl>
                   {request.kind === 'claim' && request.status === 'new' && (
-                    <p className="adm-ca-hint">Pour qu’il prouve que le compte est le sien : ouvre sa <a href={`/admin/createurs?q=${encodeURIComponent(request.creator.name)}`}>fiche admin</a>, relie ce compte s’il ne l’est pas, puis <b>Donner un code</b> et envoie-lui le message.</p>
+                    <p className="adm-ca-hint">Pour qu’il prouve que le compte est le sien : ouvre sa <a href={`/admin/createurs?q=${encodeURIComponent(request.creator.name)}`}>fiche admin</a>, relie ce compte s’il ne l’est pas, puis <b>Donner un code</b> et envoie-lui le message. Une fois le compte prouvé, <b>Donner l’accès à son espace</b>.</p>
                   )}
                   <div className="field">
                     <label htmlFor={`note-${request.id}`}>Note pour toi <span className="muted">(facultatif)</span></label>
@@ -84,6 +98,9 @@ export function RequestsView({ requests }: { requests: AdminCreatorRequest[] }) 
                   </div>
                   <div className="adm-card-foot" style={{ gap: 8, flexWrap: 'wrap' }}>
                     {reply && request.status === 'new' && <a className="adm-btn" href={reply}>Répondre par e-mail</a>}
+                    {request.kind === 'claim' && request.email && (hasAccess(request)
+                      ? <><span className="adm-req-access">✓ Accès à son espace donné</span><button type="button" className="adm-btn" disabled={busy === request.id} onClick={() => setAccess(request, false)}>Retirer l’accès</button></>
+                      : <button type="button" className="adm-btn" disabled={busy === request.id} onClick={() => setAccess(request, true)}>Donner l’accès à son espace</button>)}
                     <span style={{ flex: 1 }} />
                     {request.status === 'new' ? <>
                       <button type="button" className="adm-btn" disabled={busy === request.id} onClick={() => setStatus(request, 'dismissed')}>Écarter</button>

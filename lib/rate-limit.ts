@@ -10,6 +10,9 @@ export const LOGIN_RULE: RateLimitRule = { limit: 5, windowSeconds: 15 * 60 };
 export const SUBMISSION_RULE: RateLimitRule = { limit: 5, windowSeconds: 60 * 60 };
 // Revendications et signalements d'une page créateur : 5 par IP et par heure.
 export const CREATOR_REQUEST_RULE: RateLimitRule = { limit: 5, windowSeconds: 60 * 60 };
+// Liens de connexion des créateurs : 5 demandes par heure et par IP, 3 par heure et par adresse e-mail.
+export const CREATOR_SIGN_IN_RULE: RateLimitRule = { limit: 5, windowSeconds: 60 * 60 };
+export const CREATOR_SIGN_IN_EMAIL_RULE: RateLimitRule = { limit: 3, windowSeconds: 60 * 60 };
 // Un vote par code et par IP sur 24 h, 30 votes par IP et par heure, 120 mesures d'audience par IP et par heure.
 export const VOTE_PER_CODE_RULE: RateLimitRule = { limit: 1, windowSeconds: 24 * 60 * 60 };
 export const VOTE_RULE: RateLimitRule = { limit: 30, windowSeconds: 60 * 60 };
