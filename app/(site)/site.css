@@ -722,7 +722,7 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-pass-head{display:flex;align-items:center;gap:12px;min-width:0}
 .k-pass-head .k-tool-logo{width:40px;height:40px;border-radius:12px;font-size:16px;flex:none}
 .k-pass-title{display:flex;flex-direction:column;min-width:0}
-.k-pass-title strong{font-family:var(--display);font-size:20px;font-weight:800;letter-spacing:-.02em;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.k-pass-title strong{font-family:var(--display);font-size:19px;font-weight:800;letter-spacing:-.02em;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .k-pass-title small{font-size:12.5px;color:var(--paper-muted)}
 .k-pass-by{display:flex;flex-direction:column;gap:4px;min-width:0;margin:0}
 .k-pass-by-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -730,6 +730,7 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-pass-by small,.k-pass-facts dt{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--paper-muted)}
 .k-pass-who{display:inline-flex;align-items:center;gap:7px;max-width:100%;font-weight:700;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .k-pass-who:hover{color:var(--blue)}
+.k-pass-who-name{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .k-pass-facts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.8fr) minmax(0,1.3fr);gap:12px 10px;margin:0;padding-top:14px;border-top:2px dashed rgba(23,21,15,.14)}
 .k-pass-facts div{display:flex;flex-direction:column;gap:3px;min-width:0}
 .k-pass-facts .is-wide{grid-column:1/-1}
@@ -876,35 +877,73 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-board-views button{display:inline-flex;align-items:center;gap:7px;min-height:34px;padding:0 12px;border:0;border-radius:9px;background:transparent;color:var(--text-soft);font-size:13.5px;font-weight:600;white-space:nowrap;transition:background .2s,color .2s}
 .k-board-views button:hover{color:#fff}
 .k-board-views button[aria-pressed="true"]{background:var(--paper);color:var(--paper-ink)}
-/* Vue brève : coupon couché, talon à droite, seulement l'outil, la réduction et le créateur. */
-.k-board.is-brief .k-board-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 20px}
-.k-board.is-brief .k-pass{flex-direction:row;height:auto}
-.k-board.is-brief .k-pass-main{gap:8px;padding:16px 18px 16px 22px;border-radius:16px 0 0 16px;
+/* Vue « Liste » : un coupon couché par ligne, sur toute la largeur. Colonnes : outil, créateur, réduction, talon à droite. */
+.k-board.is-list .k-board-list{grid-template-columns:minmax(0,1fr);gap:12px}
+.k-board.is-list .k-pass{flex-direction:row;height:auto;min-width:0;filter:drop-shadow(0 12px 22px rgba(0,0,0,.4))}
+.k-board.is-list .k-pass-main{display:grid;grid-template-columns:36px minmax(0,1fr) minmax(0,1.1fr) minmax(0,1.25fr) auto;align-items:center;column-gap:16px;row-gap:8px;
+  min-width:0;padding:14px 22px 14px 26px;border-radius:16px 0 0 16px;
   -webkit-mask:radial-gradient(circle 9px at 0 50%,#0000 97%,#000) 0 0/100% 100% no-repeat,radial-gradient(circle at 100% 50%,#0000 3px,#000 3.5px) right/100% 12px repeat-y;-webkit-mask-composite:source-in;
   mask:radial-gradient(circle 9px at 0 50%,#0000 97%,#000) 0 0/100% 100% no-repeat,radial-gradient(circle at 100% 50%,#0000 3px,#000 3.5px) right/100% 12px repeat-y;mask-composite:intersect}
-.k-board.is-brief :is(.k-pass-title small,.k-pass-by-top,.k-pass-facts>div:not(.is-wide),.k-pass-facts dt,.k-pass-source){display:none}
-.k-board.is-brief .k-pass-head .k-tool-logo{width:34px;height:34px;border-radius:10px}
-.k-board.is-brief .k-pass-title strong{font-size:18px}
-.k-board.is-brief .k-pass-facts{display:block;padding:0;border:0}
-.k-board.is-brief .k-pass-facts dd.is-discount{font-size:19px;-webkit-line-clamp:1}
-.k-board.is-brief .k-pass-who{font-size:13px;font-weight:600;color:var(--paper-muted)}
-.k-board.is-brief .k-pass-stub{flex:none;flex-direction:column;justify-content:center;gap:10px;width:138px;padding:14px 12px;border-radius:0 16px 16px 0;transform-origin:0 100%;
+.k-board.is-list :is(.k-pass-by-top small,.k-pass-facts>div:not(.is-wide),.k-pass-facts dt,.k-pass-source){display:none}
+.k-board.is-list .k-pass-head{display:contents}
+.k-board.is-list .k-pass-logo{grid-row:1;grid-column:1}
+.k-board.is-list .k-pass-head .k-tool-logo{width:36px;height:36px;border-radius:10px}
+.k-board.is-list .k-pass-title{grid-row:1;grid-column:2}
+.k-board.is-list .k-pass-by{grid-row:1;grid-column:3}
+.k-board.is-list .k-pass-facts{grid-row:1;grid-column:4}
+.k-board.is-list .k-pass-thumbs{grid-row:1;grid-column:5}
+.k-board.is-list .k-pass-title strong{font-size:17px}
+.k-board.is-list .k-pass-title small{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.k-board.is-list .k-pass-by{flex-direction:column-reverse;align-items:flex-start;gap:5px}
+.k-board.is-list .k-pass-by-top{justify-content:flex-start}
+.k-board.is-list .k-pass-who{font-size:13.5px}
+.k-board.is-list .k-pass-facts{display:block;padding:0;border:0;min-width:0}
+.k-board.is-list .k-pass-facts dd.is-discount{font-size:18px;-webkit-line-clamp:2}
+.k-board.is-list .k-pass-stub{flex:none;flex-direction:row;align-items:center;gap:12px;width:250px;padding:12px 16px 12px 20px;border-radius:0 16px 16px 0;transform-origin:0 100%;
   -webkit-mask:radial-gradient(circle 9px at 100% 50%,#0000 97%,#000) 0 0/100% 100% no-repeat,radial-gradient(circle at 0 50%,#0000 3px,#000 3.5px) left/100% 12px repeat-y;-webkit-mask-composite:source-in;
   mask:radial-gradient(circle 9px at 100% 50%,#0000 97%,#000) 0 0/100% 100% no-repeat,radial-gradient(circle at 0 50%,#0000 3px,#000 3.5px) left/100% 12px repeat-y;mask-composite:intersect}
-.k-board.is-brief .k-pass-stub-code{align-items:center;text-align:center;max-width:100%}
-.k-board.is-brief .k-pass-code{font-size:15px}
-.k-board.is-brief .k-pass.is-torn .k-pass-stub{transform:translate(10px,6px) rotate(5deg)}
-@media (max-width:1180px){.k-board.is-brief .k-board-list{grid-template-columns:minmax(0,1fr)}}
+.k-board.is-list .k-pass-stub-code{flex:1;min-width:0}
+.k-board.is-list .k-pass-code{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}
+.k-board.is-list .k-pass.is-torn .k-pass-stub{transform:translate(8px,4px) rotate(3deg)}
+@media (max-width:1180px){
+  .k-board.is-list .k-pass-main{grid-template-columns:36px minmax(0,1fr) minmax(0,1fr) auto}
+  .k-board.is-list .k-pass-thumbs{grid-column:4}
+  .k-board.is-list .k-pass-facts{grid-row:2;grid-column:2/-1}
+}
+@media (max-width:700px){
+  .k-board.is-list .k-pass-main{grid-template-columns:32px minmax(0,1fr) auto;column-gap:10px;padding:14px 14px 14px 22px}
+  .k-board.is-list .k-pass-head .k-tool-logo{width:32px;height:32px}
+  .k-board.is-list .k-pass-title{grid-column:2/-1}
+  .k-board.is-list .k-pass-thumbs{grid-row:2;grid-column:3}
+  .k-board.is-list .k-pass-by{grid-row:2;grid-column:1/3}
+  .k-board.is-list .k-pass-facts{grid-row:3;grid-column:1/-1}
+  .k-board.is-list .k-pass-by-top{display:none}
+  .k-board.is-list .k-pass-stub{flex-direction:column;align-items:stretch;justify-content:center;gap:8px;width:122px;padding:12px 12px 12px 16px}
+  .k-board.is-list .k-pass-action{text-align:center}
+  .k-board.is-list .k-pass-code{font-size:13px}
+}
 @media (max-width:600px){
   .k-board-bar{flex-wrap:wrap}
   .k-board-views button{padding:0 10px}
-  .k-board.is-brief .k-pass-stub{width:112px}
 }
 @media (prefers-reduced-motion:reduce){.k-board-views button{transition:none}}
 /* Page des codes : filtres enrichis (cases de confiance, puces d'offre, interrupteur, compteurs, pastilles) */
 .k-board-side{max-height:calc(100vh - 120px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.18) transparent}
 .k-board-extra{display:flex;flex-direction:column;gap:26px}
-.k-board-toggle{display:none}
+.k-board-toggle{display:flex;align-items:center;gap:10px;min-height:42px;padding:0 12px 0 14px;border-radius:12px;border:1px dashed var(--line-2);background:transparent;color:#fff;font-size:14px;font-weight:600;transition:background .2s,border-color .2s}
+.k-board-toggle:hover{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.35)}
+.k-board-toggle .k-board-count{margin-left:auto}
+.k-board-chev{flex:none;margin-left:auto;transition:transform .25s}
+.k-board-toggle .k-board-count+.k-board-chev{margin-left:0}
+.k-board-toggle[aria-expanded="true"] .k-board-chev{transform:rotate(180deg)}
+.k-board-extra:not(.is-open){display:none}
+.k-board-extra.is-open{animation:k-extra .3s ease-out}
+@keyframes k-extra{from{opacity:0;transform:translateY(-6px)}}
+.k-board-check.is-radio .k-board-box{border-radius:50%}
+.k-board-check.is-radio .k-board-box::after{left:4px;top:4px;width:7px;height:7px;border:0;border-radius:50%;background:var(--paper-ink);transform:scale(0)}
+.k-board-check.is-radio[aria-checked="true"]{color:#fff}
+.k-board-check.is-radio[aria-checked="true"] .k-board-box{background:var(--paper);border-color:var(--paper)}
+.k-board-check.is-radio[aria-checked="true"] .k-board-box::after{transform:scale(1)}
 .k-board-count{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:20px;padding:0 6px;margin-left:auto;border-radius:999px;background:rgba(255,255,255,.08);color:var(--muted);font-family:var(--mono);font-size:11px;font-weight:700;font-variant-numeric:tabular-nums}
 .k-board-count.is-on{background:var(--coral);color:#fff}
 .k-board-seg button .k-board-count{margin-left:4px;min-width:0;height:18px;padding:0 5px;background:transparent;color:inherit;opacity:.65}
@@ -940,41 +979,37 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-board-clear{border:0;background:none;padding:0 4px;font-size:13.5px}
 @media (max-width:900px){
   .k-board-side{max-height:none;overflow:visible}
-  .k-board-toggle{display:flex;align-items:center;gap:10px;min-height:42px;padding:0 14px;border-radius:12px;border:1px solid var(--line-2);background:rgba(255,255,255,.04);color:#fff;font-size:14px;font-weight:600}
-  .k-board-toggle .k-board-count{margin-left:auto}
-  .k-board-extra{display:none;gap:18px}
-  .k-board-extra.is-open{display:flex}
+  .k-board-extra{gap:18px}
 }
-@media (prefers-reduced-motion:reduce){.k-board-box::after,.k-board-knob,.k-board-knob::after,.k-board-pill,.k-board-chip,.k-board-check{transition:none}}
+@media (prefers-reduced-motion:reduce){.k-board-extra.is-open{animation:none}.k-board-chev,.k-board-toggle,.k-board-box::after,.k-board-knob,.k-board-knob::after,.k-board-pill,.k-board-chip,.k-board-check{transition:none}}
 @media (min-width:901px){.k-board{grid-template-columns:280px minmax(0,1fr)}}
 .k-board-seg button{padding:0 6px}
 .k-board-seg button .k-board-count{margin-left:2px;padding:0 3px;font-size:10px}
-/* Coupon de la page des codes : vote « Ça a marché ? » et tampon laissé par le vote */
+/* Coupon de la page des codes : pouces « ça marche / ça ne marche pas » à droite du nom de l'outil */
 .k-pass-main{position:relative}
-.k-pass-vote{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-height:30px;font-size:13px;font-weight:700;color:var(--paper-ink)}
-.k-pass-vote>span:first-child{margin-right:auto}
-.k-pass-vote button{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;border:1.5px dashed rgba(23,21,15,.35);background:transparent;color:var(--paper-ink);transition:transform .2s cubic-bezier(.3,1.6,.5,1),background .2s,border-color .2s,color .2s}
-.k-pass-vote button.is-up:hover:not(:disabled){border-style:solid;border-color:#138A55;background:#138A55;color:#fff;transform:rotate(-8deg) scale(1.08)}
-.k-pass-vote button.is-down:hover:not(:disabled){border-style:solid;border-color:#D9482B;background:#D9482B;color:#fff;transform:rotate(8deg) scale(1.08)}
-.k-pass-vote button:disabled{opacity:.45;cursor:wait}
-.k-pass-vote-done{font-size:12.5px;font-weight:600;color:var(--paper-muted)}
-.k-pass-vote-error{flex-basis:100%;font-size:12px;color:#C23A1E}
-.k-pass-stamp{position:relative;margin:2px 4px 2px auto;padding:5px 11px;border:3px solid currentColor;border-radius:9px;outline:1.5px solid currentColor;outline-offset:2px;
-  font-family:var(--mono);font-size:14px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;line-height:1;white-space:nowrap;pointer-events:none;
-  transform:rotate(-8deg);opacity:.8;mix-blend-mode:multiply;
-  -webkit-mask:repeating-radial-gradient(circle at 30% 40%,#000 0 2px,rgba(0,0,0,.72) 2.5px 3px);mask:repeating-radial-gradient(circle at 30% 40%,#000 0 2px,rgba(0,0,0,.72) 2.5px 3px)}
-.k-pass-stamp.is-up{color:#138A55}
-.k-pass-stamp.is-down{color:#D9482B}
-@keyframes k-stamp{0%{opacity:0;transform:scale(2.6) rotate(4deg)}55%{opacity:.85;transform:scale(.92) rotate(-9deg)}100%{opacity:.8;transform:scale(1) rotate(-8deg)}}
-@keyframes k-thud{0%,100%{transform:none}35%{transform:translateY(2px) scale(.992)}}
-.k-pass-stamp.is-new{animation:k-stamp .42s cubic-bezier(.2,.9,.3,1.2) both}
-.k-pass:has(.k-pass-stamp.is-new) .k-pass-main{animation:k-thud .28s .2s ease-out}
-.k-board.is-brief .k-pass-vote{display:none}
-.k-board.is-brief .k-pass.is-torn .k-pass-vote{display:flex}
-.k-board.is-brief .k-pass-vote.is-done{display:flex;min-height:0}
-.k-board.is-brief .k-pass-vote.is-done .k-pass-vote-done{display:none}
-.k-board.is-brief .k-pass-stamp{margin:0 auto 0 2px;font-size:10.5px;padding:3px 7px;border-width:2px}
-@media (prefers-reduced-motion:reduce){.k-pass-stamp.is-new,.k-pass:has(.k-pass-stamp.is-new) .k-pass-main{animation:none}.k-pass-vote button{transition:none}}
+.k-pass-head{gap:10px}
+.k-pass-head .k-pass-title{flex:1}
+.k-pass-thumbs{flex:none;display:flex;align-items:center;gap:2px;padding:2px;border-radius:999px;background:rgba(23,21,15,.06)}
+.k-pass-thumbs button{position:relative;display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 7px;border:0;border-radius:999px;background:transparent;color:var(--paper-muted);
+  font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;transition:background .2s,color .2s,transform .2s cubic-bezier(.3,1.6,.5,1)}
+.k-pass-thumbs button.is-down{padding:0 6px}
+.k-pass-thumbs button:hover:not(:disabled){color:var(--paper-ink);background:rgba(23,21,15,.08)}
+.k-pass-thumbs button.is-up:hover:not(:disabled) svg{transform:rotate(-12deg)}
+.k-pass-thumbs button.is-down:hover:not(:disabled) svg{transform:rotate(12deg)}
+.k-pass-thumbs svg{transition:transform .2s}
+.k-pass-thumbs button:disabled{cursor:default}
+.k-pass-thumbs button[aria-pressed="true"].is-up{background:#138A55;color:#fff}
+.k-pass-thumbs button[aria-pressed="true"].is-down{background:#D9482B;color:#fff}
+.k-pass-thumbs button[aria-pressed="true"] svg{fill:currentColor}
+.k-pass-thumbs button.is-sending{opacity:.6}
+.k-pass-thumbs button.is-new{animation:k-thumb .5s cubic-bezier(.2,.9,.3,1.4)}
+.k-pass-thumbs button.is-new::after{content:"+1";position:absolute;left:50%;top:-4px;font-size:12px;font-weight:900;color:#138A55;pointer-events:none;animation:k-plus .8s ease-out forwards}
+.k-pass-thumbs button.is-down.is-new::after{color:#D9482B}
+@keyframes k-thumb{0%{transform:scale(1)}35%{transform:scale(1.25) rotate(-8deg)}100%{transform:scale(1)}}
+@keyframes k-plus{from{opacity:1;transform:translate(-50%,0)}to{opacity:0;transform:translate(-50%,-18px)}}
+.k-pass-thumbs{position:relative}
+.k-pass-thumbs-error{position:absolute;right:0;top:calc(100% + 6px);z-index:3;width:max-content;max-width:220px;padding:6px 10px;border-radius:8px;background:var(--paper-ink);color:var(--paper);font-size:12px;font-weight:600;line-height:1.35}
+@media (prefers-reduced-motion:reduce){.k-pass-thumbs button,.k-pass-thumbs svg{transition:none}.k-pass-thumbs button.is-new,.k-pass-thumbs button.is-new::after{animation:none}.k-pass-thumbs button.is-new::after{display:none}}
 /* Bandeau « Dernière chance » : codes qui expirent sous 7 jours */
 .k-board-last{display:flex;flex-direction:column;gap:12px;padding:14px 16px 16px;border-radius:18px;overflow:hidden;border:1px solid rgba(255,106,61,.35);
   background:linear-gradient(100deg,rgba(255,106,61,.16),rgba(255,106,61,.04) 60%,transparent),rgba(13,15,43,.6)}
@@ -1035,3 +1070,20 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
   .k-board-empty-stub:hover{transform:none}
 }
 @media (prefers-reduced-motion:reduce){.k-board-last-head svg{animation:none}.k-board-last-ticket,.k-board-empty-stub,.k-board-relax button{transition:none}}
+/* En-tête compact de la page des codes : titre et consigne sur une ligne, les codes juste dessous */
+.k-codes-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;margin-bottom:22px}
+.k-codes-head h1{font-size:clamp(26px,3vw,34px);letter-spacing:-.03em}
+.k-codes-head p{display:inline-flex;align-items:center;gap:8px;margin:0;color:var(--text-soft);font-size:14.5px}
+.k-codes-head svg{flex:none;color:var(--coral)}
+/* Pastille de confiance sur le logo de l'outil, et logo de la plateforme d'où vient le code */
+.k-pass-logo{position:relative;flex:none;display:inline-flex}
+.k-codeseal{position:absolute;right:-6px;bottom:-6px;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;color:#fff;box-shadow:0 0 0 2.5px #FBF5E8;cursor:help}
+.k-codeseal.is-verified{background:#19A463}
+.k-codeseal.is-paid{background:linear-gradient(140deg,#FFD866,#E0A10E);color:#3B2900}
+.k-codeseal.is-to_test{background:#F2A23A;color:#3B2400}
+.k-codeseal.is-expired{background:#8C877B}
+.k-board-check .k-codeseal{position:static;width:18px;height:18px;margin-left:-2px;box-shadow:none;cursor:inherit}
+.k-pass-platform{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--paper-muted);white-space:nowrap}
+.k-platform-icon{display:inline-flex;align-items:center;justify-content:center;flex:none;border-radius:5px;color:#fff}
+.k-platform-icon.is-snapchat{color:#000}
+.k-pass-source .k-platform-icon{border-radius:4px}
