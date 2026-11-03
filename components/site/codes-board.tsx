@@ -46,7 +46,7 @@ type Props = {
 type View = 'cards' | 'list';
 const VIEW_KEY = 'koupi-codes-view';
 // Les morceaux du coupon qui glissent vers leur nouvelle place quand on change de vue.
-const FLIP_TARGETS = '.k-board-item, .k-pass, .k-pass-main, .k-pass-stub, .k-pass-head, .k-pass-head .k-tool-logo, .k-pass-title strong, .k-pass-who, .k-pass-facts .is-wide, .k-pass-stub-code, .k-pass-action';
+const FLIP_TARGETS = '.k-board-item, .k-pass, .k-pass-main, .k-pass-stub, .k-pass-head .k-tool-logo, .k-pass-thumbs, .k-pass-title strong, .k-pass-who, .k-pass-facts .is-wide, .k-pass-stub-code, .k-pass-action';
 
 const count = (value: number | undefined) => String(value ?? 0);
 /** Filtres rangés derrière « Plus de filtres » (noms de paramètres dans l'adresse). */

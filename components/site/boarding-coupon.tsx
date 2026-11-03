@@ -14,7 +14,8 @@ import { useCodeVote } from '@/components/site/use-code-vote';
 // Le coupon de la page « Tous les codes » : même papier et même talon bleu que sur l'accueil,
 // posé debout (talon en bas) pour tenir à trois par ligne, avec le créateur et les infos utiles (réduction, réussite, votes, date). Un clic sur le talon le détache
 // (bruit de déchirure), copie le code et ouvre le lien du créateur.
-// « Ça a marché ? » se vote sur le coupon même : le vote y laisse un tampon (« Ça marche » ou « Raté »).
+// « Ça a marché ? » se vote avec les pouces à droite du nom de l'outil : 👍 avec le nombre de votes positifs, 👎 à côté.
+// Le pouce choisi reste coloré ; un vote tout juste donné ajoute +1 au compteur.
 
 const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 /** Date courte en français, calculée sans fuseau pour que le serveur et le navigateur affichent la même chose. */
@@ -29,6 +30,8 @@ export function BoardingCoupon({ code, category, link }: Props) {
   const [torn, setTorn] = useState(false);
   const [failed, setFailed] = useState(false);
   const { voted, fresh, message, sending, vote } = useCodeVote(code.id);
+  // Votes positifs déjà comptés (taux de réussite × votes), plus le vôtre s'il vient d'être donné.
+  const ups = Math.round((code.votes * code.success) / 100) + (voted === 'up' && fresh ? 1 : 0);
 
   const tear = async () => {
     track('copy', code.id);
@@ -53,11 +56,26 @@ export function BoardingCoupon({ code, category, link }: Props) {
             <strong>{code.tool}</strong>
             {category && <small>{category}</small>}
           </span>
+          <div className="k-pass-thumbs" role="group" aria-label={`Le code ${code.code} a-t-il marché ?`}>
+            <button type="button" className={`is-up${voted === 'up' && fresh ? ' is-new' : ''}${sending ? ' is-sending' : ''}`} aria-pressed={voted === 'up'}
+              disabled={sending || voted !== null} onClick={() => vote(true)}
+              title={voted ? `${ups} ${ups > 1 ? 'personnes disent' : 'personne dit'} que ce code marche` : 'Ce code a marché'}
+              aria-label={`Ce code a marché (${ups} ${ups > 1 ? 'votes' : 'vote'})`}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" aria-hidden="true"><path d="M7 10v11H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h3Zm0 0 4-7a2.5 2.5 0 0 1 2.5 3L13 10h5.5a2 2 0 0 1 2 2.4l-1.5 7A2 2 0 0 1 17 21H7" /></svg>
+              {ups}
+            </button>
+            <button type="button" className={`is-down${voted === 'down' && fresh ? ' is-new' : ''}`} aria-pressed={voted === 'down'}
+              disabled={sending || voted !== null} onClick={() => vote(false)}
+              title={voted ? 'Ton vote est enregistré' : 'Ce code n’a pas marché'} aria-label="Ce code n’a pas marché">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" aria-hidden="true"><path d="M17 14V3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-3Zm0 0-4 7a2.5 2.5 0 0 1-2.5-3L11 14H5.5a2 2 0 0 1-2-2.4l1.5-7A2 2 0 0 1 7 3h10" /></svg>
+            </button>
+            {voted ? <span className="k-sr" role="status">{message}</span> : message && <span className="k-pass-thumbs-error" role="alert">{message}</span>}
+          </div>
         </header>
 
         <p className="k-pass-by">
           <span className="k-pass-by-top"><small>Donné par</small><CodeBadge code={code} withDate={false} /></span>
-          <Link href={routes.creator(code.creatorSlug)} className="k-pass-who"><CreatorAvatar name={code.creator} size="xs" />{code.creator}</Link>
+          <Link href={routes.creator(code.creatorSlug)} className="k-pass-who"><CreatorAvatar name={code.creator} size="xs" /><span className="k-pass-who-name">{code.creator}</span></Link>
         </p>
 
         <dl className="k-pass-facts">
@@ -68,27 +86,6 @@ export function BoardingCoupon({ code, category, link }: Props) {
             ? <div><dt>Expire</dt><dd>{shortDate(code.expiresOn)}</dd></div>
             : <div><dt>Ajouté</dt><dd>{shortDate(code.createdAt)}</dd></div>}
         </dl>
-
-        <div className={`k-pass-vote${voted ? ' is-done' : ''}`} role="group" aria-label={`Le code ${code.code} a-t-il marché ?`}>
-          {voted ? (
-            <>
-              <span className="k-pass-vote-done">{fresh ? 'Merci, c’est noté !' : 'Ton vote'}</span>
-              <span className={`k-pass-stamp is-${voted}${fresh ? ' is-new' : ''}`}>{voted === 'up' ? 'Ça marche' : 'Raté'}</span>
-              <span className="k-sr" role="status">{message}</span>
-            </>
-          ) : (
-            <>
-              <span>Ça a marché&nbsp;?</span>
-              <button type="button" className="is-up" disabled={sending} onClick={() => vote(true)} aria-label="Oui, le code a marché" title="Oui, il a marché">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" /></svg>
-              </button>
-              <button type="button" className="is-down" disabled={sending} onClick={() => vote(false)} aria-label="Non, le code n’a pas marché" title="Non, il n’a pas marché">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
-              </button>
-              {message && <span className="k-pass-vote-error" role="alert">{message}</span>}
-            </>
-          )}
-        </div>
 
         {code.source && (
           <a className="k-pass-source" href={code.source} target="_blank" rel="noopener noreferrer">
