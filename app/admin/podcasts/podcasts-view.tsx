@@ -11,7 +11,7 @@ import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { matchesSearch } from '@/lib/admin-search';
 import { sendJson } from '@/components/admin-form-dialog';
 import type { AdminPodcast } from '@/lib/podcasts-admin';
-import type { PodcastFeed } from '@/lib/apple-podcasts';
+import { TOP_GENRES, type PodcastFeed } from '@/lib/apple-podcasts';
 import type { PodcastReadReport } from '@/lib/podcast-read';
 import type { AdminToolSuggestion } from '@/lib/tool-suggestions';
 import { openOnClick } from '@/components/admin-drawer';
@@ -46,6 +46,8 @@ export function PodcastsView({ podcasts, images, starters, suggestions, categori
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<PodcastFeed[] | null>(null);
   const [searching, setSearching] = useState(false);
+  /** Genre du classement affiché, null pour une recherche par nom. */
+  const [genre, setGenre] = useState<number | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [report, setReport] = useState<PodcastReadReport | null>(null);
@@ -60,10 +62,31 @@ export function PodcastsView({ podcasts, images, starters, suggestions, categori
   const sort = useAdminSort(filtered, sortFields, 'title');
   const visible = sort.items;
   const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${filter}|${listQuery}|${sort.resetKey}`);
+  // Dans un classement, on garde le rang d'Apple et on masque les podcasts déjà suivis.
+  const followedInChart = genre !== null ? (results ?? []).filter(feed => followed.has(String(feed.id))).length : 0;
+  const shownResults = (results ?? []).map((feed, index) => ({ feed, rank: genre !== null ? index + 1 : null }))
+    .filter(item => genre === null || !followed.has(String(item.feed.id)));
   const countOf = (value: Filter) => podcasts.filter(podcast => matches(podcast, value)).length;
+
+  // Classement Apple d'un genre : les podcasts déjà suivis sont masqués.
+  async function discover(genreId: number) {
+    setGenre(genreId);
+    setSearching(true);
+    setError('');
+    try {
+      const response = await fetch(`/api/admin/podcasts/top?genre=${genreId}`, { cache: 'no-store' });
+      const body = await response.json().catch(() => ({})) as { feeds?: PodcastFeed[]; error?: string };
+      if (!response.ok) { setError(body.error ?? 'Le classement n’a pas pu être chargé.'); setResults(null); }
+      else setResults(body.feeds ?? []);
+    } catch {
+      setError('Le classement n’a pas pu être chargé. Vérifie ta connexion.');
+    }
+    setSearching(false);
+  }
 
   async function search(term: string) {
     const q = term.trim();
+    setGenre(null);
     setQuery(term);
     if (q.length < 2) { setError('Tape au moins deux lettres.'); return; }
     setSearching(true);
@@ -162,7 +185,7 @@ export function PodcastsView({ podcasts, images, starters, suggestions, categori
 
         {panel === 'tools' ? <ToolSuggestionsPanel suggestions={suggestions} categories={categories} tools={tools} ai={ai} /> : panel === 'add' ? (
           <section className="adm-pod-search" id="pod-panel-add" role="tabpanel" aria-labelledby="pod-tab-add">
-            <p className="muted">Cherche un podcast dans l’annuaire Apple Podcasts, puis clique sur <b>Suivre</b>. Il rejoint l’onglet Suivis.</p>
+            <p className="muted">Cherche un podcast dans l’annuaire Apple Podcasts, ou parcours un classement, puis clique sur <b>Suivre</b>. Il rejoint l’onglet Suivis.</p>
             <form className="adm-toolbar" onSubmit={event => { event.preventDefault(); void search(query); }}>
               <label htmlFor="pod-q" className="sr-only">Nom du podcast</label>
               <input id="pod-q" className="adm-search" type="search" placeholder="Nom du podcast…" value={query} maxLength={120} onChange={event => setQuery(event.target.value)} />
@@ -172,12 +195,18 @@ export function PodcastsView({ podcasts, images, starters, suggestions, categori
               <span className="muted">Pour démarrer :</span>
               {starters.map(name => <button key={name} type="button" className="adm-pod-chip" disabled={searching} onClick={() => search(name)}>{name}</button>)}
             </div>
-            {results && (results.length === 0 ? <div className="adm-empty">Aucun podcast trouvé dans Apple Podcasts.</div> : (
+            <div className="adm-pod-starters">
+              <span className="muted">Découvrir, classement Apple :</span>
+              {TOP_GENRES.map(item => <button key={item.id} type="button" className="adm-pod-chip" aria-pressed={genre === item.id} disabled={searching} onClick={() => discover(item.id)}>{item.label}</button>)}
+            </div>
+            {genre !== null && results && <p className="muted adm-pod-top-note">Les {results.length} premiers en {TOP_GENRES.find(item => item.id === genre)?.label}, rang d’Apple en France.{followedInChart > 0 && ` ${followedInChart === 1 ? 'Celui que tu suis déjà est masqué' : `Les ${followedInChart} que tu suis déjà sont masqués`}.`}</p>}
+            {results && (shownResults.length === 0 ? <div className="adm-empty">{genre !== null ? 'Tu suis déjà tous les podcasts de ce classement.' : 'Aucun podcast trouvé dans Apple Podcasts.'}</div> : (
               <ul className="adm-pod-results">
-                {results.map(feed => {
+                {shownResults.map(({ feed, rank }) => {
                   const already = followed.has(String(feed.id));
                   return (
                     <li key={feed.id} className="adm-pod-result">
+                      {rank !== null && <span className="adm-pod-rank" aria-label={`Rang ${rank}`}>{rank}</span>}
                       {feed.image ? <img src={feed.image} alt="" width={56} height={56} loading="lazy" /> : <span className="adm-pod-noimg" aria-hidden="true" />}
                       <div className="adm-pod-info">
                         <b>{feed.title}</b>

@@ -16,7 +16,36 @@ export type PodcastDirectory = {
   podcasts(ids: number[]): Promise<PodcastFeed[]>;
   /** Derniers épisodes, du plus récent au plus ancien. */
   episodes(podcastId: number, options?: { max?: number }): Promise<PodcastEpisode[]>;
+  /** Classement Apple Podcasts d'un genre (boutique française), du premier au dernier. */
+  top?(genreId: number, limit?: number): Promise<PodcastFeed[]>;
 };
+
+/** Genres proposés pour découvrir des podcasts : ceux où les sponsors donnent le plus de codes d'outils. */
+export const TOP_GENRES = [
+  { id: 1493, label: 'Entrepreneuriat' },
+  { id: 1321, label: 'Affaires' },
+  { id: 1318, label: 'Technologies' },
+  { id: 1412, label: 'Investissement' },
+  { id: 1492, label: 'Marketing' },
+] as const;
+
+type ChartEntry = {
+  'im:name'?: { label?: string }; 'im:artist'?: { label?: string }; 'im:image'?: { label?: string }[];
+  id?: { label?: string; attributes?: { 'im:id'?: string } }; category?: { attributes?: { label?: string } };
+};
+
+/** Une entrée du classement (flux RSS JSON d'Apple) en podcast, null si elle est incomplète. */
+export function chartEntryToFeed(entry: ChartEntry): PodcastFeed | null {
+  const id = Number(entry.id?.attributes?.['im:id']);
+  const title = entry['im:name']?.label?.trim();
+  if (!Number.isSafeInteger(id) || id <= 0 || !title) return null;
+  const images = entry['im:image'] ?? [];
+  return {
+    id, title: title.slice(0, 200), author: (entry['im:artist']?.label ?? '').trim().slice(0, 160), feedUrl: '',
+    link: https(entry.id?.label?.replace(/\?uo=\d+$/, '')), image: https(images[images.length - 1]?.label), episodeCount: 0,
+    genre: entry.category?.attributes?.label ?? '',
+  };
+}
 
 type RawResult = {
   wrapperType?: string; kind?: string;
@@ -78,6 +107,16 @@ export function applePodcasts(fetchFn: typeof fetch = fetch): PodcastDirectory {
       if (unique.length === 0) return [];
       const results = await get('/lookup', { id: unique.join(',') });
       return results.map(toFeed).filter((feed): feed is PodcastFeed => feed !== null);
+    },
+    async top(genreId, limit = 50) {
+      const n = Math.min(Math.max(Math.trunc(limit), 1), 100);
+      const response = await fetchFn(`${API}/${COUNTRY.toLowerCase()}/rss/toppodcasts/limit=${n}/genre=${Math.trunc(genreId)}/json`, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`Apple Podcasts top ${response.status}`);
+      const body = await response.json() as { feed?: { entry?: ChartEntry[] | ChartEntry } };
+      const entries = body.feed?.entry;
+      const list = Array.isArray(entries) ? entries : entries ? [entries] : [];
+      const seen = new Set<number>();
+      return list.map(chartEntryToFeed).filter((feed): feed is PodcastFeed => feed !== null && !seen.has(feed.id) && Boolean(seen.add(feed.id)));
     },
     async episodes(podcastId, options = {}) {
       const results = await get('/lookup', { id: String(podcastId), entity: 'podcastEpisode', limit: String(options.max ?? 20) });

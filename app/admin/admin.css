@@ -1304,3 +1304,7 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-pod-ep-codes .adm-link-btn{padding:0;font-size:13px}
 .adm-pod-ep-none{margin:2px 0 0;font-size:12px;color:var(--muted);font-style:italic}
 .adm-pod-history-note{font-size:12px}
+/* Découvrir des podcasts (classement Apple) */
+.adm-pod-chip[aria-pressed="true"],.adm-pod-chip[aria-pressed="true"]:hover:not(:disabled){border-color:var(--blue);background:var(--blue);color:var(--on-blue)}
+.adm-pod-top-note{margin:0;font-size:13px}
+.adm-pod-rank{flex:none;width:28px;text-align:center;font-size:14px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}

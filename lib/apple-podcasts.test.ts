@@ -68,6 +68,21 @@ describe('applePodcasts', () => {
     expect(episodes[1].publishedAt?.toISOString()).toBe('2026-10-01T05:00:00.000Z');
   });
 
+  it('lit le classement d’un genre, sans doublon ni entrée incomplète', async () => {
+    const entry = (id: string, name: string) => ({
+      'im:name': { label: name }, 'im:artist': { label: 'Matthieu Stefani' },
+      'im:image': [{ label: 'https://img.example/55.png' }, { label: 'https://img.example/170.png' }],
+      id: { label: `https://podcasts.apple.com/fr/podcast/gdiy/id${id}?uo=2`, attributes: { 'im:id': id } },
+      category: { attributes: { label: 'Entrepreneuriat' } },
+    });
+    const fetchFn = vi.fn(async (_url: string) => json({ feed: { entry: [entry('1209142994', 'Génération Do It Yourself'), entry('1209142994', 'Doublon'), entry('', 'Sans id'), entry('7', '')] } }));
+    const feeds = await applePodcasts(fetchFn as unknown as typeof fetch).top!(1493, 500);
+    expect(fetchFn.mock.calls[0][0]).toBe('https://itunes.apple.com/fr/rss/toppodcasts/limit=100/genre=1493/json');
+    expect(feeds).toEqual([{ id: 1209142994, title: 'Génération Do It Yourself', author: 'Matthieu Stefani', feedUrl: '', link: 'https://podcasts.apple.com/fr/podcast/gdiy/id1209142994', image: 'https://img.example/170.png', episodeCount: 0, genre: 'Entrepreneuriat' }]);
+    const single = vi.fn(async (_url: string) => json({ feed: { entry: entry('5', 'Seul') } }));
+    expect(await applePodcasts(single as unknown as typeof fetch).top!(1318)).toHaveLength(1);
+  });
+
   it('signale une erreur de l’annuaire', async () => {
     const fetchFn = vi.fn(async (_url: string) => json({}, 503));
     await expect(applePodcasts(fetchFn as unknown as typeof fetch).search('x')).rejects.toThrow('503');
