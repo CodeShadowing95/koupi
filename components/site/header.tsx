@@ -7,6 +7,7 @@ import { isSoundEnabled, setSoundEnabled } from '@/lib/coupon-sound';
 import { routes } from '@/lib/routes';
 
 const links = [
+  { href: routes.codes, label: 'Codes' },
   { href: routes.categories, label: 'Catégories' },
   { href: routes.transparency, label: 'Transparence' },
   { href: routes.keyring, label: 'Mon trousseau' },
