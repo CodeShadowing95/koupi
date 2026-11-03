@@ -7,7 +7,7 @@ import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import { createTool } from './catalog-admin';
 import { createCode } from './codes-admin';
-import { buildDirectory, copiesThisMonth, directoryOptions, filterDirectory, loadCreatorFacts, monthStart } from './creator-directory';
+import { buildDirectory, copiesThisMonth, directoryCounts, directoryOptions, directoryParams, filterDirectory, parseDirectoryFilter, loadCreatorFacts, monthStart } from './creator-directory';
 import { searchCreators, type Code, type Tool } from './data';
 
 const base: Code = {
@@ -51,6 +51,36 @@ describe('annuaire', () => {
     expect(filterDirectory(entries, { platform: 'instagram' })).toEqual([]);
     expect(filterDirectory(entries, {})).toHaveLength(2);
     expect(directoryOptions(entries)).toEqual({ platforms: ['youtube', 'tiktok'], themes: ['VPN', 'Productivité'] });
+  });
+
+  it('cherche dans le nom et les outils du créateur', () => {
+    const entries = buildDirectory({ codes, tools }, facts);
+    expect(filterDirectory(entries, { query: 'BOB' }).map(entry => entry.slug)).toEqual(['bob']);
+    expect(filterDirectory(entries, { query: 'notion' }).map(entry => entry.slug)).toEqual(['ana']);
+    expect(filterDirectory(entries, { query: 'ana' }).map(entry => entry.slug)).toEqual(['ana']);
+  });
+
+  it('trie par copies, par nombre de codes ou par nom', () => {
+    const entries = buildDirectory({ codes, tools }, facts);
+    expect(filterDirectory(entries, { sort: 'copies' }).map(entry => entry.slug)).toEqual(['bob', 'ana']);
+    expect(filterDirectory(entries, { sort: 'codes' }).map(entry => entry.slug)).toEqual(['ana', 'bob']);
+    expect(filterDirectory(entries, { sort: 'name' }).map(entry => entry.slug)).toEqual(['ana', 'bob']);
+  });
+
+  it('compte chaque réseau et chaque thème sans tenir compte de son propre filtre', () => {
+    const entries = buildDirectory({ codes, tools }, facts);
+    const counts = directoryCounts(entries, { platform: 'tiktok' });
+    expect(counts.platform).toEqual({ youtube: 2, tiktok: 1 });
+    expect(counts.theme).toEqual({ VPN: 1 });
+    expect(counts.all).toEqual({ platform: 2, theme: 1 });
+  });
+
+  it('lit et écrit les filtres de l’adresse', () => {
+    const options = { platforms: ['youtube'], themes: ['VPN'] };
+    expect(parseDirectoryFilter({ platform: 'youtube', theme: 'Autre', q: 'ana', sort: 'name' }, options))
+      .toEqual({ platform: 'youtube', theme: '', query: 'ana', sort: 'name' });
+    expect(parseDirectoryFilter({ sort: 'x' }, options).sort).toBe('copies');
+    expect(directoryParams({ platform: 'youtube', query: ' ana ', sort: 'copies' }).toString()).toBe('q=ana&platform=youtube');
   });
 });
 

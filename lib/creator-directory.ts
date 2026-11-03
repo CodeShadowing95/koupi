@@ -6,6 +6,9 @@ import { codes, creatorAccounts, creators, dailyCounters } from '@/db/schema';
 import type { CreatorPlatform } from './creator-accounts-display';
 import { creatorCategories } from './creator-profile';
 import { isPublic, type Code, type Tool } from './data';
+import type { DirectoryEntry } from './creator-directory-filter';
+
+export * from './creator-directory-filter';
 
 /** Premier jour du mois en cours (UTC, comme les compteurs du jour), au format AAAA-MM-JJ. */
 export function monthStart(now = new Date()): string {
@@ -39,11 +42,6 @@ export async function loadCreatorFacts(db: Db, now = new Date()): Promise<Record
   return facts;
 }
 
-export type DirectoryEntry = {
-  slug: string; name: string; level: Code['creatorLevel']; bio: string | null;
-  codes: number; tools: string[]; themes: string[]; platforms: CreatorPlatform[]; copies: number;
-};
-
 /** Créateurs qui ont au moins un code visible, le plus copié ce mois-ci d'abord, puis le plus de codes. */
 export function buildDirectory(catalog: { codes: Code[]; tools: Tool[] }, facts: Record<string, CreatorFacts>): DirectoryEntry[] {
   const bySlug = new Map<string, Code[]>();
@@ -58,20 +56,3 @@ export function buildDirectory(catalog: { codes: Code[]; tools: Tool[] }, facts:
   }).sort((a, b) => b.copies - a.copies || b.codes - a.codes || a.name.localeCompare(b.name, 'fr'));
 }
 
-export type DirectoryFilter = { platform?: string; theme?: string };
-
-export function filterDirectory(entries: DirectoryEntry[], filter: DirectoryFilter): DirectoryEntry[] {
-  return entries.filter(entry =>
-    (!filter.platform || entry.platforms.includes(filter.platform as CreatorPlatform))
-    && (!filter.theme || entry.themes.includes(filter.theme)));
-}
-
-/** Choix proposés dans les filtres : seulement les réseaux et thèmes présents, du plus fréquent au moins fréquent. */
-export function directoryOptions(entries: DirectoryEntry[]): { platforms: CreatorPlatform[]; themes: string[] } {
-  const rank = <T extends string>(values: T[]) => {
-    const count = new Map<T, number>();
-    for (const value of values) count.set(value, (count.get(value) ?? 0) + 1);
-    return [...count].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'fr')).map(([value]) => value);
-  };
-  return { platforms: rank(entries.flatMap(entry => entry.platforms)), themes: rank(entries.flatMap(entry => entry.themes)) };
-}
