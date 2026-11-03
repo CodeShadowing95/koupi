@@ -9,14 +9,19 @@ import { Pagination, usePagination } from '@/components/admin-pagination';
 import { AdminSelect } from '@/components/admin-select';
 import { matchesSearch } from '@/lib/admin-search';
 import type { AdminToolSuggestion } from '@/lib/tool-suggestions';
+import type { ToolAnalysis } from '@/lib/tool-analysis';
 
 export type CategoryOption = { slug: string; name: string };
 export type CatalogToolOption = { slug: string; name: string; category: string };
 
 type Mode = 'new' | 'existing';
-const emptyForm = { name: '', categorySlug: '', website: '', toolSlug: '' };
+/** Valeur de la liste des catégories qui ouvre le champ « nouvelle catégorie ». */
+const NEW_CATEGORY = '__new';
+const emptyForm = { name: '', categorySlug: '', newCategory: '', website: '', toolSlug: '' };
+/** État de l'IA pour le bouton d'analyse : active, ou la raison affichée en bulle. */
+export type AiAvailability = { active: boolean; label: string };
 
-export function ToolSuggestionsPanel({ suggestions, categories, tools }: { suggestions: AdminToolSuggestion[]; categories: CategoryOption[]; tools: CatalogToolOption[] }) {
+export function ToolSuggestionsPanel({ suggestions, categories, tools, ai }: { suggestions: AdminToolSuggestion[]; categories: CategoryOption[]; tools: CatalogToolOption[]; ai: AiAvailability }) {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
@@ -24,16 +29,56 @@ export function ToolSuggestionsPanel({ suggestions, categories, tools }: { sugge
   const [adding, setAdding] = useState<AdminToolSuggestion | null>(null);
   const [mode, setMode] = useState<Mode>('new');
   const [form, setForm] = useState(emptyForm);
+  const [aiError, setAiError] = useState('');
   const visible = suggestions.filter(item => matchesSearch([item.name, item.domain ?? '', item.code, item.podcastTitle ?? '', item.sourceTitle], query));
   const { current, goTo, topRef, size, changeSize } = usePagination(visible, query);
   // Combien de codes partiront avec cet outil : les autres suggestions du même site (ou du même nom sans site).
   const sameTool = (item: AdminToolSuggestion) => suggestions.filter(other => item.domain ? other.domain === item.domain : !other.domain && other.name.toLowerCase() === item.name.toLowerCase()).length;
 
+  const categoryName = (slug: string) => categories.find(category => category.slug === slug)?.name ?? slug;
+  // L'analyse de l'IA pré-remplit le nom et la catégorie (existante, ou nouvelle à créer).
+  const fromAnalysis = (analysis: ToolAnalysis | null) => !analysis ? {} : {
+    ...(analysis.toolName ? { name: analysis.toolName } : {}),
+    ...(analysis.categorySlug ? { categorySlug: analysis.categorySlug, newCategory: '' } : analysis.newCategory ? { categorySlug: NEW_CATEGORY, newCategory: analysis.newCategory } : {}),
+  };
+
   function open(item: AdminToolSuggestion) {
     setMode('new');
-    setForm({ name: item.name, categorySlug: '', website: item.domain ? `https://${item.domain}` : '', toolSlug: '' });
+    setAiError('');
+    setForm({ ...emptyForm, name: item.name, website: item.domain ? `https://${item.domain}` : '', ...fromAnalysis(item.analysis) });
     setAdding(item);
   }
+  // Lecture du site par l'IA : depuis la carte (domaine trouvé) ou depuis le formulaire (site corrigé).
+  async function analyze(item: AdminToolSuggestion, website?: string): Promise<string | null> {
+    setBusy(`${item.id}-ai`);
+    setError('');
+    setAiError('');
+    let failure: string | null = null;
+    try {
+      const response = await fetch(`/api/admin/tool-suggestions/${item.id}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action: 'analyze', ...(website ? { website } : {}) }) });
+      const body = await response.json().catch(() => ({})) as { analysis?: ToolAnalysis; error?: string };
+      if (!response.ok || !body.analysis) failure = body.error ?? 'L’analyse a échoué.';
+      else if (adding?.id === item.id) { const analysis = body.analysis; setForm(value => ({ ...value, ...fromAnalysis(analysis) })); setAdding({ ...item, analysis }); }
+    } catch {
+      failure = 'L’analyse a échoué. Vérifie ta connexion.';
+    }
+    setBusy(null);
+    if (!failure) router.refresh();
+    return failure;
+  }
+  const aiButton = (item: AdminToolSuggestion, website?: string, onError: (message: string) => void = setError) => (
+    <button type="button" className="adm-btn adm-sugg-ai" disabled={!ai.active || busy !== null} title={ai.active ? 'L’IA lit la page d’accueil du site et propose une catégorie' : ai.label}
+      onClick={async () => { const failure = await analyze(item, website); if (failure) onError(failure); }}>
+      {busy === `${item.id}-ai` ? 'Analyse…' : item.analysis ? 'Réanalyser' : 'Analyser avec l’IA'}
+    </button>
+  );
+  const analysisBlock = (analysis: ToolAnalysis) => (
+    <div className="adm-sugg-analysis">
+      <p>{analysis.summary}</p>
+      {!analysis.isOnlineTool && <p className="adm-sugg-warn">L’IA pense que ce n’est pas un outil en ligne.</p>}
+      <p className="muted">{analysis.categorySlug ? <>Catégorie proposée : <b>{categoryName(analysis.categorySlug)}</b></> : analysis.newCategory ? <>Nouvelle catégorie proposée : <b>{analysis.newCategory}</b></> : 'Aucune catégorie proposée'}{analysis.reason ? ` · ${analysis.reason}` : ''}</p>
+    </div>
+  );
   async function ignore(item: AdminToolSuggestion) {
     setBusy(item.id);
     setError('');
@@ -45,7 +90,9 @@ export function ToolSuggestionsPanel({ suggestions, categories, tools }: { sugge
   const submit = () => {
     if (!adding) return Promise.resolve(null);
     if (mode === 'existing') return form.toolSlug ? sendJson(`/api/admin/tool-suggestions/${adding.id}`, 'POST', { action: 'add', toolSlug: form.toolSlug }) : Promise.resolve('Choisis un outil du catalogue.');
-    return sendJson(`/api/admin/tool-suggestions/${adding.id}`, 'POST', { action: 'add', newTool: { name: form.name, categorySlug: form.categorySlug, website: form.website } });
+    if (form.categorySlug === NEW_CATEGORY && !form.newCategory.trim()) return Promise.resolve('Indique le nom de la nouvelle catégorie.');
+    const newCategory = form.categorySlug === NEW_CATEGORY ? { newCategory: form.newCategory.trim() } : {};
+    return sendJson(`/api/admin/tool-suggestions/${adding.id}`, 'POST', { action: 'add', newTool: { name: form.name, categorySlug: form.categorySlug === NEW_CATEGORY ? '' : form.categorySlug, website: form.website }, ...newCategory });
   };
   const set = (key: keyof typeof emptyForm) => (event: React.ChangeEvent<HTMLInputElement>) => setForm(value => ({ ...value, [key]: event.target.value }));
   const count = adding ? sameTool(adding) : 0;
@@ -74,9 +121,11 @@ export function ToolSuggestionsPanel({ suggestions, categories, tools }: { sugge
                 </div>
                 <p className="adm-card-sub">{item.discount}</p>
                 <p className="adm-sugg-evidence">« {item.evidence} »</p>
+                {item.analysis && analysisBlock(item.analysis)}
                 <p className="adm-card-sub"><a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" title={item.sourceTitle}>{item.podcastTitle ?? 'Podcast'} · {item.sourceTitle} ↗</a></p>
                 <div className="adm-card-foot">
                   <button type="button" className="adm-btn adm-btn-pri" disabled={busy !== null} onClick={() => open(item)}>Ajouter l’outil</button>
+                  {aiButton(item)}
                   <span className="adm-card-push"><IconButton icon="cross" tone="bad" label={`Ignorer le code ${item.code} de ${item.name}`} disabled={busy !== null} onClick={() => ignore(item)} /></span>
                 </div>
               </article>
@@ -92,7 +141,10 @@ export function ToolSuggestionsPanel({ suggestions, categories, tools }: { sugge
         intro={count > 1 ? `${count} codes trouvés pour cet outil partiront en attente dans Vérifications.` : `Le code ${adding?.code ?? ''} partira en attente dans Vérifications.`}
         submitLabel={mode === 'new' ? 'Ajouter l’outil' : 'Relier le code'}
         onClose={() => setAdding(null)}
-        onSubmit={submit}>
+        onSubmit={submit}
+        extra={adding && mode === 'new' ? aiButton(adding, form.website, setAiError) : null}>
+        {aiError && <div className="field adm-span-2"><div className="notice notice-error" role="alert">{aiError}</div></div>}
+        {adding?.analysis && <div className="field adm-span-2">{analysisBlock(adding.analysis)}</div>}
         <div className="field adm-span-2">
           <div className="adm-tabs" role="group" aria-label="Outil">
             <button type="button" className="adm-tab" aria-pressed={mode === 'new'} onClick={() => setMode('new')}>Nouvel outil</button>
@@ -101,7 +153,8 @@ export function ToolSuggestionsPanel({ suggestions, categories, tools }: { sugge
         </div>
         {mode === 'new' ? <>
           <div className="field"><label htmlFor="sugg-name">Nom</label><input id="sugg-name" value={form.name} onChange={set('name')} required maxLength={120} /></div>
-          <div className="field"><label htmlFor="sugg-cat">Catégorie</label><AdminSelect id="sugg-cat" value={form.categorySlug} onChange={categorySlug => setForm(value => ({ ...value, categorySlug }))} options={categories.map(category => ({ value: category.slug, label: category.name }))} placeholder="Choisir une catégorie…" searchPlaceholder="Rechercher une catégorie…" required /></div>
+          <div className="field"><label htmlFor="sugg-cat">Catégorie</label><AdminSelect id="sugg-cat" value={form.categorySlug} onChange={categorySlug => setForm(value => ({ ...value, categorySlug }))} options={[{ value: NEW_CATEGORY, label: '+ Nouvelle catégorie', pinned: true }, ...categories.map(category => ({ value: category.slug, label: category.name }))]} placeholder="Choisir une catégorie…" searchPlaceholder="Rechercher une catégorie…" required /></div>
+          {form.categorySlug === NEW_CATEGORY && <div className="field adm-span-2"><label htmlFor="sugg-newcat">Nom de la nouvelle catégorie</label><input id="sugg-newcat" value={form.newCategory} onChange={event => setForm(value => ({ ...value, newCategory: event.target.value }))} required maxLength={80} placeholder="Compléments alimentaires" /><small>Elle sera créée avec l’outil. Tu pourras la renommer dans Catégories.</small></div>}
           <div className="field adm-span-2"><label htmlFor="sugg-site">Site officiel</label><input id="sugg-site" value={form.website} onChange={set('website')} required maxLength={300} placeholder="exemple.com" /><small>Vérifie que c’est bien le site de l’outil, pas un lien de suivi.</small></div>
         </> : (
           <div className="field adm-span-2"><label htmlFor="sugg-tool">Outil du catalogue</label><AdminSelect id="sugg-tool" value={form.toolSlug} onChange={toolSlug => setForm(value => ({ ...value, toolSlug }))} options={tools.map(tool => ({ value: tool.slug, label: tool.name, hint: tool.category }))} placeholder="Choisir un outil…" searchPlaceholder="Rechercher un outil…" required /><small>Quand l’outil existe déjà sous un autre nom ou un autre site.</small></div>

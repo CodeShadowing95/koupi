@@ -27,5 +27,6 @@ Chaque décision importante est notée ici dans un fichier numéroté. On ne sup
 | [0021](0021-connexion-des-createurs.md) | Connexion des créateurs par lien magique | Proposée |
 | [0022](0022-administration-du-site.md) | Administration du site (pages, mode maintenance, comptes créateurs, journal) | Proposée |
 | [0023](0023-outils-a-ajouter.md) | Outils à ajouter, depuis les codes lus dans les podcasts | Proposée |
+| [0024](0024-analyse-ia-des-outils.md) | Analyse par l’IA des outils à ajouter | Proposée |
 
 Modèle : copier [`template.md`](template.md).

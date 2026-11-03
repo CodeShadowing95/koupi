@@ -1,11 +1,12 @@
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
 import { migrate } from 'drizzle-orm/pglite/migrator';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { aiConfigFrom } from './ai-extract';
 import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import { followPodcast, listPodcasts } from './podcasts-admin';
-import { acceptToolSuggestion, ignoreToolSuggestion, listToolSuggestions, openToolSuggestionCount } from './tool-suggestions';
+import { acceptToolSuggestion, analyzeToolSuggestion, ignoreToolSuggestion, listToolSuggestions, openToolSuggestionCount } from './tool-suggestions';
 
 const suggestion = (code: string, extra: Partial<typeof schema.toolSuggestions.$inferInsert> = {}) => ({
   name: 'Gradium', domain: 'gradium.ai', code, discount: '-10 %', evidence: `code ${code}`,
@@ -65,5 +66,52 @@ describe('tool suggestions', () => {
     expect(await ignoreToolSuggestion(db, row.id)).toBe(true);
     expect(await ignoreToolSuggestion(db, row.id)).toBe(false);
     expect(await listToolSuggestions(db)).toEqual([]);
+  });
+
+  it('crée la catégorie demandée avec l’outil, ou reprend celle qui porte déjà ce nom', async () => {
+    const [a, b] = await db.insert(schema.toolSuggestions).values([suggestion('DOIT', { name: 'Vitamix', domain: 'vitamix.fr' }), suggestion('GDIY')]).returning();
+    const tool = { name: 'Vitamix', categorySlug: '', website: 'https://vitamix.fr', description: null, priority: 3 };
+    expect(await acceptToolSuggestion(db, a.id, { newTool: tool, newCategory: 'Compléments alimentaires' })).toMatchObject({ ok: true });
+    expect(await acceptToolSuggestion(db, b.id, { newTool: { ...tool, name: 'Gradium', website: 'https://gradium.ai' }, newCategory: 'compléments ALIMENTAIRES' })).toMatchObject({ ok: true });
+    const rows = await db.select().from(schema.categories);
+    expect(rows.map(row => row.name).sort()).toEqual(['Compléments alimentaires', 'IA']);
+    const added = await db.select().from(schema.tools);
+    expect(added.filter(row => row.categorySlug !== 'ia').map(row => row.name).sort()).toEqual(['Gradium', 'Vitamix']);
+  });
+
+  describe('analyse par l’IA', () => {
+    const page = { url: 'https://gradium.ai/', title: 'Gradium', description: 'Voix par IA', text: 'Des voix de synthèse.' };
+    const answer = { summary: 'Voix de synthèse par IA.', is_online_tool: true, category_slug: 'ia', new_category: '', reason: 'IA vocale.', tool_name: 'Gradium' };
+    const create = vi.fn(async () => ({ model: 'claude-haiku-5-5', stop_reason: 'end_turn', usage: { input_tokens: 1000, output_tokens: 100 }, content: [{ type: 'text', text: JSON.stringify(answer) }] }));
+
+    it('reste inactive sans clé et ne lit pas le site', async () => {
+      const [row] = await db.insert(schema.toolSuggestions).values(suggestion('GDIY')).returning();
+      const readSite = vi.fn();
+      expect(await analyzeToolSuggestion(db, row.id, { ai: { config: aiConfigFrom({}), create: null }, readSite })).toEqual({ ok: false, error: 'L’IA n’est pas encore activée.' });
+      expect(readSite).not.toHaveBeenCalled();
+    });
+
+    it('garde l’analyse et son coût, compté dans le plafond', async () => {
+      const [row] = await db.insert(schema.toolSuggestions).values(suggestion('GDIY')).returning();
+      const readSite = vi.fn(async () => ({ ok: true as const, page }));
+      const deps = { ai: { config: aiConfigFrom({ ANTHROPIC_API_KEY: 'k' }), create: create as never }, readSite };
+      const result = await analyzeToolSuggestion(db, row.id, deps);
+      expect(result).toMatchObject({ ok: true, data: { categorySlug: 'ia', summary: 'Voix de synthèse par IA.' } });
+      expect(readSite).toHaveBeenCalledWith('gradium.ai');
+      await analyzeToolSuggestion(db, row.id, deps, 'https://www.gradium.ai/fr');
+      expect(readSite).toHaveBeenLastCalledWith('https://www.gradium.ai/fr');
+      const [list] = await listToolSuggestions(db);
+      expect(list.analysis).toMatchObject({ toolName: 'Gradium' });
+      const [stored] = await db.select().from(schema.toolSuggestions);
+      expect(stored.analysisCostUsdMicros).toBe(300);
+    });
+
+    it('refuse au-delà du plafond et rend l’erreur de lecture du site', async () => {
+      const [row] = await db.insert(schema.toolSuggestions).values(suggestion('GDIY')).returning();
+      const config = { ...aiConfigFrom({ ANTHROPIC_API_KEY: 'k' }), monthlyBudgetUsdMicros: 0 };
+      expect(await analyzeToolSuggestion(db, row.id, { ai: { config, create: create as never } })).toEqual({ ok: false, error: 'Le plafond de l’IA est atteint pour ce mois.' });
+      const readSite = vi.fn(async () => ({ ok: false as const, error: 'Le site gradium.ai ne répond pas.' }));
+      expect(await analyzeToolSuggestion(db, row.id, { ai: { config: aiConfigFrom({ ANTHROPIC_API_KEY: 'k' }), create: create as never }, readSite })).toEqual({ ok: false, error: 'Le site gradium.ai ne répond pas.' });
+    });
   });
 });
