@@ -13,6 +13,7 @@ import { MiniCoupon } from '@/components/site/coupon';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { CodeBadge } from '@/components/site/code-badge';
 import { CreatorMark } from '@/components/site/creator-mark';
+import { CreatorRequest } from '@/components/site/creator-request';
 
 function publicCodesOf(codes: Code[], slug: string) {
   return codes.filter(code => code.creatorSlug === slug && isPublic(code));
@@ -107,6 +108,7 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
         {match.creatorLevel !== 'verified' && <p className="k-creator-managed">
           <b>Page tenue par Koupi.</b> Ses codes viennent de ses vidéos et posts publics, chacun avec sa source. <Link href={routes.transparency}>Comment on vérifie</Link>
         </p>}
+        {match.creatorLevel !== 'verified' && <CreatorRequest slug={match.creatorSlug} name={creator} />}
         <div className="k-code-list">
           {active.map(code => <CodeRow key={code.id} code={code} tools={tools} />)}
         </div>

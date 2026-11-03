@@ -1216,3 +1216,9 @@ html:has(> body > .ct){overflow:hidden}
 img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:7px;flex:none;object-fit:cover;background:var(--line)}
 .adm-card-foot .adm-btn{flex:none}
 .adm-pod-table td:first-child{min-width:240px}
+.adm-req-list{display:flex;flex-direction:column;gap:12px}
+.adm-req{gap:12px;padding:16px 18px}
+.adm-req-facts{display:grid;grid-template-columns:max-content 1fr;gap:6px 16px;margin:0}
+.adm-req-facts dt{color:var(--muted);font-size:13px}
+.adm-req-facts dd{margin:0;min-width:0;overflow-wrap:anywhere}
+@media(max-width:640px){.adm-req-facts{grid-template-columns:1fr}.adm-req-facts dd{margin-bottom:6px}}

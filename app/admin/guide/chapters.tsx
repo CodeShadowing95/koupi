@@ -420,6 +420,20 @@ function Createurs() {
       <p>Si un nom est mal écrit, <b>Modifier le profil</b> le corrige partout d’un coup, sur tous ses codes.</p>
       <Callout tone="warn">Changer le nom change le nom affiché sur le site. Vérifie l’orthographe sur la chaîne du créateur avant de valider.</Callout>
     </Section>
+    <Section id="demandes" title="Répondre aux demandes des créateurs">
+      <p>Sur la page publique d’un créateur, deux liens sous ses codes : <b>C’est ta page ? Revendique-la</b> et <b>Signaler une erreur</b>. Ce qu’on y envoie arrive dans <Link href="/admin/createurs/demandes">Demandes créateurs</Link> (menu Modération), et l’accueil te le rappelle dans <b>À faire</b>.</p>
+      <Legend rows={[
+        { term: 'C’est ma page', meaning: 'Quelqu’un dit être le créateur. Il laisse son e-mail et le lien d’un de ses comptes.' },
+        { term: 'Page incorrecte', meaning: 'Un visiteur ou le créateur signale une erreur : mauvais nom, compte qui n’est pas le sien, code qui ne vient pas de lui. L’e-mail est facultatif.' },
+      ]} />
+      <Steps>
+        <Step title="Lis la demande">Ouvre la page du créateur et le compte indiqué. Le lien envoyé est-il bien un des comptes reliés au créateur ?</Step>
+        <Step title="Réponds">Le bouton <b>Répondre par e-mail</b> ouvre un e-mail à son adresse. Pour une revendication, demande-lui une preuve simple (un mot écrit dans la bio du compte, par exemple). Corrige la fiche s’il s’agit d’une erreur.</Step>
+        <Step title="Range-la">Ajoute une note pour t’en souvenir, puis <b>Marquer traitée</b>, ou <b>Écarter</b> si c’est du spam. <b>Rouvrir</b> la remet dans « À traiter ».</Step>
+      </Steps>
+      <Callout tone="warn">Une revendication ne prouve rien à elle seule : n’importe qui peut écrire « je suis MrBeast ». Ne change jamais le niveau d’un créateur sur la seule foi d’un e-mail. La vérification par la bio arrivera avec l’espace créateur.</Callout>
+      <Callout tone="why">Une revendication, c’est un créateur qui vient de lui-même. C’est le meilleur moment pour lui répondre vite et lui montrer ce que Koupi fait pour lui.</Callout>
+    </Section>
     <Section id="exporter" title="Exporter les créateurs">
       <p><b>Exporter</b> donne tous les créateurs en Excel ou en CSV, avec leurs codes, les outils qu’ils recommandent et leur présentation. Utile pour préparer une prise de contact ou repérer ceux à suivre.</p>
     </Section>

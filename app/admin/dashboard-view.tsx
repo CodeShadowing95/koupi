@@ -65,7 +65,7 @@ export function DashboardView({ catalog }: { catalog: Catalog }) {
   const { audience, audienceFailed } = useAudience();
   const coverage = coverageByCategory(catalog.categories);
   const { insights, failed } = useInsights();
-  const list = todos(catalog, insights?.pending ?? null);
+  const list = todos(catalog, insights?.pending ?? null, new Date(), insights?.creatorRequests ?? null);
   const [tip] = useState(() => tipOfDay());
   const delay = insights?.medianDelayHours ?? null;
   const verifiedOk = (stats.verifiedRate ?? 0) >= TARGETS.verified;
