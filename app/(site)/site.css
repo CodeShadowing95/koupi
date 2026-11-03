@@ -286,6 +286,8 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-footer li a{color:var(--text-soft);font-size:15px}
 .k-footer li a:hover{color:#fff}
 .k-footer-bottom{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:48px;padding-top:24px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.k-footer-credit{color:var(--text-soft);font-weight:600;transition:color .2s}
+.k-footer-credit:hover{color:#fff}
 
 /* Pages intérieures */
 .k-page{position:relative;padding:40px 0 100px;min-height:62vh}

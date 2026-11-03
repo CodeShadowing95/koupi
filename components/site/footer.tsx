@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { routes } from '@/lib/routes';
 import { usesLogoDev } from '@/lib/tool-logos';
+import { PORTFOLIO_URL, PUBLISHER_NAME } from '@/lib/site-contact';
 
 export function SiteFooter() {
   return (
@@ -32,7 +33,7 @@ export function SiteFooter() {
           </div>
         </div>
         <div className="k-footer-bottom">
-          <span>© {new Date().getFullYear()} Koupi · 100 % pro-créateurs</span>
+          <span>© {new Date().getFullYear()} Koupi · 100 % pro-créateurs · <a className="k-footer-credit" href={PORTFOLIO_URL} target="_blank" rel="noopener">Made by {PUBLISHER_NAME}</a></span>
           <span>
             Zéro pub · zéro cookie publicitaire
             {usesLogoDev() && <> · <a href="https://logo.dev" target="_blank" rel="noopener">Logos provided by Logo.dev</a></>}
