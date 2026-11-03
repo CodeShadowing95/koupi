@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/site/site-pages';
 import type { ReactNode } from 'react';
 import { routes } from '@/lib/routes';
 
