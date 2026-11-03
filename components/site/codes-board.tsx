@@ -25,6 +25,7 @@ import { AdminSelect, type SelectOption } from '@/components/admin-select';
 // talon à droite, l'essentiel), affichée par défaut. Au changement, chaque coupon se transforme sur place (GSAP Flip) ; le choix est retenu.
 // Les filtres courants (recherche, statut, catégorie, tri) sont toujours visibles ; les autres se déplient
 // avec « Plus de filtres », ouvert d'emblée si l'un d'eux est déjà choisi (lien partagé).
+// Sur téléphone, seule la recherche reste visible au-dessus des codes : un bouton « Filtres (n) » ouvre le reste.
 
 const PAGE = 12; // 4 lignes de 3 coupons
 const STATUSES: { value: CodeStatusFilter; label: string }[] = [
@@ -64,6 +65,8 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
   const entered = useRef(0);
   const [view, setView] = useState<View>('list');
   const [moreOpen, setMoreOpen] = useState(() => { const params = filtersToParams(initial); return MORE_KEYS.some(key => params.has(key)); });
+  // Sur téléphone, seule la recherche est visible : les filtres s'ouvrent avec le bouton « Filtres ».
+  const [panelOpen, setPanelOpen] = useState(false);
 
   // La vue choisie la dernière fois (préférence de ce navigateur seulement).
   useEffect(() => {
@@ -113,8 +116,10 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
     tool: slug => toolBySlug.get(slug)?.name ?? '',
     creator: slug => creatorNames.get(slug) ?? '',
   }), now)), [results.length, codes, tools, shown, now, toolBySlug, creatorNames]);
-  // Filtres repliés sur mobile : combien sont choisis parmi ceux qu'on ne voit pas.
+  // Filtres repliés derrière « Plus de filtres » : combien sont choisis parmi ceux qu'on ne voit pas.
   const hiddenActive = pills.filter(pill => !['q', 'status', 'category'].includes(pill.key)).length;
+  // Sur téléphone, tous les filtres choisis hors recherche, affichés sur le bouton « Filtres ».
+  const panelActive = pills.filter(pill => pill.key !== 'q').length;
 
   // La recherche texte attend une courte pause dans la frappe avant de filtrer.
   useEffect(() => {
@@ -164,6 +169,13 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
           </label>
         </form>
 
+        <button type="button" className="k-board-panel-toggle" aria-expanded={panelOpen} aria-controls="k-board-filters" onClick={() => setPanelOpen(open => !open)}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
+          Filtres
+          {panelActive > 0 && <span className="k-board-count is-on">{panelActive}</span>}
+        </button>
+
+        <div className={`k-board-filters${panelOpen ? ' is-open' : ''}`} id="k-board-filters">
         <div className="k-board-group">
           <h2>Statut</h2>
           <div className="k-board-checks" role="radiogroup" aria-label="Statut">
@@ -277,6 +289,7 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
             <span className="k-board-count">{counts.fresh}</span>
           </button>
 
+        </div>
         </div>
       </aside>
 

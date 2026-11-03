@@ -38,13 +38,6 @@ export default async function Home() {
     <main>
       <Hero codes={codes} tools={tools} />
 
-      <div aria-hidden="true" className="k-bands">
-        <Marquee items={[...tools.map(tool => tool.name), ...tools.map(tool => tool.name)]} />
-        <Marquee className="k-band-2" reverse speed={330} items={[...creators, ...creators].map(name => `de ${name}`)} />
-      </div>
-
-      <HowItWorks example={featured[0] && { tool: featured[0].tool, code: featured[0].code, discount: featured[0].discount, creator: featured[0].creator }} />
-
       <section className="k-section is-tight">
         <div className="k-wrap">
           <div className="k-section-head" data-reveal>
@@ -81,6 +74,13 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      <div aria-hidden="true" className="k-bands">
+        <Marquee items={[...tools.map(tool => tool.name), ...tools.map(tool => tool.name)]} />
+        <Marquee className="k-band-2" reverse speed={330} items={[...creators, ...creators].map(name => `de ${name}`)} />
+      </div>
+
+      <HowItWorks example={featured[0] && { tool: featured[0].tool, code: featured[0].code, discount: featured[0].discount, creator: featured[0].creator }} />
 
       <CreatorsOrbit creators={orbit} total={creators.size} />
 
