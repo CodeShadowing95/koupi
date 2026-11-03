@@ -1,20 +1,18 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, permanentRedirect } from 'next/navigation';
-import { isPublic, type Code, type Tool } from '@/lib/data';
+import { isPublic, type Code } from '@/lib/data';
 import { getCatalog, getCreatorFacts, getCreatorProfile } from '@/lib/catalog-server';
 import { creatorCategories } from '@/lib/creator-profile';
 import { creatorDescription, formatCopies } from '@/lib/creator-page';
 import { expiryOf } from '@/lib/code-expiry';
 import { routes } from '@/lib/routes';
 import { creatorSlug, plural } from '@/lib/ui';
-import { ToolSeal } from '@/components/site/tool-logo';
-import { MiniCoupon } from '@/components/site/coupon';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
-import { CodeBadge } from '@/components/site/code-badge';
 import { CreatorMark } from '@/components/site/creator-mark';
 import { CreatorRequest } from '@/components/site/creator-request';
 import { CreatorMore } from '@/components/site/creator-more';
+import { CodeRow, CreatorCodes } from '@/components/site/creator-codes';
 import { PlatformIcon } from '@/components/platform-icon';
 
 function publicCodesOf(codes: Code[], slug: string) {
@@ -30,31 +28,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const title = `Codes promo de ${own[0].creator} · Koupi`;
   const description = creatorDescription(own[0].creator, own, profile?.bio ?? null);
   return { title, description, alternates: { canonical: routes.creator(slug) }, openGraph: { title, description, type: 'profile' } };
-}
-
-function CodeRow({ code, tools, reveal = true }: { code: Code; tools: Tool[]; reveal?: boolean }) {
-  const tool = tools.find(item => item.slug === code.toolSlug);
-  return (
-    // Dans un bloc replié, pas d'animation d'apparition : elle se joue avant qu'on ouvre le bloc.
-    <div className="k-coupon-card" data-reveal={reveal || undefined}>
-      <MiniCoupon
-        codeId={code.id}
-        className="k-row-coupon"
-        code={code.code}
-        link={code.creatorLink || tool?.website || '#'}
-        avatar={<ToolSeal tool={tool?.slug ?? code.tool} name={code.tool} />}
-        title={<>{code.tool} · {code.discount}</>}
-        subtitle={code.sourceTitle}
-      />
-      <div className="k-coupon-meta">
-        <CodeBadge code={code} dark withDate={false} />
-        <span style={{ display: 'flex', gap: 16 }}>
-          <a href={code.source} target="_blank" rel="noopener noreferrer">Source ↗</a>
-          {tool && <Link href={routes.tool(tool.slug)}>Fiche {tool.name} →</Link>}
-        </span>
-      </div>
-    </div>
-  );
 }
 
 export default async function Creator({ params }: { params: Promise<{ slug: string }> }) {
@@ -128,15 +101,13 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
             </CreatorMore>
           </div>
         </header>
-        <div className="k-code-list">
-          {active.map(code => <CodeRow key={code.id} code={code} tools={tools} />)}
-        </div>
+        {active.length > 0 && <CreatorCodes codes={active} tools={tools} creator={creator} />}
         {expired.length > 0 && (
           <details className="k-creator-expired">
             <summary>{plural(expired.length, 'code à la date de fin passée', 'codes à la date de fin passée')}</summary>
             <p>Le créateur avait annoncé une date de fin. Ils marchent peut-être encore : essaie, et dis-nous si ça a marché.</p>
             <div className="k-code-list">
-              {expired.map(code => <CodeRow key={code.id} code={code} tools={tools} reveal={false} />)}
+              {expired.map(code => <CodeRow key={code.id} code={code} tool={tools.find(tool => tool.slug === code.toolSlug)} reveal={false} />)}
             </div>
           </details>
         )}
