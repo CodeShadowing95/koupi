@@ -386,6 +386,22 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-creator-managed{margin:-24px 0 32px;font-size:14px;color:var(--muted)}
 .k-creator-managed b{color:var(--text-soft);font-weight:600}
 .k-creator-managed a{color:var(--blue-soft);text-decoration:underline;text-underline-offset:3px}
+.k-creator-request{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:-20px 0 32px;font-size:14px;color:var(--muted)}
+.k-link-btn{padding:0;border:0;background:none;color:var(--text-soft);font:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.k-link-btn:hover{color:#fff}
+.k-link-btn.is-strong{color:var(--blue-soft);font-weight:600}
+.k-req-dialog{width:min(520px,calc(100vw - 32px));max-height:calc(100dvh - 32px);padding:0;border:1px solid var(--line-2);border-radius:24px;background:#0D0F2B;color:var(--text)}
+.k-req-dialog::backdrop{background:rgba(3,4,16,.72);backdrop-filter:blur(4px)}
+.k-req-body{position:relative;display:flex;flex-direction:column;gap:14px;padding:28px}
+.k-req-body h2{font-size:28px}
+.k-req-body p{color:var(--text-soft);font-size:15px}
+.k-req-body form{display:flex;flex-direction:column;gap:16px}
+.k-req-close{position:absolute;top:14px;right:14px;width:40px;height:40px;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--text-soft);font-size:22px;cursor:pointer}
+.k-req-close:hover{color:#fff;border-color:var(--line-2)}
+.k-req-optional{font-weight:400;color:var(--muted)}
+.k-req-privacy{font-size:13px!important;color:var(--muted)!important}
+.k-req-error{color:#FF9B85!important;font-weight:600}
+.k-req-actions{display:flex;flex-wrap:wrap;gap:10px}
 .k-creator-expired{margin-top:40px;border-top:1px solid var(--line);padding-top:24px}
 .k-creator-expired summary{cursor:pointer;font-weight:600;color:var(--text-soft)}
 .k-creator-expired>p{margin:12px 0 20px;color:var(--muted);font-size:14px}

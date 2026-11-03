@@ -41,6 +41,7 @@ function navGroups(toTest: number): { label: string; items: Item[] }[] {
     { href: '/admin/codes', label: 'Codes', icon: icons.ticket, badge: toTest ? <span className="adm-count-badge" aria-label={`${toTest} à tester`}>{toTest}</span> : null },
     { href: '/admin/verifications', label: 'Vérifications', icon: icons.shield },
     { href: '/admin/podcasts', label: 'Podcasts suivis', icon: icons.mic },
+    { href: '/admin/createurs/demandes', label: 'Demandes créateurs', icon: icons.users },
   ] },
   { label: 'Catalogue', items: [
     { href: '/admin/outils', label: 'Outils', icon: icons.tool },

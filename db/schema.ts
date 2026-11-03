@@ -275,3 +275,37 @@ export type CodeRow = typeof codes.$inferSelect;
 export type VerificationCheckRow = typeof verificationChecks.$inferSelect;
 export type WatchedSourceRow = typeof watchedSources.$inferSelect;
 export type CreatorAccountRow = typeof creatorAccounts.$inferSelect;
+
+export const CREATOR_REQUEST_KINDS = ['claim', 'report'] as const;
+export const CREATOR_REQUEST_STATUSES = ['new', 'done', 'dismissed'] as const;
+
+// Demandes envoyées depuis la page publique d'un créateur : « C'est ma page » (revendication) ou « Page incorrecte »
+// (signalement). Avant l'espace créateur, l'admin les traite à la main et recontacte la personne par e-mail.
+export const creatorRequests = pgTable('creator_requests', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  creatorId: uuid('creator_id').notNull().references(() => creators.id, { onDelete: 'cascade' }),
+  kind: text('kind', { enum: CREATOR_REQUEST_KINDS }).notNull(),
+  /** Obligatoire pour une revendication (on recontacte la personne), facultatif pour un signalement. */
+  email: text('email'),
+  /** Revendication : le compte que la personne dit être le sien. */
+  accountUrl: text('account_url'),
+  message: text('message'),
+  status: text('status', { enum: CREATOR_REQUEST_STATUSES }).notNull().default('new'),
+  adminNote: text('admin_note'),
+  ipHash: text('ip_hash').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  handledAt: timestamp('handled_at', { withTimezone: true }),
+}, table => [
+  index('creator_requests_status_created_idx').on(table.status, table.createdAt.desc()),
+  index('creator_requests_creator_idx').on(table.creatorId),
+  check('creator_requests_kind_valid', sql`${table.kind} in ('claim','report')`),
+  check('creator_requests_status_valid', sql`${table.status} in ('new','done','dismissed')`),
+  check('creator_requests_claim_contact', sql`${table.kind} <> 'claim' or (${table.email} is not null and ${table.accountUrl} is not null)`),
+  check('creator_requests_report_message', sql`${table.kind} <> 'report' or ${table.message} is not null`),
+  check('creator_requests_email_len', sql`${table.email} is null or char_length(${table.email}) between 3 and 320`),
+  check('creator_requests_account_url_http', sql`${table.accountUrl} is null or ${table.accountUrl} ~* '^https?://'`),
+  check('creator_requests_message_len', sql`${table.message} is null or char_length(${table.message}) between 1 and 1000`),
+  check('creator_requests_admin_note_len', sql`${table.adminNote} is null or char_length(${table.adminNote}) <= 500`),
+]);
+
+export type CreatorRequestRow = typeof creatorRequests.$inferSelect;

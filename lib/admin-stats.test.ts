@@ -63,6 +63,9 @@ describe('actions du jour', () => {
 
   it('ne parle pas des propositions quand la file est vide ou inconnue', () => {
     expect(todos(catalog, 0).map(todo => todo.id)).not.toContain('submissions');
+    expect(todos(catalog, 0, new Date(), 2).map(todo => todo.id)[0]).toBe('creator-requests');
+    expect(todos(catalog, 0, new Date(), 2)[0].title).toBe('Répondre à 2 demandes de créateurs');
+    expect(todos(catalog, 0, new Date(), 0).map(todo => todo.id)).not.toContain('creator-requests');
     expect(todos(catalog, null).map(todo => todo.id)).not.toContain('submissions');
   });
 
