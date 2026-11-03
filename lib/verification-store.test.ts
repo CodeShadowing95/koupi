@@ -48,6 +48,8 @@ describe('analyses de vérification', () => {
     expect(await aiSpendSince(ctx.db, startOfMonthUtc())).toBe(2000);
     await ctx.db.insert(schema.toolSuggestions).values({ name: 'Gradium', domain: 'gradium.ai', code: 'GDIY', discount: '-10 %', sourceUrl: 'https://podcasts.apple.com/podcast/id1?i=2', analysisCostUsdMicros: 300, analyzedAt: new Date() });
     expect(await aiSpendSince(ctx.db, startOfMonthUtc())).toBe(2300);
+    await ctx.db.insert(schema.aiUsage).values({ purpose: 'podcast_notes', model: 'm', costUsdMicros: 50 });
+    expect(await aiSpendSince(ctx.db, startOfMonthUtc())).toBe(2350);
     expect(await aiSpendSince(ctx.db, new Date(Date.now() + 60_000))).toBe(0);
   });
 

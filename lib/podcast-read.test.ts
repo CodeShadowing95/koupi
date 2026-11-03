@@ -3,6 +3,7 @@ import { drizzle } from 'drizzle-orm/pglite';
 import { migrate } from 'drizzle-orm/pglite/migrator';
 import { eq } from 'drizzle-orm';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { aiConfigFrom } from './ai-extract';
 import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import type { PodcastDirectory, PodcastEpisode } from './apple-podcasts';
@@ -39,7 +40,7 @@ describe('readPodcasts', () => {
       episode(2, 'NordVPN, code VIEUX', daysAgo(90)),
       episode(3, 'Pas de sponsor'),
     ] }), { now });
-    expect(report).toEqual({ podcasts: 1, episodes: 2, found: [{ podcast: 'Silicon Carne', code: 'CARNE', tool: 'NordVPN' }], suggested: [], failed: [] });
+    expect(report).toEqual({ podcasts: 1, episodes: 2, found: [{ podcast: 'Silicon Carne', code: 'CARNE', tool: 'NordVPN' }], suggested: [], failed: [], aiRead: 0 });
     const [code] = await db.select().from(schema.codes);
     const [podcast] = await listPodcasts(db);
     expect(code).toMatchObject({ code: 'CARNE', discount: '-60 %', status: 'pending', creatorId: podcast.creatorId, sourceTitle: 'Épisode 1', sourceUrl: 'https://podcasts.apple.com/fr/podcast/silicon-carne/id42?i=1' });
@@ -95,5 +96,41 @@ describe('readPodcasts', () => {
     const checks = await db.select().from(schema.verificationChecks);
     expect(checks).toHaveLength(1);
     expect(checks[0].evidence).toContain('CARNE');
+  });
+
+  describe('avec l’IA active', () => {
+    const answer = (codes: unknown[]) => vi.fn(async () => ({ model: 'claude-haiku-5-5', stop_reason: 'end_turn', usage: { input_tokens: 1000, output_tokens: 100 }, content: [{ type: 'text', text: JSON.stringify({ codes }) }] }));
+    const deps = (create: unknown) => ({ readSource: vi.fn(async () => null), ai: { config: aiConfigFrom({ ANTHROPIC_API_KEY: 'k' }), create: create as never } });
+
+    it('ajoute les codes lus par l’IA, avec réduction et date de fin, et compte son coût', async () => {
+      const create = answer([
+        { code: 'CARNE', tool: 'NordVPN', discount: '-60 % sur 2 ans', conditions: '', expires_on: '2026-12-31' },
+        { code: 'GDIY', tool: 'Gradium', discount: '-10 %', conditions: '', expires_on: '' },
+      ]);
+      const report = await readPodcasts(db, directory({ 42: [
+        episode(1, 'Merci à NordVPN : le code est CARNE pour une offre spéciale. Et Gradium aussi, code GDIY.'),
+        episode(2, 'Une discussion sur la musique'),
+      ] }), { now, deps: deps(create) });
+      expect(create).toHaveBeenCalledTimes(1);
+      expect(report.aiRead).toBe(1);
+      expect(report.found).toEqual([{ podcast: 'Silicon Carne', code: 'CARNE', tool: 'NordVPN' }]);
+      expect(report.suggested).toEqual([{ podcast: 'Silicon Carne', code: 'GDIY', tool: 'Gradium' }]);
+      const [code] = await db.select().from(schema.codes);
+      expect(code).toMatchObject({ discount: '-60 % sur 2 ans', expiresOn: '2026-12-31' });
+      const usage = await db.select().from(schema.aiUsage);
+      expect(usage).toMatchObject([{ purpose: 'podcast_notes', costUsdMicros: 150, ref: 'https://podcasts.apple.com/podcast/id42?i=1' }]);
+    });
+
+    it('ne relit pas par l’IA un épisode déjà lu, ni au-delà du plafond', async () => {
+      const create = answer([]);
+      const dir = directory({ 42: [episode(1, 'NordVPN, code CARNE')] });
+      await readPodcasts(db, dir, { now, deps: deps(create) });
+      await readPodcasts(db, dir, { now: new Date(now.getTime() + 86_400_000), deps: deps(create) });
+      expect(create).toHaveBeenCalledTimes(1);
+      const capped = { readSource: vi.fn(async () => null), ai: { config: { ...aiConfigFrom({ ANTHROPIC_API_KEY: 'k' }), monthlyBudgetUsdMicros: 0 }, create: create as never } };
+      await followPodcast(db, { id: 43, title: 'Autre', author: '', feedUrl: '', link: '', image: '', episodeCount: 1, genre: '' });
+      const report = await readPodcasts(db, directory({ 42: [], 43: [episode(9, 'code OFFRE')] }), { now, deps: capped });
+      expect(report.aiRead).toBe(0);
+    });
   });
 });
