@@ -13,6 +13,14 @@ import { VoteButtons } from '@/components/site/vote-buttons';
 import { CodeBadge } from '@/components/site/code-badge';
 import { CreatorMark } from '@/components/site/creator-mark';
 import { Crumbs } from '@/components/site/page-head';
+import { episodeNumber } from '@/lib/source-label';
+
+/** « GDIY, épisode #574 » pour un podcast suivi, « « titre de la vidéo » » sinon. */
+function ticketSource(code: Code): string {
+  const number = episodeNumber(code.sourceTitle);
+  if (code.podcast) return number ? `${code.podcast}, épisode #${number}` : `${code.podcast} (« ${code.sourceTitle} »)`;
+  return `« ${code.sourceTitle} »`;
+}
 
 function votesLabel(code: Code) {
   return votesSummary(code) ? `${votesSummary(code)}.` : 'Pas encore assez de votes pour un taux de réussite.';
@@ -75,7 +83,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                   <CreatorAvatar name={best.creator} className="k-ticket-avatar" />
                   <span>
                     <strong><Link href={routes.creator(best.creatorSlug)}>{best.creator}</Link><CreatorMark level={best.creatorLevel} compact /></strong>
-                    <span className="k-ticket-source">l&apos;a donné dans « {best.sourceTitle} »</span>
+                    <span className="k-ticket-source">l&apos;a donné dans {ticketSource(best)}</span>
                   </span>
                 </div>
                 <span className="k-ticket-discount">{best.discount}</span>

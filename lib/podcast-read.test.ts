@@ -9,6 +9,7 @@ import * as schema from '@/db/schema';
 import type { PodcastDirectory, PodcastEpisode } from './apple-podcasts';
 import { followPodcast, listPodcasts, setPodcastActive } from './podcasts-admin';
 import { readPodcasts } from './podcast-read';
+import { loadCatalog } from './catalog-db';
 
 const now = new Date('2026-11-02T03:00:00Z');
 const daysAgo = (days: number) => new Date(now.getTime() - days * 86_400_000);
@@ -54,6 +55,9 @@ describe('readPodcasts', () => {
     const rows = await db.select().from(schema.codes);
     expect(rows).toHaveLength(1);
     expect(rows[0].sourceUrl).toBe('https://podcasts.apple.com/podcast/id42?i=5');
+    // Sur le site, le code dit dans quel podcast il a été entendu.
+    const [code] = (await loadCatalog(db)).codes;
+    expect(code.podcast).toBe('Silicon Carne');
   });
 
   it('saute un podcast en pause, sauf lecture demandée pour lui', async () => {

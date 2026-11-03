@@ -1,7 +1,8 @@
 // Lecture du catalogue (catégories, outils, codes) depuis la base.
 import { and, asc, eq, isNull } from 'drizzle-orm';
 import type { Db } from '@/db';
-import { categories as categoriesTable, codes as codesTable, creatorAccounts, creators as creatorsTable, tools as toolsTable } from '@/db/schema';
+import { categories as categoriesTable, codes as codesTable, creatorAccounts, creators as creatorsTable, tools as toolsTable, watchedSources } from '@/db/schema';
+import { appleEpisodeRef } from './apple-podcasts';
 import { creatorLevelFromAccounts } from './creator-level';
 import type { CreatorLevel } from './verification';
 import { isPublic, successRate, type Catalog, type Category, type Code, type Tool } from './data';
@@ -14,7 +15,7 @@ export function defaultDescription(name: string) { return `Les codes promo donn�
 
 /** includeArchived : l'admin voit aussi les codes archivés (pour les restaurer). Le site, jamais. */
 export async function loadCatalog(db: Db, options: { includeArchived?: boolean } = {}): Promise<Catalog> {
-  const [categoryRows, toolRows, codeRows, accountRows] = await Promise.all([
+  const [categoryRows, toolRows, codeRows, accountRows, podcastRows] = await Promise.all([
     db.select().from(categoriesTable).orderBy(asc(categoriesTable.createdAt), asc(categoriesTable.name)),
     db.select().from(toolsTable).where(isNull(toolsTable.archivedAt)),
     db.select({ code: codesTable, tool: { name: toolsTable.name, slug: toolsTable.slug }, creator: { name: creatorsTable.name, slug: creatorsTable.slug } })
@@ -22,7 +23,15 @@ export async function loadCatalog(db: Db, options: { includeArchived?: boolean }
       .where(options.includeArchived ? isNull(toolsTable.archivedAt) : and(isNull(codesTable.archivedAt), isNull(toolsTable.archivedAt)))
       .orderBy(asc(codesTable.createdAt), asc(codesTable.code)),
     db.select().from(creatorAccounts),
+    db.select({ externalId: watchedSources.externalId, title: watchedSources.title }).from(watchedSources).where(eq(watchedSources.platform, 'podcast')),
   ]);
+  // Nom du podcast suivi pour un code venu d'un épisode Apple Podcasts.
+  const podcastTitle = new Map(podcastRows.map(row => [row.externalId, row.title]));
+  const podcastOf = (url: string): Pick<Code, 'podcast'> => {
+    const ref = appleEpisodeRef(url);
+    const title = ref ? podcastTitle.get(String(ref.podcastId)) : undefined;
+    return title ? { podcast: title } : {};
+  };
 
   // Niveau de chaque créateur d'après ses comptes : seul « Contrôlé par Koupi » ou « Créateur vérifié » est affiché.
   const accountsOf = new Map<string, (typeof accountRows)[number][]>();
@@ -40,6 +49,7 @@ export async function loadCatalog(db: Db, options: { includeArchived?: boolean }
     status: code.status,
     source: code.sourceUrl,
     sourceTitle: code.sourceTitle,
+    ...podcastOf(code.sourceUrl),
     ...(code.creatorLink ? { creatorLink: code.creatorLink } : {}),
     votes: code.votesUp + code.votesDown,
     success: successRate(code.votesUp, code.votesDown),

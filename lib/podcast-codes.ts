@@ -103,12 +103,14 @@ export function scanPromoCodes(text: string, tools: CatalogTool[]): { found: Fou
       // L'outil le plus proche sur la ligne ; sinon le dernier nommé sur la ligne d'avant.
       const here = toolPositions(line, tools).sort((a, b) => Math.abs(a.index - at) - Math.abs(b.index - at));
       const before = lineIndex > 0 ? toolPositions(lines[lineIndex - 1], tools).sort((a, b) => b.index - a.index) : [];
-      const tool = here[0] ?? before[0];
+      // Une ligne qui nomme son propre outil (« Gradium : … », un lien) ne reprend pas celui de la ligne d'avant.
+      const ownGuess = here[0] ? null : guessTool(line, undefined);
+      const tool = here[0] ?? (ownGuess ? undefined : before[0]);
       const discount = line.match(DISCOUNT_PATTERN)?.[0].trim() ?? (lineIndex > 0 ? lines[lineIndex - 1].match(DISCOUNT_PATTERN)?.[0].trim() : undefined) ?? 'Voir l’épisode';
       // La ligne d'avant donne souvent le nom de l'outil (« Cuure : cuure.com » puis « (code DOIT) ») : on la garde comme preuve.
-      const evidence = (lineIndex > 0 && !here[0] ? `${lines[lineIndex - 1]}\n${line}` : line).slice(0, 300);
+      const evidence = (lineIndex > 0 && !here[0] && !ownGuess ? `${lines[lineIndex - 1]}\n${line}` : line).slice(0, 300);
       if (!tool) {
-        const guess = guessTool(line, lines[lineIndex - 1]);
+        const guess = ownGuess ?? guessTool(line, lines[lineIndex - 1]);
         if (!guess) continue;
         const key = `?${guess.domain ?? guess.name.toLowerCase()}:${code.toLowerCase()}`;
         if (seen.has(key)) continue;
