@@ -5,14 +5,11 @@ import { routes } from '@/lib/routes';
 import { Hero } from '@/components/site/hero';
 import { Marquee } from '@/components/site/marquee';
 import { HowItWorks } from '@/components/site/how-it-works';
-import { MiniCoupon } from '@/components/site/coupon';
-import { ToolSeal } from '@/components/site/tool-logo';
+import { BoardingCoupon } from '@/components/site/boarding-coupon';
 import { Counter } from '@/components/site/counter';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
-import { CreatorMark } from '@/components/site/creator-mark';
 import { CreatorsOrbit } from '@/components/site/creators-orbit';
 import { CategoryDisplay } from '@/components/site/category-display';
-import { CodeBadge } from '@/components/site/code-badge';
 import { compactCount, featuredCodes } from '@/lib/codes-board';
 import { CreatorRotator } from '@/components/site/creator-rotator';
 import { rotationCreators } from '@/lib/creator-rotation';
@@ -55,28 +52,16 @@ export default async function Home() {
             <h2>Clique sur le talon,<br />c&apos;est copié.</h2>
             <p>Chaque code est celui d&apos;un créateur, avec la vidéo d&apos;où il vient. Monte le son.</p>
           </div>
-          <div className="k-coupon-grid">
+          <ul className="k-pass-grid">
             {featured.map(code => {
               const tool = toolOf(code.tool);
               return (
-                <div className="k-coupon-card" key={code.id} data-reveal>
-                  <MiniCoupon
-                    codeId={code.id}
-                    key={code.id}
-                    code={code.code}
-                    link={code.creatorLink || tool?.website || '#'}
-                    avatar={<ToolSeal tool={tool?.slug ?? code.tool} name={code.tool} />}
-                    title={<>{code.tool} · {code.discount}</>}
-                    subtitle={<span className="k-by"><CreatorAvatar name={code.creator} size="xs" />de {code.creator}<CreatorMark level={code.creatorLevel} compact /></span>}
-                  />
-                  <div className="k-coupon-meta">
-                    <CodeBadge code={code} dark withDate={false} />
-                    {tool && <Link href={routes.tool(tool.slug)}>Voir la fiche →</Link>}
-                  </div>
-                </div>
+                <li key={code.id} data-reveal>
+                  <BoardingCoupon code={code} category={tool?.category} link={code.creatorLink || tool?.website || '#'} />
+                </li>
               );
             })}
-          </div>
+          </ul>
           <div className="k-more" data-reveal>
             <Link className="k-more-ticket" href={routes.codes} aria-label={`Voir plus de codes : ${compactCount(live.length)} codes de créateurs, avec filtres et recherche`}>
               <span className="k-more-body" aria-hidden="true">

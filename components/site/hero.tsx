@@ -4,7 +4,7 @@ import { gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
 import { isPublic, type Code, type Tool } from '@/lib/data';
 import { routes } from '@/lib/routes';
 import { SearchDialog } from './search-dialog';
-import { MiniCoupon } from './coupon';
+import Link from '@/components/site/site-pages';
 import { ToolSeal } from './tool-logo';
 import { toolLogo, withLogosFirst } from '@/lib/tool-logos';
 import { CreatorAvatar } from './creator-avatar';
@@ -166,17 +166,17 @@ export function Hero({ codes, tools }: { codes: Code[]; tools: Tool[] }) {
           </div>
           <div className="k-hero-stack">
             {slots.map((code, index) => (
-              <MiniCoupon
-                codeId={code.id}
-                // La clé suit la place, pas le code : le coupon reste le même élément quand il se retourne.
-                key={`slot-${index}`}
-                className={`k-float k-float-${index + 1}`}
-                href={routes.tool(slugOf(code.tool))}
-                code={code.code}
-                avatar={<ToolSeal key={code.id} tool={slugOf(code.tool)} name={code.tool} />}
-                title={<>{code.tool}, {code.discount}</>}
-                subtitle={<span className="k-by"><CreatorAvatar name={code.creator} size="xs" />de {code.creator}</span>}
-              />
+              // La clé suit la place, pas le code : le coupon reste le même élément quand il se retourne.
+              <Link key={`slot-${index}`} href={routes.tool(slugOf(code.tool))} className={`k-coupon k-float k-float-${index + 1}`}>
+                <div className="k-coupon-main k-paper">
+                  <ToolSeal key={code.id} tool={slugOf(code.tool)} name={code.tool} />
+                  <span className="k-coupon-text">
+                    <strong>{code.tool}, {code.discount}</strong>
+                    <span><span className="k-by"><CreatorAvatar name={code.creator} size="xs" />de {code.creator}</span></span>
+                  </span>
+                </div>
+                <span className="k-coupon-stub"><small>Code</small><span className="k-coupon-code">{code.code}</span></span>
+              </Link>
             ))}
           </div>
         </div>

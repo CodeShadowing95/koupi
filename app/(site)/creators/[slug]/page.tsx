@@ -12,7 +12,7 @@ import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { CreatorMark } from '@/components/site/creator-mark';
 import { CreatorRequest } from '@/components/site/creator-request';
 import { CreatorMore } from '@/components/site/creator-more';
-import { CodeRow, CreatorCodes } from '@/components/site/creator-codes';
+import { CodeRows, CreatorCodes } from '@/components/site/creator-codes';
 import { PlatformIcon } from '@/components/platform-icon';
 import { Crumbs } from '@/components/site/page-head';
 
@@ -110,9 +110,7 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
           <details className="k-creator-expired">
             <summary>{plural(expired.length, 'code à la date de fin passée', 'codes à la date de fin passée')}</summary>
             <p>Le créateur avait annoncé une date de fin. Ils marchent peut-être encore : essaie, et dis-nous si ça a marché.</p>
-            <div className="k-code-list">
-              {expired.map(code => <CodeRow key={code.id} code={code} tool={tools.find(tool => tool.slug === code.toolSlug)} reveal={false} />)}
-            </div>
+            <CodeRows codes={expired} tools={tools} reveal={false} />
           </details>
         )}
       </div>

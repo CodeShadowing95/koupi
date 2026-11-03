@@ -267,14 +267,8 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 
 /* Comment ça marche : notes épinglées reliées par une ligne perforée (adapté de « How It Works », chamaac sur 21st.dev) */
 
-/* Codes du moment */
-.k-coupon-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 32px}
-.k-coupon-card{display:flex;flex-direction:column;gap:10px}
-.k-coupon-meta{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:0 6px;font-size:var(--fs-sm);color:var(--muted)}
-.k-coupon-meta-group{display:flex;gap:10px;align-items:center}
-.k-coupon-meta-group.is-links{gap:16px}
+/* Petit coupon du hero */
 .k-coupon-text{display:flex;flex-direction:column;min-width:0}
-.k-coupon-meta a:hover{color:#fff}
 
 /* Bento des promesses */
 .k-bento{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:minmax(220px,auto);gap:18px}
@@ -456,9 +450,6 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-receipt{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
 
 /* Liste de codes (autres codes, créateur, catégorie) */
-.k-code-list{display:grid;gap:18px}
-.k-row-coupon .k-coupon-main{padding:18px 22px}
-.k-row-coupon .k-coupon-stub{min-width:170px}
 
 /* Formulaires */
 .k-form{display:grid;gap:18px;padding:30px;border-radius:var(--r-2xl);background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid var(--line-2)}
@@ -535,7 +526,7 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-creator-expired{margin-top:40px;border-top:1px solid var(--line);padding-top:24px}
 .k-creator-expired summary{cursor:pointer;font-weight:600;color:var(--text-soft)}
 .k-creator-expired>p{margin:12px 0 20px;color:var(--muted);font-size:var(--fs-md)}
-.k-creator-expired .k-coupon-card{opacity:.75}
+.k-creator-expired .k-pass{opacity:.75}
 .k-search-creators{display:flex;flex-direction:column;gap:14px;margin-bottom:40px}
 .k-search-creators h2{font-size:var(--fs-2xl)}
 .k-chip[aria-current="true"]{color:#fff;border-color:var(--blue-soft);background:rgba(110,125,255,.2)}
@@ -583,7 +574,6 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
   .k-bento{grid-template-columns:repeat(2,minmax(0,1fr))}
   .k-tile-a,.k-tile-b,.k-tile-c,.k-tile-d,.k-tile-e{grid-column:span 2;grid-row:auto}
   .k-cat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .k-coupon-grid{grid-template-columns:1fr}
   .k-footer-in{grid-template-columns:1fr 1fr}
 }
 @media(max-width:640px){
@@ -614,7 +604,7 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
   .k-cta{padding:44px 26px}
   .k-cat-grid{grid-template-columns:1fr}
   .k-footer-in{grid-template-columns:1fr}
-  .k-coupon-stub,.k-row-coupon .k-coupon-stub{min-width:108px;padding:12px}
+  .k-coupon-stub{min-width:108px;padding:12px}
   .k-coupon-code{font-size:var(--fs-base)}
   .k-flow{grid-template-columns:1fr;justify-items:center}
   .k-flow-line{width:2px;height:22px;background:repeating-linear-gradient(180deg,var(--blue-soft) 0 6px,transparent 6px 10px)}
@@ -647,7 +637,6 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
   .k-seal-lg{--seal:84px}
   .k-ticket-seal{top:14px;right:16px}
   .k-ticket-main:has(>.k-ticket-seal) .k-ticket-who{padding-right:88px}
-  .k-row-coupon .k-coupon-main .k-seal{--seal:52px}
 }
 
 /* Fenêtre de recherche du hero */
@@ -884,7 +873,9 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-board-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:40px;color:var(--text-soft);font-size:var(--fs-base)}
 .k-board-bar strong{color:#fff;font-family:var(--display);font-size:var(--fs-xl)}
 .k-board-bar .k-link{border:0;background:none;padding:0;font-size:var(--fs-md)}
-.k-board-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px 20px}
+/* Coupons debout (`.k-pass-grid`) : trois par ligne, comme la vue « Cartes » des codes. */
+:is(.k-board-list,.k-pass-grid){list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px 20px}
+.k-pass-grid>li{min-width:0}
 .k-board-item{min-width:0}
 .k-board-more{display:flex;justify-content:center;margin-top:12px}
 
@@ -897,6 +888,9 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-pass-title{display:flex;flex-direction:column;min-width:0}
 .k-pass-title strong{font-family:var(--display);font-size:var(--fs-xl);font-weight:800;letter-spacing:-.02em;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .k-pass-title small{font-size:var(--fs-sm);color:var(--paper-muted)}
+.k-pass-tool{display:block;min-width:0;color:inherit}
+.k-pass-tool strong{display:block}
+.k-pass-tool:hover{color:var(--blue)}
 .k-pass-by{display:flex;flex-direction:column;gap:4px;min-width:0;margin:0}
 .k-pass-by-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .k-pass-by .k-status{flex:none}
@@ -922,12 +916,12 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-pass-code{font-family:var(--mono);font-weight:700;font-size:var(--fs-lg);letter-spacing:.05em;overflow-wrap:anywhere;line-height:1.2}
 .k-pass-action{flex:none;font-size:var(--fs-sm);font-weight:700;padding:6px 12px;border-radius:var(--r-pill);background:rgba(255,255,255,.16)}
 .k-pass.is-torn .k-pass-stub{transform:translate(4px,12px) rotate(-4deg);background:linear-gradient(160deg,#1FA56B,#0E7A4C)}
-@media (max-width:1180px){.k-board-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:1180px){:is(.k-board-list,.k-pass-grid){grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:900px){
   .k-board{grid-template-columns:minmax(0,1fr);gap:24px}
   .k-board-side{position:static;gap:18px}
 }
-@media (max-width:600px){.k-board-list{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:600px){:is(.k-board-list,.k-pass-grid){grid-template-columns:minmax(0,1fr)}}
 @media (prefers-reduced-motion:reduce){.k-pass-stub{transition:none}}
 /* Marque d'un créateur contrôlé par Koupi : coche à côté du nom, ou pastille sur sa page */
 /* Marque d'un créateur : rosette bleue (forme distincte de la pastille ronde des codes). Pleine = créateur vérifié, claire = contrôlé par Koupi. */
@@ -1072,50 +1066,54 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-board-views button{display:inline-flex;align-items:center;gap:7px;min-height:34px;padding:0 12px;border:0;border-radius:var(--r-sm);background:transparent;color:var(--text-soft);font-size:var(--fs-md);font-weight:600;white-space:nowrap;transition:background .2s,color .2s}
 .k-board-views button:hover{color:#fff}
 .k-board-views button[aria-pressed="true"]{background:var(--paper);color:var(--paper-ink)}
-/* Vue « Liste » : un coupon couché par ligne, sur toute la largeur. Colonnes : outil, créateur, réduction, talon à droite. */
-.k-board.is-list .k-board-list{grid-template-columns:minmax(0,1fr);gap:12px}
-.k-board.is-list .k-pass{flex-direction:row;height:auto;min-width:0;filter:drop-shadow(0 12px 22px rgba(0,0,0,.4))}
-.k-board.is-list .k-pass-main{display:grid;grid-template-columns:36px minmax(0,1fr) minmax(0,1.1fr) minmax(0,1.25fr) auto;align-items:center;column-gap:16px;row-gap:8px;
+/* Coupon couché (`.k-pass-rows`) : un par ligne, sur toute la largeur. Colonnes : outil, créateur, réduction, talon à droite.
+   Sert à la vue « Liste » des codes, aux codes d'un créateur et aux autres codes d'un outil. La mise en page suit la largeur
+   de la liste (requêtes de conteneur), pas celle de l'écran : la même liste tient dans une colonne étroite. */
+.k-pass-rows{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:12px;container:k-rows/inline-size}
+.k-pass-rows>li{min-width:0}
+.k-board-list.k-pass-rows{grid-template-columns:minmax(0,1fr);gap:12px}
+.k-pass-rows .k-pass{flex-direction:row;height:auto;min-width:0;filter:drop-shadow(0 12px 22px rgba(0,0,0,.4))}
+.k-pass-rows .k-pass-main{display:grid;grid-template-columns:36px minmax(0,1fr) minmax(0,1.1fr) minmax(0,1.25fr) auto;align-items:center;column-gap:16px;row-gap:8px;
   min-width:0;padding:14px 22px 14px 26px;border-radius:var(--r-lg) 0 0 var(--r-lg);
   -webkit-mask:radial-gradient(circle 9px at 0 50%,#0000 97%,#000) 0 0/100% 100% no-repeat,radial-gradient(circle at 100% 50%,#0000 3px,#000 3.5px) right/100% 12px repeat-y;-webkit-mask-composite:source-in;
   mask:radial-gradient(circle 9px at 0 50%,#0000 97%,#000) 0 0/100% 100% no-repeat,radial-gradient(circle at 100% 50%,#0000 3px,#000 3.5px) right/100% 12px repeat-y;mask-composite:intersect}
-.k-board.is-list :is(.k-pass-by-top small,.k-pass-facts>div:not(.is-wide),.k-pass-facts dt,.k-pass-source){display:none}
-.k-board.is-list .k-pass-head{display:contents}
-.k-board.is-list .k-pass-logo{grid-row:1;grid-column:1}
-.k-board.is-list .k-pass-head .k-tool-logo{width:36px;height:36px;border-radius:var(--r-sm)}
-.k-board.is-list .k-pass-title{grid-row:1;grid-column:2}
-.k-board.is-list .k-pass-by{grid-row:1;grid-column:3}
-.k-board.is-list .k-pass-facts{grid-row:1;grid-column:4}
-.k-board.is-list .k-pass-thumbs{grid-row:1;grid-column:5}
-.k-board.is-list .k-pass-title strong{font-size:var(--fs-lg)}
-.k-board.is-list .k-pass-title small{font-size:var(--fs-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.k-board.is-list .k-pass-by{flex-direction:column-reverse;align-items:flex-start;gap:5px}
-.k-board.is-list .k-pass-by-top{justify-content:flex-start}
-.k-board.is-list .k-pass-who{font-size:var(--fs-md)}
-.k-board.is-list .k-pass-facts{display:block;padding:0;border:0;min-width:0}
-.k-board.is-list .k-pass-facts dd.is-discount{font-size:var(--fs-lg);-webkit-line-clamp:2}
-.k-board.is-list .k-pass-stub{flex:none;flex-direction:row;align-items:center;gap:12px;width:250px;padding:12px 16px 12px 20px;border-radius:0 var(--r-lg) var(--r-lg) 0;transform-origin:0 100%;
+.k-pass-rows :is(.k-pass-by-top small,.k-pass-facts>div:not(.is-wide),.k-pass-facts dt,.k-pass-source){display:none}
+.k-pass-rows .k-pass-head{display:contents}
+.k-pass-rows .k-pass-logo{grid-row:1;grid-column:1}
+.k-pass-rows .k-pass-head .k-tool-logo{width:36px;height:36px;border-radius:var(--r-sm)}
+.k-pass-rows .k-pass-title{grid-row:1;grid-column:2}
+.k-pass-rows .k-pass-by{grid-row:1;grid-column:3}
+.k-pass-rows .k-pass-facts{grid-row:1;grid-column:4}
+.k-pass-rows .k-pass-thumbs{grid-row:1;grid-column:5}
+.k-pass-rows .k-pass-title strong{font-size:var(--fs-lg)}
+.k-pass-rows .k-pass-title small{font-size:var(--fs-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.k-pass-rows .k-pass-by{flex-direction:column-reverse;align-items:flex-start;gap:5px}
+.k-pass-rows .k-pass-by-top{justify-content:flex-start}
+.k-pass-rows .k-pass-who{font-size:var(--fs-md)}
+.k-pass-rows .k-pass-facts{display:block;padding:0;border:0;min-width:0}
+.k-pass-rows .k-pass-facts dd.is-discount{font-size:var(--fs-lg);-webkit-line-clamp:2}
+.k-pass-rows .k-pass-stub{flex:none;flex-direction:row;align-items:center;gap:12px;width:250px;padding:12px 16px 12px 20px;border-radius:0 var(--r-lg) var(--r-lg) 0;transform-origin:0 100%;
   -webkit-mask:radial-gradient(circle 9px at 100% 50%,#0000 97%,#000) 0 0/100% 100% no-repeat,radial-gradient(circle at 0 50%,#0000 3px,#000 3.5px) left/100% 12px repeat-y;-webkit-mask-composite:source-in;
   mask:radial-gradient(circle 9px at 100% 50%,#0000 97%,#000) 0 0/100% 100% no-repeat,radial-gradient(circle at 0 50%,#0000 3px,#000 3.5px) left/100% 12px repeat-y;mask-composite:intersect}
-.k-board.is-list .k-pass-stub-code{flex:1;min-width:0}
-.k-board.is-list .k-pass-code{font-size:var(--fs-base);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}
-.k-board.is-list .k-pass.is-torn .k-pass-stub{transform:translate(8px,4px) rotate(3deg)}
-@media (max-width:1180px){
-  .k-board.is-list .k-pass-main{grid-template-columns:36px minmax(0,1fr) minmax(0,1fr) auto}
-  .k-board.is-list .k-pass-thumbs{grid-column:4}
-  .k-board.is-list .k-pass-facts{grid-row:2;grid-column:2/-1}
+.k-pass-rows .k-pass-stub-code{flex:1;min-width:0}
+.k-pass-rows .k-pass-code{font-size:var(--fs-base);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}
+.k-pass-rows .k-pass.is-torn .k-pass-stub{transform:translate(8px,4px) rotate(3deg)}
+@container k-rows (max-width:819px){
+  .k-pass-rows .k-pass-main{grid-template-columns:36px minmax(0,1fr) minmax(0,1fr) auto}
+  .k-pass-rows .k-pass-thumbs{grid-column:4}
+  .k-pass-rows .k-pass-facts{grid-row:2;grid-column:2/-1}
 }
-@media (max-width:700px){
-  .k-board.is-list .k-pass-main{grid-template-columns:32px minmax(0,1fr) auto;column-gap:10px;padding:14px 14px 14px 22px}
-  .k-board.is-list .k-pass-head .k-tool-logo{width:32px;height:32px}
-  .k-board.is-list .k-pass-title{grid-column:2/-1}
-  .k-board.is-list .k-pass-thumbs{grid-row:2;grid-column:3}
-  .k-board.is-list .k-pass-by{grid-row:2;grid-column:1/3}
-  .k-board.is-list .k-pass-facts{grid-row:3;grid-column:1/-1}
-  .k-board.is-list .k-pass-by-top{display:none}
-  .k-board.is-list .k-pass-stub{flex-direction:column;align-items:stretch;justify-content:center;gap:8px;width:122px;padding:12px 12px 12px 16px}
-  .k-board.is-list .k-pass-action{text-align:center}
-  .k-board.is-list .k-pass-code{font-size:var(--fs-sm)}
+@container k-rows (max-width:600px){
+  .k-pass-rows .k-pass-main{grid-template-columns:32px minmax(0,1fr) auto;column-gap:10px;padding:14px 14px 14px 22px}
+  .k-pass-rows .k-pass-head .k-tool-logo{width:32px;height:32px}
+  .k-pass-rows .k-pass-title{grid-column:2/-1}
+  .k-pass-rows .k-pass-thumbs{grid-row:2;grid-column:3}
+  .k-pass-rows .k-pass-by{grid-row:2;grid-column:1/3}
+  .k-pass-rows .k-pass-facts{grid-row:3;grid-column:1/-1}
+  .k-pass-rows .k-pass-by-top{display:none}
+  .k-pass-rows .k-pass-stub{flex-direction:column;align-items:stretch;justify-content:center;gap:8px;width:122px;padding:12px 12px 12px 16px}
+  .k-pass-rows .k-pass-action{text-align:center}
+  .k-pass-rows .k-pass-code{font-size:var(--fs-sm)}
 }
 @media (max-width:600px){
   .k-board-bar{flex-wrap:wrap}
@@ -1374,7 +1372,6 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-creator-search input{width:100%;height:42px;padding:0 14px 0 40px;border:1px solid var(--line);border-radius:var(--r-md);background:rgba(255,255,255,.04);color:var(--text);font:inherit;font-size:var(--fs-base);outline:none;transition:border-color .2s,box-shadow .2s}
 .k-creator-search input::placeholder{color:var(--muted)}
 .k-creator-search input:focus{border-color:var(--blue-soft);box-shadow:0 0 0 3px rgba(140,155,255,.22)}
-.k-creator-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 22px}
 .k-creator-cards{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px 18px}
 /* Carte compacte : logo, outil, réduction, source et talon, comme la vue liste */
 .k-pass.is-compact .k-pass-main{gap:12px;padding:16px 16px 14px}
@@ -1390,7 +1387,7 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-creator-cards>li{min-width:0}
 .k-creator-codes-empty{margin:8px 0;color:var(--text-soft)}
 @media (max-width:1100px){.k-creator-cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (max-width:980px){.k-creator-rows{grid-template-columns:minmax(0,1fr)}.k-creator-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:980px){.k-creator-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:520px){.k-creator-cards{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:600px){.k-creator-search{flex-basis:100%}}
 

@@ -1,5 +1,4 @@
 'use client';
-import Link from '@/components/site/site-pages';
 import { useRef, useState } from 'react';
 import { gsap, MOTION_OK, MOTION_REDUCED, useGSAP } from '@/lib/gsap';
 import { copyText, openCreatorLink } from '@/lib/copy';
@@ -184,63 +183,4 @@ export function TearTicket({ code, codeId, link, creator, discount, tool, seal, 
       </div>
     </div>
   );
-}
-
-type MiniProps = {
-  code: string;
-  codeId?: string;
-  title: React.ReactNode;
-  subtitle: React.ReactNode;
-  avatar?: React.ReactNode;
-  className?: string;
-} & ({ href: string; link?: never } | { link: string; href?: never });
-
-/** Petit coupon : soit un lien vers la fiche (href), soit une copie rapide du code (link). */
-export function MiniCoupon({ code, codeId, title, subtitle, avatar, className = '', href, link }: MiniProps) {
-  const root = useRef<HTMLDivElement>(null);
-  const stubRef = useRef<HTMLButtonElement>(null);
-  const [copied, setCopied] = useState(false);
-  const { contextSafe } = useGSAP({ scope: root });
-
-  const copy = contextSafe(async () => {
-    const copying = copyText(code);
-    track('copy', codeId);
-    playCouponSnip();
-    const mm = gsap.matchMedia();
-    mm.add(MOTION_OK, () => {
-      gsap.timeline()
-        .to(stubRef.current, { x: 12, y: 6, rotation: 7, duration: 0.28, ease: 'power3.out' })
-        .to(stubRef.current, { x: 0, y: 0, rotation: 0, duration: 0.7, ease: 'elastic.out(1, 0.45)' }, '+=0.5');
-    });
-    setCopied(true);
-    await copying;
-    window.setTimeout(() => { if (link && link !== '#') track('open', codeId); openCreatorLink(link ?? ''); }, 450);
-    window.setTimeout(() => setCopied(false), 2400);
-  });
-
-  const body = (
-    <>
-      <div className="k-coupon-main k-paper">
-        {avatar}
-        <span className="k-coupon-text">
-          <strong>{title}</strong>
-          <span>{subtitle}</span>
-        </span>
-      </div>
-      {href ? (
-        <span className="k-coupon-stub"><small>Code</small><span className="k-coupon-code">{code}</span></span>
-      ) : (
-        <button ref={stubRef} type="button" className="k-coupon-stub" onClick={copy} aria-label={`Copier le code ${code} et ouvrir le lien du créateur`}>
-          <small>{copied ? 'Copié ✓' : 'Copier'}</small>
-          <span className="k-coupon-code">{code}</span>
-        </button>
-      )}
-      <span className="k-sr" role="status">{copied ? `Code ${code} copié` : ''}</span>
-    </>
-  );
-
-  if (href) {
-    return <Link href={href} className={`k-coupon ${className}`} ref={root as unknown as React.Ref<HTMLAnchorElement>}>{body}</Link>;
-  }
-  return <div className={`k-coupon ${className}`} ref={root}>{body}</div>;
 }
