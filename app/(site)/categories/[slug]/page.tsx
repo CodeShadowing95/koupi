@@ -2,19 +2,20 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { isPublic } from '@/lib/data';
 import { getCatalog } from '@/lib/catalog-server';
+import { parseCategoryFilters } from '@/lib/category-browse';
 import { routes } from '@/lib/routes';
-import { MiniCoupon } from '@/components/site/coupon';
-import { ToolSeal } from '@/components/site/tool-logo';
-import { ToolCard } from '@/components/site/tool-card';
-import { CodeBadge } from '@/components/site/code-badge';
+import { CategoryBrowser } from '@/components/site/category-browser';
 
-export default async function Category({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+type Props = { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> };
+
+export default async function Category({ params, searchParams }: Props) {
+  const [{ slug }, query] = await Promise.all([params, searchParams]);
   const { categories, codes, tools } = await getCatalog();
   const category = categories.find(item => item.slug === slug);
   if (!category) notFound();
   const categoryTools = tools.filter(tool => tool.category === category.name);
-  const categoryCodes = codes.filter(code => isPublic(code) && categoryTools.some(tool => tool.name === code.tool));
+  const slugs = categoryTools.map(tool => tool.slug);
+  const categoryCodes = codes.filter(code => isPublic(code) && slugs.includes(code.toolSlug));
   return (
     <main className="k-page">
       <div className="k-wrap">
@@ -27,33 +28,7 @@ export default async function Category({ params }: { params: Promise<{ slug: str
         {categoryTools.length === 0 ? (
           <div className="k-empty"><h2>Pas encore d&apos;outil ici.</h2><p>Tu connais un code pour un outil de cette catégorie ?</p><Link className="k-btn k-btn-paper k-btn-ticket" href={routes.submit()}>Proposer un code</Link></div>
         ) : (
-          <>
-            {categoryCodes.length > 0 && (
-              <div className="k-coupon-grid" style={{ marginBottom: 72 }}>
-                {categoryCodes.map(code => {
-                  const tool = categoryTools.find(item => item.name === code.tool);
-                  return (
-                    <div className="k-coupon-card" key={code.id} data-reveal>
-                      <MiniCoupon
-                        codeId={code.id}
-                        code={code.code}
-                        link={code.creatorLink || tool?.website || '#'}
-                        avatar={<ToolSeal tool={tool?.slug ?? code.tool} name={code.tool} />}
-                        title={<>{code.tool} · {code.discount}</>}
-                        subtitle={<>de {code.creator}</>}
-                      />
-                      <div className="k-coupon-meta">
-                        <CodeBadge code={code} dark withDate={false} />
-                        {tool && <Link href={routes.tool(tool.slug)}>Voir la fiche →</Link>}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            <h2 style={{ fontSize: 30, marginBottom: 22 }} data-reveal>Les outils</h2>
-            <div className="k-tool-grid">{categoryTools.map(tool => <ToolCard tool={tool} key={tool.slug} />)}</div>
-          </>
+          <CategoryBrowser codes={categoryCodes} tools={categoryTools} initial={parseCategoryFilters(query, slugs)} now={Date.now()} />
         )}
       </div>
     </main>
