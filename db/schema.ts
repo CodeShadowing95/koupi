@@ -323,6 +323,8 @@ export const creatorUsers = pgTable('creator_users', {
   creatorId: uuid('creator_id').references(() => creators.id, { onDelete: 'set null' }),
   accessGrantedAt: timestamp('access_granted_at', { withTimezone: true }),
   lastSignInAt: timestamp('last_sign_in_at', { withTimezone: true }),
+  /** Compte désactivé par l'admin (espace Administration) : connexion refusée et session coupée tant qu'il l'est. */
+  disabledAt: timestamp('disabled_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, table => [
   uniqueIndex('creator_users_email_idx').on(table.email),

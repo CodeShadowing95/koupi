@@ -1259,6 +1259,9 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-admin-block-head .muted{font-size:13px}
 .adm-pages-table tr.is-off td{background:var(--bad-bg)}
 .adm-pages-table code{font-size:12.5px}
+.adm-admin-note{margin:-4px 0 10px;color:var(--muted);font-size:13.5px}
+.adm-users-table tr.is-off td{background:var(--bad-bg)}
+.adm-users-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}
 .adm-page-off{display:inline-block;margin-left:8px;padding:1px 7px;border-radius:999px;background:var(--bad);color:#fff;font-size:11px;font-weight:700}
 .adm-journal{list-style:none;margin:0;padding:0;background:var(--card);border:1.5px solid var(--line);border-radius:12px}
 .adm-journal li{display:flex;gap:16px;padding:10px 14px;font-size:14px;border-bottom:1px solid var(--line)}
