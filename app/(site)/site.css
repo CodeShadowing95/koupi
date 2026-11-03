@@ -103,6 +103,11 @@ html:has(.kp),body:has(.kp){margin:0;background:#07081A}
 .k-nav-coupon:active .k-nav-coupon-stub{transform:translate(5px,4px) rotate(16deg)}
 .kp .k-nav-coupon:focus-visible{outline-offset:4px}
 @media (max-width:640px){.k-header .k-nav-coupon{display:none}}
+/* Même coupon que la navbar, en grand (bloc Contribuer de l'accueil). */
+.k-nav-coupon.is-large{height:56px;margin-left:0;border-radius:11px}
+.k-nav-coupon.is-large .k-nav-coupon-main{padding:0 14px 0 20px;font-size:16px}
+.k-nav-coupon.is-large .k-nav-coupon-stub{width:34px;font-size:17px}
+.k-creator-rotator-name{display:inline-block;max-width:min(24ch,100%);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;vertical-align:bottom;color:var(--text)}
 @media (prefers-reduced-motion:reduce){.k-nav-coupon-stub{transition:none}.k-nav-coupon:hover .k-nav-coupon-main::before{transition:none;transform:translateX(-120%)}}
 
 /* Pastilles, étiquettes, statuts */

@@ -14,6 +14,8 @@ import { CreatorsOrbit } from '@/components/site/creators-orbit';
 import { CategoryDisplay } from '@/components/site/category-display';
 import { CodeBadge } from '@/components/site/code-badge';
 import { compactCount, featuredCodes } from '@/lib/codes-board';
+import { CreatorRotator } from '@/components/site/creator-rotator';
+import { rotationCreators } from '@/lib/creator-rotation';
 
 const Arrow = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
@@ -162,8 +164,11 @@ export default async function Home() {
               <p>Envoie-le avec le lien de la vidéo. On le vérifie, on crédite le créateur, et il aide les suivants.</p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
-              <Link className="k-btn k-btn-paper k-btn-ticket" href={routes.submit()} style={{ minHeight: 56, fontSize: 16, padding: '0 28px' }}>Proposer un code <Arrow /></Link>
-              <Link className="k-link" href={routes.creator(best.creatorSlug)}>ou découvre les codes de {best.creator} →</Link>
+              <Link className="k-nav-coupon is-large" href={routes.submit()}>
+                <span className="k-nav-coupon-main k-paper">Proposer un code</span>
+                <span className="k-nav-coupon-stub" aria-hidden="true">%</span>
+              </Link>
+              <CreatorRotator creators={rotationCreators(live, best.creatorSlug)} />
             </div>
           </div>
         </div>
