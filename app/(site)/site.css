@@ -534,6 +534,10 @@ button.k-coupon-stub{transition:transform .3s cubic-bezier(.2,.9,.3,1.3),backgro
 .k-creator-expired .k-pass{opacity:.75}
 .k-search-creators{display:flex;flex-direction:column;gap:14px;margin-bottom:40px}
 .k-search-creators h2{font-size:var(--fs-2xl)}
+.k-search-codes{display:flex;flex-direction:column;gap:18px;margin-bottom:48px}
+.k-search-codes-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 16px}
+.k-search-codes h2,.k-search-tools h2{font-size:var(--fs-2xl)}
+.k-search-tools{display:flex;flex-direction:column;gap:14px}
 .k-chip[aria-current="true"]{color:#fff;border-color:var(--blue-soft);background:rgba(110,125,255,.2)}
 .k-dir-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;list-style:none;margin:0;padding:0}
 .k-dir-card{display:flex;flex-direction:column;gap:14px;height:100%;padding:22px;border-radius:var(--r-xl);border:1px solid var(--line);background:var(--surface);transition:border-color .2s,transform .2s}
