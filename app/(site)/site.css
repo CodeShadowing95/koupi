@@ -835,3 +835,35 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
   .k-bon-stub,.k-bon-burst,.k-bon-stub-arrow,.k-bon-line{transition:none}
   .k-bon.is-tearing .k-bon-stub,.k-bon-stamp{animation:none}
 }
+
+/* Page des codes : choix de la vue (étendue / brève) à droite du nombre de codes */
+.k-board-tools{display:flex;align-items:center;gap:16px;margin-left:auto}
+.k-board-views{display:flex;gap:4px;padding:3px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--line)}
+.k-board-views button{display:inline-flex;align-items:center;gap:7px;min-height:34px;padding:0 12px;border:0;border-radius:9px;background:transparent;color:var(--text-soft);font-size:13.5px;font-weight:600;white-space:nowrap;transition:background .2s,color .2s}
+.k-board-views button:hover{color:#fff}
+.k-board-views button[aria-pressed="true"]{background:var(--paper);color:var(--paper-ink)}
+/* Vue brève : coupon couché, talon à droite, seulement l'outil, la réduction et le créateur. */
+.k-board.is-brief .k-board-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 20px}
+.k-board.is-brief .k-pass{flex-direction:row;height:auto}
+.k-board.is-brief .k-pass-main{gap:8px;padding:16px 18px 16px 22px;border-radius:16px 0 0 16px;
+  -webkit-mask:radial-gradient(circle 9px at 0 50%,#0000 97%,#000) 0 0/100% 100% no-repeat,radial-gradient(circle at 100% 50%,#0000 3px,#000 3.5px) right/100% 12px repeat-y;-webkit-mask-composite:source-in;
+  mask:radial-gradient(circle 9px at 0 50%,#0000 97%,#000) 0 0/100% 100% no-repeat,radial-gradient(circle at 100% 50%,#0000 3px,#000 3.5px) right/100% 12px repeat-y;mask-composite:intersect}
+.k-board.is-brief :is(.k-pass-title small,.k-pass-by-top,.k-pass-facts>div:not(.is-wide),.k-pass-facts dt,.k-pass-source){display:none}
+.k-board.is-brief .k-pass-head .k-tool-logo{width:34px;height:34px;border-radius:10px}
+.k-board.is-brief .k-pass-title strong{font-size:18px}
+.k-board.is-brief .k-pass-facts{display:block;padding:0;border:0}
+.k-board.is-brief .k-pass-facts dd.is-discount{font-size:19px;-webkit-line-clamp:1}
+.k-board.is-brief .k-pass-who{font-size:13px;font-weight:600;color:var(--paper-muted)}
+.k-board.is-brief .k-pass-stub{flex:none;flex-direction:column;justify-content:center;gap:10px;width:138px;padding:14px 12px;border-radius:0 16px 16px 0;transform-origin:0 100%;
+  -webkit-mask:radial-gradient(circle 9px at 100% 50%,#0000 97%,#000) 0 0/100% 100% no-repeat,radial-gradient(circle at 0 50%,#0000 3px,#000 3.5px) left/100% 12px repeat-y;-webkit-mask-composite:source-in;
+  mask:radial-gradient(circle 9px at 100% 50%,#0000 97%,#000) 0 0/100% 100% no-repeat,radial-gradient(circle at 0 50%,#0000 3px,#000 3.5px) left/100% 12px repeat-y;mask-composite:intersect}
+.k-board.is-brief .k-pass-stub-code{align-items:center;text-align:center;max-width:100%}
+.k-board.is-brief .k-pass-code{font-size:15px}
+.k-board.is-brief .k-pass.is-torn .k-pass-stub{transform:translate(10px,6px) rotate(5deg)}
+@media (max-width:1180px){.k-board.is-brief .k-board-list{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:600px){
+  .k-board-bar{flex-wrap:wrap}
+  .k-board-views button{padding:0 10px}
+  .k-board.is-brief .k-pass-stub{width:112px}
+}
+@media (prefers-reduced-motion:reduce){.k-board-views button{transition:none}}

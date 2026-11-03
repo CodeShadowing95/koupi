@@ -4,14 +4,15 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
+import { Flip } from 'gsap/Flip';
 import { Physics2DPlugin } from 'gsap/Physics2DPlugin';
 import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
 import { SplitText } from 'gsap/SplitText';
 import { useGSAP } from '@gsap/react';
 
-gsap.registerPlugin(useGSAP, ScrollTrigger, DrawSVGPlugin, Physics2DPlugin, ScrambleTextPlugin, SplitText);
+gsap.registerPlugin(useGSAP, ScrollTrigger, DrawSVGPlugin, Flip, Physics2DPlugin, ScrambleTextPlugin, SplitText);
 
 export const MOTION_OK = '(prefers-reduced-motion: no-preference)';
 export const MOTION_REDUCED = '(prefers-reduced-motion: reduce)';
 
-export { gsap, ScrollTrigger, SplitText, useGSAP };
+export { Flip, gsap, ScrollTrigger, SplitText, useGSAP };
