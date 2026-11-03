@@ -19,6 +19,16 @@ describe('codeBadge', () => {
   });
 });
 
+describe('pastille du logo', () => {
+  it('suit le même ordre que le badge : expiré, payé, vérifié, à tester', () => {
+    const now = new Date('2026-11-02T10:00:00Z');
+    expect(codeBadge({ status: 'verified', lastTestedAt: at, paymentTestedAt: at, expiresOn: '2026-11-01' }, { now }).seal).toBe('expired');
+    expect(codeBadge({ status: 'verified', lastTestedAt: at, paymentTestedAt: at }).seal).toBe('paid');
+    expect(codeBadge({ status: 'verified', lastTestedAt: at, paymentTestedAt: null }).seal).toBe('verified');
+    expect(codeBadge({ status: 'to_test', lastTestedAt: null, paymentTestedAt: at }).seal).toBe('to_test');
+  });
+});
+
 describe('date de fin', () => {
   const now = new Date('2026-11-02T10:00:00Z');
   it('ne présente plus comme vérifié un code dont la date est passée', () => {

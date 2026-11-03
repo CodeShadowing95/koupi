@@ -852,7 +852,8 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
   mask:radial-gradient(circle 9px at 0 50%,#0000 97%,#000) 0 0/100% 100% no-repeat,radial-gradient(circle at 100% 50%,#0000 3px,#000 3.5px) right/100% 12px repeat-y;mask-composite:intersect}
 .k-board.is-list :is(.k-pass-by-top small,.k-pass-facts>div:not(.is-wide),.k-pass-facts dt,.k-pass-source){display:none}
 .k-board.is-list .k-pass-head{display:contents}
-.k-board.is-list .k-pass-head .k-tool-logo{grid-row:1;grid-column:1;width:36px;height:36px;border-radius:10px}
+.k-board.is-list .k-pass-logo{grid-row:1;grid-column:1}
+.k-board.is-list .k-pass-head .k-tool-logo{width:36px;height:36px;border-radius:10px}
 .k-board.is-list .k-pass-title{grid-row:1;grid-column:2}
 .k-board.is-list .k-pass-by{grid-row:1;grid-column:3}
 .k-board.is-list .k-pass-facts{grid-row:1;grid-column:4}
@@ -1040,3 +1041,15 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-codes-head h1{font-size:clamp(26px,3vw,34px);letter-spacing:-.03em}
 .k-codes-head p{display:inline-flex;align-items:center;gap:8px;margin:0;color:var(--text-soft);font-size:14.5px}
 .k-codes-head svg{flex:none;color:var(--coral)}
+/* Pastille de confiance sur le logo de l'outil, et logo de la plateforme d'où vient le code */
+.k-pass-logo{position:relative;flex:none;display:inline-flex}
+.k-codeseal{position:absolute;right:-6px;bottom:-6px;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;color:#fff;box-shadow:0 0 0 2.5px #FBF5E8;cursor:help}
+.k-codeseal.is-verified{background:#19A463}
+.k-codeseal.is-paid{background:linear-gradient(140deg,#FFD866,#E0A10E);color:#3B2900}
+.k-codeseal.is-to_test{background:#F2A23A;color:#3B2400}
+.k-codeseal.is-expired{background:#8C877B}
+.k-board-check .k-codeseal{position:static;width:18px;height:18px;margin-left:-2px;box-shadow:none;cursor:inherit}
+.k-pass-platform{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--paper-muted);white-space:nowrap}
+.k-platform-icon{display:inline-flex;align-items:center;justify-content:center;flex:none;border-radius:5px;color:#fff}
+.k-platform-icon.is-snapchat{color:#000}
+.k-pass-source .k-platform-icon{border-radius:4px}

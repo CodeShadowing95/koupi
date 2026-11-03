@@ -9,7 +9,7 @@ import {
 } from '@/lib/codes-board';
 import { routes } from '@/lib/routes';
 import { Flip, gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
-import { BoardingCoupon } from '@/components/site/boarding-coupon';
+import { BoardingCoupon, TrustGlyph } from '@/components/site/boarding-coupon';
 import { ToolLogo } from '@/components/site/tool-logo';
 import { AdminSelect, type SelectOption } from '@/components/admin-select';
 
@@ -46,7 +46,7 @@ type Props = {
 type View = 'cards' | 'list';
 const VIEW_KEY = 'koupi-codes-view';
 // Les morceaux du coupon qui glissent vers leur nouvelle place quand on change de vue.
-const FLIP_TARGETS = '.k-board-item, .k-pass, .k-pass-main, .k-pass-stub, .k-pass-head .k-tool-logo, .k-pass-thumbs, .k-pass-title strong, .k-pass-who, .k-pass-facts .is-wide, .k-pass-stub-code, .k-pass-action';
+const FLIP_TARGETS = '.k-board-item, .k-pass, .k-pass-main, .k-pass-stub, .k-pass-logo, .k-pass-thumbs, .k-pass-title strong, .k-pass-who, .k-pass-facts .is-wide, .k-pass-stub-code, .k-pass-action';
 
 const count = (value: number | undefined) => String(value ?? 0);
 /** Filtres rangés derrière « Plus de filtres » (noms de paramètres dans l'adresse). */
@@ -171,6 +171,9 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
                 onClick={() => update({ status: status.value })}>
                 <span className="k-board-box" aria-hidden="true" />
                 <span>{status.label}</span>
+                {status.value !== 'all' && (
+                  <span className={`k-codeseal is-${status.value}`} aria-hidden="true"><TrustGlyph seal={status.value} /></span>
+                )}
                 <span className="k-board-count">{counts.status[status.value]}</span>
               </button>
             ))}

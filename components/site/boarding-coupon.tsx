@@ -8,7 +8,10 @@ import { track } from '@/lib/track';
 import { playCouponSnip, playCouponTear } from '@/lib/coupon-sound';
 import { ToolLogo } from '@/components/site/tool-logo';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
-import { CodeBadge } from '@/components/site/code-badge';
+import { PlatformIcon } from '@/components/platform-icon';
+import { codeBadge } from '@/lib/code-badge';
+import { PLATFORM_LABELS } from '@/lib/creator-accounts-display';
+import { sourcePlatform } from '@/lib/source-platform';
 import { useCodeVote } from '@/components/site/use-code-vote';
 
 // Le coupon de la page « Tous les codes » : même papier et même talon bleu que sur l'accueil,
@@ -16,6 +19,9 @@ import { useCodeVote } from '@/components/site/use-code-vote';
 // (bruit de déchirure), copie le code et ouvre le lien du créateur.
 // « Ça a marché ? » se vote avec les pouces à droite du nom de l'outil : 👍 avec le nombre de votes positifs, 👎 à côté.
 // Le pouce choisi reste coloré ; un vote tout juste donné ajoute +1 au compteur.
+// La confiance tient dans une pastille posée sur le logo (coche verte « Source vérifiée », coche dorée
+// « Testé au paiement », sablier « À tester », point d'exclamation « Peut-être expiré ») ; à la place de l'ancien
+// badge, le logo de la plateforme d'où vient le code (YouTube, Instagram, TikTok, podcast…).
 
 const MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 /** Date courte en français, calculée sans fuseau pour que le serveur et le navigateur affichent la même chose. */
@@ -30,6 +36,8 @@ export function BoardingCoupon({ code, category, link }: Props) {
   const [torn, setTorn] = useState(false);
   const [failed, setFailed] = useState(false);
   const { voted, fresh, message, sending, vote } = useCodeVote(code.id);
+  const badge = codeBadge(code, { withDate: false });
+  const platform = sourcePlatform(code.source);
   // Votes positifs déjà comptés (taux de réussite × votes), plus le vôtre s'il vient d'être donné.
   const ups = Math.round((code.votes * code.success) / 100) + (voted === 'up' && fresh ? 1 : 0);
 
@@ -51,7 +59,13 @@ export function BoardingCoupon({ code, category, link }: Props) {
     <article className={`k-pass${torn ? ' is-torn' : ''}`}>
       <div className="k-pass-main k-paper">
         <header className="k-pass-head">
-          <ToolLogo tool={code.toolSlug} name={code.tool} />
+          <span className="k-pass-logo">
+            <ToolLogo tool={code.toolSlug} name={code.tool} />
+            <span className={`k-codeseal is-${badge.seal}`} title={badge.title}>
+              <TrustGlyph seal={badge.seal} />
+              <span className="k-sr">{badge.label.replace(/^[✓◷]\s*/, '')}</span>
+            </span>
+          </span>
           <span className="k-pass-title">
             <strong>{code.tool}</strong>
             {category && <small>{category}</small>}
@@ -74,7 +88,12 @@ export function BoardingCoupon({ code, category, link }: Props) {
         </header>
 
         <p className="k-pass-by">
-          <span className="k-pass-by-top"><small>Donné par</small><CodeBadge code={code} withDate={false} /></span>
+          <span className="k-pass-by-top">
+            <small>Donné par</small>
+            {platform && platform !== 'other' && (
+              <span className="k-pass-platform"><PlatformIcon platform={platform} size={16} className="k-platform-icon" />{PLATFORM_LABELS[platform]}</span>
+            )}
+          </span>
           <Link href={routes.creator(code.creatorSlug)} className="k-pass-who"><CreatorAvatar name={code.creator} size="xs" /><span className="k-pass-who-name">{code.creator}</span></Link>
         </p>
 
@@ -89,7 +108,9 @@ export function BoardingCoupon({ code, category, link }: Props) {
 
         {code.source && (
           <a className="k-pass-source" href={code.source} target="_blank" rel="noopener noreferrer">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+            {platform && platform !== 'other'
+              ? <PlatformIcon platform={platform} size={16} className="k-platform-icon" />
+              : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18" /></svg>}
             <span>{code.sourceTitle || 'Voir la source'}</span>
           </a>
         )}
@@ -105,4 +126,15 @@ export function BoardingCoupon({ code, category, link }: Props) {
       <span className="k-sr" role="status">{torn ? (failed ? `Copie le code ${code.code} à la main` : `Code ${code.code} copié`) : ''}</span>
     </article>
   );
+}
+
+/** Le dessin de la pastille de confiance posée sur le logo. */
+export function TrustGlyph({ seal }: { seal: ReturnType<typeof codeBadge>['seal'] }) {
+  if (seal === 'to_test') {
+    return <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 1.5h14v3c0 3.4-3 5.6-4.6 7.5C16 13.9 19 16.1 19 19.5v3H5v-3c0-3.4 3-5.6 4.6-7.5C8 10.1 5 7.9 5 4.5z" /></svg>;
+  }
+  if (seal === 'expired') {
+    return <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v9M12 19.5v.01" /></svg>;
+  }
+  return <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" /></svg>;
 }

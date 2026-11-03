@@ -14,11 +14,15 @@ const ICONS: Partial<Record<CreatorPlatform, { hex: string; path: string }>> = {
 };
 
 /** Logo d'un réseau. « Autre » prend une icône de lien neutre. */
-export function PlatformIcon({ platform, size = 20 }: { platform: CreatorPlatform; size?: number }) {
+export function PlatformIcon({ platform, size = 20, className = 'adm-platform-icon' }: {
+  platform: CreatorPlatform; size?: number;
+  /** Classe de la pastille : « adm-platform-icon » dans l'admin, « k-platform-icon » sur le site public. */
+  className?: string;
+}) {
   const icon = ICONS[platform];
   const glyph = Math.round(size * 0.62);
   return (
-    <span className={`adm-platform-icon is-${platform}`} style={{ width: size, height: size, background: icon?.hex }} aria-hidden="true" title={PLATFORM_LABELS[platform]}>
+    <span className={`${className} is-${platform}`} style={{ width: size, height: size, background: icon?.hex }} aria-hidden="true" title={PLATFORM_LABELS[platform]}>
       <svg viewBox="0 0 24 24" width={glyph} height={glyph} fill="currentColor" focusable="false">
         {icon
           ? <path d={icon.path} />
