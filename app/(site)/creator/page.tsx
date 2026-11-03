@@ -2,25 +2,27 @@ import type { Metadata } from 'next';
 import Link from '@/components/site/site-pages';
 import { redirect } from 'next/navigation';
 import { getDb } from '@/db';
-import { isPublic } from '@/lib/data';
+import { isPublic, type Code } from '@/lib/data';
 import { getCatalog } from '@/lib/catalog-server';
 import { copiesByCode } from '@/lib/creator-auth';
 import { currentCreatorAccount } from '@/lib/creator-current';
 import { formatCopies } from '@/lib/creator-page';
 import { routes } from '@/lib/routes';
 import { Counter } from '@/components/site/counter';
+import { CodeBadge } from '@/components/site/code-badge';
+import { TrustPill } from '@/components/site/trust';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { CopyPageLink, SignOutButton } from '@/components/site/creator-space-actions';
 
 export const metadata: Metadata = { title: 'Mon espace · Koupi', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
 
-const STATUS: Record<string, { label: string; tone: string }> = {
-  verified: { label: 'Vérifié', tone: 'k-status-ok' },
-  to_test: { label: 'À tester', tone: 'k-status-warn' },
-  pending: { label: 'En relecture', tone: 'k-status-warn' },
-  rejected: { label: 'Retiré', tone: 'k-status-bad' },
-};
+// Mêmes mots et mêmes pastilles que sur le site public ; « En relecture » et « Retiré » n'existent qu'ici.
+function CodeState({ code }: { code: Code }) {
+  if (code.status === 'pending') return <TrustPill seal="to_test" label="En relecture" title="Koupi relit ce code avant de le publier." dark />;
+  if (code.status === 'rejected') return <TrustPill seal="expired" label="Retiré" title="Ce code n’est plus affiché sur Koupi." dark />;
+  return <CodeBadge code={code} dark withDate={false} />;
+}
 
 // Espace du créateur connecté (ADR-0021). Première version : ses chiffres et ses codes, rien à configurer.
 export default async function CreatorSpace() {
@@ -95,7 +97,7 @@ export default async function CreatorSpace() {
                 <div role="row" className="k-cs-row" key={code.id}>
                   <span role="cell" className="k-cs-code">{code.code}</span>
                   <span role="cell"><Link href={routes.tool(code.toolSlug)}>{code.tool}</Link> <small>{code.discount}</small></span>
-                  <span role="cell"><span className={`k-status is-dark ${STATUS[code.status].tone}`}>{STATUS[code.status].label}</span></span>
+                  <span role="cell" className="k-cs-state"><CodeState code={code} /></span>
                   <span role="cell" className="k-cs-n">{formatCopies(n)}</span>
                 </div>
               ))}

@@ -9,7 +9,8 @@ import {
 } from '@/lib/codes-board';
 import { routes } from '@/lib/routes';
 import { Flip, gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
-import { BoardingCoupon, TrustGlyph } from '@/components/site/boarding-coupon';
+import { BoardingCoupon } from '@/components/site/boarding-coupon';
+import { TrustGlyph } from '@/components/site/trust';
 import { ToolLogo } from '@/components/site/tool-logo';
 import { AdminSelect, type SelectOption } from '@/components/admin-select';
 

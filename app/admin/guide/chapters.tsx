@@ -276,7 +276,7 @@ function Verifications() {
         { term: <Fake tone="ok">Testé au paiement</Fake>, meaning: <>Tu as en plus essayé le code jusqu’à la page de paiement et la réduction s’applique. Le code est vérifié et garde la date de ce test.</> },
         { term: <Fake tone="no">✗ Rejeter</Fake>, meaning: 'Le code est faux, mort ou ne vient pas du créateur. Il quitte le site.' },
       ]} />
-      <Callout tone="why">« Source vérifiée » prouve que le code existe vraiment. « Testé au paiement » prouve qu’il marche aujourd’hui. Les deux rassurent le visiteur, mais pas de la même façon.</Callout>
+      <Callout tone="why">« Vérifié » (la source est vérifiée) prouve que le code existe vraiment. « Testé au paiement » prouve qu’il marche aujourd’hui. Les deux rassurent le visiteur, mais pas de la même façon.</Callout>
     </Section>
     <Section id="clavier" title="Aller vite au clavier">
       <Legend rows={[
