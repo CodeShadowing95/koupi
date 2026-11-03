@@ -95,7 +95,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                   {best.votes >= 3 && <div className="k-meter"><span style={{ width: `${best.success}%` }} /></div>}
                   <a className="k-link" href={best.source} target="_blank" rel="noopener noreferrer">Voir la vidéo d&apos;où vient le code ↗</a>
                 </div>
-                <VoteButtons codeId={best.id} code={best.code} />
+                <VoteButtons code={best} />
               </div>
             )}
 
@@ -117,7 +117,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                       <div className="k-coupon-meta">
                         <span className="k-coupon-meta-group"><CodeBadge code={code} dark />{votesLabel(code)}</span>
                         <a href={code.source} target="_blank" rel="noopener noreferrer">Source ↗</a>
-                        <VoteButtons codeId={code.id} code={code.code} />
+                        <VoteButtons code={code} />
                       </div>
                     </div>
                   ))}

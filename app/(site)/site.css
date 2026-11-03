@@ -339,6 +339,7 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-self-start{align-self:flex-start}
 .k-page-h2{font-size:36px;margin:80px 0 24px}
 .k-status-row{display:flex;gap:10px;flex-wrap:wrap}
+.k-status-row .k-trustpill{white-space:normal;min-height:30px;padding-block:3px}
 .k-page-head h1{font-size:var(--fs-page);letter-spacing:-.045em}
 .k-page-head p{font-size:var(--fs-lg);color:var(--text-soft)}
 .k-crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:var(--fs-md);color:var(--muted)}
@@ -929,10 +930,32 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 @media (max-width:600px){.k-board-list{grid-template-columns:minmax(0,1fr)}}
 @media (prefers-reduced-motion:reduce){.k-pass-stub{transition:none}}
 /* Marque d'un créateur contrôlé par Koupi : coche à côté du nom, ou pastille sur sa page */
-.k-creator-check{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-left:6px;border-radius:50%;background:var(--mint);color:#06281A;font-size:var(--fs-3xs);font-weight:900;line-height:1;vertical-align:middle;flex:none}
-.k-creator-check.is-verified{background:#7FB2FF;color:#0A1F44}
-.k-creator-mark{text-decoration:none}
+/* Marque d'un créateur : rosette bleue (forme distincte de la pastille ronde des codes). Pleine = créateur vérifié, claire = contrôlé par Koupi. */
+.k-creator-check{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;margin-left:6px;vertical-align:-3px;flex:none}
+.k-creator-check svg{width:100%;height:100%;display:block}
+.k-creator-check .k-rosette-shape{fill:#C9D1FF}
+.k-creator-check .k-rosette-check{stroke:#1B2A8F}
+.k-creator-check.is-verified .k-rosette-shape{fill:#4C6BFF}
+.k-creator-check.is-verified .k-rosette-check{stroke:#fff}
+.k-creator-mark{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:0 10px 0 6px;border-radius:var(--r-pill);background:rgba(76,107,255,.12);color:#1B2A8F;font-size:var(--fs-sm);font-weight:700;text-decoration:none}
+.k-creator-mark.is-dark{background:rgba(140,155,255,.14);color:var(--blue-soft)}
+.k-creator-mark .k-creator-check{margin-left:0}
 .k-creator-mark:hover{text-decoration:underline}
+.k-prose a.k-creator-mark{text-decoration:none}
+.k-prose a.k-creator-mark:hover{text-decoration:underline}
+/* Confiance d'un code : pastille + mot court (components/site/trust.tsx). */
+.k-trustpill{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:0 10px 0 4px;border-radius:var(--r-pill);background:rgba(23,21,15,.06);color:var(--paper-ink);font-size:var(--fs-sm);font-weight:700;white-space:nowrap}
+.k-trustpill .k-codeseal{position:static;width:18px;height:18px;box-shadow:none;cursor:inherit}
+.k-trustpill.is-dark{background:rgba(255,255,255,.06);color:var(--text)}
+.k-trustpill.is-dark.is-verified{color:var(--mint)}
+.k-trustpill.is-dark.is-paid{color:#FFD866}
+.k-trustpill.is-dark.is-to_test{color:var(--amber)}
+.k-trustpill.is-dark.is-expired{color:var(--text-soft)}
+.k-trustpill.is-pending .k-codeseal{background:var(--muted)}
+/* Pouces sur le fond nuit (fiche outil). */
+.k-pass-thumbs.is-dark{background:rgba(255,255,255,.06)}
+.k-pass-thumbs.is-dark button{color:var(--text-soft)}
+.k-pass-thumbs.is-dark button:hover:not(:disabled){color:#fff;background:rgba(255,255,255,.1)}
 
 /* Proposer un code : le formulaire est un bon de réduction, le talon perforé est le bouton d'envoi. */
 .k-bon-wrap{max-width:1060px}

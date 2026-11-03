@@ -10,9 +10,10 @@ import { ToolLogo } from '@/components/site/tool-logo';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { PlatformIcon } from '@/components/platform-icon';
 import { codeBadge } from '@/lib/code-badge';
+import { TrustGlyph } from '@/components/site/trust';
 import { PLATFORM_LABELS } from '@/lib/creator-accounts-display';
 import { sourcePlatform } from '@/lib/source-platform';
-import { useCodeVote } from '@/components/site/use-code-vote';
+import { CodeThumbs } from '@/components/site/code-thumbs';
 import { CODE_COPIED_EVENT, type CopiedCode } from '@/lib/vote-invite';
 
 // Le coupon de la page « Tous les codes » : même papier et même talon bleu que sur l'accueil,
@@ -20,7 +21,7 @@ import { CODE_COPIED_EVENT, type CopiedCode } from '@/lib/vote-invite';
 // (bruit de déchirure), copie le code et ouvre le lien du créateur.
 // « Ça a marché ? » se vote avec les pouces à droite du nom de l'outil : 👍 avec le nombre de votes positifs, 👎 à côté.
 // Le pouce choisi reste coloré ; un vote tout juste donné ajoute +1 au compteur.
-// La confiance tient dans une pastille posée sur le logo (coche verte « Source vérifiée », coche dorée
+// La confiance tient dans une pastille posée sur le logo (coche verte « Vérifié », coche dorée
 // « Testé au paiement », sablier « À tester », point d'exclamation « Peut-être expiré ») ; à la place de l'ancien
 // badge, le logo de la plateforme d'où vient le code (YouTube, Instagram, TikTok, podcast…).
 
@@ -37,11 +38,8 @@ type Props = { code: Code; category?: string; link: string; compact?: boolean };
 export function BoardingCoupon({ code, category, link, compact = false }: Props) {
   const [torn, setTorn] = useState(false);
   const [failed, setFailed] = useState(false);
-  const { voted, fresh, message, sending, vote } = useCodeVote(code.id);
   const badge = codeBadge(code, { withDate: false });
   const platform = sourcePlatform(code.source);
-  // Votes positifs déjà comptés (taux de réussite × votes), plus le vôtre s'il vient d'être donné.
-  const ups = Math.round((code.votes * code.success) / 100) + (voted === 'up' && fresh ? 1 : 0);
 
   const tear = async () => {
     track('copy', code.id);
@@ -67,28 +65,14 @@ export function BoardingCoupon({ code, category, link, compact = false }: Props)
             <ToolLogo tool={code.toolSlug} name={code.tool} />
             <span className={`k-codeseal is-${badge.seal}`} title={badge.title}>
               <TrustGlyph seal={badge.seal} />
-              <span className="k-sr">{badge.label.replace(/^[✓◷]\s*/, '')}</span>
+              <span className="k-sr">{badge.label}</span>
             </span>
           </span>
           <span className="k-pass-title">
             <strong>{code.tool}</strong>
             {category && <small>{category}</small>}
           </span>
-          <div className="k-pass-thumbs" role="group" aria-label={`Le code ${code.code} a-t-il marché ?`}>
-            <button type="button" className={`is-up${voted === 'up' && fresh ? ' is-new' : ''}${sending ? ' is-sending' : ''}`} aria-pressed={voted === 'up'}
-              disabled={sending || voted !== null} onClick={() => vote(true)}
-              title={voted ? `${ups} ${ups > 1 ? 'personnes disent' : 'personne dit'} que ce code marche` : 'Ce code a marché'}
-              aria-label={`Ce code a marché (${ups} ${ups > 1 ? 'votes' : 'vote'})`}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" aria-hidden="true"><path d="M7 10v11H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h3Zm0 0 4-7a2.5 2.5 0 0 1 2.5 3L13 10h5.5a2 2 0 0 1 2 2.4l-1.5 7A2 2 0 0 1 17 21H7" /></svg>
-              {ups}
-            </button>
-            <button type="button" className={`is-down${voted === 'down' && fresh ? ' is-new' : ''}`} aria-pressed={voted === 'down'}
-              disabled={sending || voted !== null} onClick={() => vote(false)}
-              title={voted ? 'Ton vote est enregistré' : 'Ce code n’a pas marché'} aria-label="Ce code n’a pas marché">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" aria-hidden="true"><path d="M17 14V3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-3Zm0 0-4 7a2.5 2.5 0 0 1-2.5-3L11 14H5.5a2 2 0 0 1-2-2.4l1.5-7A2 2 0 0 1 7 3h10" /></svg>
-            </button>
-            {voted ? <span className="k-sr" role="status">{message}</span> : message && <span className="k-pass-thumbs-error" role="alert">{message}</span>}
-          </div>
+          <CodeThumbs code={code} />
         </header>
 
         {compact
@@ -136,15 +120,4 @@ export function BoardingCoupon({ code, category, link, compact = false }: Props)
       <span className="k-sr" role="status">{torn ? (failed ? `Copie le code ${code.code} à la main` : `Code ${code.code} copié`) : ''}</span>
     </article>
   );
-}
-
-/** Le dessin de la pastille de confiance posée sur le logo. */
-export function TrustGlyph({ seal }: { seal: ReturnType<typeof codeBadge>['seal'] }) {
-  if (seal === 'to_test') {
-    return <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 1.5h14v3c0 3.4-3 5.6-4.6 7.5C16 13.9 19 16.1 19 19.5v3H5v-3c0-3.4 3-5.6 4.6-7.5C8 10.1 5 7.9 5 4.5z" /></svg>;
-  }
-  if (seal === 'expired') {
-    return <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v9M12 19.5v.01" /></svg>;
-  }
-  return <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" /></svg>;
 }

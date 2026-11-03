@@ -8,15 +8,26 @@ const TITLES = {
   verified: 'Le créateur a prouvé à Koupi que ce compte est le sien.',
 } as const;
 
-/** Marque de confiance d'un créateur. Rien tant qu'il est seulement « repéré ». compact : coche seule, à côté d'un nom. */
+/** Rosette bleue des créateurs : une autre forme que la pastille ronde des codes, pour ne pas confondre les deux. */
+function Rosette() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+      <path className="k-rosette-shape" d="M12 1.8l2.5 1.9 3.1-.3 1 3 2.6 1.7-.9 3 .9 3-2.6 1.7-1 3-3.1-.3L12 22.2l-2.5-1.9-3.1.3-1-3-2.6-1.7.9-3-.9-3 2.6-1.7 1-3 3.1.3z" />
+      <path className="k-rosette-check" d="m7.8 12.3 2.9 2.9 5.5-5.7" fill="none" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** Marque de confiance d'un créateur. Rien tant qu'il est seulement « repéré ». compact : rosette seule, à côté d'un nom. */
 export function CreatorMark({ level, compact = false, dark = false }: { level: Code['creatorLevel']; compact?: boolean; dark?: boolean }) {
   if (!level) return null;
   if (compact) {
-    return <span className={`k-creator-check${level === 'verified' ? ' is-verified' : ''}`} title={`${LABELS[level]}. ${TITLES[level]}`} aria-label={LABELS[level]} role="img">✓</span>;
+    return <span className={`k-creator-check is-${level}`} title={`${LABELS[level]}. ${TITLES[level]}`} aria-label={LABELS[level]} role="img"><Rosette /></span>;
   }
   return (
-    <Link href={routes.transparency} className={`k-status k-status-ok${dark ? ' is-dark' : ''} k-creator-mark`} title={TITLES[level]}>
-      ✓ {LABELS[level]}
+    <Link href={routes.transparency} className={`k-creator-mark is-${level}${dark ? ' is-dark' : ''}`} title={TITLES[level]}>
+      <span className={`k-creator-check is-${level}`} aria-hidden="true"><Rosette /></span>
+      {LABELS[level]}
     </Link>
   );
 }
