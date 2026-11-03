@@ -3,7 +3,7 @@
 // Une page coupée répond 404 (elle et ses sous-pages), disparaît des menus et ses liens deviennent du texte simple.
 
 export const PAGE_KEYS = [
-  'home', 'codes', 'categories', 'tools', 'creators', 'search', 'submit', 'keyring',
+  'home', 'codes', 'categories', 'tools', 'creators', 'search', 'submit',
   'transparency', 'for-creators', 'creator-space', 'legal', 'privacy',
 ] as const;
 export type PageKey = (typeof PAGE_KEYS)[number];
@@ -29,7 +29,6 @@ export const SITE_PAGES: SitePage[] = [
   { key: 'creators', label: 'Créateurs', paths: ['/creators'], effect: 'Lien du menu, noms des créateurs cliquables sur les coupons' },
   { key: 'search', label: 'Recherche', paths: ['/search'], effect: 'Page de résultats ; sans fiches outils non plus, la recherche disparaît' },
   { key: 'submit', label: 'Proposer un code', paths: ['/submit'], apis: ['/api/submissions'], effect: 'Boutons « Proposer un code » ; les envois sont refusés' },
-  { key: 'keyring', label: 'Mon trousseau', paths: ['/keyring'], effect: 'Lien du menu et du pied de page' },
   { key: 'transparency', label: 'Transparence', paths: ['/transparency'], effect: 'Lien du menu, du pied de page et des badges de niveau' },
   { key: 'for-creators', label: 'Pour les créateurs', paths: ['/for-creators'], effect: 'Lien du pied de page et « C’est ta page ? »' },
   { key: 'creator-space', label: 'Espace créateur', paths: ['/creator'], apis: ['/api/creator-auth', '/api/creator-requests'], effect: 'Connexion des créateurs et demandes sur les pages créateurs' },

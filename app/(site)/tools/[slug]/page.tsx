@@ -14,6 +14,7 @@ import { CodeBadge } from '@/components/site/code-badge';
 import { CreatorMark } from '@/components/site/creator-mark';
 import { Crumbs } from '@/components/site/page-head';
 import { episodeNumber } from '@/lib/source-label';
+import { VoteInvite } from '@/components/site/vote-invite';
 
 /** « GDIY, épisode #574 » pour un podcast suivi, « « titre de la vidéo » » sinon. */
 function ticketSource(code: Code): string {
@@ -137,6 +138,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
           </aside>
         </div>
       </div>
+      <VoteInvite trigger="copy" />
     </main>
   );
 }

@@ -38,12 +38,12 @@ Koupi part de la source : chaque code est rattaché à la vidéo ou au post qui 
 
 **Site public**
 
-- **Recherche** d'un outil depuis l'accueil, avec suggestions, et pages par **catégorie**.
+- **Recherche** des codes par outil, créateur ou catégorie, avec suggestions, et pages par **catégorie**.
 - **Fiche outil** : tous les codes de créateurs, la source, la date du dernier test, copie du code en un clic.
 - **Page créateur** avec ses codes et sa photo de profil.
 - **Votes** « ça marche / ça ne marche plus » et mesure d'audience anonyme, stockée dans notre propre base.
 - **Proposer un code**, protégé par Cloudflare Turnstile et une limite de débit.
-- **Trousseau** des créateurs suivis, gardé dans le navigateur, sans compte.
+- **Invitation au vote** au retour sur Koupi, après avoir copié un code.
 - Page **Transparence** sur la façon dont les codes sont trouvés et vérifiés.
 
 **Back-office** (`/admin`)

@@ -6,6 +6,7 @@ import { parseCategoryFilters } from '@/lib/category-browse';
 import { routes } from '@/lib/routes';
 import { CategoryBrowser } from '@/components/site/category-browser';
 import { PageHead } from '@/components/site/page-head';
+import { VoteInvite } from '@/components/site/vote-invite';
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> };
 
@@ -38,6 +39,7 @@ export default async function Category({ params, searchParams }: Props) {
           <CategoryBrowser codes={categoryCodes} tools={categoryTools} initial={parseCategoryFilters(query, slugs)} now={Date.now()} />
         )}
       </div>
+      <VoteInvite trigger="copy" />
     </main>
   );
 }

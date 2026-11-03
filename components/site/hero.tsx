@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
 import { isPublic, type Code, type Tool } from '@/lib/data';
+import { plural } from '@/lib/ui';
 import { routes } from '@/lib/routes';
 import { SearchDialog } from './search-dialog';
 import Link from '@/components/site/site-pages';
@@ -78,6 +79,8 @@ export function Hero({ codes, tools }: { codes: Code[]; tools: Tool[] }) {
   const slugOf = (name: string) => tools.find(tool => tool.name === name)?.slug ?? '';
   const verified = codes.filter(code => code.status === 'verified');
   const verifiedCount = verified.length;
+  // Tant que peu de codes sont vérifiés, la pastille met en avant ce que chaque code a : sa source.
+  const publicCount = codes.filter(isPublic).length;
   const successRate = Math.round(verified.reduce((sum, code) => sum + code.success, 0) / Math.max(1, verifiedCount));
 
   // Les logos de la réserve sont chargés à l'avance : le nouveau logo est prêt quand le coupon se retourne.
@@ -187,7 +190,7 @@ export function Hero({ codes, tools }: { codes: Code[]; tools: Tool[] }) {
     <section className="k-hero" ref={root}>
       <div className="k-wrap k-hero-grid">
         <div className="k-hero-text">
-          <span className="k-pill" data-hero-fade><span className="k-dot" aria-hidden="true" />{verifiedCount} codes vérifiés à la main</span>
+          <span className="k-pill" data-hero-fade><span className="k-dot" aria-hidden="true" />{plural(publicCount, 'code, relié à sa source', 'codes, chacun relié à sa source')}</span>
           <h1>
             <span className="k-line"><span>Avant de payer</span></span>
             <span className="k-line"><span><span className="k-rotator" aria-hidden="true">{rotating.map(word => <span key={word}>{word}</span>)}</span><span className="k-sr">ton outil</span>,</span></span>

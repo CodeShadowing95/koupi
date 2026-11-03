@@ -12,7 +12,6 @@ export const routes = {
   },
   search: (query: string) => `/search?q=${encodeURIComponent(query)}`,
   submit: (toolSlug?: string) => (toolSlug ? `/submit?tool=${encodeURIComponent(toolSlug)}` : '/submit'),
-  keyring: '/keyring',
   /** Page d'accueil des créateurs, avec les chiffres de sa page quand il arrive depuis « C'est ta page ? ». */
   forCreators: (slug?: string) => (slug ? `/for-creators?c=${encodeURIComponent(slug)}` : '/for-creators'),
   /** Espace du créateur connecté. */

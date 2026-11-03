@@ -15,6 +15,8 @@ import { CreatorMore } from '@/components/site/creator-more';
 import { CodeRows, CreatorCodes } from '@/components/site/creator-codes';
 import { PlatformIcon } from '@/components/platform-icon';
 import { Crumbs } from '@/components/site/page-head';
+import { CopyPageLink } from '@/components/site/copy-page-link';
+import { VoteInvite } from '@/components/site/vote-invite';
 
 function publicCodesOf(codes: Code[], slug: string) {
   return codes.filter(code => code.creatorSlug === slug && isPublic(code));
@@ -79,7 +81,7 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
               )}
             </div>
           </div>
-          <Link className="k-btn k-btn-ghost k-creator-keyring" href={routes.keyring}>Ajouter à mon trousseau</Link>
+          <CopyPageLink className="k-btn k-btn-ghost k-creator-share" label="Copier le lien de sa page" />
           <div className="k-creator-more-wrap">
             <CreatorMore>
               {profile?.bio && <p className="k-creator-bio">{profile.bio}</p>}
@@ -114,6 +116,7 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
           </details>
         )}
       </div>
+      <VoteInvite trigger="copy" />
     </main>
   );
 }

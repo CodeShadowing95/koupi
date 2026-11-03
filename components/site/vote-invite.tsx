@@ -1,5 +1,5 @@
 'use client';
-// Fenêtre « Laisse un 👍 » de la page des codes. Elle entre une seule fois par navigateur, de biais depuis le coin
+// Fenêtre « Laisse un 👍 », montée sur chaque page où l'on copie un code. Elle entre une seule fois par navigateur, de biais depuis le coin
 // bas droit, pour rappeler qu'un pouce soutient le créateur du code. Par défaut elle attend le bon moment :
 // le visiteur a copié un code, est parti l'essayer et revient sur Koupi (voir lib/vote-invite.ts). Elle propose
 // alors de voter tout de suite pour ce code.
