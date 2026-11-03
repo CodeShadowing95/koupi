@@ -14,6 +14,8 @@ import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { CodeBadge } from '@/components/site/code-badge';
 import { CreatorMark } from '@/components/site/creator-mark';
 import { CreatorRequest } from '@/components/site/creator-request';
+import { CreatorMore } from '@/components/site/creator-more';
+import { PlatformIcon } from '@/components/platform-icon';
 
 function publicCodesOf(codes: Code[], slug: string) {
   return codes.filter(code => code.creatorSlug === slug && isPublic(code));
@@ -77,38 +79,55 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
     <main className="k-page">
       <div className="k-wrap">
         <nav className="k-crumbs" aria-label="Fil d'Ariane"><Link href={routes.home}>Accueil</Link><span aria-hidden="true">/</span><Link href={routes.creators()}>Créateurs</Link><span aria-hidden="true">/</span><span aria-current="page" style={{ color: 'var(--text)' }}>{creator}</span></nav>
-        <div className="k-creator-head" style={{ marginTop: 28 }}>
+        {/* L'essentiel d'abord : qui, combien de codes, où le suivre. Le reste se déplie avec « Plus d'infos ». */}
+        <header className="k-creator-head">
           <CreatorAvatar name={creator} size="lg" />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: '1 1 320px' }}>
-            <span className="k-eyebrow">Créateur</span>
-            <h1 style={{ fontSize: 'clamp(40px,5vw,64px)' }}>{creator}</h1>
-            {match.creatorLevel && <span><CreatorMark level={match.creatorLevel} dark /></span>}
-            {profile?.bio && <p className="k-creator-bio">{profile.bio}</p>}
-            <p style={{ color: 'var(--text-soft)', fontSize: 18 }}>{plural(creatorCodes.length, 'code partagé', 'codes partagés')}, chacun avec la vidéo ou le post d&apos;où il vient.</p>
-            {themes.length > 0 && <ul className="k-creator-themes" aria-label="Thèmes">{themes.map(theme => <li key={theme} className="k-pill">{theme}</li>)}</ul>}
-            {profile && profile.accounts.length > 0 && (
-              <ul className="k-creator-accounts" aria-label={`Comptes de ${creator}`}>
-                {profile.accounts.map(account => (
-                  <li key={`${account.platform}-${account.handle}`}>
-                    <a className="k-chip" href={account.url} target="_blank" rel="noopener noreferrer me">
-                      {account.label} · {account.handle}{account.subscribers && <small>{account.subscribers}</small>}<span aria-hidden="true">↗</span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )}
+          <div className="k-creator-main">
+            <h1 className="k-creator-name" title={creator}>{creator}</h1>
+            <div className="k-creator-line">
+              {match.creatorLevel && <CreatorMark level={match.creatorLevel} dark />}
+              <span className="k-creator-stats">
+                <span><b>{creatorCodes.length}</b> {creatorCodes.length > 1 ? 'codes' : 'code'}</span>
+                {copies > 0 && <span><b>{formatCopies(copies)}</b> {copies > 1 ? 'copies' : 'copie'} ce mois-ci</span>}
+              </span>
+              {profile && profile.accounts.length > 0 && (
+                <ul className="k-creator-networks" aria-label={`Comptes de ${creator}`}>
+                  {profile.accounts.map(account => (
+                    <li key={`${account.platform}-${account.handle}`}>
+                      <a href={account.url} target="_blank" rel="noopener noreferrer me" title={`${account.label} · ${account.handle}`} aria-label={`${account.label} · ${account.handle}`}>
+                        <PlatformIcon platform={account.platform} size={30} className="k-platform-icon" />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
-          <div className="k-creator-side">
-            {copies > 0 && (
-              <p className="k-creator-copies"><b>{formatCopies(copies)}</b><span>{copies > 1 ? 'copies' : 'copie'} de ses codes sur Koupi ce mois-ci</span></p>
-            )}
-            <Link className="k-btn k-btn-ghost" href={routes.keyring}>Ajouter à mon trousseau</Link>
+          <Link className="k-btn k-btn-ghost k-creator-keyring" href={routes.keyring}>Ajouter à mon trousseau</Link>
+          <div className="k-creator-more-wrap">
+            <CreatorMore>
+              {profile?.bio && <p className="k-creator-bio">{profile.bio}</p>}
+              <p className="k-creator-about">{plural(creatorCodes.length, 'code partagé', 'codes partagés')}, chacun avec la vidéo ou le post d&apos;où il vient.</p>
+              {themes.length > 0 && <ul className="k-creator-themes" aria-label="Thèmes">{themes.map(theme => <li key={theme} className="k-pill">{theme}</li>)}</ul>}
+              {profile && profile.accounts.length > 0 && (
+                <ul className="k-creator-accounts" aria-label={`Comptes de ${creator} en détail`}>
+                  {profile.accounts.map(account => (
+                    <li key={`${account.platform}-${account.handle}`}>
+                      <a className="k-chip" href={account.url} target="_blank" rel="noopener noreferrer me">
+                        <PlatformIcon platform={account.platform} size={20} className="k-platform-icon" />
+                        {account.label} · {account.handle}{account.subscribers && <small>{account.subscribers}</small>}<span aria-hidden="true">↗</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {match.creatorLevel !== 'verified' && <p className="k-creator-managed">
+                <b>Page tenue par Koupi.</b> Ses codes viennent de ses vidéos et posts publics, chacun avec sa source. <Link href={routes.transparency}>Comment on vérifie</Link>
+              </p>}
+              {match.creatorLevel !== 'verified' && <CreatorRequest slug={match.creatorSlug} name={creator} />}
+            </CreatorMore>
           </div>
-        </div>
-        {match.creatorLevel !== 'verified' && <p className="k-creator-managed">
-          <b>Page tenue par Koupi.</b> Ses codes viennent de ses vidéos et posts publics, chacun avec sa source. <Link href={routes.transparency}>Comment on vérifie</Link>
-        </p>}
-        {match.creatorLevel !== 'verified' && <CreatorRequest slug={match.creatorSlug} name={creator} />}
+        </header>
         <div className="k-code-list">
           {active.map(code => <CodeRow key={code.id} code={code} tools={tools} />)}
         </div>
