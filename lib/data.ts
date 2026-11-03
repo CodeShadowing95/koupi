@@ -19,6 +19,8 @@ export type Code = {
   creatorLevel?: Exclude<CreatorLevel, 'spotted'>;
   /** Seulement dans l'admin : code retiré du site et des statistiques. */
   archived?: boolean;
+  /** Nom du podcast suivi d'où vient l'épisode source (« Entendu dans GDIY, épisode #574 »). */
+  podcast?: string;
 };
 export type Catalog = {
   categories: Category[];
@@ -38,9 +40,35 @@ export function successRate(up: number, down: number) { return up + down === 0 ?
 
 function normalize(value: string) { return value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s/g, ''); }
 
+/** Outils dont le nom ou la catégorie contient la recherche (« vpn » trouve aussi Surfshark). Les noms qui correspondent passent d'abord. */
 export function searchTools(tools: Tool[], query: string) {
   const q = normalize(query);
-  return tools.filter(tool => normalize(tool.name).includes(q));
+  const byName = tools.filter(tool => normalize(tool.name).includes(q));
+  const byCategory = tools.filter(tool => !byName.includes(tool) && normalize(tool.category).includes(q));
+  return [...byName, ...byCategory];
+}
+
+/**
+ * Codes publics qui répondent à la recherche, pour les copier tout de suite depuis les résultats.
+ * Ordre : nom de l'outil, puis créateur, puis code ou réduction, puis catégorie ; à égalité, les plus fiables d'abord.
+ */
+export function searchCodes(codes: Code[], tools: Tool[], query: string): Code[] {
+  const q = normalize(query);
+  if (!q) return [];
+  const categoryOf = new Map(tools.map(tool => [tool.slug, tool.category]));
+  const rank = (code: Code) => {
+    if (normalize(code.tool).includes(q)) return 0;
+    if (normalize(code.creator).includes(q)) return 1;
+    if (normalize(code.code).includes(q) || normalize(code.discount).includes(q)) return 2;
+    if (normalize(categoryOf.get(code.toolSlug) ?? '').includes(q)) return 3;
+    return -1;
+  };
+  return codes
+    .filter(isPublic)
+    .map(code => ({ code, rank: rank(code) }))
+    .filter(item => item.rank >= 0)
+    .sort((a, b) => a.rank - b.rank || b.code.success - a.code.success || b.code.votes - a.code.votes)
+    .map(item => item.code);
 }
 
 /** Créateurs dont le nom contient la recherche (sans accents ni espaces). Vide si la recherche est vide. */

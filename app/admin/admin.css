@@ -1286,6 +1286,24 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-sugg .adm-card-foot{flex-wrap:wrap;row-gap:6px}
 .adm-sugg .adm-sugg-analysis>p:first-child{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .adm-dialog .adm-sugg-analysis>p:first-child{display:block}
+/* Historique d'un podcast (panneau de détail) */
+.adm-pod-history{display:flex;flex-direction:column;gap:10px}
+.adm-pod-history h3{margin:0;font-size:15px;font-weight:700}
+.adm-pod-history>p{margin:0;font-size:13px}
+.adm-pod-episodes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.adm-pod-episodes>li{display:flex;flex-direction:column;gap:3px;padding:10px 0;border-bottom:1px dashed var(--line);min-width:0}
+.adm-pod-episodes>li:last-child{border-bottom:0}
+.adm-pod-ep-head{display:flex;align-items:flex-start;gap:10px;min-width:0}
+.adm-pod-ep-head a{flex:1;min-width:0;font-size:14px;font-weight:600;color:var(--ink);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adm-pod-ep-head a:hover{color:var(--blue);text-decoration:underline}
+.adm-pod-ep-read,.adm-pod-ep-unread{flex:none;font-size:12px;font-weight:600}
+.adm-pod-ep-read{color:var(--ok)}
+.adm-pod-ep-unread{color:var(--muted)}
+.adm-pod-episodes small{font-size:12px}
+.adm-pod-ep-codes{margin:4px 0 0;padding-left:16px;font-size:13px;display:flex;flex-direction:column;gap:2px}
+.adm-pod-ep-codes .adm-link-btn{padding:0;font-size:13px}
+.adm-pod-ep-none{margin:2px 0 0;font-size:12px;color:var(--muted);font-style:italic}
+.adm-pod-history-note{font-size:12px}
 /* Découvrir des podcasts (classement Apple) */
 .adm-pod-chip[aria-pressed="true"],.adm-pod-chip[aria-pressed="true"]:hover:not(:disabled){border-color:var(--blue);background:var(--blue);color:var(--on-blue)}
 .adm-pod-top-note{margin:0;font-size:13px}

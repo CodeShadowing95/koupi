@@ -14,6 +14,8 @@ import type { AdminPodcast } from '@/lib/podcasts-admin';
 import { TOP_GENRES, type PodcastFeed } from '@/lib/apple-podcasts';
 import type { PodcastReadReport } from '@/lib/podcast-read';
 import type { AdminToolSuggestion } from '@/lib/tool-suggestions';
+import { openOnClick } from '@/components/admin-drawer';
+import { PodcastDrawer } from './podcast-drawer';
 import { ToolSuggestionsPanel, type AiAvailability, type CatalogToolOption, type CategoryOption } from './tool-suggestions-panel';
 
 type Filter = 'all' | 'active' | 'paused' | 'never' | 'codes';
@@ -54,6 +56,8 @@ export function PodcastsView({ podcasts, images, starters, suggestions, categori
   const [filter, setFilter] = useState<Filter>('all');
   const [listQuery, setListQuery] = useState('');
   const [view, setView] = useAdminView();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = podcasts.find(podcast => podcast.id === selectedId) ?? null;
   const filtered = podcasts.filter(podcast => matches(podcast, filter) && matchesSearch([podcast.title, podcast.creatorName ?? ''], listQuery));
   const sort = useAdminSort(filtered, sortFields, 'title');
   const visible = sort.items;
@@ -241,7 +245,7 @@ export function PodcastsView({ podcasts, images, starters, suggestions, categori
                     <thead><tr><SortHeader sort={sort} field="title">Podcast</SortHeader><th scope="col">Créateur</th><th scope="col">État</th><SortHeader sort={sort} field="read">Dernière lecture</SortHeader><SortHeader sort={sort} field="codes">Codes</SortHeader><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
                     <tbody>
                       {current.items.map(podcast => (
-                        <tr key={podcast.id}>
+                        <tr key={podcast.id} data-open onClick={openOnClick(() => setSelectedId(podcast.id))}>
                           <td className="adm-cell-wrap">
                             <div className="adm-pod-cell">
                               {artwork(podcast, 40)}
@@ -261,7 +265,7 @@ export function PodcastsView({ podcasts, images, starters, suggestions, categori
               ) : (
                 <div className="adm-grid adm-page-enter" key={`grid-${current.page}`}>
                   {current.items.map(podcast => (
-                    <article className="adm-card" key={podcast.id}>
+                    <article className="adm-card" key={podcast.id} data-open onClick={openOnClick(() => setSelectedId(podcast.id))}>
                       <div className="adm-card-row">
                         <div className="adm-card-id">{artwork(podcast, 40)}<div><b title={podcast.title}>{podcast.title}</b><small>{podcast.creatorName ?? 'Sans créateur'}</small></div></div>
                       </div>
@@ -276,6 +280,9 @@ export function PodcastsView({ podcasts, images, starters, suggestions, categori
             </>}
           </section>
         )}
+        <PodcastDrawer podcast={selected} image={selected ? images[selected.feedId] : undefined} onClose={() => setSelectedId(null)}
+          onShowTools={() => { setSelectedId(null); setPanel('tools'); }}
+          state={selected && state(selected)} actions={selected && actions(selected)} />
       </div>
     </main>
   );
