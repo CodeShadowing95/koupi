@@ -90,9 +90,7 @@ export async function linkYoutubeChannels(db: Db, youtube: YoutubeBatch, options
     const id = youtubeVideoId(row.sourceUrl);
     if (id) videosOf.set(row.creatorId, [...(videosOf.get(row.creatorId) ?? []), id]);
   }
-  for (const creator of creatorRows) {
-    if (!hasChannel.has(creator.id) && !videosOf.has(creator.id)) report.skipped.push({ creator: creator.name, reason: 'Aucune vidéo YouTube parmi ses sources.' });
-  }
+  // Un créateur sans vidéo YouTube n'est pas signalé ici : linkCreatorAccounts() (creator-account-link.ts) dit d'où viennent ses codes.
   if (videosOf.size === 0) return report;
 
   const channelOfVideo = await youtube.videoChannels([...videosOf.values()].flat());

@@ -25,3 +25,17 @@ export function formatSubscribers(count: number | null): string | null {
   if (count === null) return null;
   return `${new Intl.NumberFormat('fr-FR').format(count).replace(/ /g, ' ')} abonné${count > 1 ? 's' : ''}`;
 }
+
+/** Rapport du bouton « Relier les comptes » (voir creator-account-link.ts). */
+export type LinkReport = { linked: { creator: string; platform: 'youtube' | 'podcast' }[]; toLink: { creator: string; reason: string }[] };
+
+export const plural = (count: number, one: string, many: string) => `${count} ${count > 1 ? many : one}`;
+
+/** « 2 chaînes YouTube et 1 podcast reliés. » */
+export function linkedSummary(linked: LinkReport['linked']): string {
+  if (linked.length === 0) return 'Aucun compte relié.';
+  const channels = linked.filter(item => item.platform === 'youtube').length;
+  const podcasts = linked.length - channels;
+  const parts = [channels ? plural(channels, 'chaîne YouTube', 'chaînes YouTube') : '', podcasts ? plural(podcasts, 'podcast', 'podcasts') : ''].filter(Boolean);
+  return `${parts.join(' et ')} relié${linked.length > 1 ? 's' : ''}.`;
+}
