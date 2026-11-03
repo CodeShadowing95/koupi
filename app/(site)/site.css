@@ -1208,3 +1208,20 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 @media (prefers-reduced-motion:reduce){
   .k-invite-fab.is-pulse::after,.k-invite-demo.is-voted .k-invite-demo-up,.k-invite-quick-mark{animation:none}
 }
+/* Codes de la page créateur (components/site/creator-codes.tsx) : recherche, vue Liste (2 par ligne) ou Cartes (4 par ligne) */
+.k-creator-codes{display:flex;flex-direction:column;gap:18px}
+.k-creator-codes-bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px}
+.k-creator-codes-bar>p{margin:0 auto 0 0;color:var(--text-soft);font-size:14.5px}
+.k-creator-codes-bar>p strong{color:var(--text);font-family:var(--display);font-size:17px}
+.k-creator-search{position:relative;display:flex;align-items:center;flex:0 1 340px;min-width:200px}
+.k-creator-search svg{position:absolute;left:14px;color:var(--muted);pointer-events:none}
+.k-creator-search input{width:100%;height:42px;padding:0 14px 0 40px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.04);color:var(--text);font:inherit;font-size:14.5px;outline:none;transition:border-color .2s,box-shadow .2s}
+.k-creator-search input::placeholder{color:var(--muted)}
+.k-creator-search input:focus{border-color:var(--blue-soft);box-shadow:0 0 0 3px rgba(140,155,255,.22)}
+.k-creator-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 22px}
+.k-creator-cards{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px 18px}
+.k-creator-cards>li{min-width:0}
+.k-creator-codes-empty{margin:8px 0;color:var(--text-soft)}
+@media (max-width:1180px){.k-creator-cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:980px){.k-creator-rows{grid-template-columns:minmax(0,1fr)}.k-creator-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:600px){.k-creator-cards{grid-template-columns:minmax(0,1fr)}.k-creator-search{flex-basis:100%}}
