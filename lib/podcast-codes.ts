@@ -46,6 +46,20 @@ const DOMAIN_PATTERN = /(?<![\p{L}\p{N}@.-])(?:https?:\/\/)?(?:www\.)?((?:[a-z0-
 // Raccourcisseurs, réseaux et hébergeurs de podcast : jamais l'outil sponsorisé.
 const NOT_TOOL_DOMAINS = /(^|\.)(bit\.ly|taap\.it|linktr\.ee|tinyurl\.com|youtube\.com|youtu\.be|apple\.com|spotify\.com|instagram\.com|facebook\.com|twitter\.com|x\.com|tiktok\.com|linkedin\.com|lnkd\.in|audiomeans\.fr|acast\.com|ausha\.co|anchor\.fm|podcastics\.com|google\.com|amzn\.to)$/i;
 
+/** Premier outil du catalogue nommé (ou dont le site est cité) dans un texte, sinon null. */
+export function catalogToolIn(text: string, tools: CatalogTool[]): string | null {
+  return toolPositions(text, tools).sort((a, b) => a.index - b.index)[0]?.toolId ?? null;
+}
+
+/** Premier site d'outil cité dans un texte (hors raccourcisseurs, réseaux et hébergeurs), sinon null. */
+export function toolDomainIn(text: string): string | null {
+  for (const match of text.matchAll(DOMAIN_PATTERN)) {
+    const domain = match[1].toLowerCase();
+    if (!NOT_TOOL_DOMAINS.test(domain)) return domain;
+  }
+  return null;
+}
+
 /** Le nom deviné de l'outil : domaine du lien le plus proche, sinon le mot qui ouvre la ligne avant « : ». */
 function guessTool(line: string, previous: string | undefined): { name: string; domain: string | null } | null {
   for (const text of [line, previous ?? '']) {

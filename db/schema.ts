@@ -310,6 +310,23 @@ export const toolSuggestions = pgTable('tool_suggestions', {
   check('tool_suggestions_source_http', sql`${table.sourceUrl} ~* '^https?://'`),
 ]);
 
+// Appels à l'IA qui ne sont rattachés à aucun code (lecture des notes d'épisode, ADR-0025) : leur coût compte
+// dans le plafond du mois, comme celui des vérifications et des analyses d'outils.
+export const aiUsage = pgTable('ai_usage', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  /** À quoi a servi l'appel : 'podcast_notes'. */
+  purpose: text('purpose').notNull(),
+  model: text('model').notNull(),
+  costUsdMicros: integer('cost_usd_micros').notNull().default(0),
+  /** Ce qui a été lu (adresse de l'épisode). */
+  ref: text('ref').notNull().default(''),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  index('ai_usage_created_idx').on(table.createdAt.desc()),
+  check('ai_usage_cost_positive', sql`${table.costUsdMicros} >= 0`),
+  check('ai_usage_purpose_len', sql`char_length(${table.purpose}) between 1 and 40`),
+]);
+
 export type ToolSuggestionRow = typeof toolSuggestions.$inferSelect;
 
 export type Submission = typeof submissions.$inferSelect;
