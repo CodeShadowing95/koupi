@@ -70,6 +70,13 @@ describe('scanPromoCodes', () => {
     expect(scanPromoCodes('Alan : 1 mois offert avec le code SANTE', tools).unknown).toMatchObject([{ name: 'Alan', domain: null, code: 'SANTE', discount: '1 mois offert' }]);
   });
 
+  it('ne reprend pas l’outil de la ligne d’avant quand la ligne nomme le sien', () => {
+    const { found, unknown } = scanPromoCodes('NordVPN : code CARNE\nGradium : code GDIY sur gradium.ai', [{ id: 't-nord', name: 'NordVPN' }]);
+    expect(found).toMatchObject([{ toolId: 't-nord', code: 'CARNE' }]);
+    expect(unknown).toMatchObject([{ name: 'Gradium', domain: 'gradium.ai', code: 'GDIY', evidence: 'Gradium : code GDIY sur gradium.ai' }]);
+    expect(scanPromoCodes('NordVPN, le VPN\n-60 % avec le code CARNE', [{ id: 't-nord', name: 'NordVPN' }]).found).toMatchObject([{ toolId: 't-nord' }]);
+  });
+
   it('ne garde rien sans indice sur l’outil', () => {
     expect(scanPromoCodes('utilisez le code MERCI', tools).unknown).toEqual([]);
   });
