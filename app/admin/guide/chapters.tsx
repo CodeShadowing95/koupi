@@ -325,6 +325,7 @@ function Podcasts() {
         { term: <StatusDot tone="muted">En pause</StatusDot>, meaning: 'Le podcast reste dans la liste mais n’est plus lu. Pratique pour un podcast qui ne donne plus de codes, sans le perdre.' },
       ]} />
       <p><b>Dernière lecture</b> dit quand ses épisodes ont été lus pour la dernière fois, et <b>Codes trouvés</b> combien de codes viennent de ses épisodes (un clic les ouvre dans Codes). <b>Ne plus suivre</b> le retire de la liste : son créateur, son compte et ses codes restent.</p>
+      <p>Un clic sur un podcast ouvre son <b>détail</b> à droite, avec ses <b>derniers épisodes</b> : la date, un lien vers l’épisode, s’il a été <b>Lu</b> par Koupi, et les codes trouvés dans ses notes avec leur état (En attente, Vérifié…) ou l’outil à ajouter. Tu vois ainsi ce que Koupi a lu, et pas seulement le résultat. Un épisode trop ancien au moment du suivi, ou sorti depuis la dernière lecture, reste « Pas lu ».</p>
       <p>Comme les autres listes, l’onglet Suivis se filtre (Tous, Lus chaque nuit, En pause, Jamais lus, Avec codes trouvés), se cherche par nom de podcast ou de créateur, se trie, s’affiche en cartes ou en tableau et se lit page par page.</p>
     </Section>
     <Section id="lecture" title="La lecture des épisodes">
