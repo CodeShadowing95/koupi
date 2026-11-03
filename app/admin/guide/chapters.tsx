@@ -385,6 +385,16 @@ function Createurs() {
       <p>Clique sur un créateur : le panneau montre son niveau, son nombre de codes, ses <b>comptes sur les réseaux</b>, les <b>outils qu’il recommande</b> et le lien vers sa page publique. <b>Voir ses codes</b> ouvre la liste des codes filtrée sur lui.</p>
       <Callout tone="tip">Un créateur qui recommande déjà trois outils en a souvent d’autres. Regarde ses dernières vidéos : c’est la façon la plus rapide de trouver de nouveaux codes.</Callout>
     </Section>
+    <Section id="profil" title="Écrire son profil">
+      <p><b>Modifier le profil</b> (dans le panneau, ou l’icône crayon sur sa carte) change son <b>nom</b> et sa <b>présentation</b>. Les deux s’affichent en haut de sa page publique, au-dessus de ses codes.</p>
+      <Steps>
+        <Step title="Va voir sa chaîne">Lis sa description et deux ou trois titres de vidéos : de quoi parle-t-il, pour qui ?</Step>
+        <Step title="Écris une ou deux phrases">Ce qu’il fait et pour qui, sans superlatif. Par exemple : « Teste les outils d’IA pour les indépendants, une vidéo par semaine. » 400 caractères au plus.</Step>
+        <Step title="Enregistre">La page publique se met à jour tout de suite. Vide le champ pour retirer la présentation.</Step>
+      </Steps>
+      <p>Sur sa page, sous la présentation, le site affiche aussi ses <b>thèmes</b> (les catégories des outils de ses codes, rien à saisir) et ses <b>comptes sur les réseaux</b> reliés ici, avec les abonnés et un lien vers chaque compte.</p>
+      <Callout tone="why">Un visiteur qui arrive de Google sur la page d’un créateur doit comprendre en deux secondes qui il est. Et le jour où le créateur découvrira sa page, une présentation juste lui donnera envie de la revendiquer.</Callout>
+    </Section>
     <Section id="niveaux" title="Les trois niveaux d’un créateur">
       <p>Le niveau dit à quel point Koupi est sûr que le créateur est bien celui qu’il prétend être. Il compte dans le score des <Link href="/admin/verifications">Vérifications</Link>.</p>
       <Legend rows={[
@@ -407,11 +417,11 @@ function Createurs() {
     </Section>
     <Section id="noms" title="Garder des noms propres">
       <p>Les majuscules ne comptent pas, mais « Le Grand JD » et « LeGrandJD » font deux créateurs différents, avec deux pages à moitié vides. Utilise toujours le nom exact de la chaîne et choisis-le dans la liste proposée quand tu tapes.</p>
-      <p>Si un nom est mal écrit, <b>Renommer</b> le corrige partout d’un coup, sur tous ses codes.</p>
-      <Callout tone="warn">Renommer change le nom affiché sur le site. Vérifie l’orthographe sur la chaîne du créateur avant de valider.</Callout>
+      <p>Si un nom est mal écrit, <b>Modifier le profil</b> le corrige partout d’un coup, sur tous ses codes.</p>
+      <Callout tone="warn">Changer le nom change le nom affiché sur le site. Vérifie l’orthographe sur la chaîne du créateur avant de valider.</Callout>
     </Section>
     <Section id="exporter" title="Exporter les créateurs">
-      <p><b>Exporter</b> donne tous les créateurs en Excel ou en CSV, avec leurs codes et les outils qu’ils recommandent. Utile pour préparer une prise de contact ou repérer ceux à suivre.</p>
+      <p><b>Exporter</b> donne tous les créateurs en Excel ou en CSV, avec leurs codes, les outils qu’ils recommandent et leur présentation. Utile pour préparer une prise de contact ou repérer ceux à suivre.</p>
     </Section>
   </>;
 }

@@ -5,8 +5,9 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import { loadCatalog } from './catalog-db';
-import { createCategory, createTool, listCategoriesAdmin, listCreatorsAdmin, listToolsAdmin, parseToolInput, renameCategory, renameCreator, setToolArchived, updateTool } from './catalog-admin';
+import { createCategory, createTool, listCategoriesAdmin, listCreatorsAdmin, listToolsAdmin, parseToolInput, renameCategory, updateCreatorProfile, setToolArchived, updateTool } from './catalog-admin';
 import { createCode } from './codes-admin';
+import { parseCreatorBio } from './creator-bio';
 
 async function setup() {
   const db = drizzle(new PGlite(), { schema }) as unknown as Db;
@@ -22,6 +23,17 @@ describe('formulaire outil', () => {
     expect(parseToolInput({ name: 'Canva', categorySlug: 'ia', website: 'canva.com' })).toMatchObject({ ok: true, data: { website: 'https://canva.com', priority: 3 } });
     expect(parseToolInput({ name: 'Canva', categorySlug: 'ia', website: 'canva.com', priority: 9 })).toMatchObject({ ok: false });
     expect(parseToolInput({ name: '', categorySlug: 'ia', website: 'canva.com' })).toMatchObject({ ok: false });
+  });
+});
+
+describe('présentation du créateur', () => {
+  it('nettoie les espaces, garde un saut de paragraphe et refuse un texte trop long', () => {
+    expect(parseCreatorBio(undefined)).toEqual({ ok: true, data: null });
+    expect(parseCreatorBio('   ')).toEqual({ ok: true, data: null });
+    expect(parseCreatorBio('Ligne 1  \r\n\n\n\n  Ligne   2 ')).toEqual({ ok: true, data: 'Ligne 1\n\nLigne 2' });
+    expect(parseCreatorBio('x'.repeat(400))).toMatchObject({ ok: true });
+    expect(parseCreatorBio('x'.repeat(401))).toMatchObject({ ok: false });
+    expect(parseCreatorBio(42)).toMatchObject({ ok: false });
   });
 });
 
@@ -59,9 +71,17 @@ describe('catalogue dans l’admin', () => {
     await createCode(db, { ...code, toolSlug: 'nordvpn', status: 'to_test' });
     const [creator] = await listCreatorsAdmin(db);
     expect(creator).toMatchObject({ name: 'Ana', slug: 'ana', codes: 1, visible: 1, tools: ['NordVPN'] });
-    expect(await renameCreator(db, creator.id, 'Ana Créa')).toMatchObject({ ok: true });
-    expect((await listCreatorsAdmin(db))[0]).toMatchObject({ name: 'Ana Créa', slug: 'ana' });
-    expect(await renameCreator(db, creator.id, '  ')).toMatchObject({ ok: false });
+    expect(creator.bio).toBeNull();
+    expect(await updateCreatorProfile(db, creator.id, { name: 'Ana Créa', bio: '  Tests d’outils  IA.  ' })).toMatchObject({ ok: true });
+    expect((await listCreatorsAdmin(db))[0]).toMatchObject({ name: 'Ana Créa', slug: 'ana', bio: 'Tests d’outils IA.' });
+    expect(await updateCreatorProfile(db, creator.id, { name: '  ' })).toMatchObject({ ok: false });
+    expect(await updateCreatorProfile(db, creator.id, { name: 'Ana Créa' })).toMatchObject({ ok: true });
+    expect((await listCreatorsAdmin(db))[0].bio).toBe('Tests d’outils IA.');
+    expect(await updateCreatorProfile(db, creator.id, { name: 'Ana', bio: 'x'.repeat(401) })).toMatchObject({ ok: false });
+    expect((await listCreatorsAdmin(db))[0].bio).toBe('Tests d’outils IA.');
+    expect(await updateCreatorProfile(db, creator.id, { name: 'Ana', bio: '' })).toMatchObject({ ok: true });
+    expect((await listCreatorsAdmin(db))[0].bio).toBeNull();
+    expect(await updateCreatorProfile(db, '00000000-0000-4000-8000-000000000000', { name: 'Ana' })).toEqual({ ok: false, error: 'Créateur introuvable.' });
   });
 
   it('crée et renomme une catégorie, avec la couverture', async () => {

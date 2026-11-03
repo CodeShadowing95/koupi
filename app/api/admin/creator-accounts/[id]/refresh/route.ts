@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/db';
 import { isAdminRequest, UUID_PATTERN } from '@/lib/admin-guard';
 import { refreshCreatorAccount, youtubeChannelReader } from '@/lib/creator-accounts';
+import { revalidateCatalog } from '@/lib/catalog-server';
 
 // Relit une chaîne YouTube (abonnés, pseudo) : 1 unité de quota.
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -11,6 +12,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   try {
     const result = await refreshCreatorAccount(getDb(), id, { readChannel: youtubeChannelReader(process.env.YOUTUBE_API_KEY) });
     if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.error === 'Compte introuvable.' ? 404 : 400 });
+    revalidateCatalog();
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('creator account refresh failed', error);

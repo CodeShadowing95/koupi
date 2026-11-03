@@ -3,6 +3,7 @@
 // (YouTube, TikTok, Instagram…) qui donnent leur niveau : Repéré, Contrôlé par Koupi, Créateur vérifié.
 import { useEffect, useState } from 'react';
 import type { AdminCreator } from '@/lib/catalog-admin';
+import { CREATOR_BIO_MAX } from '@/lib/creator-bio';
 import { matchesSearch } from '@/lib/admin-search';
 import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { Pagination, usePagination } from '@/components/admin-pagination';
@@ -49,12 +50,13 @@ export function CreatorsView({ creators, youtubeReady }: { creators: Creator[]; 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = creators.find(creator => creator.id === selectedId) ?? null;
   const [name, setName] = useState('');
+  const [bio, setBio] = useState('');
   const filtered = creators.filter(creator => matches(creator, filter) && matchesSearch([creator.name, ...creator.tools], query));
   const sort = useAdminSort(filtered, sortFields, 'name');
   const visible = sort.items;
   const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${filter}|${query}|${sort.resetKey}`);
   const countOf = (value: Filter) => creators.filter(creator => matches(creator, value)).length;
-  const open = (creator: Creator) => { setName(creator.name); setEditing(creator); };
+  const open = (creator: Creator) => { setName(creator.name); setBio(creator.bio ?? ''); setEditing(creator); };
   const codesLink = (creator: Creator) => <a href={`/admin/codes?q=${encodeURIComponent(creator.name)}`}>{creator.visible} visible{creator.visible > 1 ? 's' : ''} / {creator.codes}</a>;
   const page = (creator: Creator) => creator.visible > 0 ? <a href={`/creators/${creator.slug}`} target="_blank" rel="noopener noreferrer">Page ↗</a> : null;
 
@@ -92,7 +94,7 @@ export function CreatorsView({ creators, youtubeReady }: { creators: Creator[]; 
                     <td className="adm-cell-nowrap"><LevelDot level={creator.level} /></td>
                     <td className="adm-cell-nowrap">{codesLink(creator)}</td>
                     <td className="adm-cell-wrap adm-cell-muted">{creator.tools.join(', ') || '—'}</td>
-                    <td><div className="adm-cell-actions">{page(creator)}<button type="button" className="adm-btn" onClick={() => open(creator)}>Renommer</button></div></td>
+                    <td><div className="adm-cell-actions">{page(creator)}<button type="button" className="adm-btn" onClick={() => open(creator)}>Modifier</button></div></td>
                   </tr>
                 ))}
               </tbody>
@@ -109,7 +111,7 @@ export function CreatorsView({ creators, youtubeReady }: { creators: Creator[]; 
                 <div className="adm-card-foot">
                   <span className="adm-card-meta">{codesLink(creator)}{creator.visible === 0 && ' · masqué'}</span>
                   {creator.visible > 0 && <IconLink icon="external" label="Page publique" href={`/creators/${creator.slug}`} external />}
-                  <IconButton icon="edit" label="Renommer" onClick={() => open(creator)} />
+                  <IconButton icon="edit" label="Modifier le profil" onClick={() => open(creator)} />
                 </div>
               </article>
             ))}
@@ -123,11 +125,12 @@ export function CreatorsView({ creators, youtubeReady }: { creators: Creator[]; 
           actions={selected && <>
             <a className="adm-btn" href={`/admin/codes?q=${encodeURIComponent(selected.name)}`}>Voir ses codes</a>
             <span style={{ flex: 1 }} />
-            <button type="button" className="adm-btn adm-btn-pri" onClick={() => open(selected)}>Renommer</button>
+            <button type="button" className="adm-btn adm-btn-pri" onClick={() => open(selected)}>Modifier le profil</button>
           </>}>
           {selected && <>
             <DetailList items={[
               { label: 'Niveau', value: CREATOR_LEVEL_LABELS[selected.level] },
+              { label: 'Présentation', value: selected.bio ? <span style={{ whiteSpace: 'pre-line' }}>{selected.bio}</span> : <span className="muted">Aucune, à écrire pour sa page publique.</span> },
               { label: 'Codes', value: codesLink(selected) },
               { label: 'Page publique', value: selected.visible > 0 && <a href={`/creators/${selected.slug}`} target="_blank" rel="noopener noreferrer">/creators/{selected.slug} ↗</a> },
             ]} />
@@ -138,9 +141,14 @@ export function CreatorsView({ creators, youtubeReady }: { creators: Creator[]; 
             </div>
           </>}
         </AdminDrawer>
-        <FormDialog open={editing !== null} title={`Renommer ${editing?.name ?? ''}`} intro="Corrige l’orthographe ou le nom de la chaîne. L’adresse de sa page sur le site ne change pas."
-          onClose={() => setEditing(null)} onSubmit={() => sendJson(`/api/admin/creators/${editing?.id}`, 'PATCH', { name })}>
+        <FormDialog open={editing !== null} title={`Profil de ${editing?.name ?? ''}`} intro="Le nom et la présentation s’affichent en haut de sa page publique. L’adresse de sa page ne change pas."
+          onClose={() => setEditing(null)} onSubmit={() => sendJson(`/api/admin/creators/${editing?.id}`, 'PATCH', { name, bio })}>
           <div className="field adm-span-2"><label htmlFor="creator-name">Nom</label><input id="creator-name" value={name} onChange={event => setName(event.target.value)} required maxLength={160} /></div>
+          <div className="field adm-span-2">
+            <label htmlFor="creator-bio">Présentation <span className="muted">(facultatif)</span></label>
+            <textarea id="creator-bio" rows={4} value={bio} onChange={event => setBio(event.target.value)} maxLength={CREATOR_BIO_MAX} aria-describedby="creator-bio-help" placeholder="Ex. Teste les outils d’IA pour les indépendants, une vidéo par semaine." />
+            <small id="creator-bio-help" className="muted">{bio.trim().length} / {CREATOR_BIO_MAX} caractères. Ce qu’il fait et pour qui, en une ou deux phrases.</small>
+          </div>
         </FormDialog>
       </div>
     </main>

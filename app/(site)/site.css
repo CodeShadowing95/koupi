@@ -375,6 +375,10 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 
 /* Révélation au défilement : état de départ posé par GSAP uniquement (le contenu reste visible sans JS) */
 .k-creator-head{display:flex;flex-wrap:wrap;align-items:center;gap:28px;margin-bottom:48px}
+.k-creator-bio{max-width:62ch;color:var(--text);font-size:18px;line-height:1.55;white-space:pre-line}
+.k-creator-themes{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0;padding:0}
+.k-creator-themes .k-pill{padding:6px 12px}
+.k-creator-accounts{display:flex;flex-wrap:wrap;gap:10px;list-style:none;margin:4px 0 0;padding:0}
 
 @media(max-width:1020px){
   .k-hero-grid,.k-tool-layout,.k-split,.k-cta{grid-template-columns:1fr}
