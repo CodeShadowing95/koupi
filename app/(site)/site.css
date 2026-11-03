@@ -226,6 +226,7 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-search-box::before{content:"";position:absolute;inset:-1px;border-radius:var(--r-xl);padding:1px;pointer-events:none;
   background:conic-gradient(from var(--k-angle,0deg),transparent 0 70%,var(--blue-soft) 80%,var(--coral) 88%,transparent 95%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:k-spin 5s linear infinite;opacity:.9}
+/* Nom réservé à cet anneau : une autre @keyframes k-spin (rotate) l'écraserait et ferait tourner tout le contour. */
 @property --k-angle{syntax:"<angle>";inherits:false;initial-value:0deg}
 @keyframes k-spin{to{--k-angle:360deg}}
 .k-search-box:focus-within{border-color:var(--blue-soft);box-shadow:0 0 0 4px rgba(110,125,255,.22),0 20px 60px -20px rgba(42,59,214,.9)}
@@ -1409,8 +1410,8 @@ button.k-coupon-stub:hover{background:linear-gradient(160deg,#4859FF,#3142E0)}
 .k-fc-landing{display:grid;place-items:center;min-height:50vh}
 .k-fc-landing-card{max-width:460px;width:100%;text-align:center;align-items:center;gap:14px}
 .k-fc-landing-card h1{font-size:var(--fs-4xl)}
-.k-fc-spinner{width:34px;height:34px;border-radius:50%;border:3px solid rgba(140,155,255,.25);border-top-color:var(--blue-soft);animation:k-spin .9s linear infinite}
-@keyframes k-spin{to{transform:rotate(360deg)}}
+.k-fc-spinner{width:34px;height:34px;border-radius:50%;border:3px solid rgba(140,155,255,.25);border-top-color:var(--blue-soft);animation:k-fc-spin .9s linear infinite}
+@keyframes k-fc-spin{to{transform:rotate(360deg)}}
 .k-cs{display:flex;flex-direction:column;gap:28px}
 .k-cs-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px}
 .k-cs-who{font-size:var(--fs-md);color:var(--muted)}
