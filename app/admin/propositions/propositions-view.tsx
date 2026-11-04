@@ -9,7 +9,7 @@ import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { Pagination, usePagination } from '@/components/admin-pagination';
 import { AdminSelect } from '@/components/admin-select';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
-import { IconLink, StatusDot, type Tone } from '@/components/admin-card';
+import { CopyCode, IconLink, StatusDot, type Tone } from '@/components/admin-card';
 import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
 type Submission = { id: string; tool_name: string; creator_name: string; code: string; discount_label: string; source_url: string; creator_link: string | null; comment: string | null; submitter_email: string | null; status: string; admin_note: string | null; created_at: string; category: string | null; created_code_id: string | null };
@@ -111,7 +111,7 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
               <tbody>
                 {current.items.map(item => (
                   <tr key={item.id} data-open onClick={openOnClick(() => setSelectedId(item.id))}>
-                    <td className="mono"><button type="button" className="adm-open" title={`Voir le détail de ${item.code}`} onClick={() => setSelectedId(item.id)}>{item.code}</button></td>
+                    <td className="mono"><span className="adm-code-cell"><button type="button" className="adm-open" title={`Voir le détail de ${item.code}`} onClick={() => setSelectedId(item.id)}>{item.code}</button><CopyCode code={item.code} /></span></td>
                     <td className="adm-cell-wrap">{item.tool_name}</td>
                     <td className="adm-cell-wrap">{item.discount_label}</td>
                     <td className="adm-cell-wrap">{item.creator_name}</td>
@@ -130,7 +130,7 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
           <div className="adm-grid adm-page-enter" key={`grid-${current.page}`}>
             {current.items.map(item => (
               <article className="adm-card" key={item.id} data-open onClick={openOnClick(() => setSelectedId(item.id))}>
-                <div className="adm-card-row"><button type="button" className="mono adm-open" title={`Voir le détail de ${item.code}`} onClick={() => setSelectedId(item.id)}>{item.code}</button><span className="adm-card-date">{new Date(item.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}</span><StatusDot tone={statusTone[item.status] ?? 'muted'}>{statusName[item.status] || item.status}</StatusDot></div>
+                <div className="adm-card-row"><button type="button" className="mono adm-open" title={`Voir le détail de ${item.code}`} onClick={() => setSelectedId(item.id)}>{item.code}</button><CopyCode code={item.code} /><span className="adm-card-date">{new Date(item.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}</span><StatusDot tone={statusTone[item.status] ?? 'muted'}>{statusName[item.status] || item.status}</StatusDot></div>
                 <p className="adm-card-line" title={`${item.tool_name} · ${item.discount_label} · ${item.creator_name}`}>{item.tool_name} <span>· {item.discount_label} · {item.creator_name}</span></p>
                 <p className="adm-card-sub is-quote" title={[item.comment, item.submitter_email].filter(Boolean).join(' · ') || undefined}>{item.comment ? `« ${item.comment} »` : 'Sans commentaire'}</p>
                 <div className="adm-card-foot">
@@ -145,7 +145,7 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
         )}
         {!loading && <Pagination current={current} onChange={goTo} label="propositions" size={size} onSizeChange={changeSize} />}
         <AdminDrawer open={selected !== null} onClose={() => setSelectedId(null)} label={`Proposition ${selected?.code ?? ''}`} eyebrow="Proposition"
-          title={<span className="mono">{selected?.code}</span>}
+          title={selected && <span className="adm-code-cell"><span className="mono">{selected.code}</span><CopyCode code={selected.code} /></span>}
           aside={selected && <StatusDot tone={statusTone[selected.status] ?? 'muted'}>{statusName[selected.status] || selected.status}</StatusDot>}
           actions={selected && decisionButtons(selected)}>
           {selected && <>

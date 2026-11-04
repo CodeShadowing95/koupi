@@ -10,7 +10,7 @@ import { expiryOf } from '@/lib/code-expiry';
 import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { Pagination, usePagination } from '@/components/admin-pagination';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
-import { IconButton, IconLink, StatusDot, type Tone } from '@/components/admin-card';
+import { CopyCode, IconButton, IconLink, StatusDot, type Tone } from '@/components/admin-card';
 import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
 
@@ -115,7 +115,7 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
               <tbody>
                 {current.items.map(code => (
                   <tr key={code.id} data-open onClick={openOnClick(() => setSelectedId(code.id))}>
-                    <td className="mono"><button type="button" className="adm-open" title={`Voir le détail de ${code.code}`} onClick={() => setSelectedId(code.id)}>{code.code}</button></td>
+                    <td className="mono"><span className="adm-code-cell"><button type="button" className="adm-open" title={`Voir le détail de ${code.code}`} onClick={() => setSelectedId(code.id)}>{code.code}</button><CopyCode code={code.code} /></span></td>
                     <td className="adm-cell-nowrap">{code.tool}</td>
                     <td className="adm-cell-wrap">{code.discount}</td>
                     <td className="adm-cell-wrap">{code.creator}</td>
@@ -133,7 +133,7 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
           <div className="adm-grid adm-page-enter" key={`grid-${current.page}`}>
             {current.items.map(code => (
               <article className="adm-card" key={code.id} data-open onClick={openOnClick(() => setSelectedId(code.id))}>
-                <div className="adm-card-row"><button type="button" className="mono adm-open" title={`Voir le détail de ${code.code}`} onClick={() => setSelectedId(code.id)}>{code.code}</button><StatusDot tone={statusTone[code.status]}>{statusLabel[code.status].label}</StatusDot></div>
+                <div className="adm-card-row"><button type="button" className="mono adm-open" title={`Voir le détail de ${code.code}`} onClick={() => setSelectedId(code.id)}>{code.code}</button><CopyCode code={code.code} /><StatusDot tone={statusTone[code.status]}>{statusLabel[code.status].label}</StatusDot></div>
                 <p className="adm-card-line" title={`${code.tool} · ${code.discount}`}>{code.tool} <span>· {code.discount}</span></p>
                 <div className="adm-card-foot">
                   <span className="adm-card-meta" title={[cardMeta(code), code.note && `Note : ${code.note}`].filter(Boolean).join('\n')}>{cardMeta(code)}</span>
@@ -147,7 +147,7 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
         )}
         <Pagination current={current} onChange={goTo} label="codes" size={size} onSizeChange={changeSize} />
         <AdminDrawer open={selected !== null} onClose={() => setSelectedId(null)} label={`Détail du code ${selected?.code ?? ''}`} eyebrow={selected?.archived ? 'Code archivé' : 'Code'}
-          title={<span className="mono">{selected?.code}</span>}
+          title={selected && <span className="adm-code-cell"><span className="mono">{selected.code}</span><CopyCode code={selected.code} /></span>}
           aside={selected && <StatusDot tone={statusTone[selected.status]}>{statusLabel[selected.status].label}</StatusDot>}
           actions={selected && <>{actions(selected)}<span style={{ flex: 1 }} /><button type="button" className="adm-btn adm-btn-pri" onClick={() => setEditing({ kind: 'edit', code: selected })}>Modifier</button></>}>
           {selected && <>
