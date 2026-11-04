@@ -4,7 +4,7 @@ import { migrate } from 'drizzle-orm/pglite/migrator';
 import { beforeAll, describe, expect, it } from 'vitest';
 import type { Db } from '@/db';
 import * as schema from '@/db/schema';
-import { createSubmission, createSubmissions, DEFAULT_DISCOUNT, listSubmissions, moderateSubmission, toolNamesOf } from './submissions';
+import { createSubmission, createSubmissions, DEFAULT_DISCOUNT, listSubmissions, moderateSubmission, submissionItemsOf, toolNamesOf } from './submissions';
 
 // Base Postgres en mémoire (PGlite) avec les vraies migrations du dépôt.
 let db: Db;
@@ -62,11 +62,33 @@ describe('un code pour plusieurs outils', () => {
   });
 
   it('crée une proposition par outil, avec « Offre du créateur » sans réduction', async () => {
-    const results = await createSubmissions(db, { ...input, toolNames: ['Brevo', 'Systeme.io'], code: 'MULTI', discountLabel: '' }, 'hash');
+    const rest = { creatorName: input.creatorName, sourceUrl: input.sourceUrl, category: input.category };
+    const items = submissionItemsOf({ toolNames: ['Brevo', 'Systeme.io'], code: 'MULTI', discountLabel: '' });
+    const results = await createSubmissions(db, { ...rest, items }, 'hash');
     expect(results).toEqual([{ status: 'new' }, { status: 'new' }]);
     const rows = (await listSubmissions(db, { status: 'new' })).filter(row => row.code === 'MULTI');
     expect(rows.map(row => row.toolName).sort()).toEqual(['Brevo', 'Systeme.io']);
     expect(rows.every(row => row.discountLabel === DEFAULT_DISCOUNT)).toBe(true);
+  });
+});
+
+describe('lignes d’un envoi', () => {
+  it('lit la liste pré-remplie, sans ligne incomplète ni doublon', () => {
+    expect(submissionItemsOf({ items: [
+      { toolName: ' NordVPN ', code: 'CABINET', discountLabel: '-76 %' },
+      { toolName: 'nordvpn', code: 'cabinet' },
+      { toolName: 'Notion', code: '' },
+      'texte',
+      { toolName: 'Notion', code: 'CABINET' },
+    ] })).toEqual([
+      { toolName: 'NordVPN', code: 'CABINET', discountLabel: '-76 %' },
+      { toolName: 'Notion', code: 'CABINET', discountLabel: '' },
+    ]);
+    expect(submissionItemsOf({ items: Array.from({ length: 12 }, (_, i) => ({ toolName: `T${i}`, code: 'X' })) })).toHaveLength(8);
+  });
+
+  it('accepte encore un code et ses outils', () => {
+    expect(submissionItemsOf({ toolName: 'Hostinger', code: 'LUCAS20', discountLabel: '-20 %' })).toEqual([{ toolName: 'Hostinger', code: 'LUCAS20', discountLabel: '-20 %' }]);
   });
 });
 

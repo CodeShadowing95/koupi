@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from '@/components/site/site-pages';
 import { Turnstile, type TurnstileHandle } from '@/components/turnstile';
 import type { Category } from '@/lib/data';
+import type { Prefill, PrefillCode } from '@/lib/submit-prefill';
 import { routes } from '@/lib/routes';
 import { barcodeBars, couponNumber } from '@/lib/coupon-barcode';
 import { playCouponTear } from '@/lib/coupon-sound';
@@ -39,8 +40,42 @@ export function SubmitForm({ categories }: { categories: Category[] }) {
   const [code, setCode] = useState('');
   const [discount, setDiscount] = useState('');
   const [extraTools, setExtraTools] = useState<string[]>([]);
+  const [tool, setTool] = useState('');
+  const [creator, setCreator] = useState('');
+  const [source, setSource] = useState('');
+  // Le lien de la vidéo : lu par l'API YouTube pour remplir la chaîne et les codes de la description.
+  const [videoUrl, setVideoUrl] = useState('');
+  const [reading, setReading] = useState(false);
+  const [videoNote, setVideoNote] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
+  const [foundCodes, setFoundCodes] = useState<(PrefillCode & { on: boolean })[]>([]);
   const turnstile = useRef<TurnstileHandle>(null);
   const number = couponNumber(code);
+
+  async function readVideo(url = videoUrl) {
+    if (!url.trim() || reading) return;
+    setReading(true);
+    setVideoNote(null);
+    try {
+      const response = await fetch('/api/submissions/prefill', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: url.trim() }) });
+      const body = await response.json() as Prefill & { error?: string };
+      if (!response.ok) { setVideoNote({ tone: 'error', text: body.error || 'La vidéo n’a pas pu être lue. Remplis le bon à la main.' }); return; }
+      setSource(url.trim());
+      if (body.creator) setCreator(body.creator);
+      const [first, ...others] = body.codes;
+      if (first) { setTool(first.tool); setCode(first.code); setDiscount(first.discount); setExtraTools([]); }
+      setFoundCodes(others.map(item => ({ ...item, on: true })));
+      setVideoNote({
+        tone: 'ok',
+        text: first
+          ? `${body.codes.length > 1 ? `${body.codes.length} codes trouvés` : 'Un code trouvé'} dans la description. Vérifie chaque ligne avant d’envoyer.`
+          : 'Chaîne trouvée, mais aucun code repéré dans la description. Remplis le code à la main.',
+      });
+    } catch {
+      setVideoNote({ tone: 'error', text: 'La vidéo n’a pas pu être lue. Vérifie ta connexion, ou remplis le bon à la main.' });
+    } finally {
+      setReading(false);
+    }
+  }
 
   // Le bon tamponné s'affiche en haut de la page.
   useEffect(() => { if (phase === 'sent') window.scrollTo({ top: 0 }); }, [phase]);
@@ -54,7 +89,12 @@ export function SubmitForm({ categories }: { categories: Category[] }) {
       const response = await fetch('/api/submissions', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ toolNames: [form.get('tool'), ...extraTools], creatorName: form.get('creator'), code: form.get('code'), discountLabel: form.get('discount'), sourceUrl: form.get('source'), category: form.get('category'), comment: form.get('comment'), turnstileToken: token }),
+        body: JSON.stringify({
+          items: [
+            ...[tool, ...extraTools].map(toolName => ({ toolName, code, discountLabel: discount })),
+            ...foundCodes.filter(item => item.on).map(item => ({ toolName: item.tool, code: item.code, discountLabel: item.discount })),
+          ],
+          creatorName: creator, sourceUrl: source, category: form.get('category'), comment: form.get('comment'), turnstileToken: token }),
       });
       const body = await response.json() as { error?: string };
       if (!response.ok) { setError(body.error || 'La proposition n’a pas pu être envoyée.'); setSending(false); turnstile.current?.reset(); return; }
@@ -82,7 +122,7 @@ export function SubmitForm({ categories }: { categories: Category[] }) {
               <span className="k-bon-stamp" aria-hidden="true"><span>En vérification</span></span>
               <div className="k-bon-actions">
                 <Link className="k-btn k-btn-primary" href={routes.home}>Retour à l&apos;accueil</Link>
-                <button type="button" className="k-btn k-btn-ghost k-bon-again" onClick={() => { setPhase('form'); setSending(false); setCode(''); setDiscount(''); setExtraTools([]); setToken(''); }}>Proposer un autre code</button>
+                <button type="button" className="k-btn k-btn-ghost k-bon-again" onClick={() => { setPhase('form'); setSending(false); setCode(''); setDiscount(''); setExtraTools([]); setTool(''); setFoundCodes([]); setVideoNote(null); setVideoUrl(''); setToken(''); }}>Proposer un autre code</button>
               </div>
             </div>
           </div>
@@ -97,7 +137,7 @@ export function SubmitForm({ categories }: { categories: Category[] }) {
         <div className="k-page-head k-bon-head">
           <span className="k-eyebrow">Contribuer</span>
           <h1>Tu as vu passer un code&nbsp;?</h1>
-          <p>Remplis le bon, détache le talon : on vérifie la source, on teste le code et on crédite le créateur.</p>
+          <p>Colle le lien de la vidéo : on remplit la chaîne et les codes de la description. Vérifie le bon, détache le talon, on s&apos;occupe du reste.</p>
         </div>
 
         <p className="k-bon-cut" aria-hidden="true"><Scissors /> Découper suivant les pointillés</p>
@@ -106,11 +146,23 @@ export function SubmitForm({ categories }: { categories: Category[] }) {
           <div className="k-bon-main k-paper">
             <p className="k-bon-top"><span>Bon de proposition</span><span>N° K-{number}</span></p>
 
+            <div className="k-bon-video">
+              <label className="k-bon-line">
+                <span className="k-bon-key">Vidéo YouTube</span>
+                <input type="url" maxLength={1000} placeholder="Colle le lien, on remplit le reste" value={videoUrl} autoComplete="off"
+                  onChange={event => setVideoUrl(event.target.value)}
+                  onPaste={event => { const pasted = event.clipboardData.getData('text').trim(); if (pasted) { event.preventDefault(); setVideoUrl(pasted); void readVideo(pasted); } }}
+                  onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); void readVideo(); } }} />
+              </label>
+              <button type="button" className="k-bon-read" onClick={() => readVideo()} disabled={!videoUrl.trim() || reading}>{reading ? 'Lecture…' : 'Remplir'}</button>
+            </div>
+            {videoNote && <p className={`k-bon-video-note is-${videoNote.tone}`} role="status">{videoNote.text}</p>}
+
             <div className="k-bon-hero">
               <div className="k-bon-hero-lines">
                 <label className="k-bon-line is-big">
                   <span className="k-bon-key">Outil</span>
-                  <input name="tool" required maxLength={120} placeholder="Hostinger, NordVPN…" autoComplete="off" />
+                  <input name="tool" required maxLength={120} placeholder="Hostinger, NordVPN…" value={tool} onChange={event => setTool(event.target.value)} autoComplete="off" />
                 </label>
                 {extraTools.map((tool, index) => (
                   <div key={index} className="k-bon-line k-bon-extra">
@@ -127,7 +179,7 @@ export function SubmitForm({ categories }: { categories: Category[] }) {
                 )}
                 <label className="k-bon-line">
                   <span className="k-bon-key">Donné par</span>
-                  <input name="creator" required maxLength={160} placeholder="Nom de la chaîne ou du compte" autoComplete="off" />
+                  <input name="creator" required maxLength={160} placeholder="Nom de la chaîne ou du compte" value={creator} onChange={event => setCreator(event.target.value)} autoComplete="off" />
                 </label>
               </div>
               <label className={`k-bon-burst${discount ? ' is-filled' : ''}`}>
@@ -142,6 +194,20 @@ export function SubmitForm({ categories }: { categories: Category[] }) {
               <input name="code" required maxLength={60} placeholder="MONCODE10" className="k-mono" value={code} onChange={event => setCode(event.target.value)} autoComplete="off" spellCheck={false} />
             </label>
 
+            {foundCodes.length > 0 && (
+              <fieldset className="k-bon-found">
+                <legend className="k-bon-key">Aussi dans la vidéo</legend>
+                {foundCodes.map((item, index) => (
+                  <label key={`${item.tool}-${item.code}`} className="k-bon-found-row">
+                    <input type="checkbox" checked={item.on} onChange={event => setFoundCodes(list => list.map((other, i) => (i === index ? { ...other, on: event.target.checked } : other)))} />
+                    <b>{item.tool}</b>
+                    <code className="k-mono">{item.code}</code>
+                    <span>{item.discount || 'Offre du créateur'}</span>
+                  </label>
+                ))}
+              </fieldset>
+            )}
+
             <div className="k-bon-grid">
               <label className="k-bon-line">
                 <span className="k-bon-key">Catégorie</span>
@@ -152,7 +218,7 @@ export function SubmitForm({ categories }: { categories: Category[] }) {
               </label>
               <label className="k-bon-line">
                 <span className="k-bon-key">Source*</span>
-                <input name="source" type="url" required maxLength={1000} placeholder="https://youtube.com/watch?v=…" autoComplete="off" />
+                <input name="source" type="url" required maxLength={1000} placeholder="https://youtube.com/watch?v=…" value={source} onChange={event => setSource(event.target.value)} autoComplete="off" />
               </label>
             </div>
 

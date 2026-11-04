@@ -57,11 +57,36 @@ export async function createSubmission(db: Db, input: SubmissionInput, ipHash: s
   return { status };
 }
 
-/** Un envoi pour plusieurs outils : une proposition par outil, que l'admin valide une à une. */
-export async function createSubmissions(db: Db, input: Omit<SubmissionInput, 'toolName'> & { toolNames: string[] }, ipHash: string): Promise<{ status: Submission['status'] }[]> {
-  const { toolNames, ...rest } = input;
+/** Une ligne d'un envoi : un outil et son code (une vidéo lue peut en donner plusieurs). */
+export type SubmissionItem = { toolName: string; code: string; discountLabel: string };
+/** Lignes par envoi au plus : les codes trouvés dans une vidéo, ou un code pour plusieurs outils. */
+export const MAX_ITEMS_PER_SUBMISSION = 8;
+
+/**
+ * Les lignes d'un envoi : la liste « items » (bon pré-rempli depuis une vidéo), sinon un code pour un ou plusieurs outils.
+ * Nettoyées, sans ligne incomplète ni doublon outil + code (casse ignorée), 8 au plus.
+ */
+export function submissionItemsOf(body: Record<string, unknown>): SubmissionItem[] {
+  const text = (value: unknown, max: number) => (typeof value === 'string' ? value.trim().slice(0, max) : '');
+  const raw: unknown[] = Array.isArray(body.items) ? body.items
+    : toolNamesOf(body.toolNames, body.toolName).map(toolName => ({ toolName, code: body.code, discountLabel: body.discountLabel }));
+  const out: SubmissionItem[] = [];
+  for (const entry of raw) {
+    if (!entry || typeof entry !== 'object') continue;
+    const item = entry as Record<string, unknown>;
+    const toolName = text(item.toolName, 120), code = text(item.code, 120), discountLabel = text(item.discountLabel, 240);
+    if (!toolName || !code) continue;
+    if (out.some(known => fingerprintOf(known.toolName, known.code) === fingerprintOf(toolName, code))) continue;
+    out.push({ toolName, code, discountLabel });
+  }
+  return out.slice(0, MAX_ITEMS_PER_SUBMISSION);
+}
+
+/** Un envoi de plusieurs lignes : une proposition par outil et par code, que l'admin valide une à une. */
+export async function createSubmissions(db: Db, input: Omit<SubmissionInput, 'toolName' | 'code' | 'discountLabel'> & { items: SubmissionItem[] }, ipHash: string): Promise<{ status: Submission['status'] }[]> {
+  const { items, ...rest } = input;
   const results = [];
-  for (const toolName of toolNames) results.push(await createSubmission(db, { ...rest, toolName, discountLabel: rest.discountLabel || DEFAULT_DISCOUNT }, ipHash));
+  for (const item of items) results.push(await createSubmission(db, { ...rest, ...item, discountLabel: item.discountLabel || DEFAULT_DISCOUNT }, ipHash));
   return results;
 }
 

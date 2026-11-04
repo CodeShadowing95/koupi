@@ -8,6 +8,8 @@ export type RateLimitResult = { allowed: boolean; retryAfterSeconds: number };
 // 5 essais de connexion admin par IP et par quart d'heure, 5 propositions par IP et par heure.
 export const LOGIN_RULE: RateLimitRule = { limit: 5, windowSeconds: 15 * 60 };
 export const SUBMISSION_RULE: RateLimitRule = { limit: 5, windowSeconds: 60 * 60 };
+/** Lecture d'une vidéo pour pré-remplir le bon : 1 unité de quota YouTube chacune, 20 par heure et par visiteur. */
+export const PREFILL_RULE: RateLimitRule = { limit: 20, windowSeconds: 60 * 60 };
 // Revendications et signalements d'une page créateur : 5 par IP et par heure.
 export const CREATOR_REQUEST_RULE: RateLimitRule = { limit: 5, windowSeconds: 60 * 60 };
 // Liens de connexion des créateurs : 5 demandes par heure et par IP, 3 par heure et par adresse e-mail.
