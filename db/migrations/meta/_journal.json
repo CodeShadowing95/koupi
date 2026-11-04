@@ -127,6 +127,13 @@
       "when": 1793771374369,
       "tag": "0017_category_families",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793771940056,
+      "tag": "0018_category_reclassify",
+      "breakpoints": true
     }
   ]
 }

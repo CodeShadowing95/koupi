@@ -22,4 +22,6 @@ La clé est le slug, comme pour les catégories : les adresses du site restent l
 ## Conséquences
 - L'admin choisit la famille d'une catégorie dans le formulaire « Modifier » et filtre la page Catégories par famille.
 - Une famille supprimée laisse ses catégories « Sans famille » au lieu de les supprimer.
-- Une base neuve importe les catégories de `data/` sans famille, tant que le reclassement ne les a pas ajoutées aux données.
+- Les catégories et leur famille sont décrites dans `data/categories.csv` (ordre du menu). `npm run db:import` crée les catégories qui manquent avec leur famille.
+- Reclassement (migration `0018_category_reclassify`) : sur une base existante, les 48 nouvelles catégories sont créées, chaque outil encore dans une catégorie d'origine passe dans la nouvelle, et les catégories d'origine vidées sont supprimées. Un outil déplacé par l'admin hors des catégories d'origine n'est pas touché. Sur une base neuve, la migration ne fait rien et l'import crée directement la nouvelle organisation.
+- Les anciennes adresses `/categories/<slug>` redirigent vers la nouvelle catégorie la plus proche (`categoryRedirects`, `lib/legacy-redirects.mjs`).

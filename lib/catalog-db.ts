@@ -83,6 +83,7 @@ export async function loadCatalog(db: Db, options: { includeArchived?: boolean }
   const categories: Category[] = categoryRows.map(row => ({
     slug: row.slug,
     name: row.name,
+    family: row.familySlug,
     count: tools.filter(tool => tool.category === row.name).length,
     tracked: toolRows.filter(tool => tool.categorySlug === row.slug).length,
   }));

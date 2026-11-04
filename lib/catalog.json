@@ -1,83 +1,347 @@
 {
  "categories": [
   {
-   "slug": "hebergement-web",
-   "name": "Hébergement web",
-   "count": 3,
-   "tracked": 9
+   "slug": "vpn",
+   "name": "VPN",
+   "family": "securite",
+   "count": 2,
+   "tracked": 5
   },
   {
-   "slug": "noms-de-domaine",
-   "name": "Noms de domaine",
+   "slug": "gestionnaires-de-mots-de-passe",
+   "name": "Gestionnaires de mots de passe",
+   "family": "securite",
+   "count": 0,
+   "tracked": 3
+  },
+  {
+   "slug": "antivirus",
+   "name": "Antivirus",
+   "family": "securite",
    "count": 0,
    "tracked": 1
   },
   {
-   "slug": "vpn-et-securite",
-   "name": "VPN et sécurité",
+   "slug": "suppression-de-donnees-personnelles",
+   "name": "Suppression de données personnelles",
+   "family": "securite",
+   "count": 1,
+   "tracked": 2
+  },
+  {
+   "slug": "hebergement-web",
+   "name": "Hébergement web",
+   "family": "hebergement",
    "count": 3,
-   "tracked": 11
-  },
-  {
-   "slug": "ia",
-   "name": "IA",
-   "count": 1,
-   "tracked": 15
-  },
-  {
-   "slug": "productivite",
-   "name": "Productivité",
-   "count": 0,
-   "tracked": 6
-  },
-  {
-   "slug": "formation",
-   "name": "Formation",
-   "count": 0,
-   "tracked": 9
-  },
-  {
-   "slug": "e-commerce-et-site",
-   "name": "E-commerce et site",
-   "count": 1,
-   "tracked": 11
-  },
-  {
-   "slug": "creation-et-design",
-   "name": "Création et design",
-   "count": 1,
-   "tracked": 11
-  },
-  {
-   "slug": "outils-createurs",
-   "name": "Outils créateurs",
-   "count": 1,
-   "tracked": 9
-  },
-  {
-   "slug": "marketing-et-e-mail",
-   "name": "Marketing et e-mail",
-   "count": 1,
    "tracked": 8
   },
   {
-   "slug": "finance-et-freelance",
-   "name": "Finance et freelance",
-   "count": 5,
-   "tracked": 9
+   "slug": "noms-de-domaine",
+   "name": "Noms de domaine",
+   "family": "hebergement",
+   "count": 0,
+   "tracked": 1
   },
   {
-   "slug": "developpement",
-   "name": "Développement",
+   "slug": "serveurs-et-cloud",
+   "name": "Serveurs et cloud",
+   "family": "hebergement",
    "count": 0,
-   "tracked": 8
+   "tracked": 5
+  },
+  {
+   "slug": "stockage-et-sauvegarde",
+   "name": "Stockage et sauvegarde",
+   "family": "hebergement",
+   "count": 0,
+   "tracked": 2
+  },
+  {
+   "slug": "createurs-de-sites",
+   "name": "Créateurs de sites",
+   "family": "sites",
+   "count": 1,
+   "tracked": 4
+  },
+  {
+   "slug": "boutiques-en-ligne",
+   "name": "Boutiques en ligne",
+   "family": "sites",
+   "count": 0,
+   "tracked": 2
+  },
+  {
+   "slug": "themes-et-constructeurs-wordpress",
+   "name": "Thèmes et constructeurs WordPress",
+   "family": "sites",
+   "count": 0,
+   "tracked": 2
+  },
+  {
+   "slug": "vente-de-formations-et-produits-numeriques",
+   "name": "Vente de formations et produits numériques",
+   "family": "sites",
+   "count": 0,
+   "tracked": 3
+  },
+  {
+   "slug": "design-graphique",
+   "name": "Design graphique",
+   "family": "design",
+   "count": 0,
+   "tracked": 3
+  },
+  {
+   "slug": "banques-d-images-et-de-modeles",
+   "name": "Banques d'images et de modèles",
+   "family": "design",
+   "count": 1,
+   "tracked": 2
+  },
+  {
+   "slug": "montage-video",
+   "name": "Montage vidéo",
+   "family": "video",
+   "count": 0,
+   "tracked": 3
+  },
+  {
+   "slug": "effets-et-modeles-video",
+   "name": "Effets et modèles vidéo",
+   "family": "video",
+   "count": 0,
+   "tracked": 1
+  },
+  {
+   "slug": "avatars-et-videos-par-ia",
+   "name": "Avatars et vidéos par IA",
+   "family": "video",
+   "count": 1,
+   "tracked": 3
+  },
+  {
+   "slug": "decoupage-en-clips-courts",
+   "name": "Découpage en clips courts",
+   "family": "video",
+   "count": 0,
+   "tracked": 1
+  },
+  {
+   "slug": "musique-libre-de-droits",
+   "name": "Musique libre de droits",
+   "family": "audio",
+   "count": 0,
+   "tracked": 2
+  },
+  {
+   "slug": "voix-par-ia",
+   "name": "Voix par IA",
+   "family": "audio",
+   "count": 0,
+   "tracked": 2
+  },
+  {
+   "slug": "enregistrement-et-montage-audio",
+   "name": "Enregistrement et montage audio",
+   "family": "audio",
+   "count": 1,
+   "tracked": 2
+  },
+  {
+   "slug": "hebergement-de-podcast",
+   "name": "Hébergement de podcast",
+   "family": "audio",
+   "count": 0,
+   "tracked": 1
+  },
+  {
+   "slug": "croissance-youtube",
+   "name": "Croissance YouTube",
+   "family": "createurs",
+   "count": 0,
+   "tracked": 2
+  },
+  {
+   "slug": "live-et-multidiffusion",
+   "name": "Live et multidiffusion",
+   "family": "createurs",
+   "count": 0,
+   "tracked": 2
+  },
+  {
+   "slug": "page-de-liens",
+   "name": "Page de liens",
+   "family": "createurs",
+   "count": 0,
+   "tracked": 1
+  },
+  {
+   "slug": "planification-reseaux-sociaux",
+   "name": "Planification réseaux sociaux",
+   "family": "createurs",
+   "count": 0,
+   "tracked": 2
+  },
+  {
+   "slug": "e-mailing-et-newsletters",
+   "name": "E-mailing et newsletters",
+   "family": "marketing",
+   "count": 1,
+   "tracked": 3
+  },
+  {
+   "slug": "seo",
+   "name": "SEO",
+   "family": "marketing",
+   "count": 0,
+   "tracked": 3
+  },
+  {
+   "slug": "prospection-et-automatisation-linkedin",
+   "name": "Prospection et automatisation LinkedIn",
+   "family": "marketing",
+   "count": 0,
+   "tracked": 2
+  },
+  {
+   "slug": "gestion-de-projet",
+   "name": "Gestion de projet",
+   "family": "productivite",
+   "count": 0,
+   "tracked": 2
+  },
+  {
+   "slug": "notes-et-documentation",
+   "name": "Notes et documentation",
+   "family": "productivite",
+   "count": 0,
+   "tracked": 1
+  },
+  {
+   "slug": "listes-de-taches",
+   "name": "Listes de tâches",
+   "family": "productivite",
+   "count": 0,
+   "tracked": 1
+  },
+  {
+   "slug": "presentations",
+   "name": "Présentations",
+   "family": "productivite",
+   "count": 0,
+   "tracked": 1
+  },
+  {
+   "slug": "correction-et-style",
+   "name": "Correction et style",
+   "family": "ecriture",
+   "count": 0,
+   "tracked": 2
+  },
+  {
+   "slug": "redaction-par-ia",
+   "name": "Rédaction par IA",
+   "family": "ecriture",
+   "count": 0,
+   "tracked": 2
+  },
+  {
+   "slug": "assistants-conversationnels",
+   "name": "Assistants conversationnels",
+   "family": "ia",
+   "count": 0,
+   "tracked": 3
+  },
+  {
+   "slug": "images-par-ia",
+   "name": "Images par IA",
+   "family": "ia",
+   "count": 0,
+   "tracked": 2
+  },
+  {
+   "slug": "banques-et-neobanques",
+   "name": "Banques et néobanques",
+   "family": "argent",
+   "count": 0,
+   "tracked": 1
+  },
+  {
+   "slug": "comptes-pro",
+   "name": "Comptes pro",
+   "family": "argent",
+   "count": 2,
+   "tracked": 2
+  },
+  {
+   "slug": "comptabilite-et-facturation",
+   "name": "Comptabilité et facturation",
+   "family": "argent",
+   "count": 3,
+   "tracked": 4
+  },
+  {
+   "slug": "investissement-et-bourse",
+   "name": "Investissement et bourse",
+   "family": "argent",
+   "count": 0,
+   "tracked": 1
+  },
+  {
+   "slug": "plateformes-freelance",
+   "name": "Plateformes freelance",
+   "family": "argent",
+   "count": 0,
+   "tracked": 1
+  },
+  {
+   "slug": "cours-en-ligne",
+   "name": "Cours en ligne",
+   "family": "formation",
+   "count": 0,
+   "tracked": 4
+  },
+  {
+   "slug": "langues",
+   "name": "Langues",
+   "family": "formation",
+   "count": 0,
+   "tracked": 2
+  },
+  {
+   "slug": "livres-et-resumes-audio",
+   "name": "Livres et résumés audio",
+   "family": "formation",
+   "count": 0,
+   "tracked": 2
+  },
+  {
+   "slug": "sciences-maths-et-code",
+   "name": "Sciences, maths et code",
+   "family": "formation",
+   "count": 0,
+   "tracked": 1
+  },
+  {
+   "slug": "ia-pour-coder",
+   "name": "IA pour coder",
+   "family": "developpement",
+   "count": 0,
+   "tracked": 1
+  },
+  {
+   "slug": "editeurs-et-environnements",
+   "name": "Éditeurs et environnements",
+   "family": "developpement",
+   "count": 0,
+   "tracked": 1
   }
  ],
  "tools": [
   {
    "slug": "incogni",
    "name": "Incogni",
-   "category": "VPN et sécurité",
+   "category": "Suppression de données personnelles",
    "website": "https://incogni.com",
    "description": "Fais retirer tes données personnelles des courtiers.",
    "priority": 1,
@@ -86,7 +350,7 @@
   {
    "slug": "indy",
    "name": "Indy",
-   "category": "Finance et freelance",
+   "category": "Comptabilité et facturation",
    "website": "https://indy.fr",
    "description": "Facturation et comptabilité pour indépendants.",
    "priority": 1,
@@ -95,7 +359,7 @@
   {
    "slug": "nordvpn",
    "name": "NordVPN",
-   "category": "VPN et sécurité",
+   "category": "VPN",
    "website": "https://nordvpn.com",
    "description": "Protège ta connexion et navigue plus sereinement.",
    "priority": 1,
@@ -113,7 +377,7 @@
   {
    "slug": "qonto",
    "name": "Qonto",
-   "category": "Finance et freelance",
+   "category": "Comptes pro",
    "website": "https://qonto.com",
    "description": "Le compte pro pensé pour les indépendants.",
    "priority": 1,
@@ -122,7 +386,7 @@
   {
    "slug": "shine",
    "name": "Shine",
-   "category": "Finance et freelance",
+   "category": "Comptes pro",
    "website": "https://shine.fr",
    "description": "Les codes promo donnés par les créateurs pour Shine.",
    "priority": 1,
@@ -131,7 +395,7 @@
   {
    "slug": "surfshark",
    "name": "Surfshark",
-   "category": "VPN et sécurité",
+   "category": "VPN",
    "website": "https://surfshark.com",
    "description": "Un VPN accessible pour protéger tous tes appareils.",
    "priority": 1,
@@ -140,7 +404,7 @@
   {
    "slug": "abby",
    "name": "Abby",
-   "category": "Finance et freelance",
+   "category": "Comptabilité et facturation",
    "website": "https://abby.fr",
    "description": "Les codes promo donnés par les créateurs pour Abby.",
    "priority": 2,
@@ -149,7 +413,7 @@
   {
    "slug": "brevo",
    "name": "Brevo",
-   "category": "Marketing et e-mail",
+   "category": "E-mailing et newsletters",
    "website": "https://brevo.com",
    "description": "Les codes promo donnés par les créateurs pour Brevo.",
    "priority": 2,
@@ -158,7 +422,7 @@
   {
    "slug": "framer",
    "name": "Framer",
-   "category": "E-commerce et site",
+   "category": "Créateurs de sites",
    "website": "https://framer.com",
    "description": "Les codes promo donnés par les créateurs pour Framer.",
    "priority": 2,
@@ -176,7 +440,7 @@
   {
    "slug": "riverside",
    "name": "Riverside",
-   "category": "Outils créateurs",
+   "category": "Enregistrement et montage audio",
    "website": "https://riverside.fm",
    "description": "Les codes promo donnés par les créateurs pour Riverside.",
    "priority": 2,
@@ -185,7 +449,7 @@
   {
    "slug": "runway",
    "name": "Runway",
-   "category": "IA",
+   "category": "Avatars et vidéos par IA",
    "website": "https://runwayml.com",
    "description": "Les codes promo donnés par les créateurs pour Runway.",
    "priority": 2,
@@ -194,7 +458,7 @@
   {
    "slug": "pennylane",
    "name": "Pennylane",
-   "category": "Finance et freelance",
+   "category": "Comptabilité et facturation",
    "website": "https://pennylane.com",
    "description": "Les codes promo donnés par les créateurs pour Pennylane.",
    "priority": 3,
@@ -212,7 +476,7 @@
   {
    "slug": "storyblocks",
    "name": "Storyblocks",
-   "category": "Création et design",
+   "category": "Banques d'images et de modèles",
    "website": "https://storyblocks.com",
    "description": "Les codes promo donnés par les créateurs pour Storyblocks.",
    "priority": 3,
