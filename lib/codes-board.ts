@@ -12,6 +12,8 @@ export type OfferKind = 'percent' | 'months' | 'trial' | 'amount' | 'other';
 export type DeadlineFilter = '' | 'soon' | 'none';
 export type CodeFilters = {
   query: string; category: string; status: CodeStatusFilter; sort: CodeSort;
+  /** Slug de la famille de catégories (pastilles en haut de la page), vide pour toutes. */
+  family: string;
   /** Slug de l'outil, vide pour tous. */
   tool: string;
   /** Slug du créateur, vide pour tous. */
@@ -24,7 +26,7 @@ export type CodeFilters = {
 };
 
 export const DEFAULT_FILTERS: CodeFilters = {
-  query: '', category: '', status: 'all', sort: 'best', tool: '', creator: '', trust: [], offer: '', deadline: '', fresh: false,
+  query: '', family: '', category: '', status: 'all', sort: 'best', tool: '', creator: '', trust: [], offer: '', deadline: '', fresh: false,
 };
 
 export const TRUSTS: { value: TrustFilter; label: string }[] = [
@@ -87,12 +89,19 @@ function deadlineOf(code: Code, now: number): Exclude<DeadlineFilter, ''> | 'lat
   return state === 'soon' || state === 'today' ? 'soon' : 'later';
 }
 
-type Facet = 'query' | 'category' | 'status' | 'tool' | 'creator' | 'trust' | 'offer' | 'deadline' | 'fresh';
+type Facet = 'query' | 'family' | 'category' | 'status' | 'tool' | 'creator' | 'trust' | 'offer' | 'deadline' | 'fresh';
 
 /** Le code passe-t-il tous les filtres, sauf celui qu'on met de côté (pour compter les options de ce filtre) ? */
-function matches(code: Code, filters: CodeFilters, categoryOf: Map<string, string>, now: number, skip?: Facet): boolean {
+type Lookups = { categoryOf: Map<string, string>; familyOf: Map<string, string | undefined> };
+const lookups = (tools: Tool[]): Lookups => ({
+  categoryOf: new Map(tools.map(tool => [tool.slug, tool.category])),
+  familyOf: new Map(tools.map(tool => [tool.slug, tool.family])),
+});
+
+function matches(code: Code, filters: CodeFilters, { categoryOf, familyOf }: Lookups, now: number, skip?: Facet): boolean {
   const q = skip === 'query' ? '' : normalize(filters.query);
   return (!q || [code.tool, code.creator, code.code].some(field => normalize(field).includes(q)))
+    && (skip === 'family' || !filters.family || familyOf.get(code.toolSlug) === filters.family)
     && (skip === 'category' || !filters.category || categoryOf.get(code.toolSlug) === filters.category)
     && (skip === 'status' || filters.status === 'all' || code.status === filters.status)
     && (skip === 'tool' || !filters.tool || code.toolSlug === filters.tool)
@@ -103,10 +112,10 @@ function matches(code: Code, filters: CodeFilters, categoryOf: Map<string, strin
     && (skip === 'fresh' || !filters.fresh || daysSince(code.createdAt, now) <= FRESH_DAYS);
 }
 
-/** Filtre (recherche, catégorie, statut, outil, créateur, confiance, offre, échéance, nouveautés) puis trie les codes. */
+/** Filtre (recherche, famille, catégorie, statut, outil, créateur, confiance, offre, échéance, nouveautés) puis trie les codes. */
 export function filterCodes(codes: Code[], tools: Tool[], filters: CodeFilters, now = Date.now()): Code[] {
-  const categoryOf = new Map(tools.map(tool => [tool.slug, tool.category]));
-  const kept = codes.filter(code => matches(code, filters, categoryOf, now));
+  const maps = lookups(tools);
+  const kept = codes.filter(code => matches(code, filters, maps, now));
   const sorters: Record<CodeSort, (a: Code, b: Code) => number> = {
     best: (a, b) => b.success - a.success || b.votes - a.votes,
     votes: (a, b) => b.votes - a.votes || b.success - a.success,
@@ -117,6 +126,9 @@ export function filterCodes(codes: Code[], tools: Tool[], filters: CodeFilters, 
 
 export type FacetCounts = {
   status: Record<CodeStatusFilter, number>;
+  family: Record<string, number>;
+  /** Codes de toutes les familles et catégories (pastille « Tous »), avec les autres filtres. */
+  allFamilies: number;
   category: Record<string, number>;
   tool: Record<string, number>;
   creator: Record<string, number>;
@@ -132,8 +144,9 @@ export type FacetCounts = {
  * Pour la confiance, cumulable, on compte ce que donnerait l'ajout du critère.
  */
 export function facetCounts(codes: Code[], tools: Tool[], filters: CodeFilters, now = Date.now()): FacetCounts {
-  const categoryOf = new Map(tools.map(tool => [tool.slug, tool.category]));
-  const without = (facet: Facet) => codes.filter(code => matches(code, filters, categoryOf, now, facet));
+  const maps = lookups(tools);
+  const { categoryOf, familyOf } = maps;
+  const without = (facet: Facet) => codes.filter(code => matches(code, filters, maps, now, facet));
   const tally = (list: Code[], key: (code: Code) => string | string[] | undefined) => {
     const out: Record<string, number> = {};
     for (const code of list) for (const value of [key(code)].flat()) if (value) out[value] = (out[value] ?? 0) + 1;
@@ -149,6 +162,8 @@ export function facetCounts(codes: Code[], tools: Tool[], filters: CodeFilters, 
       verified: byStatus.filter(code => code.status === 'verified').length,
       to_test: byStatus.filter(code => code.status === 'to_test').length,
     },
+    family: tally(without('family'), code => familyOf.get(code.toolSlug)),
+    allFamilies: codes.filter(code => matches(code, { ...filters, family: '', category: '' }, maps, now)).length,
     category: tally(without('category'), code => categoryOf.get(code.toolSlug)),
     tool: tally(without('tool'), code => code.toolSlug),
     creator: tally(without('creator'), code => code.creatorSlug),
@@ -171,6 +186,7 @@ export function parseFilters(params: Record<string, string | string[] | undefine
   const trust = one('trust').split(',').filter((value, index, all): value is TrustFilter => trusts.includes(value as TrustFilter) && all.indexOf(value) === index);
   return {
     query: one('q').slice(0, 80),
+    family: one('family').slice(0, 80),
     category: one('category').slice(0, 80),
     status: pick(one('status'), ['all', 'verified', 'to_test'], 'all'),
     sort: pick(one('sort'), ['best', 'recent', 'votes'], 'best'),
@@ -187,6 +203,7 @@ export function parseFilters(params: Record<string, string | string[] | undefine
 export function filtersToParams(filters: CodeFilters): URLSearchParams {
   const params = new URLSearchParams();
   if (filters.query) params.set('q', filters.query);
+  if (filters.family) params.set('family', filters.family);
   if (filters.category) params.set('category', filters.category);
   if (filters.status !== 'all') params.set('status', filters.status);
   if (filters.sort !== 'best') params.set('sort', filters.sort);
@@ -202,10 +219,11 @@ export function filtersToParams(filters: CodeFilters): URLSearchParams {
 export type ActiveFilter = { key: string; label: string; patch: Partial<CodeFilters> };
 
 /** Les filtres choisis, en pastilles : chacune dit ce qu'il faut changer pour la retirer. Le tri n'en est pas un. */
-export function activeFilters(filters: CodeFilters, names: { tool: (slug: string) => string; creator: (slug: string) => string }): ActiveFilter[] {
+export function activeFilters(filters: CodeFilters, names: { tool: (slug: string) => string; creator: (slug: string) => string; family?: (slug: string) => string }): ActiveFilter[] {
   const pills: ActiveFilter[] = [];
   if (filters.query) pills.push({ key: 'q', label: `« ${filters.query} »`, patch: { query: '' } });
   if (filters.status !== 'all') pills.push({ key: 'status', label: STATUS_LABELS[filters.status], patch: { status: 'all' } });
+  if (filters.family) pills.push({ key: 'family', label: names.family?.(filters.family) || filters.family, patch: { family: '', category: '' } });
   if (filters.category) pills.push({ key: 'category', label: filters.category, patch: { category: '' } });
   if (filters.tool) pills.push({ key: 'tool', label: names.tool(filters.tool) || filters.tool, patch: { tool: '' } });
   if (filters.creator) pills.push({ key: 'creator', label: names.creator(filters.creator) || filters.creator, patch: { creator: '' } });

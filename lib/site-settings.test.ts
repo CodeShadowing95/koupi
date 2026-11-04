@@ -24,7 +24,7 @@ describe('site settings', () => {
     await setSiteSwitch(db, { target: 'categories', enabled: true });
     expect((await loadSiteState(db)).off).toEqual([]);
     const journal = await listAuditLog(db);
-    expect(journal.map(entry => [entry.action, entry.target])).toEqual(expect.arrayContaining([['page_off', 'Catégories'], ['page_on', 'Catégories']]));
+    expect(journal.map(entry => [entry.action, entry.target])).toEqual(expect.arrayContaining([['page_off', 'Pages de catégorie'], ['page_on', 'Pages de catégorie']]));
   });
 
   it('met le site en pause', async () => {

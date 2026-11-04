@@ -17,7 +17,6 @@ export function SiteFooter() {
             <h3>Explorer</h3>
             <ul>
               <SiteLinkItem href={routes.codes}>Tous les codes</SiteLinkItem>
-              <SiteLinkItem href={routes.categories}>Catégories</SiteLinkItem>
               <SiteLinkItem href={routes.creators()}>Créateurs</SiteLinkItem>
               <SiteLinkItem href={routes.submit()}>Proposer un code</SiteLinkItem>
               <SiteLinkItem href={routes.forCreators()}>Pour les créateurs</SiteLinkItem>

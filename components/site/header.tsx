@@ -11,7 +11,6 @@ import { routes } from '@/lib/routes';
 
 const links = [
   { href: routes.codes, label: 'Codes' },
-  { href: routes.categories, label: 'Catégories' },
   { href: routes.creators(), label: 'Créateurs' },
   { href: routes.transparency, label: 'Transparence' },
 ];

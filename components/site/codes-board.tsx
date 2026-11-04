@@ -2,7 +2,7 @@
 import Link from '@/components/site/site-pages';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import type { Code, Tool } from '@/lib/data';
+import type { Code, Family, Tool } from '@/lib/data';
 import {
   activeFilters, type CodeFilters, type CodeSort, type CodeStatusFilter, DEADLINES, DEFAULT_FILTERS, facetCounts, filterCodes,
   filtersToParams, lastChanceCodes, OFFERS, relaxSuggestions, type TrustFilter, TRUSTS,
@@ -14,7 +14,8 @@ import { TrustGlyph } from '@/components/site/trust';
 import { ToolLogo } from '@/components/site/tool-logo';
 import { AdminSelect, type SelectOption } from '@/components/admin-select';
 
-// « Tous les codes » : la recherche et les filtres à gauche (statut, catégorie, outil, créateur, confiance,
+// « Tous les codes » : en haut, une barre de pastilles comme sur YouTube (les familles de catégories, puis les
+// catégories de la famille choisie). La recherche et les filtres à gauche (statut, outil, créateur, confiance,
 // type d'offre, échéance, nouveautés, tri), chacun avec le nombre de codes qu'il donnerait,
 // les coupons à droite, trois par ligne. Les filtres choisis s'affichent en pastilles au-dessus des coupons.
 // Un bandeau « Dernière chance » montre les codes qui expirent sous 7 jours. Sans résultat, un coupon vierge
@@ -23,7 +24,7 @@ import { AdminSelect, type SelectOption } from '@/components/admin-select';
 // Les filtres sont recopiés dans l'adresse pour pouvoir partager une recherche.
 // Deux vues : « Cartes » (coupon debout, toutes les infos, trois par ligne) et « Liste » (un coupon couché par ligne,
 // talon à droite, l'essentiel), affichée par défaut. Au changement, chaque coupon se transforme sur place (GSAP Flip) ; le choix est retenu.
-// Les filtres courants (recherche, statut, catégorie, tri) sont toujours visibles ; les autres se déplient
+// Les filtres courants (recherche, statut, tri) sont toujours visibles ; les autres se déplient
 // avec « Plus de filtres », ouvert d'emblée si l'un d'eux est déjà choisi (lien partagé).
 // Sur téléphone, seule la recherche reste visible au-dessus des codes : un bouton « Filtres (n) » ouvre le reste.
 
@@ -40,7 +41,7 @@ const SORTS: { value: CodeSort; label: string }[] = [
 ];
 
 type Props = {
-  codes: Code[]; tools: Tool[]; categories: { slug: string; name: string }[]; initial: CodeFilters;
+  codes: Code[]; tools: Tool[]; families: Family[]; categories: { slug: string; name: string; family: string | null }[]; initial: CodeFilters;
   /** Heure du serveur, pour que les filtres par date donnent le même résultat au rendu et dans le navigateur. */
   now: number;
 };
@@ -56,7 +57,7 @@ const MORE_KEYS = ['tool', 'creator', 'trust', 'offer', 'deadline', 'fresh'];
 
 const reduced = () => typeof window !== 'undefined' && !window.matchMedia(MOTION_OK).matches;
 
-export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
+export function CodesBoard({ codes, tools, families, categories, initial, now }: Props) {
   const root = useRef<HTMLDivElement>(null);
   const [filters, setFilters] = useState<CodeFilters>(initial);
   const [query, setQuery] = useState(initial.query);
@@ -92,10 +93,11 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
   const visible = results.slice(0, limit);
   const counts = useMemo(() => facetCounts(codes, tools, filters, now), [codes, tools, filters, now]);
   const creatorNames = useMemo(() => new Map(codes.map(code => [code.creatorSlug, code.creator])), [codes]);
-  const categoryOptions = useMemo<SelectOption[]>(() => [
-    { value: '', label: 'Toutes les catégories', hint: count(Object.values(counts.category).reduce((a, b) => a + b, 0)) },
-    ...categories.map(category => ({ value: category.name, label: category.name, hint: count(counts.category[category.name]) })),
-  ], [categories, counts.category]);
+  const familyNames = useMemo(() => new Map(families.map(family => [family.slug, family.name])), [families]);
+  // Famille affichée : celle choisie, ou celle de la catégorie reçue dans l'adresse (lien partagé, fiche outil).
+  const openFamily = filters.family || categories.find(category => category.name === filters.category)?.family || '';
+  const familyChips = families.filter(family => (counts.family[family.slug] ?? 0) > 0 || family.slug === openFamily);
+  const categoryChips = categories.filter(category => category.family === openFamily && ((counts.category[category.name] ?? 0) > 0 || category.name === filters.category));
   const toolOptions = useMemo<SelectOption[]>(() => [
     { value: '', label: 'Tous les outils', hint: count(Object.values(counts.tool).reduce((a, b) => a + b, 0)) },
     ...tools.filter(tool => codes.some(code => code.toolSlug === tool.slug))
@@ -107,17 +109,19 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
     ...[...creatorNames].sort((a, b) => a[1].localeCompare(b[1], 'fr'))
       .map(([slug, name]) => ({ value: slug, label: name, hint: count(counts.creator[slug]) })),
   ], [creatorNames, counts.creator]);
+  // La famille et la catégorie se lisent sur les pastilles du haut : elles ne sont pas répétées au-dessus des coupons.
   const pills = activeFilters(filters, {
     tool: slug => toolBySlug.get(slug)?.name ?? '',
     creator: slug => creatorNames.get(slug) ?? '',
-  });
+  }).filter(pill => pill.key !== 'family' && pill.key !== 'category');
   const lastChance = useMemo(() => lastChanceCodes(codes, now, 99), [codes, now]);
   const relax = useMemo(() => (results.length > 0 ? [] : relaxSuggestions(codes, tools, shown, activeFilters(shown, {
     tool: slug => toolBySlug.get(slug)?.name ?? '',
     creator: slug => creatorNames.get(slug) ?? '',
-  }), now)), [results.length, codes, tools, shown, now, toolBySlug, creatorNames]);
+    family: slug => familyNames.get(slug) ?? '',
+  }), now)), [results.length, codes, tools, shown, now, toolBySlug, creatorNames, familyNames]);
   // Filtres repliés derrière « Plus de filtres » : combien sont choisis parmi ceux qu'on ne voit pas.
-  const hiddenActive = pills.filter(pill => !['q', 'status', 'category'].includes(pill.key)).length;
+  const hiddenActive = pills.filter(pill => !['q', 'status'].includes(pill.key)).length;
   // Sur téléphone, tous les filtres choisis hors recherche, affichés sur le bouton « Filtres ».
   const panelActive = pills.filter(pill => pill.key !== 'q').length;
 
@@ -160,6 +164,37 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
 
   return (
     <div className={`k-board${view === 'list' ? ' is-list' : ''}`} ref={root}>
+      {familyChips.length > 0 && (
+        <nav className="k-board-cats" aria-label="Catégories">
+          <div className="k-board-cats-row">
+            <button type="button" className="k-cat-chip" aria-pressed={!openFamily && !filters.category} onClick={() => update({ family: '', category: '' })}>
+              Tous <span>{counts.allFamilies}</span>
+            </button>
+            {familyChips.map(family => {
+              const on = openFamily === family.slug;
+              return (
+                <button type="button" key={family.slug} className="k-cat-chip" aria-pressed={on}
+                  onClick={() => update(on ? { family: '', category: '' } : { family: family.slug, category: '' })}>
+                  {family.name} <span>{counts.family[family.slug] ?? 0}</span>
+                </button>
+              );
+            })}
+          </div>
+          {categoryChips.length > 1 && (
+            <div className="k-board-cats-row is-sub" aria-label={`Catégories de ${familyNames.get(openFamily) ?? 'la famille'}`}>
+              {categoryChips.map(category => {
+                const on = filters.category === category.name;
+                return (
+                  <button type="button" key={category.slug} className="k-cat-chip is-sub" aria-pressed={on}
+                    onClick={() => update({ family: openFamily, category: on ? '' : category.name })}>
+                    {category.name} <span>{counts.category[category.name] ?? 0}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </nav>
+      )}
       <aside className="k-board-side" aria-label="Filtres">
         <form role="search" onSubmit={event => event.preventDefault()}>
           <label className="k-board-search">
@@ -191,15 +226,6 @@ export function CodesBoard({ codes, tools, categories, initial, now }: Props) {
               </button>
             ))}
           </div>
-        </div>
-
-        <div className="k-board-group">
-          <h2>Catégorie</h2>
-          <AdminSelect
-            id="k-board-category" classPrefix="k-combo" ariaLabel="Catégorie"
-            value={filters.category} onChange={category => update({ category })}
-            options={categoryOptions} searchPlaceholder="Chercher une catégorie…"
-          />
         </div>
 
         <label className="k-board-group">

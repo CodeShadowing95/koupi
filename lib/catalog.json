@@ -345,7 +345,8 @@
    "website": "https://incogni.com",
    "description": "Fais retirer tes données personnelles des courtiers.",
    "priority": 1,
-   "codes": 2
+   "codes": 2,
+   "family": "securite"
   },
   {
    "slug": "indy",
@@ -354,7 +355,8 @@
    "website": "https://indy.fr",
    "description": "Facturation et comptabilité pour indépendants.",
    "priority": 1,
-   "codes": 2
+   "codes": 2,
+   "family": "argent"
   },
   {
    "slug": "nordvpn",
@@ -363,7 +365,8 @@
    "website": "https://nordvpn.com",
    "description": "Protège ta connexion et navigue plus sereinement.",
    "priority": 1,
-   "codes": 1
+   "codes": 1,
+   "family": "securite"
   },
   {
    "slug": "o2switch",
@@ -372,7 +375,8 @@
    "website": "https://o2switch.fr",
    "description": "Un hébergement français simple, rapide et sans surprise.",
    "priority": 1,
-   "codes": 4
+   "codes": 4,
+   "family": "hebergement"
   },
   {
    "slug": "qonto",
@@ -381,7 +385,8 @@
    "website": "https://qonto.com",
    "description": "Le compte pro pensé pour les indépendants.",
    "priority": 1,
-   "codes": 1
+   "codes": 1,
+   "family": "argent"
   },
   {
    "slug": "shine",
@@ -390,7 +395,8 @@
    "website": "https://shine.fr",
    "description": "Les codes promo donnés par les créateurs pour Shine.",
    "priority": 1,
-   "codes": 1
+   "codes": 1,
+   "family": "argent"
   },
   {
    "slug": "surfshark",
@@ -399,7 +405,8 @@
    "website": "https://surfshark.com",
    "description": "Un VPN accessible pour protéger tous tes appareils.",
    "priority": 1,
-   "codes": 1
+   "codes": 1,
+   "family": "securite"
   },
   {
    "slug": "abby",
@@ -408,7 +415,8 @@
    "website": "https://abby.fr",
    "description": "Les codes promo donnés par les créateurs pour Abby.",
    "priority": 2,
-   "codes": 3
+   "codes": 3,
+   "family": "argent"
   },
   {
    "slug": "brevo",
@@ -417,7 +425,8 @@
    "website": "https://brevo.com",
    "description": "Les codes promo donnés par les créateurs pour Brevo.",
    "priority": 2,
-   "codes": 2
+   "codes": 2,
+   "family": "marketing"
   },
   {
    "slug": "framer",
@@ -426,7 +435,8 @@
    "website": "https://framer.com",
    "description": "Les codes promo donnés par les créateurs pour Framer.",
    "priority": 2,
-   "codes": 3
+   "codes": 3,
+   "family": "sites"
   },
   {
    "slug": "infomaniak",
@@ -435,7 +445,8 @@
    "website": "https://infomaniak.com",
    "description": "Les codes promo donnés par les créateurs pour Infomaniak.",
    "priority": 2,
-   "codes": 3
+   "codes": 3,
+   "family": "hebergement"
   },
   {
    "slug": "riverside",
@@ -444,7 +455,8 @@
    "website": "https://riverside.fm",
    "description": "Les codes promo donnés par les créateurs pour Riverside.",
    "priority": 2,
-   "codes": 3
+   "codes": 3,
+   "family": "audio"
   },
   {
    "slug": "runway",
@@ -453,7 +465,8 @@
    "website": "https://runwayml.com",
    "description": "Les codes promo donnés par les créateurs pour Runway.",
    "priority": 2,
-   "codes": 1
+   "codes": 1,
+   "family": "video"
   },
   {
    "slug": "pennylane",
@@ -462,7 +475,8 @@
    "website": "https://pennylane.com",
    "description": "Les codes promo donnés par les créateurs pour Pennylane.",
    "priority": 3,
-   "codes": 1
+   "codes": 1,
+   "family": "argent"
   },
   {
    "slug": "planethoster",
@@ -471,7 +485,8 @@
    "website": "https://planethoster.com",
    "description": "Les codes promo donnés par les créateurs pour PlanetHoster.",
    "priority": 3,
-   "codes": 2
+   "codes": 2,
+   "family": "hebergement"
   },
   {
    "slug": "storyblocks",
@@ -480,7 +495,8 @@
    "website": "https://storyblocks.com",
    "description": "Les codes promo donnés par les créateurs pour Storyblocks.",
    "priority": 3,
-   "codes": 1
+   "codes": 1,
+   "family": "design"
   }
  ],
  "codes": [

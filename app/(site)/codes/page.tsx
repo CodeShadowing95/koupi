@@ -7,11 +7,11 @@ import { VoteInvite } from '@/components/site/vote-invite';
 
 export const metadata: Metadata = {
   title: 'Tous les codes · Koupi',
-  description: 'Tous les codes promo donnés par les créateurs, vérifiés et reliés à leur source. Filtre par outil, créateur, catégorie, type d’offre ou date de fin.',
+  description: 'Tous les codes promo donnés par les créateurs, vérifiés et reliés à leur source. Filtre par catégorie, outil, créateur, type d’offre ou date de fin.',
 };
 
 export default async function CodesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const [{ categories, codes, tools }, params] = await Promise.all([getCatalog(), searchParams]);
+  const [{ categories, families, codes, tools }, params] = await Promise.all([getCatalog(), searchParams]);
   const live = codes.filter(isPublic);
   return (
     <main className="k-page">
@@ -26,7 +26,8 @@ export default async function CodesPage({ searchParams }: { searchParams: Promis
         <CodesBoard
           codes={live}
           tools={tools}
-          categories={categories.filter(category => category.count > 0).map(({ slug, name }) => ({ slug, name }))}
+          families={families}
+          categories={categories.filter(category => category.count > 0).map(({ slug, name, family }) => ({ slug, name, family }))}
           initial={parseFilters(params)}
           now={Date.now()}
         />

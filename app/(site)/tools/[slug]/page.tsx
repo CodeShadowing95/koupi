@@ -56,7 +56,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
   return (
     <main className="k-page">
       <div className="k-wrap">
-        <Crumbs items={[{ label: tool.category, href: category ? routes.category(category.slug) : routes.categories }, { label: tool.name }]} />
+        <Crumbs items={[{ label: tool.category, href: category ? routes.category(category.slug) : routes.codes }, { label: tool.name }]} />
         <div className="k-tool-layout">
           <section>
             <div className="k-tool-head">
