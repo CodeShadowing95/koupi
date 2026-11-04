@@ -7,7 +7,7 @@ Proposée
 2026-11-02
 
 ## Contexte
-Un code « vérifié » peut mourir sans prévenir : la vidéo est supprimée, le créateur change de partenaire, l'offre expire. L'admin retestait à la main les codes de plus de 30 jours (onglet « À retester » de Codes). Avec l'analyse automatique (ADR-0012, ADR-0013), Koupi peut relire ces sources tout seul.
+Un code « vérifié » peut mourir sans prévenir : la vidéo est supprimée, le créateur change de partenaire, l'offre expire. L'admin retestait à la main les codes de plus de 30 jours (onglet « À retester » de Codes). Avec l'analyse automatique (ADR-0012, ADR-0013), Merkod peut relire ces sources tout seul.
 
 ## Décision
 - Une tâche planifiée Vercel (`crons` dans `vercel.json`) appelle `/api/cron/retest` chaque nuit à 3 h UTC. Vercel l'authentifie avec l'en-tête `Authorization: Bearer <CRON_SECRET>` ; sans `CRON_SECRET`, la route refuse tout.

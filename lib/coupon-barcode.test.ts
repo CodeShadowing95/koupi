@@ -3,8 +3,8 @@ import { barcodeBars, couponNumber, hashText } from './coupon-barcode';
 
 describe('hashText', () => {
   it('est stable et distingue deux textes', () => {
-    expect(hashText('KOUPI')).toBe(hashText('KOUPI'));
-    expect(hashText('KOUPI')).not.toBe(hashText('KOUPA'));
+    expect(hashText('MERKOD')).toBe(hashText('MERKOD'));
+    expect(hashText('MERKOD')).not.toBe(hashText('KOUPA'));
   });
 });
 
@@ -23,7 +23,7 @@ describe('barcodeBars', () => {
     expect(barcodeBars('AB').bars).toHaveLength(6 + 6);
   });
   it('dessine un code par défaut quand le champ est vide', () => {
-    expect(barcodeBars('').bars).toEqual(barcodeBars('KOUPI').bars);
+    expect(barcodeBars('').bars).toEqual(barcodeBars('MERKOD').bars);
   });
   it('reste dans sa largeur totale, avec des barres de 1 à 3', () => {
     const { bars, width } = barcodeBars('MONCODE10');

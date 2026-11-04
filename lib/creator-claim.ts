@@ -1,5 +1,5 @@
-// Preuve par la bio (ADR-0020) : Koupi donne un code au créateur, il le place dans la bio d'un de ses comptes,
-// Koupi le lit (YouTube) ou l'admin le constate (autres réseaux). Le compte est alors « réclamé » : Créateur vérifié.
+// Preuve par la bio (ADR-0020) : Merkod donne un code au créateur, il le place dans la bio d'un de ses comptes,
+// Merkod le lit (YouTube) ou l'admin le constate (autres réseaux). Le compte est alors « réclamé » : Créateur vérifié.
 import { randomInt } from 'node:crypto';
 import { eq } from 'drizzle-orm';
 import type { Db } from '@/db';
@@ -79,7 +79,7 @@ export async function runClaimAction(db: Db, accountId: string, action: ClaimAct
       if (!pending) return { ok: false, error: 'Aucune preuve en cours sur ce compte.' };
       if (!account.adminCheckedAt) return unchecked;
       if (claimCodeExpired(account.claimCodeAt!, now)) return { ok: false, error: `Le code a plus de ${CLAIM_CODE_DAYS} jours : donne-lui un nouveau code.` };
-      if (account.platform !== 'youtube' || !account.externalId) return { ok: false, error: 'Koupi ne lit que les bios YouTube : regarde le profil toi-même, puis confirme.' };
+      if (account.platform !== 'youtube' || !account.externalId) return { ok: false, error: 'Merkod ne lit que les bios YouTube : regarde le profil toi-même, puis confirme.' };
       if (!deps.readDescription) return { ok: false, error: 'La clé YouTube (YOUTUBE_API_KEY) manque : la bio ne peut pas être lue.' };
       let description: string | null;
       try { description = await deps.readDescription(account.externalId); } catch { return { ok: false, error: 'YouTube ne répond pas. Réessaie dans un moment.' }; }

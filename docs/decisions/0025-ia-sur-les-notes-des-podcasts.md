@@ -7,7 +7,7 @@ Proposée
 2026-11-03
 
 ## Contexte
-Les codes des podcasts sont repérés sans IA (ADR-0017, ADR-0023) : un code annoncé par « code » ou « coupon », et un outil sur la même ligne ou celle d'avant. Ce repérage rate les codes mal formulés, prend souvent « Voir l'épisode » comme réduction, ne lit pas la date de fin, et rattache parfois un code au mauvais outil quand deux sponsors partagent une ligne. L'IA de Koupi (ADR-0013) sait déjà lire une description de vidéo ou d'épisode.
+Les codes des podcasts sont repérés sans IA (ADR-0017, ADR-0023) : un code annoncé par « code » ou « coupon », et un outil sur la même ligne ou celle d'avant. Ce repérage rate les codes mal formulés, prend souvent « Voir l'épisode » comme réduction, ne lit pas la date de fin, et rattache parfois un code au mauvais outil quand deux sponsors partagent une ligne. L'IA de Merkod (ADR-0013) sait déjà lire une description de vidéo ou d'épisode.
 
 ## Décision
 - Quand l'IA est active et sous le plafond, elle lit aussi les notes de chaque **nouvel épisode** qui parle d'une offre (« code », « promo », « -20 % »…), avec le petit modèle (`AI_MODEL`, Haiku par défaut), via `extractCodes`.
@@ -22,7 +22,7 @@ Les codes des podcasts sont repérés sans IA (ADR-0017, ADR-0023) : un code ann
 ## Alternatives envisagées
 - **Remplacer le repérage sans IA par l'IA** : plus simple, mais tout s'arrêterait sans clé ou au plafond. Les deux se complètent.
 - **Compter le coût sur les codes trouvés** : un épisode lu sans code trouvé coûterait sans laisser de trace. Une table dédiée garde tout.
-- **Transcrire l'audio** : écarté par l'admin. Koupi ne lit que les notes écrites.
+- **Transcrire l'audio** : écarté par l'admin. Merkod ne lit que les notes écrites.
 
 ## Conséquences
 - Une lecture coûte une fraction de centime avec Haiku. Une dizaine de podcasts hebdomadaires restent très loin du plafond de 10 €.

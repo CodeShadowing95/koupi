@@ -64,7 +64,7 @@ export function FeedbackView({ items }: { items: AdminFeedback[] }) {
         ) : (
           <div className="adm-req-list">
             {shown.map(item => {
-              const reply = item.email ? `mailto:${item.email}?subject=${encodeURIComponent('Ton avis sur Koupi')}` : null;
+              const reply = item.email ? `mailto:${item.email}?subject=${encodeURIComponent('Ton avis sur Merkod')}` : null;
               return (
                 <article className="adm-card adm-req" key={item.id}>
                   <div className="adm-card-row" style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>

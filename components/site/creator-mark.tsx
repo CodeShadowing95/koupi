@@ -2,10 +2,10 @@ import Link from '@/components/site/site-pages';
 import type { Code } from '@/lib/data';
 import { routes } from '@/lib/routes';
 
-const LABELS = { checked: 'Contrôlé par Koupi', verified: 'Créateur vérifié' } as const;
+const LABELS = { checked: 'Contrôlé par Merkod', verified: 'Créateur vérifié' } as const;
 const TITLES = {
-  checked: 'Koupi a contrôlé ce compte : il est réel, actif et publie bien sous ce nom.',
-  verified: 'Le créateur a prouvé à Koupi que ce compte est le sien.',
+  checked: 'Merkod a contrôlé ce compte : il est réel, actif et publie bien sous ce nom.',
+  verified: 'Le créateur a prouvé à Merkod que ce compte est le sien.',
 } as const;
 
 /** Rosette bleue des créateurs : une autre forme que la pastille ronde des codes, pour ne pas confondre les deux. */

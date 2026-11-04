@@ -1,6 +1,6 @@
 // Fenêtre « Laisse un 👍 » de la page des codes : quand l'ouvrir, une seule fois par navigateur.
 // Par défaut (trigger 'copy'), elle attend que le visiteur copie un code, parte l'essayer sur le site
-// de l'outil puis revienne sur Koupi : c'est là qu'il sait si le code a marché. Si l'onglet ne perd
+// de l'outil puis revienne sur Merkod : c'est là qu'il sait si le code a marché. Si l'onglet ne perd
 // jamais la main (pas de lien à ouvrir), elle s'ouvre après un court délai.
 // Avec trigger 'arrival', elle s'ouvre peu après la première visite de la page.
 

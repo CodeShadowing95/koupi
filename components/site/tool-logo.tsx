@@ -20,7 +20,7 @@ export function ToolLogo({ tool, name, className = '' }: Props) {
 }
 
 /**
- * Le sceau Koupi : le logo de l'outil au centre, son nom écrit en cercle autour,
+ * Le sceau Merkod : le logo de l'outil au centre, son nom écrit en cercle autour,
  * comme un tampon posé sur le coupon. L'anneau tourne doucement (GSAP, voir effects.tsx).
  */
 export function ToolSeal({ tool, name, size = 'md', className = '' }: Props & { size?: 'sm' | 'md' | 'lg' }) {

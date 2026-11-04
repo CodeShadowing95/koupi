@@ -1,4 +1,4 @@
-// Consommation des API externes, comptée par Koupi (ADR-0028) : YouTube ne dit pas combien de quota est utilisé,
+// Consommation des API externes, comptée par Merkod (ADR-0028) : YouTube ne dit pas combien de quota est utilisé,
 // alors chaque appel est noté dans api_usage, par service et par jour de quota. L'IA, elle, a déjà son coût
 // enregistré à chaque appel (ai_usage, verification_checks, tool_suggestions) : on le relit tel quel.
 import { and, gte, isNotNull, sql } from 'drizzle-orm';
@@ -81,7 +81,7 @@ export function countedYoutubeFetch(record: Recorder = recordInDb, fetchFn: type
   };
 }
 
-/** Le fetch par défaut des lecteurs YouTube de Koupi. */
+/** Le fetch par défaut des lecteurs YouTube de Merkod. */
 export const youtubeFetch: typeof fetch = countedYoutubeFetch();
 
 export type UsageDay = { day: string; units: number };

@@ -11,8 +11,8 @@ import { CreatorSignIn } from '@/components/site/creator-sign-in';
 import { PlatformIcon } from '@/components/platform-icon';
 
 export const metadata: Metadata = {
-  title: 'Pour les créateurs · Koupi',
-  description: 'Tes codes promo sont déjà sur Koupi, avec la vidéo d’où ils viennent. Vois combien de fois ils sont copiés, gratuitement.',
+  title: 'Pour les créateurs · Merkod',
+  description: 'Tes codes promo sont déjà sur Merkod, avec la vidéo d’où ils viennent. Vois combien de fois ils sont copiés, gratuitement.',
   alternates: { canonical: routes.forCreators() },
 };
 
@@ -46,16 +46,16 @@ export default async function ForCreators({ searchParams }: { searchParams: Prom
                 </div>
               </div>
               {copies > 0 ? (
-                <p className="k-fc-big">tes codes ont été copiés <b><Counter value={copies} group /> fois</b> ce mois-ci sur Koupi.</p>
+                <p className="k-fc-big">tes codes ont été copiés <b><Counter value={copies} group /> fois</b> ce mois-ci sur Merkod.</p>
               ) : (
-                <p className="k-fc-big"><b>{plural(own.length, 'de tes codes est', 'de tes codes sont')}</b> déjà sur Koupi, chacun avec la vidéo d’où il vient.</p>
+                <p className="k-fc-big"><b>{plural(own.length, 'de tes codes est', 'de tes codes sont')}</b> déjà sur Merkod, chacun avec la vidéo d’où il vient.</p>
               )}
               {tools.length > 0 && <p className="k-fc-tools">{tools.slice(0, 4).join(', ')}{tools.length > 4 ? ` et ${tools.length - 4} autre${tools.length > 5 ? 's' : ''}` : ''}.</p>}
             </>
           ) : (
             <>
               <h1 className="k-fc-title">Tes codes promo, <span>enfin chez toi.</span></h1>
-              <p className="k-fc-big">Koupi rassemble les codes que tu donnes dans tes vidéos, avec la vidéo d’où ils viennent. Vois combien de fois ils sont copiés, gratuitement.</p>
+              <p className="k-fc-big">Merkod rassemble les codes que tu donnes dans tes vidéos, avec la vidéo d’où ils viennent. Vois combien de fois ils sont copiés, gratuitement.</p>
             </>
           )}
         </section>

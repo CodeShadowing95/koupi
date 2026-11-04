@@ -7,9 +7,9 @@ Proposée
 2026-11-02
 
 ## Contexte
-Après YouTube, les podcasts sont la deuxième source de codes (spec des vérifications). Les animateurs lisent des publicités sponsorisées et répètent le code dans les notes de l'épisode. L'admin doit pouvoir choisir les podcasts suivis, puis Koupi lit leurs nouveaux épisodes pour y trouver des codes, qui passent par Vérifications.
+Après YouTube, les podcasts sont la deuxième source de codes (spec des vérifications). Les animateurs lisent des publicités sponsorisées et répètent le code dans les notes de l'épisode. L'admin doit pouvoir choisir les podcasts suivis, puis Merkod lit leurs nouveaux épisodes pour y trouver des codes, qui passent par Vérifications.
 
-Le plan prévoyait l'API Podcast Index. Elle refuse désormais les inscriptions depuis une adresse Gmail ou Outlook, et Koupi n'a pas encore d'adresse sur son propre domaine.
+Le plan prévoyait l'API Podcast Index. Elle refuse désormais les inscriptions depuis une adresse Gmail ou Outlook, et Merkod n'a pas encore d'adresse sur son propre domaine.
 
 ## Décision
 - On utilise l'**annuaire Apple Podcasts** (iTunes Search API) : `search` pour trouver un podcast, `lookup?id=…` pour le relire, `lookup?id=…&entity=podcastEpisode` pour ses derniers épisodes avec leurs notes. Gratuit, sans clé, sans inscription. Client dans `lib/apple-podcasts.ts`, boutique FR.

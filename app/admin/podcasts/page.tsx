@@ -21,7 +21,7 @@ async function imagesOf(feedIds: string[]): Promise<Record<string, string>> {
   }
 }
 
-// Podcasts que Koupi lit pour trouver des codes : recherche dans Apple Podcasts, ajout, pause, retrait,
+// Podcasts que Merkod lit pour trouver des codes : recherche dans Apple Podcasts, ajout, pause, retrait,
 // et les outils absents du catalogue dont un code a été trouvé.
 export default async function Page({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const db = getDb();

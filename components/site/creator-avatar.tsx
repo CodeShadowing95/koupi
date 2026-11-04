@@ -9,7 +9,7 @@ export function CreatorAvatar({ name, size = 'md', className: extra }: { name: s
   const src = useCreatorAvatar(name);
   const className = `k-av k-${avatarClass(name)}${size === 'lg' ? ' k-av-lg' : size === 'xs' ? ' k-av-xs' : ''}${src ? ' k-av-photo' : ''}${extra ? ` ${extra}` : ''}`;
   if (src) {
-    // eslint-disable-next-line @next/next/no-img-element -- petite image servie par Koupi, déjà à la bonne taille
+    // eslint-disable-next-line @next/next/no-img-element -- petite image servie par Merkod, déjà à la bonne taille
     return <img className={className} src={src} alt="" width={96} height={96} loading="lazy" decoding="async" />;
   }
   return <span className={className} aria-hidden="true">{initials(name)}</span>;

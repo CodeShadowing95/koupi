@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const own = publicCodesOf(codes, slug);
   if (!own.length) return {};
   const profile = await getCreatorProfile(slug);
-  const title = `Codes promo de ${own[0].creator} · Koupi`;
+  const title = `Codes promo de ${own[0].creator} · Merkod`;
   const description = creatorDescription(own[0].creator, own, profile?.bio ?? null);
   return { title, description, alternates: { canonical: routes.creator(slug) }, openGraph: { title, description, type: 'profile' } };
 }
@@ -101,7 +101,7 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
                 </ul>
               )}
               {match.creatorLevel !== 'verified' && <p className="k-creator-managed">
-                <b>Page tenue par Koupi.</b> Ses codes viennent de ses vidéos et posts publics, chacun avec sa source. <Link href={routes.transparency}>Comment on vérifie</Link>
+                <b>Page tenue par Merkod.</b> Ses codes viennent de ses vidéos et posts publics, chacun avec sa source. <Link href={routes.transparency}>Comment on vérifie</Link>
               </p>}
               {match.creatorLevel !== 'verified' && <CreatorRequest slug={match.creatorSlug} name={creator} />}
             </CreatorMore>

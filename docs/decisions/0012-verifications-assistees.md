@@ -7,7 +7,7 @@ Proposée
 2026-11-02
 
 ## Contexte
-Si Koupi décolle, les codes trouvés par les scripts et les propositions des visiteurs arriveront plus vite qu'une personne seule ne peut les vérifier. La spec « vérifications assistées par IA » prévoit des contrôles automatiques, un score de confiance sur 100 (`lib/verification.ts`), puis une lecture des descriptions par l'IA. L'admin garde la décision finale. Il faut garder la preuve de chaque analyse, suivre le coût de l'IA et savoir quelles chaînes et quels podcasts lire.
+Si Merkod décolle, les codes trouvés par les scripts et les propositions des visiteurs arriveront plus vite qu'une personne seule ne peut les vérifier. La spec « vérifications assistées par IA » prévoit des contrôles automatiques, un score de confiance sur 100 (`lib/verification.ts`), puis une lecture des descriptions par l'IA. L'admin garde la décision finale. Il faut garder la preuve de chaque analyse, suivre le coût de l'IA et savoir quelles chaînes et quels podcasts lire.
 
 ## Décision
 - Table `verification_checks` : une ligne par analyse d'un code ou d'une proposition (score, raisons, extrait de la source, champs lus par l'IA, modèle, coût en millionièmes de dollar). On n'efface rien : c'est la preuve montrée à l'admin et la base du plafond mensuel de l'IA.
@@ -20,5 +20,5 @@ Si Koupi décolle, les codes trouvés par les scripts et les propositions des vi
 - **Un statut de plus pour « testé au paiement »** : un code testé reste aussi « source vérifiée » ; une date suffit et dit quand le test a eu lieu.
 
 ## Conséquences
-- Les niveaux de créateur (Repéré, Contrôlé par Koupi, Créateur vérifié) viendront avec la table des comptes créateurs, pas ici.
+- Les niveaux de créateur (Repéré, Contrôlé par Merkod, Créateur vérifié) viendront avec la table des comptes créateurs, pas ici.
 - La table des analyses grossit avec chaque retest ; à surveiller, un nettoyage des analyses anciennes et sans coût pourra venir plus tard.

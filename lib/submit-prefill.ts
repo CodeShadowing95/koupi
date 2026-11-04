@@ -1,4 +1,4 @@
-// Formulaire « Proposer un code » : le visiteur colle le lien d'une vidéo YouTube, Koupi lit la vidéo
+// Formulaire « Proposer un code » : le visiteur colle le lien d'une vidéo YouTube, Merkod lit la vidéo
 // par l'API officielle (1 unité de quota) et pré-remplit le bon : le nom exact de la chaîne, et les codes
 // trouvés dans la description avec leur outil et leur réduction. Même repérage que les podcasts, sans IA :
 // le visiteur coche et corrige, puis l'admin vérifie chaque proposition comme d'habitude.
@@ -9,7 +9,7 @@ import type { FoundVideo, YoutubeSearch } from './category-code-search';
 import { domainOf, scanPromoCodes, type CatalogTool } from './podcast-codes';
 import { youtubeVideoId } from './verification-run';
 
-/** Un code trouvé dans la description. known : l'outil est déjà suivi par Koupi. */
+/** Un code trouvé dans la description. known : l'outil est déjà suivi par Merkod. */
 export type PrefillCode = { tool: string; code: string; discount: string; known: boolean };
 export type Prefill = { creator: string; title: string; codes: PrefillCode[] };
 

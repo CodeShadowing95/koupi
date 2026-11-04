@@ -1,6 +1,6 @@
 // Son du coupon qu'on détache : un papier perforé qui se déchire, puis le « tchac » du tampon.
 // Le son est synthétisé dans le navigateur avec la Web Audio API : aucun fichier audio,
-// donc aucune licence à créditer (création originale Koupi). Il ne joue qu'après un clic
+// donc aucune licence à créditer (création originale Merkod). Il ne joue qu'après un clic
 // (règle d'autoplay des navigateurs) et le visiteur peut le couper (préférence gardée en local).
 
 const STORAGE_KEY = 'koupi-sound';

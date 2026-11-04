@@ -47,7 +47,7 @@ export default async function Home() {
             <Link className="k-more-ticket" href={routes.codes} aria-label={`Voir plus de codes : ${compactCount(live.length)} codes de créateurs, avec filtres et recherche`}>
               <span className="k-more-body" aria-hidden="true">
                 <span className="k-more-main">
-                  <small>Koupi</small>
+                  <small>Merkod</small>
                   <strong>Voir plus</strong>
                   <strong>de codes</strong>
                   <em>{compactCount(live.length)} codes de créateurs</em>
@@ -75,7 +75,7 @@ export default async function Home() {
       <section className="k-section">
         <div className="k-wrap">
           <div className="k-section-head" data-reveal>
-            <span className="k-eyebrow">La règle Koupi</span>
+            <span className="k-eyebrow">La règle Merkod</span>
             <h2>L&apos;inverse d&apos;un site<br />de coupons.</h2>
           </div>
           <div className="k-bento">
@@ -86,7 +86,7 @@ export default async function Home() {
               <div className="k-flow" aria-hidden="true">
                 <span className="k-flow-node"><span className="k-av k-av-3">TU</span>Toi</span>
                 <span className="k-flow-line" />
-                <span className="k-flow-node"><span className="k-tool-logo">K</span>Koupi</span>
+                <span className="k-flow-node"><span className="k-tool-logo">K</span>Merkod</span>
                 <span className="k-flow-line" />
                 <span className="k-flow-node"><CreatorAvatar name={best.creator} />{best.creator}</span>
               </div>

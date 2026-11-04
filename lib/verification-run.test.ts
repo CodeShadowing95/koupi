@@ -75,7 +75,7 @@ describe('runVerification', () => {
       creatorId: code.creatorId, platform: 'youtube', externalId: 'UC1', handle: '@ana', url: 'https://youtube.com/@ana', platformVerified: true,
     });
     const after = await runVerification(ctx.db, ctx.codeId, { readSource: reader('pas de code ici') });
-    expect(after?.reasons.map(r => r.label)).toContain('Créateur contrôlé par Koupi.');
+    expect(after?.reasons.map(r => r.label)).toContain('Créateur contrôlé par Merkod.');
     expect(after!.score).toBe(before!.score + 15);
   });
 

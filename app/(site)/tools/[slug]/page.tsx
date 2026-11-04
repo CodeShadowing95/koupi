@@ -131,8 +131,8 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
               <a className="k-link" href={tool.website} target="_blank" rel="noopener noreferrer">Site officiel ↗</a>
             </div>
             <div className="k-panel">
-              <span className="k-eyebrow">La règle Koupi</span>
-              <p>Chaque code reste celui du créateur. Son lien est ouvert tel quel, sans suivi ajouté par Koupi : sa commission lui revient.</p>
+              <span className="k-eyebrow">La règle Merkod</span>
+              <p>Chaque code reste celui du créateur. Son lien est ouvert tel quel, sans suivi ajouté par Merkod : sa commission lui revient.</p>
               <Link className="k-link" href={routes.submit(tool.slug)}>Signaler un problème ou proposer un code →</Link>
             </div>
           </aside>

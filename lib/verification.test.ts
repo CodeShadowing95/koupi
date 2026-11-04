@@ -8,7 +8,7 @@ describe('creatorLevelOf', () => {
   it('donne « Créateur vérifié » au créateur qui a réclamé sa page', () => {
     expect(creatorLevelOf({ claimed: true })).toBe('verified');
   });
-  it('donne « Contrôlé par Koupi » dès le badge de la plateforme', () => {
+  it('donne « Contrôlé par Merkod » dès le badge de la plateforme', () => {
     expect(creatorLevelOf({ platformVerified: true, subscribers: 0 })).toBe('checked');
   });
   it('demande le contrôle de l’admin et le seuil d’abonnés', () => {
@@ -38,16 +38,16 @@ describe('sourceKindOf', () => {
 });
 
 describe('findCodeInText', () => {
-  const description = 'Merci à Qonto de sponsoriser cette vidéo ! Avec le code KOUPI10, vous avez 10 % sur votre premier mois.';
+  const description = 'Merci à Qonto de sponsoriser cette vidéo ! Avec le code MERKOD10, vous avez 10 % sur votre premier mois.';
 
   it('trouve le code sans tenir compte de la casse et rend un extrait', () => {
-    const match = findCodeInText('koupi10', description);
+    const match = findCodeInText('merkod10', description);
     expect(match.found).toBe(true);
-    expect(match.excerpt).toContain('KOUPI10');
+    expect(match.excerpt).toContain('MERKOD10');
   });
   it('ne compte que le mot entier', () => {
-    expect(findCodeInText('KOUPI1', description).found).toBe(false);
-    expect(findCodeInText('KOUPI10', 'code KOUPI100').found).toBe(false);
+    expect(findCodeInText('MERKOD1', description).found).toBe(false);
+    expect(findCodeInText('MERKOD10', 'code MERKOD100').found).toBe(false);
     expect(findCodeInText('OUPI10', description).found).toBe(false);
   });
   it('accepte un code avec des caractères spéciaux', () => {
@@ -62,13 +62,13 @@ describe('findCodeInText', () => {
   });
   it('rend une absence propre pour un code ou un texte vide', () => {
     expect(findCodeInText('  ', description)).toEqual({ found: false, excerpt: null });
-    expect(findCodeInText('KOUPI10', '')).toEqual({ found: false, excerpt: null });
+    expect(findCodeInText('MERKOD10', '')).toEqual({ found: false, excerpt: null });
   });
 });
 
 describe('spamSignals', () => {
   it('ne signale rien pour une proposition normale', () => {
-    expect(spamSignals({ sourceUrl: 'https://www.youtube.com/watch?v=abc', code: 'KOUPI10', comment: 'Vu dans la vidéo' })).toEqual([]);
+    expect(spamSignals({ sourceUrl: 'https://www.youtube.com/watch?v=abc', code: 'MERKOD10', comment: 'Vu dans la vidéo' })).toEqual([]);
   });
   it('signale un lien raccourci, plusieurs liens et un code avec espaces', () => {
     const signals = spamSignals({ sourceUrl: 'https://bit.ly/x', code: 'CODE 10', comment: 'https://a.fr et https://b.fr' });

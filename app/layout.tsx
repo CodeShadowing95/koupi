@@ -8,9 +8,9 @@ const inter = localFont({ src: './fonts/inter-latin.woff2', weight: '400 700', v
 const jetbrains = localFont({ src: './fonts/jetbrains-mono-latin.woff2', weight: '500 700', variable: '--font-jetbrains', display: 'swap' });
 
 export const metadata: Metadata = {
-  title: 'Koupi · Le code du créateur, vérifié.',
+  title: 'Merkod · Le code du créateur, vérifié.',
   description: 'Trouve les codes promo partagés par les créateurs, avec leur source et les votes de la communauté.',
-  icons: { icon: '/koupi-icone-512.png' },
+  icons: { icon: '/merkod-icone-512.png' },
 };
 
 // Mise en page racine : seulement les polices. Le site public (app/(site)) et le back-office (app/admin)

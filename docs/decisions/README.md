@@ -10,7 +10,7 @@ Chaque décision importante est notée ici dans un fichier numéroté. On ne sup
 | [0004](0004-turnstile.md) | Cloudflare Turnstile sur le formulaire de proposition | Acceptée |
 | [0005](0005-migrations-au-deploiement.md) | Migrations appliquées automatiquement au déploiement | Acceptée |
 | [0006](0006-refonte-site-public.md) | Refonte du site public : GSAP, son synthétisé, adresses en anglais | Proposée |
-| [0007](0007-logos-des-outils.md) | Logos des outils servis par Koupi (Simple Icons puis site officiel, initiale en repli) | Proposée |
+| [0007](0007-logos-des-outils.md) | Logos des outils servis par Merkod (Simple Icons puis site officiel, initiale en repli) | Proposée |
 | [0008](0008-chartjs-admin.md) | Chart.js pour les graphiques du back-office | Proposée |
 | [0009](0009-catalogue-en-base.md) | Outils, créateurs et codes stockés dans Neon | Proposée |
 | [0010](0010-audience-anonyme.md) | Votes et mesure d'audience anonymes, dans notre base | Proposée |
@@ -30,7 +30,7 @@ Chaque décision importante est notée ici dans un fichier numéroté. On ne sup
 | [0024](0024-analyse-ia-des-outils.md) | Analyse par l’IA des outils à ajouter | Proposée |
 | [0025](0025-ia-sur-les-notes-des-podcasts.md) | Lecture des notes de podcast par l’IA | Proposée |
 | [0027](0027-images-en-base.md) | Photos des créateurs et logos des outils gardés en base | Acceptée |
-| [0028](0028-consommation-des-api.md) | Koupi compte lui-même sa consommation des API | Acceptée |
+| [0028](0028-consommation-des-api.md) | Merkod compte lui-même sa consommation des API | Acceptée |
 | [0029](0029-avis-des-visiteurs.md) | Page « Ton avis » et avis des visiteurs en base | Acceptée |
 
 Modèle : copier [`template.md`](template.md).

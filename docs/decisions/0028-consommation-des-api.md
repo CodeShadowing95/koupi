@@ -1,4 +1,4 @@
-# ADR-0028 : Koupi compte lui-même sa consommation des API
+# ADR-0028 : Merkod compte lui-même sa consommation des API
 
 ## Statut
 Acceptée
@@ -7,7 +7,7 @@ Acceptée
 2026-11-04
 
 ## Contexte
-Koupi lit YouTube (10 000 unités gratuites par jour) et appelle l'IA sous un plafond mensuel. L'admin veut voir où il en est sans ouvrir la console Google ni celle d'Anthropic. L'API YouTube ne donne pas le quota utilisé : seule la console Google Cloud l'affiche, avec du retard. D'autres sources viendront (Spotify, Podcast Index…).
+Merkod lit YouTube (10 000 unités gratuites par jour) et appelle l'IA sous un plafond mensuel. L'admin veut voir où il en est sans ouvrir la console Google ni celle d'Anthropic. L'API YouTube ne donne pas le quota utilisé : seule la console Google Cloud l'affiche, avec du retard. D'autres sources viendront (Spotify, Podcast Index…).
 
 ## Décision
 - Une table `api_usage` garde, par service et par jour de quota du service, les unités consommées et le nombre d'appels. Le jour YouTube change à minuit heure du Pacifique.
@@ -23,4 +23,4 @@ Koupi lit YouTube (10 000 unités gratuites par jour) et appelle l'IA sous un pl
 
 ## Conséquences
 - Une écriture en base de plus par appel YouTube.
-- Le compteur ignore les appels faits en dehors de Koupi avec la même clé (scripts lancés en local, console Google) : la console Google reste la référence en cas de doute.
+- Le compteur ignore les appels faits en dehors de Merkod avec la même clé (scripts lancés en local, console Google) : la console Google reste la référence en cas de doute.

@@ -1,4 +1,4 @@
-// Photos des créateurs (et plus tard logos des outils) récupérées par Koupi et servies depuis Koupi (ADR-0027).
+// Photos des créateurs (et plus tard logos des outils) récupérées par Merkod et servies depuis Merkod (ADR-0027).
 // La photo vient de la chaîne YouTube reliée au créateur : récupérée dès que la chaîne est reliée,
 // ou quand l'admin clique « Actualiser la photo ». Les photos déjà dans le dépôt (npm run avatars) restent en secours.
 import { and, eq, isNotNull, isNull } from 'drizzle-orm';
@@ -90,7 +90,7 @@ export async function refreshCreatorAvatars(db: Db, youtube: Pick<YoutubeBatch, 
   return report;
 }
 
-/** Adresse de la photo d'un créateur servie par Koupi, avec sa date pour que le navigateur reprenne la nouvelle. */
+/** Adresse de la photo d'un créateur servie par Merkod, avec sa date pour que le navigateur reprenne la nouvelle. */
 export function creatorImageUrl(slug: string, mime: StoredImageType, fetchedAt: Date): string {
   return `/media/avatars/${slug}.${EXTENSIONS[mime]}?v=${fetchedAt.getTime().toString(36)}`;
 }
@@ -178,7 +178,7 @@ export async function refreshToolLogos(db: Db, options: { onlyToolId?: string; m
   return report;
 }
 
-/** Adresse du logo d'un outil servi par Koupi. */
+/** Adresse du logo d'un outil servi par Merkod. */
 export function toolImageUrl(slug: string, mime: StoredImageType, fetchedAt: Date): string {
   return `/media/logos/${slug}.${EXTENSIONS[mime]}?v=${fetchedAt.getTime().toString(36)}`;
 }

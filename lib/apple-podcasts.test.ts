@@ -5,7 +5,7 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 
 describe('htmlToText', () => {
   it('garde le texte, les retours à la ligne et décode les entités', () => {
-    expect(htmlToText('<p>Code <b>KOUPI</b> &amp; -20&nbsp;%</p><p>Lien : &lt;ici&gt; &#233;t&#233;</p>')).toBe('Code KOUPI & -20 %\nLien : <ici> été');
+    expect(htmlToText('<p>Code <b>MERKOD</b> &amp; -20&nbsp;%</p><p>Lien : &lt;ici&gt; &#233;t&#233;</p>')).toBe('Code MERKOD & -20 %\nLien : <ici> été');
   });
   it('ne décode pas deux fois', () => {
     expect(htmlToText('&amp;lt;b&amp;gt;')).toBe('&lt;b&gt;');
@@ -57,14 +57,14 @@ describe('applePodcasts', () => {
     const fetchFn = vi.fn(async (_url: string) => json({ results: [
       { wrapperType: 'track', kind: 'podcast', collectionId: 42, collectionName: 'Silicon Carne' },
       { wrapperType: 'podcastEpisode', trackId: 1, trackName: 'Ancien', releaseDate: '2026-10-01T05:00:00Z', description: '<p>Rien</p>', trackViewUrl: 'https://podcasts.apple.com/fr/podcast/id42?i=1' },
-      { wrapperType: 'podcastEpisode', trackId: 2, trackName: 'Récent', releaseDate: '2026-10-20T05:00:00Z', shortDescription: 'Code KOUPI10' },
+      { wrapperType: 'podcastEpisode', trackId: 2, trackName: 'Récent', releaseDate: '2026-10-20T05:00:00Z', shortDescription: 'Code MERKOD10' },
     ] }));
     const episodes = await applePodcasts(fetchFn as unknown as typeof fetch).episodes(42, { max: 5 });
     const url = new URL(fetchFn.mock.calls[0][0]);
     expect(url.searchParams.get('entity')).toBe('podcastEpisode');
     expect(url.searchParams.get('limit')).toBe('5');
     expect(episodes.map(episode => episode.title)).toEqual(['Récent', 'Ancien']);
-    expect(episodes[0]).toMatchObject({ id: 2, description: 'Code KOUPI10', link: '' });
+    expect(episodes[0]).toMatchObject({ id: 2, description: 'Code MERKOD10', link: '' });
     expect(episodes[1].publishedAt?.toISOString()).toBe('2026-10-01T05:00:00.000Z');
   });
 
@@ -94,7 +94,7 @@ describe('podcastReader', () => {
     search: vi.fn(),
     podcast: vi.fn(async () => (podcast ? { id: 42, title: 'P', author: '', feedUrl: '', link: '', image: '', episodeCount: 1, genre: '' } : null)),
     podcasts: vi.fn(),
-    episodes: vi.fn(async () => [{ id: 7, title: 'Épisode 7', link: '', description: 'Code KOUPI', publishedAt: null }]),
+    episodes: vi.fn(async () => [{ id: 7, title: 'Épisode 7', link: '', description: 'Code MERKOD', publishedAt: null }]),
   });
 
   it('lit l’identifiant d’un épisode dans un lien Apple', () => {
@@ -104,7 +104,7 @@ describe('podcastReader', () => {
   });
 
   it('rend les notes de l’épisode, hors ligne si le podcast a disparu, null sinon', async () => {
-    expect(await podcastReader(directory(true))('https://podcasts.apple.com/podcast/id42?i=7')).toEqual({ online: true, title: 'Épisode 7', description: 'Code KOUPI' });
+    expect(await podcastReader(directory(true))('https://podcasts.apple.com/podcast/id42?i=7')).toEqual({ online: true, title: 'Épisode 7', description: 'Code MERKOD' });
     expect(await podcastReader(directory(true))('https://podcasts.apple.com/podcast/id42?i=8')).toBeNull();
     expect(await podcastReader(directory(false))('https://podcasts.apple.com/podcast/id42?i=7')).toEqual({ online: false, title: '', description: '' });
     expect(await podcastReader(directory(true))('https://example.com')).toBeNull();

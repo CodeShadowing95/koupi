@@ -1,5 +1,5 @@
 'use client';
-// Passage de la connexion à l'accueil admin : le coupon du logo Koupi grandit jusqu'à couvrir l'écran,
+// Passage de la connexion à l'accueil admin : le coupon du logo Merkod grandit jusqu'à couvrir l'écran,
 // l'accueil se charge derrière, puis le coupon se déchire le long de sa ligne pointillée (avec le son).
 // Le coupon est ajouté directement dans <body>, hors de l'arbre React : le changement de page peut
 // recréer la coque admin sans l'effacer. Ce composant, monté dans la coque, déclenche chaque étape.
@@ -73,7 +73,7 @@ export function AdminCouponTear() {
       gsap.timeline({ onComplete: () => { setPhase(el, 'covered'); router.push('/admin'); } })
         .fromTo(el, { x: origin.x - w / 2, y: origin.y - h / 2, scale: (origin.r * 2) / size, rotate: -25 }, { x: 0, y: 0, scale: 1, rotate: 0, duration: 0.95, ease: 'power3.inOut' })
         .fromTo(text, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.2 }, '-=0.25')
-        .to(text, { duration: 0.6, scrambleText: { text: WELCOME, chars: 'KOUPI', speed: 0.8 } }, '<');
+        .to(text, { duration: 0.6, scrambleText: { text: WELCOME, chars: 'MERKOD', speed: 0.8 } }, '<');
     }
     window.addEventListener(ADMIN_ENTER_EVENT, onEnter);
     return () => window.removeEventListener(ADMIN_ENTER_EVENT, onEnter);

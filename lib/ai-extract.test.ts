@@ -5,7 +5,7 @@ import {
   needsSecondReading, type Extraction,
 } from './ai-extract';
 
-const description = 'Merci à Qonto ! Avec le code KOUPI10 vous avez 10 % sur 3 mois, jusqu’au 31/12. Et NordVPN : code NORD20.';
+const description = 'Merci à Qonto ! Avec le code MERKOD10 vous avez 10 % sur 3 mois, jusqu’au 31/12. Et NordVPN : code NORD20.';
 
 function fakeResponse(text: string, extra: Partial<Anthropic.Beta.BetaMessage> = {}): Anthropic.Beta.BetaMessage {
   return {
@@ -55,13 +55,13 @@ describe('costUsdMicros', () => {
 describe('keepVerbatimCodes', () => {
   it('écarte les codes inventés et les doublons, garde la preuve', () => {
     const codes = keepVerbatimCodes({ codes: [
-      { code: 'KOUPI10', tool: 'Qonto', discount: '10 %', conditions: '3 mois', expires_on: '2026-12-31' },
-      { code: 'koupi10', tool: 'Qonto', discount: '', conditions: '', expires_on: '' },
+      { code: 'MERKOD10', tool: 'Qonto', discount: '10 %', conditions: '3 mois', expires_on: '2026-12-31' },
+      { code: 'merkod10', tool: 'Qonto', discount: '', conditions: '', expires_on: '' },
       { code: 'INVENTE', tool: 'X', discount: '', conditions: '', expires_on: '' },
       { code: 'NORD20', tool: 'NordVPN', discount: '', conditions: '', expires_on: '31/12' },
     ] }, description);
-    expect(codes.map(c => c.code)).toEqual(['KOUPI10', 'NORD20']);
-    expect(codes[0].evidence).toContain('KOUPI10');
+    expect(codes.map(c => c.code)).toEqual(['MERKOD10', 'NORD20']);
+    expect(codes[0].evidence).toContain('MERKOD10');
     expect(codes[0].expiresOn).toBe('2026-12-31');
     expect(codes[1].expiresOn).toBe('');
   });

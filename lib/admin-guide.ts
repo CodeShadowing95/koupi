@@ -27,8 +27,8 @@ export const guideParts: GuidePart[] = [
 export const guideChapters: GuideChapter[] = [
   {
     slug: 'introduction', part: 'start', title: 'Bienvenue dans l’admin', minutes: 3,
-    summary: 'Ce qu’est Koupi, ce que fait un admin et la promesse à tenir.',
-    goals: ['Expliquer Koupi en une phrase', 'Savoir ce que l’admin décide et ce qu’il ne décide pas', 'Connaître la règle d’or : la source avant tout'],
+    summary: 'Ce qu’est Merkod, ce que fait un admin et la promesse à tenir.',
+    goals: ['Expliquer Merkod en une phrase', 'Savoir ce que l’admin décide et ce qu’il ne décide pas', 'Connaître la règle d’or : la source avant tout'],
     practice: { href: '/admin', label: 'Ouvrir l’accueil' },
   },
   {
@@ -62,8 +62,8 @@ export const guideChapters: GuideChapter[] = [
   },
   {
     slug: 'podcasts', part: 'moderate', title: 'Suivre des podcasts', minutes: 5,
-    summary: 'Choisir les podcasts que Koupi lit pour trouver des codes, lancer une lecture, les mettre en pause ou les retirer.',
-    goals: ['Trouver et suivre un podcast, ou en découvrir dans les classements', 'Savoir comment Koupi repère un code dans un épisode, avec ou sans IA', 'Savoir à quel créateur ses codes sont crédités', 'Mettre en pause sans rien perdre', 'Voir ce que Koupi a lu dans chaque épisode', 'Ajouter en un clic l’outil d’un code trouvé hors catalogue', 'Faire analyser un site par l’IA et créer une catégorie'],
+    summary: 'Choisir les podcasts que Merkod lit pour trouver des codes, lancer une lecture, les mettre en pause ou les retirer.',
+    goals: ['Trouver et suivre un podcast, ou en découvrir dans les classements', 'Savoir comment Merkod repère un code dans un épisode, avec ou sans IA', 'Savoir à quel créateur ses codes sont crédités', 'Mettre en pause sans rien perdre', 'Voir ce que Merkod a lu dans chaque épisode', 'Ajouter en un clic l’outil d’un code trouvé hors catalogue', 'Faire analyser un site par l’IA et créer une catégorie'],
     practice: { href: '/admin/podcasts', label: 'Ouvrir les podcasts suivis' },
   },
   {

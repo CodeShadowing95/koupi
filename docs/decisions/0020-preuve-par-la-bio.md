@@ -12,8 +12,8 @@ Le niveau « Créateur vérifié » (ADR-0016) suppose que le créateur prouve l
 ## Décision
 - Preuve par un code placé dans la bio du compte : seul son propriétaire peut la modifier. Méthode `bio_code`.
 - Deux colonnes sur `creator_accounts` (migration `0010_creator_claim_code`) : `claim_code` (`KOUPI-` + 6 caractères sans 0/O/1/I/L) et `claim_code_at`. Un code n'existe en base que pendant une preuve en cours (`claim_status = 'pending'`), contrainte à l'appui. Il est effacé une fois la preuve faite ou annulée.
-- Le code est valable 14 jours. L'admin le donne au créateur (message prêt à copier) : Koupi n'envoie pas d'e-mail lui-même pour l'instant.
-- YouTube : Koupi lit la description de la chaîne par l'API officielle, avec l'ID stable de la chaîne (1 unité de quota par lecture, seulement quand l'admin clique). Autres réseaux, sans API ouverte : l'admin regarde la bio et confirme.
+- Le code est valable 14 jours. L'admin le donne au créateur (message prêt à copier) : Merkod n'envoie pas d'e-mail lui-même pour l'instant.
+- YouTube : Merkod lit la description de la chaîne par l'API officielle, avec l'ID stable de la chaîne (1 unité de quota par lecture, seulement quand l'admin clique). Autres réseaux, sans API ouverte : l'admin regarde la bio et confirme.
 - Preuve faite : `claim_status = 'verified'`, le créateur passe « Créateur vérifié » et le compte porte une coche bleue sur sa page publique. L'admin peut retirer la preuve (`revoked`).
 - Toutes les étapes passent par `POST /api/admin/creator-accounts/[id]/claim`, réservé à l'admin.
 

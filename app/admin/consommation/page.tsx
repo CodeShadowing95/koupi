@@ -28,7 +28,7 @@ function DayBars({ days, max, format, label }: { days: { day: string; value: num
   );
 }
 
-// Consommation des API (ADR-0028) : quota YouTube compté par Koupi, dépense IA relue dans ses journaux.
+// Consommation des API (ADR-0028) : quota YouTube compté par Merkod, dépense IA relue dans ses journaux.
 export default async function Page() {
   const summary = await usageSummary(getDb());
   const ai = summary.ai;
@@ -40,7 +40,7 @@ export default async function Page() {
           <div>
             <span className="eyebrow">Pilotage</span>
             <h1>Consommation</h1>
-            <p>Ce que Koupi dépense chez les services qu’il appelle pour trouver et vérifier les codes. Les barres passent à l’orange à 70 % et au rouge à 90 %.</p>
+            <p>Ce que Merkod dépense chez les services qu’il appelle pour trouver et vérifier les codes. Les barres passent à l’orange à 70 % et au rouge à 90 %.</p>
           </div>
           <div className="adm-head-actions"><RefreshButton /></div>
         </div>

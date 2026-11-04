@@ -42,8 +42,8 @@ describe('export helpers', () => {
     expect(isExportType('outils')).toBe(true);
     expect(isExportFormat('xlsx')).toBe(true);
     expect(isExportFormat('pdf')).toBe(false);
-    expect(exportFileName('codes', 'csv', new Date('2026-11-01T10:00:00Z'))).toBe('koupi-codes-2026-11-01.csv');
-    expect(exportFileName('outils', 'xlsx', new Date('2026-11-01T10:00:00Z'))).toBe('koupi-outils-2026-11-01.xlsx');
+    expect(exportFileName('codes', 'csv', new Date('2026-11-01T10:00:00Z'))).toBe('merkod-codes-2026-11-01.csv');
+    expect(exportFileName('outils', 'xlsx', new Date('2026-11-01T10:00:00Z'))).toBe('merkod-outils-2026-11-01.xlsx');
   });
 
   it('renders CSV as text and Excel as a zip archive', () => {

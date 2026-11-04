@@ -2,7 +2,7 @@
 // Tout est calculé par notre code, sans IA : le résultat doit être prévisible, expliqué et testable.
 // L'IA, quand elle sera branchée, ne fera que lire les descriptions ; elle ne décide jamais du score.
 
-/** Seuil d'abonnés pour qu'un créateur puisse être « Contrôlé par Koupi ». */
+/** Seuil d'abonnés pour qu'un créateur puisse être « Contrôlé par Merkod ». */
 export const MIN_SUBSCRIBERS = 1000;
 
 /** En dessous de ce score, le rejet est proposé (la décision reste à l'admin). */
@@ -16,7 +16,7 @@ export type CreatorLevel = 'spotted' | 'checked' | 'verified';
 
 export const CREATOR_LEVEL_LABELS: Record<CreatorLevel, string> = {
   spotted: 'Repéré',
-  checked: 'Contrôlé par Koupi',
+  checked: 'Contrôlé par Merkod',
   verified: 'Créateur vérifié',
 };
 
@@ -30,7 +30,7 @@ export type CreatorFacts = {
   subscribers?: number | null;
 };
 
-// Le badge de la plateforme suffit pour « Contrôlé par Koupi » ; sinon il faut le contrôle de l'admin et le seuil d'abonnés.
+// Le badge de la plateforme suffit pour « Contrôlé par Merkod » ; sinon il faut le contrôle de l'admin et le seuil d'abonnés.
 export function creatorLevelOf(facts: CreatorFacts): CreatorLevel {
   if (facts.claimed) return 'verified';
   if (facts.platformVerified) return 'checked';
@@ -60,7 +60,7 @@ function escapeRegExp(value: string): string {
 }
 
 // Cherche le code tel quel dans le texte de la source, sans tenir compte de la casse,
-// et seulement en mot entier (« KOUPI10 » ne compte pas dans « KOUPI100 »). Renvoie l'extrait qui sert de preuve.
+// et seulement en mot entier (« MERKOD10 » ne compte pas dans « MERKOD100 »). Renvoie l'extrait qui sert de preuve.
 export function findCodeInText(code: string, text: string): CodeMatch {
   const needle = code.trim();
   if (!needle || !text) return { found: false, excerpt: null };
@@ -97,7 +97,7 @@ export type VerificationFacts = {
   sourceOnline: boolean | null;
   /** null : le texte de la source n'a pas encore été lu. */
   codeInSource: boolean | null;
-  /** null : créateur inconnu de Koupi. */
+  /** null : créateur inconnu de Merkod. */
   creatorLevel: CreatorLevel | null;
   toolKnown: boolean;
   duplicate: boolean;
@@ -127,9 +127,9 @@ export function scoreVerification(facts: VerificationFacts): VerificationScore {
   else if (facts.sourceOnline === false) add(-50, 'La source a disparu.');
 
   if (facts.creatorLevel === 'verified') add(20, 'Créateur vérifié.');
-  else if (facts.creatorLevel === 'checked') add(15, 'Créateur contrôlé par Koupi.');
+  else if (facts.creatorLevel === 'checked') add(15, 'Créateur contrôlé par Merkod.');
   else if (facts.creatorLevel === 'spotted') add(0, 'Créateur repéré, pas encore contrôlé.');
-  else add(-10, 'Créateur inconnu de Koupi.');
+  else add(-10, 'Créateur inconnu de Merkod.');
 
   if (facts.toolKnown) add(10, 'L’outil est dans le catalogue.');
   else add(-5, 'L’outil n’est pas dans le catalogue.');

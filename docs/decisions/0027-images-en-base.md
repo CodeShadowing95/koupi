@@ -14,7 +14,7 @@ Les photos des créateurs (`npm run avatars`) et les logos des outils (`npm run 
 - Le serveur la télécharge lui-même, seulement depuis des domaines prévus (photos YouTube : `ggpht.com`, `googleusercontent.com`, `ytimg.com`), en https, sans redirection, et vérifie le type et la taille.
 - Une photo de créateur arrive dès que sa chaîne YouTube est reliée (ajout d'un code, bouton « Relier les comptes »), et l'admin peut la récupérer (« Récupérer les photos ») ou l'actualiser (« Actualiser la photo »). Coût : 1 unité de quota par lot de 50 chaînes.
 - Un logo d'outil arrive dès sa création dans l'admin : Logo.dev (`img.logo.dev`, si `LOGO_DEV_TOKEN` est défini ; la clé n'est jamais enregistrée), sinon l'`apple-touch-icon.png` du site de la marque (seulement ce domaine). L'admin peut récupérer ceux qui manquent (« Récupérer les logos », par lots de 20) ou en actualiser un (« Actualiser le logo »). Le pied de page garde le lien d'attribution Logo.dev tant qu'un logo en vient.
-- Koupi les sert à `/media/avatars/<slug>.<ext>?v=<date>` et `/media/logos/<slug>.<ext>?v=<date>`, avec un cache long et une politique de contenu qui interdit tout script.
+- Merkod les sert à `/media/avatars/<slug>.<ext>?v=<date>` et `/media/logos/<slug>.<ext>?v=<date>`, avec un cache long et une politique de contenu qui interdit tout script.
 - Les images du dépôt restent en secours ; celle en base passe avant.
 
 ## Alternatives envisagées
