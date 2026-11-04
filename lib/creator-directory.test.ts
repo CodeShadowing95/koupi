@@ -7,7 +7,7 @@ import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import { createTool } from './catalog-admin';
 import { createCode } from './codes-admin';
-import { buildDirectory, copiesThisMonth, directoryCounts, directoryOptions, directoryParams, filterDirectory, parseDirectoryFilter, loadCreatorFacts, monthStart } from './creator-directory';
+import { buildDirectory, copiesThisMonth, directoryPodium, offerScore, directoryCounts, directoryOptions, directoryParams, filterDirectory, parseDirectoryFilter, loadCreatorFacts, monthStart } from './creator-directory';
 import { searchCreators, type Code, type Tool } from './data';
 
 const base: Code = {
@@ -15,8 +15,8 @@ const base: Code = {
   source: 'https://youtu.be/1', sourceTitle: '', votes: 0, success: 0, lastTestedAt: null, paymentTestedAt: null, expiresOn: null, createdAt: '2026-11-01T00:00:00.000Z',
 };
 const tools: Tool[] = [
-  { slug: 'nordvpn', name: 'NordVPN', category: 'VPN', website: '', description: '', priority: 1, codes: 1 },
-  { slug: 'notion', name: 'Notion', category: 'Productivité', website: '', description: '', priority: 1, codes: 1 },
+  { slug: 'nordvpn', name: 'NordVPN', category: 'VPN', website: 'https://nordvpn.com', description: '', priority: 1, codes: 1, family: 'securite' },
+  { slug: 'notion', name: 'Notion', category: 'Productivité', website: '', description: '', priority: 1, codes: 1, family: 'travail' },
 ];
 
 describe('monthStart', () => {
@@ -29,7 +29,7 @@ describe('monthStart', () => {
 describe('annuaire', () => {
   const codes: Code[] = [
     base,
-    { ...base, id: '2', tool: 'Notion', toolSlug: 'notion', creatorLevel: 'checked' },
+    { ...base, id: '2', tool: 'Notion', toolSlug: 'notion', creatorLevel: 'checked', discount: '-50 % + 2 mois offerts', creatorLink: 'https://notion.so/ana' },
     { ...base, id: '3', creator: 'Bob', creatorSlug: 'bob' },
     { ...base, id: '4', creator: 'Caché', creatorSlug: 'cache', status: 'pending' },
   ];
@@ -41,16 +41,33 @@ describe('annuaire', () => {
   it('garde les créateurs visibles, le plus copié d’abord', () => {
     const entries = buildDirectory({ codes, tools }, facts);
     expect(entries.map(entry => entry.slug)).toEqual(['bob', 'ana']);
-    expect(entries[1]).toMatchObject({ name: 'Ana', level: 'checked', codes: 2, tools: ['NordVPN', 'Notion'], themes: ['Productivité', 'VPN'], bio: 'Tech', copies: 3 });
+    expect(entries[1]).toMatchObject({ name: 'Ana', level: 'checked', codes: 2, tools: ['Notion', 'NordVPN'], themes: ['Productivité', 'VPN'], bio: 'Tech', copies: 3 });
   });
 
-  it('filtre par réseau et par thème, et ne propose que les choix présents', () => {
+  it('met en avant la plus forte offre, avec ses logos et ses familles', () => {
+    const [bob, ana] = buildDirectory({ codes, tools }, facts);
+    expect(ana.top).toMatchObject({ id: '2', code: 'ANA', discount: '-50 % + 2 mois offerts', link: 'https://notion.so/ana' });
+    expect(ana.logos).toEqual([{ slug: 'notion', name: 'Notion' }, { slug: 'nordvpn', name: 'NordVPN' }]);
+    expect(ana.families).toEqual(['travail', 'securite']);
+    // Sans lien du créateur, le code mène au site de l'outil.
+    expect(bob.top.link).toBe('https://nordvpn.com');
+  });
+
+  it('classe les offres et garde un podium des créateurs copiés', () => {
+    expect(offerScore('-88 % + 4 mois offerts')).toBe(108);
+    expect(offerScore('3 mois offerts')).toBe(15);
+    expect(offerScore('Offre du créateur')).toBe(0);
+    const entries = buildDirectory({ codes, tools }, { ...facts, ana: { ...facts.ana, copies: 0 } });
+    expect(directoryPodium(entries).map(entry => entry.slug)).toEqual(['bob']);
+  });
+
+  it('filtre par réseau et par famille, et ne propose que les choix présents', () => {
     const entries = buildDirectory({ codes, tools }, facts);
     expect(filterDirectory(entries, { platform: 'tiktok' }).map(entry => entry.slug)).toEqual(['bob']);
-    expect(filterDirectory(entries, { theme: 'Productivité' }).map(entry => entry.slug)).toEqual(['ana']);
+    expect(filterDirectory(entries, { family: 'travail' }).map(entry => entry.slug)).toEqual(['ana']);
     expect(filterDirectory(entries, { platform: 'instagram' })).toEqual([]);
     expect(filterDirectory(entries, {})).toHaveLength(2);
-    expect(directoryOptions(entries)).toEqual({ platforms: ['youtube', 'tiktok'], themes: ['VPN', 'Productivité'] });
+    expect(directoryOptions(entries)).toEqual({ platforms: ['youtube', 'tiktok'], families: ['securite', 'travail'] });
   });
 
   it('cherche dans le nom et les outils du créateur', () => {
@@ -67,18 +84,19 @@ describe('annuaire', () => {
     expect(filterDirectory(entries, { sort: 'name' }).map(entry => entry.slug)).toEqual(['ana', 'bob']);
   });
 
-  it('compte chaque réseau et chaque thème sans tenir compte de son propre filtre', () => {
+  it('compte chaque réseau et chaque famille sans tenir compte de son propre filtre', () => {
     const entries = buildDirectory({ codes, tools }, facts);
     const counts = directoryCounts(entries, { platform: 'tiktok' });
     expect(counts.platform).toEqual({ youtube: 2, tiktok: 1 });
-    expect(counts.theme).toEqual({ VPN: 1 });
-    expect(counts.all).toEqual({ platform: 2, theme: 1 });
+    expect(counts.family).toEqual({ securite: 1 });
+    expect(counts.all).toEqual({ platform: 2, family: 1 });
   });
 
   it('lit et écrit les filtres de l’adresse', () => {
-    const options = { platforms: ['youtube'], themes: ['VPN'] };
-    expect(parseDirectoryFilter({ platform: 'youtube', theme: 'Autre', q: 'ana', sort: 'name' }, options))
-      .toEqual({ platform: 'youtube', theme: '', query: 'ana', sort: 'name' });
+    const options = { platforms: ['youtube'], families: ['securite'] };
+    expect(parseDirectoryFilter({ platform: 'youtube', family: 'autre', q: 'ana', sort: 'name' }, options))
+      .toEqual({ platform: 'youtube', family: '', query: 'ana', sort: 'name' });
+    expect(parseDirectoryFilter({ family: 'securite' }, options).family).toBe('securite');
     expect(parseDirectoryFilter({ sort: 'x' }, options).sort).toBe('copies');
     expect(directoryParams({ platform: 'youtube', query: ' ana ', sort: 'copies' }).toString()).toBe('q=ana&platform=youtube');
   });

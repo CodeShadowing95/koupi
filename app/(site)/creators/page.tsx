@@ -5,6 +5,7 @@ import { routes } from '@/lib/routes';
 import { plural } from '@/lib/ui';
 import { CreatorsDirectory } from '@/components/site/creators-directory';
 import { PageHead } from '@/components/site/page-head';
+import { VoteInvite } from '@/components/site/vote-invite';
 
 export const metadata: Metadata = {
   title: 'Les créateurs · Koupi',
@@ -27,8 +28,9 @@ export default async function Creators({ searchParams }: { searchParams: Promise
           lead={<>{plural(all.length, 'créateur donne', 'créateurs donnent')} des codes promo pour des outils en ligne. Chaque code renvoie à la vidéo ou au post d&apos;où il vient.</>}
         />
 
-        <CreatorsDirectory entries={all} options={options} initial={parseDirectoryFilter(params, options)} />
+        <CreatorsDirectory entries={all} options={options} families={catalog.families} initial={parseDirectoryFilter(params, options)} />
       </div>
+      <VoteInvite trigger="copy" />
     </main>
   );
 }

@@ -6,7 +6,9 @@ import { codes, creatorAccounts, creators, dailyCounters } from '@/db/schema';
 import type { CreatorPlatform } from './creator-accounts-display';
 import { creatorCategories } from './creator-profile';
 import { isPublic, type Code, type Tool } from './data';
-import type { DirectoryEntry } from './creator-directory-filter';
+import { offerScore, type DirectoryEntry } from './creator-directory-filter';
+import { isTrusted } from './tool-page';
+import { sourcePlatform } from './source-platform';
 
 export * from './creator-directory-filter';
 
@@ -42,16 +44,33 @@ export async function loadCreatorFacts(db: Db, now = new Date()): Promise<Record
   return facts;
 }
 
+/** Ses codes, le meilleur d'abord : un code recommandable avant les autres, puis la plus forte offre, puis la réussite. */
+function rankCodes(own: Code[]): Code[] {
+  return [...own].sort((a, b) => (isTrusted(a) ? 0 : 1) - (isTrusted(b) ? 0 : 1) || offerScore(b.discount) - offerScore(a.discount) || b.success - a.success);
+}
+
 /** Créateurs qui ont au moins un code visible, le plus copié ce mois-ci d'abord, puis le plus de codes. */
 export function buildDirectory(catalog: { codes: Code[]; tools: Tool[] }, facts: Record<string, CreatorFacts>): DirectoryEntry[] {
   const bySlug = new Map<string, Code[]>();
   for (const code of catalog.codes) if (isPublic(code)) bySlug.set(code.creatorSlug, [...(bySlug.get(code.creatorSlug) ?? []), code]);
-  return [...bySlug].map(([slug, own]) => {
+  const toolOf = new Map(catalog.tools.map(tool => [tool.slug, tool]));
+  return [...bySlug].map(([slug, unranked]) => {
     const fact = facts[slug];
+    const own = rankCodes(unranked);
+    const best = own[0];
+    const logos = [...new Map(own.map(code => [code.toolSlug, { slug: code.toolSlug, name: code.tool }])).values()];
+    // Ses réseaux : ses comptes reliés, et à défaut ceux d'où viennent ses codes (une vidéo YouTube, un post Instagram…).
+    const fromSources = own.map(code => sourcePlatform(code.source)).filter((platform): platform is CreatorPlatform => Boolean(platform) && platform !== 'other');
+    const platforms = [...new Set([...(fact?.platforms ?? []), ...fromSources])];
+    const families = [...new Set(own.map(code => toolOf.get(code.toolSlug)?.family).filter((family): family is string => Boolean(family)))];
     return {
       slug, name: own[0].creator, level: own.find(code => code.creatorLevel)?.creatorLevel, bio: fact?.bio ?? null,
       codes: own.length, tools: [...new Set(own.map(code => code.tool))], themes: creatorCategories(own, catalog.tools),
-      platforms: fact?.platforms ?? [], copies: fact?.copies ?? 0,
+      platforms, copies: fact?.copies ?? 0, families, logos,
+      top: {
+        id: best.id, code: best.code, tool: best.tool, toolSlug: best.toolSlug, creator: best.creator, discount: best.discount,
+        link: best.creatorLink || toolOf.get(best.toolSlug)?.website || '#',
+      },
     };
   }).sort((a, b) => b.copies - a.copies || b.codes - a.codes || a.name.localeCompare(b.name, 'fr'));
 }
