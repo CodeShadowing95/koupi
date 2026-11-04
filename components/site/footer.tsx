@@ -19,7 +19,6 @@ export function SiteFooter() {
               <SiteLinkItem href={routes.codes}>Tous les codes</SiteLinkItem>
               <SiteLinkItem href={routes.categories}>Catégories</SiteLinkItem>
               <SiteLinkItem href={routes.creators()}>Créateurs</SiteLinkItem>
-              <SiteLinkItem href={routes.keyring}>Mon trousseau</SiteLinkItem>
               <SiteLinkItem href={routes.submit()}>Proposer un code</SiteLinkItem>
               <SiteLinkItem href={routes.forCreators()}>Pour les créateurs</SiteLinkItem>
             </ul>

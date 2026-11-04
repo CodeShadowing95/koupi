@@ -3,6 +3,7 @@ import { useRef, useState } from 'react';
 import { gsap, MOTION_OK, MOTION_REDUCED, useGSAP } from '@/lib/gsap';
 import { copyText, openCreatorLink } from '@/lib/copy';
 import { track } from '@/lib/track';
+import { CODE_COPIED_EVENT, type CopiedCode } from '@/lib/vote-invite';
 import { playCouponSnip, playCouponTear } from '@/lib/coupon-sound';
 import { resist, tearDecision } from '@/lib/tear';
 
@@ -87,6 +88,8 @@ export function TearTicket({ code, codeId, link, creator, discount, tool, seal, 
     animateTear(vertical);
     const ok = await copying;
     setFailed(!ok);
+    // Prévient la fenêtre « Laisse un 👍 » : elle s'ouvrira au retour du visiteur.
+    if (codeId) window.dispatchEvent(new CustomEvent<CopiedCode>(CODE_COPIED_EVENT, { detail: { id: codeId, code, tool, creator } }));
     // Le temps de voir le coupon se détacher, puis on ouvre le lien du créateur.
     window.setTimeout(() => { track('open', codeId); openCreatorLink(link); }, 850);
   });

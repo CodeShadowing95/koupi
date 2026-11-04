@@ -11,6 +11,7 @@ import { SearchBar } from '@/components/site/search-bar';
 import { ToolCard } from '@/components/site/tool-card';
 import { PageHead } from '@/components/site/page-head';
 import { BoardingCoupon } from '@/components/site/boarding-coupon';
+import { VoteInvite } from '@/components/site/vote-invite';
 
 /** Coupons montrés dans les résultats ; au-delà, un lien vers la page Codes filtrée. */
 const CODES_SHOWN = 6;
@@ -78,6 +79,7 @@ export default async function SearchResults({ searchParams }: { searchParams: Pr
           </section>
         )}
       </div>
+      <VoteInvite trigger="copy" />
     </main>
   );
 }

@@ -14,7 +14,6 @@ const links = [
   { href: routes.categories, label: 'Catégories' },
   { href: routes.creators(), label: 'Créateurs' },
   { href: routes.transparency, label: 'Transparence' },
-  { href: routes.keyring, label: 'Mon trousseau' },
 ];
 
 export function SiteHeader() {
