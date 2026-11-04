@@ -54,7 +54,7 @@ function SeReperer() {
       <p>Le menu est rangé par grandes tâches, de haut en bas :</p>
       <Legend rows={[
         { term: 'Pilotage', meaning: <><b>Accueil</b> (ce qu’il y a à faire aujourd’hui), <b>Statistiques</b> (les chiffres en détail) et <b>Consommation</b> (le quota YouTube et la dépense IA).</> },
-        { term: 'Modération', meaning: <><b>Propositions</b> (les codes envoyés par les visiteurs), <b>Codes</b> (tout le catalogue), <b>Vérifications</b> (les dossiers préparés avec un score) et <b>Podcasts suivis</b> (les podcasts que Koupi lit pour trouver des codes). Un nombre orange à côté veut dire « des éléments t’attendent ».</> },
+        { term: 'Modération', meaning: <><b>Propositions</b> (les codes envoyés par les visiteurs), <b>Codes</b> (tout le catalogue), <b>Vérifications</b> (les dossiers préparés avec un score), <b>Podcasts suivis</b> (les podcasts que Koupi lit pour trouver des codes), <b>Demandes créateurs</b> et <b>Retours</b> (les avis des visiteurs). Un nombre orange à côté veut dire « des éléments t’attendent ».</> },
         { term: 'Catalogue', meaning: <><b>Outils</b>, <b>Créateurs</b> et <b>Catégories</b> : ce qui organise le site.</> },
         { term: 'Apprendre', meaning: 'Ce guide.' },
       ]} />
@@ -197,6 +197,15 @@ function Propositions() {
     <Section id="filtres" title="Retrouver une ancienne proposition">
       <p>Chaque onglet affiche son nombre de propositions, pour la catégorie et la période choisies. Les onglets <b>Validées</b>, <b>Refusées</b>, <b>Doublons</b> et <b>Toutes</b> gardent l’historique. Tu peux filtrer par catégorie et par période (dates « Du » et « Au »). Une proposition refusée par erreur se remet en file avec <b>Remettre à traiter</b>.</p>
       <Callout tone="warn" title="Les e-mails des visiteurs">Certains visiteurs laissent leur e-mail. Il sert uniquement à leur répondre : ne le copie nulle part. Les exports (Excel ou CSV) ne le contiennent pas, exprès.</Callout>
+    </Section>
+    <Section id="retours" title="Les retours des visiteurs">
+      <p>À côté des codes, les visiteurs peuvent donner leur avis sur la page <b>Ton avis</b> (lien dans le menu et le pied de page du site) : une <b>remarque</b>, une <b>idée</b> ou un <b>problème</b>. Ils arrivent dans <b>Retours</b>, et le nombre à côté dans le menu compte ceux que tu n’as pas encore lus.</p>
+      <Steps>
+        <Step title="Lis-le">Le lien « Depuis… » montre la page où était le visiteur juste avant : pratique pour comprendre un problème. <b>Marquer lu</b> le sort des nouveaux.</Step>
+        <Step title="Réponds si tu peux">Quand une adresse est donnée, <b>Répondre par e-mail</b> ouvre ta messagerie. Un merci rapide donne envie de revenir.</Step>
+        <Step title="Range-le">Une note pour toi (« prévu après les alertes »), puis <b>Marquer traité</b>. <b>Rouvrir</b> le remet dans les nouveaux.</Step>
+      </Steps>
+      <Callout tone="tip">Les problèmes d’abord : un code refusé au paiement ou un bouton qui ne marche pas coûte des visiteurs chaque jour. Le filtre <b>Problème</b> les isole.</Callout>
     </Section>
   </>;
 }

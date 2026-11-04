@@ -12,12 +12,15 @@ import { routes } from '@/lib/routes';
 const links = [
   { href: routes.codes, label: 'Codes' },
   { href: routes.creators(), label: 'Créateurs' },
+  { href: routes.feedback, label: 'Ton avis' },
 ];
 
 export function SiteHeader() {
   const pathname = usePathname();
   const isOff = useIsOff();
   const shown = links.filter(link => !isOff(link.href));
+  // « Ton avis » emporte la page en cours : l'admin voit d'où venait la remarque.
+  const hrefOf = (href: string) => (href === routes.feedback && pathname !== routes.feedback ? `${href}?from=${encodeURIComponent(pathname)}` : href);
   const [scrolled, setScrolled] = useState(false);
   const [sound, setSound] = useState(true);
   const [open, setOpen] = useState(false);
@@ -65,7 +68,7 @@ export function SiteHeader() {
         </Link>
         <nav className="k-nav" aria-label="Navigation principale">
           {shown.map(link => (
-            <Link key={link.href} className="k-nav-link" href={link.href} aria-current={pathname.startsWith(link.href) ? 'page' : undefined}>{link.label}</Link>
+            <Link key={link.href} className="k-nav-link" href={hrefOf(link.href)} aria-current={pathname.startsWith(link.href) ? 'page' : undefined}>{link.label}</Link>
           ))}
           {/* Un vrai petit coupon : papier crème festonné, perforation, talon corail « % » qui se décolle au survol. */}
           <Link className="k-nav-coupon" href={routes.submit()}>
@@ -102,7 +105,7 @@ export function SiteHeader() {
       <div className="k-menu" id="k-menu" data-open={open} inert={!open}>
         <nav className="k-wrap k-menu-in" aria-label="Menu">
           {shown.map(link => (
-            <Link key={link.href} className="k-menu-link" href={link.href} aria-current={pathname.startsWith(link.href) ? 'page' : undefined}
+            <Link key={link.href} className="k-menu-link" href={hrefOf(link.href)} aria-current={pathname.startsWith(link.href) ? 'page' : undefined}
               onClick={() => setOpen(false)}>
               {link.label}
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>

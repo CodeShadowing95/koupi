@@ -481,3 +481,28 @@ export const storedImages = pgTable('stored_images', {
   check('stored_images_one_owner', sql`(${table.creatorId} is null) <> (${table.toolId} is null)`),
   check('stored_images_bytes', sql`${table.bytes} between 1 and 153600`),
 ]);
+
+// Avis des visiteurs envoyés depuis la page « Ton avis » (/feedback, ADR-0029) : remarques, idées, problèmes.
+export const FEEDBACK_KINDS = ['remark', 'idea', 'problem'] as const;
+export const FEEDBACK_STATUSES = ['new', 'read', 'done'] as const;
+export const feedback = pgTable('feedback', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  kind: text('kind', { enum: FEEDBACK_KINDS }).notNull(),
+  message: text('message').notNull(),
+  /** Facultatif : seulement pour pouvoir répondre. Jamais affiché ni exporté. */
+  email: text('email'),
+  /** La page d'où venait le visiteur (chemin du site), pour situer une remarque. */
+  fromPath: text('from_path'),
+  status: text('status', { enum: FEEDBACK_STATUSES }).notNull().default('new'),
+  adminNote: text('admin_note'),
+  ipHash: text('ip_hash').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  handledAt: timestamp('handled_at', { withTimezone: true }),
+}, table => [
+  index('feedback_status_created_idx').on(table.status, table.createdAt.desc()),
+  check('feedback_kind_valid', sql`${table.kind} in ('remark','idea','problem')`),
+  check('feedback_status_valid', sql`${table.status} in ('new','read','done')`),
+  check('feedback_message_len', sql`char_length(${table.message}) between 1 and 2000`),
+  check('feedback_email_len', sql`${table.email} is null or char_length(${table.email}) between 3 and 320`),
+  check('feedback_from_path', sql`${table.fromPath} is null or (${table.fromPath} ~ '^/' and char_length(${table.fromPath}) <= 300)`),
+]);

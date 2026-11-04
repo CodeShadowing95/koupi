@@ -19,6 +19,7 @@ const icons = {
   stats: <AdminIcon name="stats" />,
   gauge: <AdminIcon name="gauge" />,
   inbox: <AdminIcon name="inbox" />,
+  chat: <AdminIcon name="chat" />,
   ticket: <AdminIcon name="ticket" />,
   shield: <AdminIcon name="shield" />,
   mic: <AdminIcon name="mic" />,
@@ -33,7 +34,7 @@ const icons = {
   logout: <AdminIcon name="logout" />,
 };
 
-function navGroups(toTest: number): { label: string; items: Item[] }[] {
+function navGroups(toTest: number, newFeedback = 0): { label: string; items: Item[] }[] {
   return [
   { label: 'Pilotage', items: [
     { href: '/admin', label: 'Accueil', icon: icons.home },
@@ -46,6 +47,7 @@ function navGroups(toTest: number): { label: string; items: Item[] }[] {
     { href: '/admin/verifications', label: 'Vérifications', icon: icons.shield },
     { href: '/admin/podcasts', label: 'Podcasts suivis', icon: icons.mic },
     { href: '/admin/createurs/demandes', label: 'Demandes créateurs', icon: icons.users },
+    { href: '/admin/retours', label: 'Retours', icon: icons.chat, badge: newFeedback ? <span className="adm-count-badge" aria-label={`${newFeedback} nouveaux avis`}>{newFeedback}</span> : null },
   ] },
   { label: 'Catalogue', items: [
     { href: '/admin/outils', label: 'Outils', icon: icons.tool },
@@ -78,10 +80,10 @@ function Logo() {
   );
 }
 
-/** toTest : nombre de codes à tester, lu en base par le layout (badge du menu Codes). */
-export function AdminShell({ children, toTest = 0 }: { children: React.ReactNode; toTest?: number }) {
+/** toTest : codes à tester (badge de Codes) ; newFeedback : avis pas encore lus (badge de Retours). Lus en base par le layout. */
+export function AdminShell({ children, toTest = 0, newFeedback = 0 }: { children: React.ReactNode; toTest?: number; newFeedback?: number }) {
   const pathname = usePathname();
-  const groups = navGroups(toTest);
+  const groups = navGroups(toTest, newFeedback);
   // Mobile : le menu latéral devient un tiroir ouvert par le bouton ☰ de la barre du haut.
   const [menuOpen, setMenuOpen] = useState(false);
   const burger = useRef<HTMLButtonElement>(null);

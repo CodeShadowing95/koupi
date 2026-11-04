@@ -1532,3 +1532,19 @@ button.k-coupon-stub{transition:transform .3s cubic-bezier(.2,.9,.3,1.3),backgro
 /* Page de maintenance (app/maintenance) : le site en pause, sans menu. */
 .k-maintenance{min-height:100vh;display:flex;align-items:center}
 .k-maintenance-logo{width:132px;height:auto;margin-bottom:12px}
+/* Page « Ton avis » */
+.k-fb,.k-fb-done{max-width:720px;gap:20px}
+.k-fb-done h2{font-size:var(--fs-2xl)}
+.k-fb-done p{color:var(--text-soft)}
+.k-fb-kinds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0;padding:0;border:0}
+.k-fb-kinds legend{margin-bottom:10px;font-weight:600;font-size:var(--fs-md);color:var(--text-soft)}
+.k-fb-kind{position:relative;display:block;cursor:pointer}
+.k-fb-kind input{position:absolute;opacity:0;pointer-events:none}
+.k-fb-kind span{display:flex;flex-direction:column;gap:4px;height:100%;padding:14px 16px;border:1px solid var(--line-2);border-radius:var(--r-lg);background:rgba(7,8,26,.6);transition:border-color .2s,background .2s,box-shadow .2s}
+.k-fb-kind b{font-size:var(--fs-base);color:#fff}
+.k-fb-kind small{font-size:var(--fs-sm);color:var(--muted)}
+.k-fb-kind:hover span{border-color:var(--blue-soft)}
+.k-fb-kind input:checked+span{border-color:var(--blue-soft);background:rgba(110,125,255,.14)}
+.k-fb-kind input:focus-visible+span{box-shadow:0 0 0 4px rgba(110,125,255,.3)}
+.k-fb .k-req-privacy a{color:var(--blue-soft);text-decoration:underline}
+@media (max-width:640px){.k-fb-kinds{grid-template-columns:1fr}}

@@ -45,7 +45,7 @@ export const guideChapters: GuideChapter[] = [
   {
     slug: 'propositions', part: 'moderate', title: 'Traiter les propositions', minutes: 5,
     summary: 'Les codes envoyés par les visiteurs : valider, marquer en doublon ou refuser.',
-    goals: ['Vérifier une proposition en moins d’une minute', 'Choisir entre Valider, Doublon et Refuser', 'Répondre vite pour garder la confiance des visiteurs'],
+    goals: ['Vérifier une proposition en moins d’une minute', 'Choisir entre Valider, Doublon et Refuser', 'Répondre vite pour garder la confiance des visiteurs', 'Lire et ranger les retours des visiteurs'],
     practice: { href: '/admin/propositions', label: 'Ouvrir les propositions' },
   },
   {
