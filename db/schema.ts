@@ -340,6 +340,23 @@ export const aiUsage = pgTable('ai_usage', {
   check('ai_usage_purpose_len', sql`char_length(${table.purpose}) between 1 and 40`),
 ]);
 
+// Consommation des API externes (YouTube, plus tard Spotify…), comptée par Koupi lui-même : YouTube ne donne pas
+// le quota utilisé. Une ligne par service et par jour de quota du service (minuit heure du Pacifique pour YouTube).
+export const apiUsage = pgTable('api_usage', {
+  /** Service appelé : 'youtube'. */
+  service: text('service').notNull(),
+  /** Jour de quota du service. */
+  day: date('day').notNull(),
+  /** Unités consommées (YouTube : 1 par lecture, 100 par recherche). */
+  units: integer('units').notNull().default(0),
+  calls: integer('calls').notNull().default(0),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  primaryKey({ columns: [table.service, table.day] }),
+  check('api_usage_service_format', sql`${table.service} ~ '^[a-z0-9_]{1,30}$'`),
+  check('api_usage_counts_positive', sql`${table.units} >= 0 and ${table.calls} >= 0`),
+]);
+
 export type ToolSuggestionRow = typeof toolSuggestions.$inferSelect;
 
 export type Submission = typeof submissions.$inferSelect;

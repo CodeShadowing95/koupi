@@ -8,6 +8,7 @@ import type { Db } from '@/db';
 import { codes, creatorAccounts, creators } from '@/db/schema';
 import { refreshCreatorAvatars } from './stored-images';
 import { youtubeVideoId } from './verification-run';
+import { youtubeFetch } from './api-usage';
 
 const API = 'https://www.googleapis.com/youtube/v3';
 const BATCH = 50;
@@ -28,7 +29,7 @@ function chunks<T>(list: T[], size: number): T[][] {
 }
 
 // Lecture par lots de l'API officielle. null sans clé.
-export function youtubeBatch(apiKey: string | undefined, fetchFn: typeof fetch = fetch): YoutubeBatch | null {
+export function youtubeBatch(apiKey: string | undefined, fetchFn: typeof fetch = youtubeFetch): YoutubeBatch | null {
   if (!apiKey) return null;
   const get = async <T>(endpoint: string, params: Record<string, string>): Promise<T> => {
     const query = new URLSearchParams({ ...params, key: apiKey });

@@ -87,7 +87,7 @@ export const guideChapters: GuideChapter[] = [
   {
     slug: 'indicateurs', part: 'steer', title: 'Lire les indicateurs', minutes: 5,
     summary: 'Couverture, codes vérifiés, réussite, délai : ce qu’ils disent et quoi faire.',
-    goals: ['Lire les quatre indicateurs clés', 'Savoir quel geste fait monter chaque chiffre', 'Utiliser la liste « À faire »'],
+    goals: ['Lire les quatre indicateurs clés', 'Savoir quel geste fait monter chaque chiffre', 'Utiliser la liste « À faire »', 'Surveiller le quota YouTube et la dépense IA'],
     practice: { href: '/admin/stats', label: 'Ouvrir les statistiques' },
   },
   {

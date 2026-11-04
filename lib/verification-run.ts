@@ -8,6 +8,7 @@ import { isValidDay } from './code-expiry';
 import { creatorLevelFor } from './creator-level';
 import { aiSpendSince, recordVerificationCheck, startOfMonthUtc } from './verification-store';
 import { findCodeInText, scoreVerification, spamSignals } from './verification';
+import { youtubeFetch } from './api-usage';
 
 export type SourceRead = { online: boolean; title: string; description: string };
 /** Lit le texte d'une source. null : source impossible à lire (plateforme non prise en charge, clé absente). */
@@ -34,7 +35,7 @@ export function youtubeVideoId(url: string): string | null {
 }
 
 // Lecteur YouTube par l'API officielle (1 unité de quota par vidéo). Sans clé, aucune source n'est lue.
-export function youtubeReader(apiKey: string | undefined, fetchFn: typeof fetch = fetch): SourceReader {
+export function youtubeReader(apiKey: string | undefined, fetchFn: typeof fetch = youtubeFetch): SourceReader {
   return async url => {
     const id = youtubeVideoId(url);
     if (!id || !apiKey) return null;

@@ -53,11 +53,12 @@ function SeReperer() {
     <Section id="menu" title="Le menu de gauche">
       <p>Le menu est rangé par grandes tâches, de haut en bas :</p>
       <Legend rows={[
-        { term: 'Pilotage', meaning: <><b>Accueil</b> (ce qu’il y a à faire aujourd’hui) et <b>Statistiques</b> (les chiffres en détail).</> },
+        { term: 'Pilotage', meaning: <><b>Accueil</b> (ce qu’il y a à faire aujourd’hui), <b>Statistiques</b> (les chiffres en détail) et <b>Consommation</b> (le quota YouTube et la dépense IA).</> },
         { term: 'Modération', meaning: <><b>Propositions</b> (les codes envoyés par les visiteurs), <b>Codes</b> (tout le catalogue), <b>Vérifications</b> (les dossiers préparés avec un score) et <b>Podcasts suivis</b> (les podcasts que Koupi lit pour trouver des codes). Un nombre orange à côté veut dire « des éléments t’attendent ».</> },
         { term: 'Catalogue', meaning: <><b>Outils</b>, <b>Créateurs</b> et <b>Catégories</b> : ce qui organise le site.</> },
         { term: 'Apprendre', meaning: 'Ce guide.' },
       ]} />
+      <p>En bas du menu, la jauge <b>Consommation</b> montre le quota YouTube du jour et le plafond IA du mois ; elle passe à l’orange à 70 %, au rouge à 90 %. En haut des listes (Propositions, Codes, Vérifications, Outils, Créateurs, Demandes), <b>Actualiser</b> relit la liste sans recharger la page ni perdre tes filtres.</p>
       <p>En bas du menu, <b>Voir le site</b> ouvre le site public dans un nouvel onglet : pratique pour vérifier ce que voit un visiteur.</p>
     </Section>
     <Section id="recherche" title="Tout trouver avec ⌘K">
@@ -194,7 +195,7 @@ function Propositions() {
       <Callout tone="warn">Avant de créer un outil, cherche-le dans la liste avec une autre orthographe (« Nord VPN » ou « NordVPN »). Deux fiches pour le même outil, c’est deux pages à moitié vides.</Callout>
     </Section>
     <Section id="filtres" title="Retrouver une ancienne proposition">
-      <p>Les onglets <b>Validées</b>, <b>Refusées</b>, <b>Doublons</b> et <b>Toutes</b> gardent l’historique. Tu peux filtrer par catégorie et par période (dates « Du » et « Au »). Une proposition refusée par erreur se remet en file avec <b>Remettre à traiter</b>.</p>
+      <p>Chaque onglet affiche son nombre de propositions, pour la catégorie et la période choisies. Les onglets <b>Validées</b>, <b>Refusées</b>, <b>Doublons</b> et <b>Toutes</b> gardent l’historique. Tu peux filtrer par catégorie et par période (dates « Du » et « Au »). Une proposition refusée par erreur se remet en file avec <b>Remettre à traiter</b>.</p>
       <Callout tone="warn" title="Les e-mails des visiteurs">Certains visiteurs laissent leur e-mail. Il sert uniquement à leur répondre : ne le copie nulle part. Les exports (Excel ou CSV) ne le contiennent pas, exprès.</Callout>
     </Section>
   </>;
@@ -546,6 +547,14 @@ function Indicateurs() {
     <Section id="a-faire" title="La liste « À faire »">
       <p>Sur l’accueil, « À faire maintenant » est classée <b>par impact</b> : en haut, ce qui fait le plus de bien au catalogue. Fais-la de haut en bas, chaque lien ouvre la bonne liste déjà filtrée.</p>
       <p>À droite, « Le parcours des codes » montre combien de codes sont à chaque étape. Juste en dessous, la carte <b>Oubi et Lili</b> présente les deux assistants IA à venir : Oubi, l’éclaireuse (Claude Haiku 5.5), repérera les codes dans les vidéos et les podcasts, Lili, la vérificatrice (Claude Opus 5.5), vérifiera chaque preuve et te préparera la décision. Ils ne sont pas encore actifs ; tu garderas toujours le dernier mot.</p>
+    </Section>
+    <Section id="consommation" title="La consommation des API">
+      <p>Pour trouver et vérifier les codes, Koupi appelle des services extérieurs. La page <b>Consommation</b> dit où tu en es :</p>
+      <Legend rows={[
+        { term: 'YouTube', meaning: <>10 000 unités gratuites par jour. Lire une vidéo ou une chaîne coûte 1 unité, une recherche 100. Le compteur repart de zéro vers 9 h, heure de Paris. YouTube ne donne pas ce chiffre : c’est Koupi qui compte chacun de ses appels.</> },
+        { term: 'IA', meaning: <>La dépense du mois face au plafond (10 € par défaut). Une fois atteint, l’IA s’arrête jusqu’au 1er du mois suivant.</> },
+      ]} />
+      <Callout tone="tip">Au-dessus de 70 %, évite les grosses recherches par catégorie pour la journée : la lecture des vidéos proposées par les visiteurs a besoin du reste du quota.</Callout>
     </Section>
     <Section id="audience" title="L’audience">
       <p>Les statistiques d’audience (codes copiés, liens ouverts, recherches sans résultat) sont comptées <b>sans pistage</b> : de simples compteurs anonymes, aucun cookie publicitaire. C’est une promesse du site.</p>

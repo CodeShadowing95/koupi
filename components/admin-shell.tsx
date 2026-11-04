@@ -10,12 +10,14 @@ import { CommandPalette } from '@/components/admin-command';
 import { AdminNotifications } from '@/components/admin-notifications';
 import { AdminCouponTear } from '@/components/admin-coupon-tear';
 import { AdminIcon } from '@/components/admin-icons';
+import { UsageGauge } from '@/components/admin-usage-gauge';
 
 type Item = { href: string; label: string; icon: React.ReactNode; badge?: React.ReactNode };
 
 const icons = {
   home: <AdminIcon name="home" />,
   stats: <AdminIcon name="stats" />,
+  gauge: <AdminIcon name="gauge" />,
   inbox: <AdminIcon name="inbox" />,
   ticket: <AdminIcon name="ticket" />,
   shield: <AdminIcon name="shield" />,
@@ -36,6 +38,7 @@ function navGroups(toTest: number): { label: string; items: Item[] }[] {
   { label: 'Pilotage', items: [
     { href: '/admin', label: 'Accueil', icon: icons.home },
     { href: '/admin/stats', label: 'Statistiques', icon: icons.stats },
+    { href: '/admin/consommation', label: 'Consommation', icon: icons.gauge },
   ] },
   { label: 'Modération', items: [
     { href: '/admin/propositions', label: 'Propositions', icon: icons.inbox, badge: <PendingBadge /> },
@@ -131,6 +134,7 @@ export function AdminShell({ children, toTest = 0 }: { children: React.ReactNode
             ))}
           </div>
         ))}
+        <UsageGauge />
         <div className="adm-side-group adm-side-foot">
           <Link className="adm-side-link" href="/" target="_blank" rel="noopener noreferrer">{icons.external}<span className="adm-side-text">Voir le site</span></Link>
           <form method="post" action="/api/admin/logout"><button className="adm-side-link" type="submit">{icons.logout}<span className="adm-side-text">Se déconnecter</span></button></form>
