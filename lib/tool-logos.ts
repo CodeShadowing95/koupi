@@ -9,8 +9,13 @@ function slugify(value: string) {
   return value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
-/** Le logo d'un outil, par son slug ou son nom. null s'il faut afficher l'initiale. */
-export function toolLogo(slugOrName: string): ToolLogo | null {
+/**
+ * Le logo d'un outil, par son slug ou son nom. null s'il faut afficher l'initiale.
+ * stored : les logos gardés en base (ADR-0027), par slug ; ils passent avant ceux du dépôt.
+ */
+export function toolLogo(slugOrName: string, stored: Record<string, string> = {}): ToolLogo | null {
+  const fromDb = stored[slugOrName] ?? stored[slugify(slugOrName)];
+  if (fromDb?.startsWith('/media/logos/')) return { src: fromDb, bg: '#FFFFFF', kind: 'image' };
   // Le slug d'un outil est toujours son nom passé dans slugify (scripts/build-catalog.mjs).
   const slug = logos[slugOrName] ? slugOrName : slugify(slugOrName);
   const logo = slug ? logos[slug] : undefined;

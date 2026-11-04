@@ -4,7 +4,8 @@ import { routes } from '@/lib/routes';
 import { usesLogoDev } from '@/lib/tool-logos';
 import { PORTFOLIO_URL, PUBLISHER_NAME } from '@/lib/site-contact';
 
-export function SiteFooter() {
+/** logoDev : au moins un logo stocké vient de Logo.dev, l'attribution reste donc due. */
+export function SiteFooter({ logoDev = false }: { logoDev?: boolean }) {
   return (
     <footer className="k-footer">
       <div className="k-wrap">
@@ -35,7 +36,7 @@ export function SiteFooter() {
           <span>© {new Date().getFullYear()} Koupi · 100 % pro-créateurs · <a className="k-footer-credit" href={PORTFOLIO_URL} target="_blank" rel="noopener">Made by {PUBLISHER_NAME}</a></span>
           <span>
             Zéro pub · zéro cookie publicitaire
-            {usesLogoDev() && <> · <a href="https://logo.dev" target="_blank" rel="noopener">Logos provided by Logo.dev</a></>}
+            {(usesLogoDev() || logoDev) && <> · <a href="https://logo.dev" target="_blank" rel="noopener">Logos provided by Logo.dev</a></>}
           </span>
         </div>
       </div>

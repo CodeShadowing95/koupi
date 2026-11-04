@@ -12,6 +12,13 @@ describe('toolLogo', () => {
   it("renvoie null quand il faut afficher l'initiale", () => {
     expect(toolLogo('outil-inconnu')).toBeNull();
   });
+
+  it('préfère le logo enregistré en base, par slug ou par nom', () => {
+    const stored = { nordvpn: '/media/logos/nordvpn.png?v=1', 'outil-neuf': '/media/logos/outil-neuf.png?v=2' };
+    expect(toolLogo('nordvpn', stored)?.src).toBe('/media/logos/nordvpn.png?v=1');
+    expect(toolLogo('Outil neuf', stored)).toEqual({ src: '/media/logos/outil-neuf.png?v=2', bg: '#FFFFFF', kind: 'image' });
+    expect(toolLogo('autre', { autre: 'https://ailleurs.example/logo.png' })).toBeNull();
+  });
 });
 
 describe('sealText', () => {

@@ -6,12 +6,15 @@
 import { and, eq, isNull } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { codes, creatorAccounts, creators } from '@/db/schema';
+import { refreshCreatorAvatars } from './stored-images';
 import { youtubeVideoId } from './verification-run';
+import { youtubeFetch } from './api-usage';
 
 const API = 'https://www.googleapis.com/youtube/v3';
 const BATCH = 50;
 
-export type ChannelInfo = { id: string; handle: string; url: string; subscribers: number | null };
+/** thumbnail : adresse de la photo de profil de la chaîne (240 px), servie par Google. */
+export type ChannelInfo = { id: string; handle: string; url: string; subscribers: number | null; thumbnail?: string };
 
 export type YoutubeBatch = {
   /** Chaîne de chaque vidéo (vidéo absente : supprimée ou privée). */
@@ -26,7 +29,7 @@ function chunks<T>(list: T[], size: number): T[][] {
 }
 
 // Lecture par lots de l'API officielle. null sans clé.
-export function youtubeBatch(apiKey: string | undefined, fetchFn: typeof fetch = fetch): YoutubeBatch | null {
+export function youtubeBatch(apiKey: string | undefined, fetchFn: typeof fetch = youtubeFetch): YoutubeBatch | null {
   if (!apiKey) return null;
   const get = async <T>(endpoint: string, params: Record<string, string>): Promise<T> => {
     const query = new URLSearchParams({ ...params, key: apiKey });
@@ -46,7 +49,7 @@ export function youtubeBatch(apiKey: string | undefined, fetchFn: typeof fetch =
     async channels(channelIds) {
       const found = new Map<string, ChannelInfo>();
       for (const ids of chunks([...new Set(channelIds)], BATCH)) {
-        const body = await get<{ items?: { id?: string; snippet?: { customUrl?: string }; statistics?: { subscriberCount?: string; hiddenSubscriberCount?: boolean } }[] }>('channels', { part: 'snippet,statistics', id: ids.join(','), maxResults: String(BATCH) });
+        const body = await get<{ items?: { id?: string; snippet?: { customUrl?: string; thumbnails?: Record<string, { url?: string }> }; statistics?: { subscriberCount?: string; hiddenSubscriberCount?: boolean } }[] }>('channels', { part: 'snippet,statistics', id: ids.join(','), maxResults: String(BATCH) });
         for (const item of body.items ?? []) {
           if (!item.id) continue;
           const handle = (item.snippet?.customUrl || item.id).slice(0, 120);
@@ -56,6 +59,7 @@ export function youtubeBatch(apiKey: string | undefined, fetchFn: typeof fetch =
             handle,
             url: handle.startsWith('@') ? `https://www.youtube.com/${handle}` : `https://www.youtube.com/channel/${item.id}`,
             subscribers: item.statistics?.hiddenSubscriberCount || !Number.isFinite(count) ? null : count,
+            thumbnail: item.snippet?.thumbnails?.medium?.url ?? item.snippet?.thumbnails?.default?.url,
           });
         }
       }
@@ -138,7 +142,10 @@ export async function linkChannelForCode(db: Db, codeId: string, youtube: Youtub
   if (!youtube) return;
   try {
     const [row] = await db.select({ creatorId: codes.creatorId }).from(codes).where(eq(codes.id, codeId)).limit(1);
-    if (row) await linkYoutubeChannels(db, youtube, { onlyCreatorId: row.creatorId });
+    if (!row) return;
+    await linkYoutubeChannels(db, youtube, { onlyCreatorId: row.creatorId });
+    // Sa photo arrive avec sa chaîne : rien à lancer à la main.
+    await refreshCreatorAvatars(db, youtube, { onlyCreatorId: row.creatorId, missingOnly: true });
   } catch (error) {
     console.error('youtube channel link failed', error);
   }

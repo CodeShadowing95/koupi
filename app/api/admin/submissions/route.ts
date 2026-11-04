@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/db';
 import { ADMIN_COOKIE, verifyAdminToken } from '@/lib/admin-session';
 import { readJsonBody } from '@/lib/http';
-import { isStatusFilter, listSubmissions, moderateSubmission, moderationActions, type ModerationAction } from '@/lib/submissions';
+import { countSubmissions, isStatusFilter, listSubmissions, moderateSubmission, moderationActions, type ModerationAction } from '@/lib/submissions';
 
 function authorized(request: NextRequest): Promise<boolean> { return verifyAdminToken(request.cookies.get(ADMIN_COOKIE)?.value, process.env.SESSION_SECRET); }
 function validDate(value: string | null): boolean { return !value || /^\d{4}-\d{2}-\d{2}$/.test(value); }
@@ -17,7 +17,9 @@ export async function GET(request: NextRequest) {
     const status = params.get('status') || 'new';
     if (!validDate(from) || !validDate(to)) return NextResponse.json({ error: 'Format de date invalide.' }, { status: 400 });
     if (!isStatusFilter(status)) return NextResponse.json({ error: 'Statut invalide.' }, { status: 400 });
-    const rows = await listSubmissions(getDb(), { status, category: params.get('category') || '', from, to });
+    const db = getDb();
+    const period = { category: params.get('category') || '', from, to };
+    const [rows, counts] = await Promise.all([listSubmissions(db, { status, ...period }), countSubmissions(db, period)]);
     // Le back-office lit les champs en snake_case.
     const submissions = rows.map(row => ({
       id: row.id, tool_name: row.toolName, creator_name: row.creatorName, category: row.category, code: row.code,
@@ -25,7 +27,7 @@ export async function GET(request: NextRequest) {
       submitter_email: row.submitterEmail, status: row.status, admin_note: row.adminNote, created_at: row.createdAt.toISOString(),
       created_code_id: row.createdCodeId,
     }));
-    return NextResponse.json({ submissions });
+    return NextResponse.json({ submissions, counts });
   } catch (error) {
     console.error('submissions read failed', error);
     return NextResponse.json({ error: 'Impossible de charger la file de modération.' }, { status: 500 });

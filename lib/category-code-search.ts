@@ -15,6 +15,7 @@ import { domainOf, scanPromoCodes } from './podcast-codes';
 import { addPendingCode } from './podcast-read';
 import { aiSpendSince, startOfMonthUtc } from './verification-store';
 import { runVerification, type RunDeps } from './verification-run';
+import { youtubeFetch } from './api-usage';
 
 /** Outils cherchés par lancement : 20 recherches = 2 000 unités, un cinquième du quota du jour. */
 export const MAX_TOOLS_PER_RUN = 20;
@@ -34,7 +35,7 @@ export type YoutubeSearch = {
 };
 
 /** Recherche par l'API officielle de YouTube. null sans clé. */
-export function youtubeSearch(apiKey: string | undefined, fetchFn: typeof fetch = fetch): YoutubeSearch | null {
+export function youtubeSearch(apiKey: string | undefined, fetchFn: typeof fetch = youtubeFetch): YoutubeSearch | null {
   if (!apiKey) return null;
   const get = async <T>(endpoint: string, params: Record<string, string>): Promise<T> => {
     const response = await fetchFn(`https://www.googleapis.com/youtube/v3/${endpoint}?${new URLSearchParams({ ...params, key: apiKey })}`, { cache: 'no-store' });

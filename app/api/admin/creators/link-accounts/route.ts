@@ -5,6 +5,7 @@ import { applePodcasts } from '@/lib/apple-podcasts';
 import { revalidateCatalog } from '@/lib/catalog-server';
 import { linkCreatorAccounts } from '@/lib/creator-account-link';
 import { youtubeBatch } from '@/lib/creator-youtube-link';
+import { refreshCreatorAvatars } from '@/lib/stored-images';
 
 export const maxDuration = 60;
 
@@ -13,7 +14,13 @@ export const maxDuration = 60;
 export async function POST(request: NextRequest) {
   if (!(await isAdminRequest(request))) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   try {
-    const report = await linkCreatorAccounts(getDb(), { youtube: youtubeBatch(process.env.YOUTUBE_API_KEY), podcasts: applePodcasts() });
+    const db = getDb();
+    const youtube = youtubeBatch(process.env.YOUTUBE_API_KEY);
+    const report = await linkCreatorAccounts(db, { youtube, podcasts: applePodcasts() });
+    // Les chaînes tout juste reliées apportent leur photo. Un échec ici ne gâche pas la liaison.
+    if (youtube && report.linked.some(item => item.platform === 'youtube')) {
+      await refreshCreatorAvatars(db, youtube, { missingOnly: true }).catch(error => console.error('creator avatars after link failed', error));
+    }
     if (report.linked.length) revalidateCatalog();
     return NextResponse.json({ ok: true, ...report });
   } catch (error) {

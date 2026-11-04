@@ -14,6 +14,8 @@ import { AdminToolLogo, AdminToolName } from '@/components/admin-tool-logo';
 import { IconButton, IconLink, StatusDot } from '@/components/admin-card';
 import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
+import { FetchLogosButton, RefreshLogoButton } from './logos-button';
+import { RefreshButton } from '@/components/admin-refresh-button';
 
 type Filter = 'all' | 'published' | 'empty' | 'archived';
 const filters: { value: Filter; label: string }[] = [
@@ -31,7 +33,7 @@ const sortFields: SortField<AdminTool>[] = [
 
 type Form = { name: string; categorySlug: string; website: string; description: string; priority: number };
 
-export function ToolsView({ tools, categories }: { tools: AdminTool[]; categories: AdminCategory[] }) {
+export function ToolsView({ tools, categories, missingLogos }: { tools: AdminTool[]; categories: AdminCategory[]; missingLogos: number }) {
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
@@ -83,7 +85,7 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
             <h1>Outils</h1>
             <p>Les outils que Koupi suit. Un outil apparaît sur le site dès qu’il a un code vérifié ou à tester. Priorité 1 : à couvrir en premier.</p>
           </div>
-          <div className="adm-head-actions"><ExportMenu type="outils" /><button type="button" className="adm-btn adm-btn-pri" onClick={() => open('new')}>+ Nouvel outil</button></div>
+          <div className="adm-head-actions"><RefreshButton /><FetchLogosButton missing={missingLogos} /><ExportMenu type="outils" /><button type="button" className="adm-btn adm-btn-pri" onClick={() => open('new')}>+ Nouvel outil</button></div>
         </div>
         <div className="adm-tabs" role="group" aria-label="Filtre">
           {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label} <span className="adm-tab-n">{countOf(item.value)}</span></button>)}
@@ -144,6 +146,7 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
           actions={selected && <>
             <button type="button" className="adm-btn adm-btn-danger" onClick={() => archive(selected)}>{selected.archived ? 'Restaurer' : 'Archiver'}</button>
             <span style={{ flex: 1 }} />
+            <RefreshLogoButton toolId={selected.id} />
             <a className="adm-btn" href={`/admin/codes?q=${encodeURIComponent(selected.name)}`}>Voir ses codes</a>
             <button type="button" className="adm-btn adm-btn-pri" onClick={() => open(selected)}>Modifier</button>
           </>}>

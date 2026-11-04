@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import type { AdminCreatorRequest, CreatorRequestStatus } from '@/lib/creator-requests';
 import { sendJson } from '@/components/admin-form-dialog';
 import { StatusDot } from '@/components/admin-card';
+import { RefreshButton } from '@/components/admin-refresh-button';
 
 type Filter = CreatorRequestStatus | 'all';
 const filters: { value: Filter; label: string }[] = [
@@ -62,6 +63,7 @@ export function RequestsView({ requests, granted }: { requests: AdminCreatorRequ
             <h1>Demandes des créateurs</h1>
             <p>Envoyées depuis la page publique d’un créateur. <b>C’est ma page</b> : quelqu’un dit être le créateur et veut gérer sa page. <b>Page incorrecte</b> : un visiteur signale une erreur. Réponds par e-mail, puis marque la demande comme traitée.</p>
           </div>
+          <div className="adm-head-actions"><RefreshButton /></div>
         </div>
         <div className="adm-tabs" role="group" aria-label="Filtre">
           {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label} <span className="adm-tab-n">{countOf(item.value)}</span></button>)}

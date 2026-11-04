@@ -8,6 +8,8 @@ import { VERDICT_LABELS, formatUsd, highlightCode, modelLabel, verdictOf, type Q
 import { matchesSearch } from '@/lib/admin-search';
 import { Key } from '@/components/admin-guide';
 import { RETEST_DAYS } from '@/lib/admin-stats';
+import { RefreshButton } from '@/components/admin-refresh-button';
+import { USAGE_CHANGED } from '@/components/admin-usage-gauge';
 
 type Ai = { status: AiStatus; spentUsdMicros: number; budgetUsdMicros: number; model: string; reviewModel: string };
 type Filter = 'all' | Verdict | 'retest';
@@ -79,6 +81,7 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
 
   const analyze = useCallback(async (item: QueueItem, mode: 'standard' | 'review' = 'standard') => {
     const response = await fetch(`/api/admin/verifications/${item.id}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mode }) }).catch(() => null);
+    window.dispatchEvent(new Event(USAGE_CHANGED)); // l'analyse lit YouTube et l'IA : la jauge du menu se met à jour
     return Boolean(response?.ok);
   }, []);
 
@@ -162,6 +165,7 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
             <p>Koupi lit la source de chaque code, fait les contrôles et propose un score. Tu gardes la décision : valider, noter le test au paiement ou rejeter.</p>
           </div>
           <div className="adm-head-actions">
+            <RefreshButton />
             {batch
               ? <button type="button" className="adm-btn" onClick={() => { stopBatch.current = true; }}>Arrêter ({batch.done}/{batch.total})</button>
               : <button type="button" className="adm-btn adm-btn-pri" disabled={unanalyzed.length === 0 || Boolean(busy)} onClick={analyzeAll}>{unanalyzed.length === 0 ? 'Tous les codes sont analysés' : unanalyzed.length === 1 ? 'Analyser le code non analysé' : `Analyser les ${unanalyzed.length} codes non analysés`}</button>}

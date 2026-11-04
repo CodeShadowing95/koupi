@@ -7,6 +7,7 @@ import { CREATOR_PLATFORMS, creatorAccounts, creators, type CreatorAccountRow } 
 import { validUrl } from './codes-admin';
 import { accountLevelOf } from './creator-level';
 import type { AdminCreatorAccount, CreatorPlatform } from './creator-accounts-display';
+import { youtubeFetch } from './api-usage';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 const text = (value: unknown, max: number) => (typeof value === 'string' ? value.trim().slice(0, max) : '');
@@ -36,7 +37,7 @@ export type YoutubeChannel = { externalId: string; title: string; handle: string
 export type ChannelReader = (ref: ChannelRef) => Promise<YoutubeChannel | null>;
 
 // Lecture d'une chaîne par l'API officielle. null : chaîne introuvable. Lève une erreur si l'API ne répond pas.
-export function youtubeChannelReader(apiKey: string | undefined, fetchFn: typeof fetch = fetch): ChannelReader | null {
+export function youtubeChannelReader(apiKey: string | undefined, fetchFn: typeof fetch = youtubeFetch): ChannelReader | null {
   if (!apiKey) return null;
   return async ref => {
     const param = ref.by === 'id' ? 'id' : ref.by === 'handle' ? 'forHandle' : 'forUsername';

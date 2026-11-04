@@ -12,6 +12,7 @@ import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from
 import { CopyCode, IconLink, StatusDot, type Tone } from '@/components/admin-card';
 import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
+import { RefreshButton } from '@/components/admin-refresh-button';
 type Submission = { id: string; tool_name: string; creator_name: string; code: string; discount_label: string; source_url: string; creator_link: string | null; comment: string | null; submitter_email: string | null; status: string; admin_note: string | null; created_at: string; category: string | null; created_code_id: string | null };
 const sortFields: SortField<Submission>[] = [
   { key: 'received', label: 'Date de réception', value: item => item.created_at },
@@ -29,6 +30,7 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [loading, setLoading] = useState(true);
+  const [counts, setCounts] = useState<Record<string, number> | null>(null);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [view, setView] = useAdminView();
@@ -39,9 +41,9 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
     if (nextFrom) params.set('from', nextFrom);
     if (nextTo) params.set('to', nextTo);
     const response = await fetch(`/api/admin/submissions?${params.toString()}`);
-    const body = await response.json() as { submissions?: Submission[]; error?: string };
+    const body = await response.json() as { submissions?: Submission[]; counts?: Record<string, number>; error?: string };
     if (!response.ok) { setError(body.error || 'Impossible de charger la file.'); setLoading(false); return; }
-    setItems(body.submissions || []); setLoading(false);
+    setItems(body.submissions || []); setCounts(body.counts ?? null); setLoading(false);
   }
   useEffect(() => { void load(); }, [status, category, from, to]);
   // La recherche globale ouvre la liste déjà filtrée (?q=CODE).
@@ -78,11 +80,11 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
             <h1>Propositions</h1>
             <p>Vérifie la source et décide ce qui peut entrer dans le catalogue public.</p>
           </div>
-          <div className="adm-head-actions"><ExportMenu type="propositions" /></div>
+          <div className="adm-head-actions"><RefreshButton onRefresh={() => load()} /><ExportMenu type="propositions" /></div>
         </div>
         <div className="adm-toolbar">
           <div className="adm-filters">
-            {['new', 'duplicate', 'approved', 'rejected', 'all'].map(option => <button key={option} type="button" className="adm-filter" aria-pressed={status === option} onClick={() => setStatus(option)}>{option === 'new' ? 'À traiter' : option === 'duplicate' ? 'Doublons' : option === 'approved' ? 'Validées' : option === 'rejected' ? 'Refusées' : 'Toutes'}</button>)}
+            {['new', 'duplicate', 'approved', 'rejected', 'all'].map(option => <button key={option} type="button" className="adm-filter" aria-pressed={status === option} onClick={() => setStatus(option)}>{option === 'new' ? 'À traiter' : option === 'duplicate' ? 'Doublons' : option === 'approved' ? 'Validées' : option === 'rejected' ? 'Refusées' : 'Toutes'}{counts && <span className="adm-tab-n">{counts[option] ?? 0}</span>}</button>)}
           </div>
           <ViewToggle view={view} onChange={setView} />
         </div>

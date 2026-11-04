@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { creatorAccounts } from '@/db/schema';
 import { CLAIM_CODE_DAYS } from './creator-accounts-display';
+import { youtubeFetch } from './api-usage';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -30,7 +31,7 @@ export function claimCodeExpired(issuedAt: Date, now: Date): boolean {
 /** Description d'une chaîne YouTube par son ID (1 unité de quota). null si la chaîne n'existe plus. */
 export type DescriptionReader = (channelId: string) => Promise<string | null>;
 
-export function youtubeDescriptionReader(apiKey: string | undefined, fetchFn: typeof fetch = fetch): DescriptionReader | null {
+export function youtubeDescriptionReader(apiKey: string | undefined, fetchFn: typeof fetch = youtubeFetch): DescriptionReader | null {
   if (!apiKey) return null;
   return async channelId => {
     const endpoint = `https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${encodeURIComponent(channelId)}&key=${encodeURIComponent(apiKey)}`;

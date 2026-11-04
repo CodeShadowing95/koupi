@@ -4,7 +4,7 @@ import { migrate } from 'drizzle-orm/pglite/migrator';
 import { beforeAll, describe, expect, it } from 'vitest';
 import type { Db } from '@/db';
 import * as schema from '@/db/schema';
-import { createSubmission, createSubmissions, DEFAULT_DISCOUNT, listSubmissions, moderateSubmission, submissionItemsOf, toolNamesOf } from './submissions';
+import { countSubmissions, createSubmission, createSubmissions, DEFAULT_DISCOUNT, listSubmissions, moderateSubmission, submissionItemsOf, toolNamesOf } from './submissions';
 
 // Base Postgres en mémoire (PGlite) avec les vraies migrations du dépôt.
 let db: Db;
@@ -46,6 +46,11 @@ describe('propositions', () => {
     expect(updated.reviewedAt).toBeInstanceOf(Date);
     const logs = await db.select().from(schema.moderationLogs);
     expect(logs).toEqual([expect.objectContaining({ submissionId: row.id, action: 'approve', previousStatus: 'new', nextStatus: 'approved' })]);
+  });
+
+  it('compte les propositions de chaque onglet, avec les mêmes filtres', async () => {
+    expect(await countSubmissions(db)).toEqual({ new: 0, approved: 1, rejected: 0, duplicate: 1, all: 2 });
+    expect(await countSubmissions(db, { category: 'IA' })).toEqual({ new: 0, approved: 0, rejected: 0, duplicate: 0, all: 0 });
   });
 
   it('renvoie null pour une proposition inconnue', async () => {
