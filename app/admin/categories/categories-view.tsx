@@ -10,6 +10,12 @@ import { matchesSearch } from '@/lib/admin-search';
 import { IconButton, IconLink, StatusDot } from '@/components/admin-card';
 import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
+import type { CategorySearchReport } from '@/lib/category-code-search';
+
+/** Ce que la recherche de codes peut utiliser : la clé YouTube (obligatoire) et l'IA (facultative). */
+export type CodeSearchAvailability = { youtube: boolean; ai: { active: boolean; label: string } };
+type SearchResult = CategorySearchReport & { scope: string };
+const plural = (count: number, word: string, many = `${word}s`) => `${count} ${count > 1 ? many : word}`;
 
 const rate = (category: AdminCategory) => category.tools ? Math.round((category.covered / category.tools) * 100) : 0;
 
@@ -27,7 +33,7 @@ const sortFields: SortField<AdminCategory>[] = [
 // Famille choisie dans le filtre : '' = toutes, NONE = catégories pas encore rangées.
 const NONE = '-';
 
-export function CategoriesView({ categories: all, families }: { categories: AdminCategory[]; families: CategoryFamily[] }) {
+export function CategoriesView({ categories: all, families, search }: { categories: AdminCategory[]; families: CategoryFamily[]; search: CodeSearchAvailability }) {
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
   const [family, setFamily] = useState('');
@@ -51,6 +57,28 @@ export function CategoriesView({ categories: all, families }: { categories: Admi
   };
   const unfiled = all.filter(category => !category.familySlug).length;
   const familyOptions = [{ value: '', label: 'Toutes les familles' }, ...families.map(item => ({ value: item.slug, label: item.name })), ...(unfiled ? [{ value: NONE, label: `Sans famille (${unfiled})` }] : [])];
+  // La recherche « catégories vides » porte sur toutes les familles.
+  const emptyCount = all.filter(category => matches(category, 'empty')).length;
+  // Recherche de codes sur YouTube : toutes les catégories vides, ou une seule catégorie (slug).
+  const [searching, setSearching] = useState<string | null>(null);
+  const [result, setResult] = useState<SearchResult | null>(null);
+  const [searchError, setSearchError] = useState('');
+  const searchCodes = async (target?: AdminCategory) => {
+    setSearching(target?.slug ?? 'empty');
+    setSearchError('');
+    setResult(null);
+    try {
+      const response = await fetch('/api/admin/categories/search-codes', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(target ? { slug: target.slug } : {}) });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) setSearchError(body.error ?? 'Recherche impossible pour le moment.');
+      else { setResult({ ...body, scope: target ? target.name : 'les catégories vides' }); setSelectedSlug(null); }
+    } catch {
+      setSearchError('Recherche impossible : vérifie ta connexion.');
+    } finally {
+      setSearching(null);
+    }
+  };
+  const searchTitle = !search.youtube ? 'La clé YouTube manque (YOUTUBE_API_KEY)' : undefined;
   const coverage = (category: AdminCategory) => (
     <span className="adm-cat-cover">
       <span className="adm-track" role="img" aria-label={`${category.covered} outils couverts sur ${category.tools}`}><span style={{ width: `${rate(category)}%` }} /></span>
@@ -67,8 +95,29 @@ export function CategoriesView({ categories: all, families }: { categories: Admi
             <h1>Catégories</h1>
             <p>Elles rangent les outils sur le site, et chacune appartient à une famille (Sécurité, Vidéo…). La couverture dit combien de leurs outils ont au moins un code visible : une catégorie à 0 est vide sur le site.</p>
           </div>
-          <div className="adm-head-actions"><ExportMenu type="categories" /><button type="button" className="adm-btn adm-btn-pri" onClick={() => open('new')}>+ Nouvelle catégorie</button></div>
+          <div className="adm-head-actions"><ExportMenu type="categories" />
+            <button type="button" className="adm-btn" disabled={!search.youtube || searching !== null || emptyCount === 0} title={searchTitle ?? (emptyCount === 0 ? 'Aucune catégorie vide' : `Cherche sur YouTube des codes pour les outils des ${plural(emptyCount, 'catégorie vide', 'catégories vides')}`)} onClick={() => searchCodes()}>{searching === 'empty' ? 'Recherche en cours…' : 'Chercher des codes'}</button>
+            <button type="button" className="adm-btn adm-btn-pri" onClick={() => open('new')}>+ Nouvelle catégorie</button></div>
         </div>
+        <p className="adm-search-state">
+          <StatusDot tone={search.youtube ? 'ok' : 'muted'}>{search.youtube ? 'Recherche YouTube prête' : 'Recherche YouTube inactive (clé manquante)'}</StatusDot>
+          <StatusDot tone={search.ai.active ? 'ok' : 'muted'}>{search.ai.active ? 'IA active' : `${search.ai.label} : lecture sans IA`}</StatusDot>
+        </p>
+        {searching && <div className="notice" role="status">Recherche sur YouTube pour {searching === 'empty' ? 'les catégories vides' : all.find(category => category.slug === searching)?.name}… Cela peut prendre une à deux minutes.</div>}
+        {searchError && <div className="notice notice-error" role="alert">{searchError}</div>}
+        {result && (
+          <div className={`notice adm-pod-report${result.searches === 0 && result.failed.length > 0 ? ' notice-error' : ''}`} role="status">
+            <p>Recherche pour {result.scope} : {plural(result.searches, 'recherche')} YouTube, {plural(result.videos, 'vidéo lue', 'vidéos lues')}{result.aiRead > 0 ? `, dont ${result.aiRead} relue${result.aiRead > 1 ? 's' : ''} par l’IA` : ''}, environ {result.units} unités du quota du jour (10 000). {result.found.length === 0 ? 'Aucun nouveau code trouvé.' : `${plural(result.found.length, 'nouveau code', 'nouveaux codes')} en attente :`}</p>
+            {result.found.length > 0 && <ul>{result.found.map(item => <li key={`${item.tool}-${item.code}`}><b className="mono">{item.code}</b> pour {item.tool} <span className="muted">({item.creator})</span></li>)}</ul>}
+            {result.suggested.length > 0 && <p>{plural(result.suggested.length, 'code')} pour des outils absents du catalogue : {result.suggested.map(item => `${item.code} (${item.tool})`).join(', ')}. <a href="/admin/podcasts?tab=outils">Voir les outils à ajouter</a></p>}
+            {result.remaining > 0 && <p>{plural(result.remaining, 'outil')} pas encore cherché{result.remaining > 1 ? 's' : ''} : relance demain pour garder du quota.</p>}
+            {result.failed.length > 0 && <p>YouTube n’a pas répondu pour : {result.failed.join(', ')}.</p>}
+            <div className="adm-pod-report-actions">
+              {result.found.length > 0 && <a href="/admin/verifications" className="adm-btn adm-btn-pri">Ouvrir les vérifications</a>}
+              <button type="button" className="adm-btn" onClick={() => setResult(null)}>Fermer</button>
+            </div>
+          </div>
+        )}
         <div className="adm-tabs" role="group" aria-label="Filtre">
           {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label} <span className="adm-tab-n">{countOf(item.value)}</span></button>)}
         </div>
@@ -117,7 +166,8 @@ export function CategoriesView({ categories: all, families }: { categories: Admi
         <AdminDrawer open={selected !== null} onClose={() => setSelectedSlug(null)} label={`Détail de ${selected?.name ?? ''}`} eyebrow="Catégorie" title={selected?.name}
           aside={selected && (selected.covered === 0 ? <StatusDot tone="muted">Vide</StatusDot> : <StatusDot tone="ok">{rate(selected)} %</StatusDot>)}
           actions={selected && <>
-            <a className="adm-btn" href={`/admin/outils?category=${encodeURIComponent(selected.slug)}`}>Voir les outils</a>
+            <a className="adm-btn" href={`/admin/outils?category=${encodeURIComponent(selected.slug)}`} title={`Voir les outils de ${selected.name}`}>Outils</a>
+            <button type="button" className="adm-btn" disabled={!search.youtube || searching !== null || selected.tools === 0} title={searchTitle ?? `Cherche sur YouTube des codes pour les outils de ${selected.name}, puis pour « ${selected.name} »`} onClick={() => searchCodes(selected)}>{searching === selected.slug ? 'Recherche…' : 'Chercher des codes'}</button>
             <span style={{ flex: 1 }} />
             <button type="button" className="adm-btn adm-btn-pri" onClick={() => open(selected)}>Modifier</button>
           </>}>
