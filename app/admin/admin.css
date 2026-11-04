@@ -1322,3 +1322,5 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .admin-root a.adm-tool-site{color:inherit;font-weight:inherit;text-decoration:underline;text-decoration-color:var(--line-strong);text-underline-offset:3px}
 .admin-root a.adm-tool-site:hover{color:var(--blue);text-decoration-color:currentColor}
 .adm-tool-site span[aria-hidden]{font-size:.85em;color:var(--muted)}
+/* Catégories : état de la recherche de codes (YouTube, IA). */
+.adm-search-state{display:flex;flex-wrap:wrap;gap:6px 16px;margin:-6px 0 14px;font-size:13px}

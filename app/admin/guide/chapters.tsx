@@ -493,6 +493,14 @@ function Categories() {
       <p><b>Nouvelle catégorie</b> en crée une ; <b>Modifier</b> change son nom partout et sa famille. Garde des noms courts, au pluriel quand c’est naturel, compréhensibles par tout le monde (« Banques en ligne » plutôt que « Néobanques »).</p>
       <Callout tone="tip">Moins de catégories bien remplies valent mieux que beaucoup de catégories vides.</Callout>
     </Section>
+    <Section id="chercher" title="Chercher des codes pour une catégorie">
+      <p><b>Chercher des codes</b>, en haut de la page, prend les outils des catégories vides (priorité 1 d’abord) et cherche sur YouTube « <i>outil</i> code promo » parmi les vidéos de l’année. Dans le panneau d’une catégorie, le même bouton cherche ses outils, ceux qui ont le moins de codes d’abord, même si elle a déjà des codes, puis « <i>catégorie</i> code promo » pour repérer des outils qu’on n’a pas encore.</p>
+      <p>Les descriptions des vidéos sont lues comme les notes des podcasts. <b>Rien n’est publié</b> : chaque code trouvé arrive « En attente » dans Vérifications, crédité à la chaîne qui l’a donné, et un code pour un outil absent du catalogue va dans <b>Podcasts › Outils à ajouter</b>.</p>
+      <Demo caption="L’état de la recherche, sous le titre de la page.">
+        <div className="gd-row"><StatusDot tone="ok">Recherche YouTube prête</StatusDot><StatusDot tone="muted">IA en attente d’activation : lecture sans IA</StatusDot></div>
+      </Demo>
+      <Callout tone="why">YouTube donne 10 000 unités par jour et une recherche en coûte 100 : un lancement s’arrête à 20 outils (2 000 unités). S’il en reste, le résultat le dit : relance le lendemain. Sans clé YouTube le bouton est grisé ; sans clé Anthropic la recherche marche quand même, l’IA en plus repère les codes écrits de façon inhabituelle.</Callout>
+    </Section>
     <Section id="exporter" title="Exporter les catégories">
       <p><b>Exporter</b> donne chaque catégorie avec son nombre d’outils, ceux qui ont un code visible et sa couverture en pourcentage, en Excel ou en CSV.</p>
     </Section>
