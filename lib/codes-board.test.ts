@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Code, Tool } from './data';
 import {
-  activeFilters, compactCount, lastChanceCodes, relaxSuggestions, DEFAULT_FILTERS, facetCounts, featuredCodes, filterCodes, filtersToParams, offerKinds, parseFilters,
+  activeFilters, browseRows, compactCount, isBrowsing, lastChanceCodes, relaxSuggestions, DEFAULT_FILTERS, facetCounts, featuredCodes, filterCodes, filtersToParams, offerKinds, parseFilters,
 } from './codes-board';
 
 const NOW = Date.parse('2026-11-03T12:00:00Z');
@@ -211,5 +211,36 @@ describe('famille de catégories', () => {
     const pill = activeFilters(filters({ family: 'securite', category: 'VPN' }), { tool: () => '', creator: () => '', family: () => 'Sécurité' })
       .find(p => p.key === 'family');
     expect(pill).toEqual({ key: 'family', label: 'Sécurité', patch: { family: '', category: '' } });
+  });
+});
+
+describe('rangées thématiques', () => {
+  const famTools: Tool[] = [{ ...tool('nord', 'VPN'), family: 'securite' }, { ...tool('canva', 'Design'), family: 'creation' }];
+  const families = [{ slug: 'securite', name: 'Sécurité' }, { slug: 'creation', name: 'Création' }];
+
+  it('ne montre les rangées que sans filtre, le tri ne compte pas', () => {
+    expect(isBrowsing(DEFAULT_FILTERS)).toBe(true);
+    expect(isBrowsing({ ...DEFAULT_FILTERS, sort: 'votes' })).toBe(true);
+    expect(isBrowsing({ ...DEFAULT_FILTERS, query: 'nord' })).toBe(false);
+    expect(isBrowsing({ ...DEFAULT_FILTERS, family: 'securite' })).toBe(false);
+  });
+
+  it('garde les rangées d’au moins trois codes, avec le filtre de « Tout voir »', () => {
+    const codes = [
+      code('a', { paymentTestedAt: iso(2), createdAt: iso(1), success: 90 }),
+      code('b', { paymentTestedAt: iso(3), createdAt: iso(2) }),
+      code('c', { paymentTestedAt: iso(4), votes: 0, createdAt: iso(20) }),
+      code('d', { tool: 'canva', toolSlug: 'canva', creator: 'Max', creatorSlug: 'max', votes: 5, createdAt: iso(20) }),
+    ];
+    const rows = browseRows(codes, famTools, families, NOW);
+    expect(rows.map(row => row.key)).toEqual(['payment', 'votes', 'family-securite', 'creator-lea']);
+    expect(rows[0]).toMatchObject({ title: 'Testés au paiement', total: 3, patch: { trust: ['payment'] } });
+    expect(rows[0].codes[0].id).toBe('a');
+    expect(rows.find(row => row.key === 'votes')?.codes.map(c => c.id)).toEqual(['a', 'b', 'd']);
+  });
+
+  it('laisse de côté une rangée qui reprend tous les codes', () => {
+    const codes = ['a', 'b', 'c'].map(id => code(id, { createdAt: iso(1) }));
+    expect(browseRows(codes, famTools, families, NOW).map(row => row.key)).toEqual([]);
   });
 });

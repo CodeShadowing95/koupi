@@ -272,3 +272,62 @@ export function relaxSuggestions(codes: Code[], tools: Tool[], filters: CodeFilt
     .sort((a, b) => b.count - a.count)
     .slice(0, limit);
 }
+
+/** Aucun filtre choisi (le tri n'en est pas un) : la page montre alors les rangées thématiques avant la liste. */
+export function isBrowsing(filters: CodeFilters): boolean {
+  return filtersToParams({ ...filters, sort: DEFAULT_FILTERS.sort }).toString() === '';
+}
+
+export type BrowseRow = {
+  key: string; title: string;
+  /** Codes de la rangée, les plus fiables d'abord. */
+  codes: Code[];
+  /** Nombre total de codes derrière « Tout voir ». */
+  total: number;
+  /** Ce que « Tout voir » change dans les filtres. */
+  patch: Partial<CodeFilters>;
+};
+
+const ROW_MIN = 3;
+const ROW_MAX = 12;
+const ROW_FAMILIES = 4;
+const ROW_CREATORS = 2;
+
+/**
+ * Rangées thématiques de la page Codes, façon catalogue : testés au paiement, nouveautés, les plus votés,
+ * les familles les plus fournies, puis les créateurs qui donnent le plus de codes.
+ * Une rangée n'apparaît que si elle a au moins trois codes, sans les reprendre tous.
+ */
+export function browseRows(codes: Code[], tools: Tool[], families: { slug: string; name: string }[], now = Date.now()): BrowseRow[] {
+  const run = (patch: Partial<CodeFilters>) => filterCodes(codes, tools, { ...DEFAULT_FILTERS, ...patch }, now);
+  const rows: BrowseRow[] = [];
+  const add = (key: string, title: string, patch: Partial<CodeFilters>, list = run(patch)) => {
+    // Une rangée qui reprend tous les codes n'apprend rien : elle est laissée de côté.
+    if (list.length >= ROW_MIN && list.length < codes.length) rows.push({ key, title, codes: list.slice(0, ROW_MAX), total: list.length, patch });
+  };
+  add('payment', 'Testés au paiement', { trust: ['payment'] });
+  add('fresh', 'Ajoutés cette semaine', { fresh: true });
+  add('votes', 'Les plus votés', { sort: 'votes' }, run({ sort: 'votes' }).filter(code => code.votes > 0));
+
+  const familyOf = new Map(tools.map(tool => [tool.slug, tool.family]));
+  const perFamily = new Map<string, number>();
+  for (const code of codes) { const family = familyOf.get(code.toolSlug); if (family) perFamily.set(family, (perFamily.get(family) ?? 0) + 1); }
+  families
+    .filter(family => (perFamily.get(family.slug) ?? 0) >= ROW_MIN)
+    .sort((a, b) => (perFamily.get(b.slug) ?? 0) - (perFamily.get(a.slug) ?? 0) || a.name.localeCompare(b.name, 'fr'))
+    .slice(0, ROW_FAMILIES)
+    .forEach(family => add(`family-${family.slug}`, family.name, { family: family.slug }));
+
+  const perCreator = new Map<string, { name: string; count: number }>();
+  for (const code of codes) {
+    const entry = perCreator.get(code.creatorSlug) ?? { name: code.creator, count: 0 };
+    entry.count += 1;
+    perCreator.set(code.creatorSlug, entry);
+  }
+  [...perCreator]
+    .filter(([, entry]) => entry.count >= ROW_MIN)
+    .sort((a, b) => b[1].count - a[1].count || a[1].name.localeCompare(b[1].name, 'fr'))
+    .slice(0, ROW_CREATORS)
+    .forEach(([slug, entry]) => add(`creator-${slug}`, `Donnés par ${entry.name}`, { creator: slug }));
+  return rows;
+}
