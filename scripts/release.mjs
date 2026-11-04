@@ -5,7 +5,7 @@
 //   1. reads the commits since the last tag (vX.Y.Z),
 //   2. computes the next version from their Conventional Commits types,
 //   3. writes package.json, package-lock.json, README.md (version) and CHANGELOG.md on a new branch dev-release-vX.Y.Z,
-//   4. commits "chore(release): Release vX.Y.Z", pushes and opens the PR to develop (gh CLI) or prints its link.
+//   4. commits "chore(release): Release vX.Y.Z", pushes, opens the PR to develop (gh CLI) with auto-merge on, or prints its link.
 // The tag and the GitHub Release are created later by .github/workflows/release.yml, once main receives the version.
 //
 // Options:
@@ -180,6 +180,13 @@ if (hasGh()) {
     encoding: 'utf8',
   }).trim();
   console.log(`\n✔ PR ouverte : ${url}`);
+  // Auto-merge: the PR merges itself (merge commit) once CI is green, then release-pr.yml takes over.
+  try {
+    execFileSync('gh', ['pr', 'merge', url, '--auto', '--merge'], { stdio: 'ignore' });
+    console.log('✔ Auto-merge activé : la PR se mergera seule quand la CI sera verte, puis la release vers main suivra.');
+  } catch {
+    console.log('! Auto-merge non activé (option « Allow auto-merge » décochée dans les réglages du dépôt ?). Merge la PR à la main.');
+  }
 } else {
   // Long bodies do not fit in a URL: the changelog stays readable in the PR diff anyway.
   const shortBody = body.length > 4000 ? `${body.split('\n\n').slice(0, 2).join('\n\n')}\n\nVoir CHANGELOG.md dans le diff.` : body;

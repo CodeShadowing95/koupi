@@ -28,3 +28,7 @@ Proposée
 - Le tag est posé sur le commit réellement déployé sur `main`.
 - La PR de release ne doit jamais être squashée. Sur `main`, seule la méthode Merge est autorisée.
 - Les titres de commit hors format n'apparaissent pas dans le changelog : la règle Conventional Commits devient indispensable.
+
+## Mise à jour du 2026-11-04 : release entièrement automatique
+À la demande de Vastolorde, `npm run release` reste le seul geste manuel. Le script active l'auto-merge de la PR de version, et `release-pr.yml` active celui de la PR de release grâce au secret `RELEASE_TOKEN` (jeton fine-grained du propriétaire). La CI verte reste la condition de chaque merge, mais il n'y a plus de clic de validation avant la production : la recette se fait avant de lancer la commande.
+
