@@ -12,7 +12,6 @@ import { routes } from '@/lib/routes';
 const links = [
   { href: routes.codes, label: 'Codes' },
   { href: routes.creators(), label: 'Créateurs' },
-  { href: routes.transparency, label: 'Transparence' },
 ];
 
 export function SiteHeader() {
@@ -68,6 +67,11 @@ export function SiteHeader() {
           {shown.map(link => (
             <Link key={link.href} className="k-nav-link" href={link.href} aria-current={pathname.startsWith(link.href) ? 'page' : undefined}>{link.label}</Link>
           ))}
+          {/* Un vrai petit coupon : papier crème festonné, perforation, talon corail « % » qui se décolle au survol. */}
+          <Link className="k-nav-coupon" href={routes.submit()}>
+            <span className="k-nav-coupon-main k-paper">Proposer un code</span>
+            <span className="k-nav-coupon-stub" aria-hidden="true">%</span>
+          </Link>
           <button
             type="button"
             className="k-icon-btn"
@@ -82,11 +86,6 @@ export function SiteHeader() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z" /><path d="m22 9-6 6" /><path d="m16 9 6 6" /></svg>
             )}
           </button>
-          {/* Un vrai petit coupon : papier crème festonné, perforation, talon corail « % » qui se décolle au survol. */}
-          <Link className="k-nav-coupon" href={routes.submit()}>
-            <span className="k-nav-coupon-main k-paper">Proposer un code</span>
-            <span className="k-nav-coupon-stub" aria-hidden="true">%</span>
-          </Link>
           <button
             ref={burger}
             type="button"

@@ -13,6 +13,7 @@ import { BoardingCoupon } from '@/components/site/boarding-coupon';
 import { TrustGlyph } from '@/components/site/trust';
 import { ToolLogo } from '@/components/site/tool-logo';
 import { AdminSelect, type SelectOption } from '@/components/admin-select';
+import { ChipRow } from '@/components/site/chip-row';
 
 // « Tous les codes » : en haut, une barre de pastilles comme sur YouTube (les familles de catégories, puis les
 // catégories de la famille choisie). La recherche et les filtres à gauche (statut, outil, créateur, confiance,
@@ -166,7 +167,7 @@ export function CodesBoard({ codes, tools, families, categories, initial, now }:
     <div className={`k-board${view === 'list' ? ' is-list' : ''}`} ref={root}>
       {familyChips.length > 0 && (
         <nav className="k-board-cats" aria-label="Catégories">
-          <div className="k-board-cats-row">
+          <ChipRow label="Familles">
             <button type="button" className="k-cat-chip" aria-pressed={!openFamily && !filters.category} onClick={() => update({ family: '', category: '' })}>
               Tous <span>{counts.allFamilies}</span>
             </button>
@@ -179,9 +180,9 @@ export function CodesBoard({ codes, tools, families, categories, initial, now }:
                 </button>
               );
             })}
-          </div>
+          </ChipRow>
           {categoryChips.length > 1 && (
-            <div className="k-board-cats-row is-sub" aria-label={`Catégories de ${familyNames.get(openFamily) ?? 'la famille'}`}>
+            <ChipRow className="is-sub" label={`Catégories de ${familyNames.get(openFamily) ?? 'la famille'}`}>
               {categoryChips.map(category => {
                 const on = filters.category === category.name;
                 return (
@@ -191,7 +192,7 @@ export function CodesBoard({ codes, tools, families, categories, initial, now }:
                   </button>
                 );
               })}
-            </div>
+            </ChipRow>
           )}
         </nav>
       )}
