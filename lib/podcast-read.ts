@@ -30,8 +30,10 @@ export type PodcastReadReport = {
 
 export type PodcastCodeInput = { toolId: string; creatorId: string; code: string; discount: string; sourceUrl: string; sourceTitle: string; note: string; podcastTitle: string; expiresOn?: string };
 
-/** Ajoute en attente un code trouvé dans un podcast, sauf s'il est déjà connu pour cet outil. null s'il existait. */
-export async function addPodcastCode(db: Db, input: PodcastCodeInput): Promise<string | null> {
+export type PendingCodeInput = Omit<PodcastCodeInput, 'podcastTitle'>;
+
+/** Ajoute en attente un code trouvé automatiquement, sauf s'il est déjà connu pour cet outil. null s'il existait. */
+export async function addPendingCode(db: Db, input: PendingCodeInput, logNote: string): Promise<string | null> {
   // Déjà connu pour cet outil (même rejeté ou archivé) : on ne le recrée pas.
   const [known] = await db.select({ id: codes.id }).from(codes)
     .where(and(eq(codes.toolId, input.toolId), sql`lower(${codes.code}) = lower(${input.code})`)).limit(1);
@@ -41,8 +43,13 @@ export async function addPodcastCode(db: Db, input: PodcastCodeInput): Promise<s
     sourceTitle: input.sourceTitle.slice(0, 300), status: 'pending', note: input.note.slice(0, 1000),
     ...(input.expiresOn && /^\d{4}-\d{2}-\d{2}$/.test(input.expiresOn) ? { expiresOn: input.expiresOn } : {}),
   }).returning({ id: codes.id });
-  await db.insert(codeLogs).values({ codeId: created.id, action: 'create', nextStatus: 'pending', note: `Lecture du podcast ${input.podcastTitle}`.slice(0, 1000) });
+  await db.insert(codeLogs).values({ codeId: created.id, action: 'create', nextStatus: 'pending', note: logNote.slice(0, 1000) });
   return created.id;
+}
+
+/** Ajoute en attente un code trouvé dans un podcast, sauf s'il est déjà connu pour cet outil. null s'il existait. */
+export async function addPodcastCode(db: Db, { podcastTitle, ...input }: PodcastCodeInput): Promise<string | null> {
+  return addPendingCode(db, input, `Lecture du podcast ${podcastTitle}`);
 }
 
 /** Lit les épisodes récents des podcasts actifs (ou d'un seul, même en pause, avec onlyId). */
