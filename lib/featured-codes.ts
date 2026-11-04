@@ -1,5 +1,5 @@
 // « Codes du moment » de l'accueil : une réserve de codes, un par outil, mélangée à chaque visite
-// et parcourue par pages avec le bouton « Voir d'autres codes ».
+// pour que chaque visite montre une autre sélection.
 import type { Code } from './data';
 import { featuredCodes } from './codes-board';
 
@@ -23,9 +23,3 @@ export function shuffled<T>(items: readonly T[], random: () => number = Math.ran
   return out;
 }
 
-/** Les `count` éléments de la page `page`, en repartant du début une fois la réserve parcourue. */
-export function pageOf<T>(order: readonly T[], page: number, count: number): T[] {
-  if (order.length <= count) return [...order];
-  const start = (page * count) % order.length;
-  return Array.from({ length: count }, (_, index) => order[(start + index) % order.length]);
-}
