@@ -1,7 +1,7 @@
 import './admin.css';
 import { AdminShell } from '@/components/admin-shell';
 import { themeBootScript } from '@/lib/admin-theme';
-import { getAvatarMap, getCatalog } from '@/lib/catalog-server';
+import { getCatalog, getMediaMap } from '@/lib/catalog-server';
 import { AvatarMapProvider } from '@/components/avatar-map';
 
 async function codesToTest() {
@@ -14,11 +14,11 @@ async function codesToTest() {
 
 // Back-office : menu latéral, thème clair ou sombre (suit le système, ou le choix enregistré).
 export default async function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [toTest, avatars] = await Promise.all([codesToTest(), getAvatarMap()]);
+  const [toTest, media] = await Promise.all([codesToTest(), getMediaMap()]);
   return (
     <div className="admin-root" suppressHydrationWarning>
       <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
-      <AvatarMapProvider avatars={avatars}><AdminShell toTest={toTest}>{children}</AdminShell></AvatarMapProvider>
+      <AvatarMapProvider avatars={media.avatars} logos={media.logos}><AdminShell toTest={toTest}>{children}</AdminShell></AvatarMapProvider>
     </div>
   );
 }

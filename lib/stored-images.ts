@@ -3,7 +3,7 @@
 // ou quand l'admin clique « Actualiser la photo ». Les photos déjà dans le dépôt (npm run avatars) restent en secours.
 import { and, eq, isNotNull, isNull } from 'drizzle-orm';
 import type { Db } from '@/db';
-import { creatorAccounts, creators, storedImages, STORED_IMAGE_TYPES } from '@/db/schema';
+import { creatorAccounts, creators, storedImages, tools, STORED_IMAGE_TYPES } from '@/db/schema';
 import type { YoutubeBatch } from './creator-youtube-link';
 import { creatorSlug } from './ui';
 
@@ -36,6 +36,13 @@ export async function fetchImage(url: string, hosts: string[], fetchFn: typeof f
   const buffer = Buffer.from(await response.arrayBuffer());
   if (buffer.length === 0 || buffer.length > MAX_IMAGE_BYTES) return null;
   return { mime: mime as StoredImageType, data: buffer.toString('base64'), bytes: buffer.length, sourceUrl: url };
+}
+
+/** Enregistre (ou remplace) le logo d'un outil. */
+export async function saveToolImage(db: Db, toolId: string, image: FetchedImage, now = new Date()): Promise<void> {
+  const values = { mime: image.mime, data: image.data, bytes: image.bytes, sourceUrl: image.sourceUrl, fetchedAt: now };
+  await db.insert(storedImages).values({ toolId, ...values })
+    .onConflictDoUpdate({ target: storedImages.toolId, targetWhere: isNotNull(storedImages.toolId), set: values });
 }
 
 /** Enregistre (ou remplace) la photo d'un créateur. */
@@ -107,5 +114,95 @@ export async function creatorsWithoutImage(db: Db): Promise<number> {
   const rows = await db.selectDistinct({ id: creatorAccounts.creatorId }).from(creatorAccounts)
     .leftJoin(storedImages, eq(storedImages.creatorId, creatorAccounts.creatorId))
     .where(and(eq(creatorAccounts.platform, 'youtube'), isNotNull(creatorAccounts.externalId), isNull(storedImages.id)));
+  return rows.length;
+}
+
+// ── Logos des outils ────────────────────────────────────────────────────────────────────────────
+
+/** Domaine du site d'un outil, sans « www. ». null si l'adresse est invalide. */
+export function toolDomain(website: string): string | null {
+  try {
+    const url = new URL(website);
+    return url.protocol === 'https:' || url.protocol === 'http:' ? url.hostname.toLowerCase().replace(/^www\./, '') : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Le logo d'un outil : Logo.dev d'abord (si LOGO_DEV_TOKEN est défini), sinon l'icône de son site (apple-touch-icon).
+ * La clé Logo.dev n'est jamais enregistrée : l'adresse gardée est celle de la marque, sans la clé.
+ */
+export async function fetchToolLogo(website: string, options: { logoDevToken?: string; fetchFn?: typeof fetch } = {}): Promise<FetchedImage | null> {
+  const domain = toolDomain(website);
+  if (!domain) return null;
+  if (options.logoDevToken) {
+    const url = `https://img.logo.dev/${encodeURIComponent(domain)}?token=${encodeURIComponent(options.logoDevToken)}&size=128&format=png&retina=true&fallback=404`;
+    const image = await fetchImage(url, ['img.logo.dev'], options.fetchFn).catch(() => null);
+    if (image) return { ...image, sourceUrl: `https://img.logo.dev/${domain}` };
+  }
+  for (const host of [domain, `www.${domain}`]) {
+    const image = await fetchImage(`https://${host}/apple-touch-icon.png`, [host], options.fetchFn).catch(() => null);
+    if (image) return image;
+  }
+  return null;
+}
+
+export type LogoReport = { updated: string[]; failed: { tool: string; reason: string }[]; remaining: number };
+
+/**
+ * Récupère le logo de chaque outil suivi (ou d'un seul). missingOnly : seulement ceux qui n'ont pas encore de logo en base.
+ * limit : au plus ce nombre d'outils par appel (une requête Vercel dure 60 s au plus) ; remaining dit combien attendent encore.
+ * skip : outils déjà tentés sans succès à passer (ils restent en tête de la liste des manquants, l'ordre étant stable).
+ */
+export async function refreshToolLogos(db: Db, options: { onlyToolId?: string; missingOnly?: boolean; limit?: number; skip?: number; logoDevToken?: string; fetchFn?: typeof fetch; now?: Date } = {}): Promise<LogoReport> {
+  const conditions = [isNull(tools.archivedAt)];
+  if (options.onlyToolId) conditions.push(eq(tools.id, options.onlyToolId));
+  if (options.missingOnly) conditions.push(isNull(storedImages.id));
+  const rows = await db.select({ id: tools.id, name: tools.name, website: tools.website })
+    .from(tools).leftJoin(storedImages, eq(storedImages.toolId, tools.id)).where(and(...conditions)).orderBy(tools.priority, tools.name);
+  const pending = rows.slice(options.skip ?? 0);
+  const batch = options.limit ? pending.slice(0, options.limit) : pending;
+  const report: LogoReport = { updated: [], failed: [], remaining: pending.length - batch.length };
+  // Cinq outils à la fois : assez pour tenir dans le temps d'une requête, sans charger les sites des marques.
+  for (let start = 0; start < batch.length; start += 5) {
+    await Promise.all(batch.slice(start, start + 5).map(async tool => {
+      const image = await fetchToolLogo(tool.website, options).catch(() => null);
+      if (!image) { report.failed.push({ tool: tool.name, reason: 'Aucun logo trouvé sur Logo.dev ni sur son site.' }); return; }
+      await saveToolImage(db, tool.id, image, options.now);
+      report.updated.push(tool.name);
+    }));
+  }
+  report.updated.sort((a, b) => a.localeCompare(b, 'fr'));
+  report.failed.sort((a, b) => a.tool.localeCompare(b.tool, 'fr'));
+  return report;
+}
+
+/** Adresse du logo d'un outil servi par Koupi. */
+export function toolImageUrl(slug: string, mime: StoredImageType, fetchedAt: Date): string {
+  return `/media/logos/${slug}.${EXTENSIONS[mime]}?v=${fetchedAt.getTime().toString(36)}`;
+}
+
+/** Logos en base de tous les outils, par slug. logoDev : au moins un vient de Logo.dev (lien d'attribution du pied de page). */
+export async function loadLogoMap(db: Db): Promise<{ logos: Record<string, string>; logoDev: boolean }> {
+  const rows = await db.select({ slug: tools.slug, mime: storedImages.mime, fetchedAt: storedImages.fetchedAt, sourceUrl: storedImages.sourceUrl })
+    .from(storedImages).innerJoin(tools, eq(tools.id, storedImages.toolId));
+  return {
+    logos: Object.fromEntries(rows.map(row => [row.slug, toolImageUrl(row.slug, row.mime, row.fetchedAt)])),
+    logoDev: rows.some(row => row.sourceUrl.startsWith('https://img.logo.dev/')),
+  };
+}
+
+/** Le logo d'un outil pour la route /media/logos/<slug>.<ext>. */
+export async function loadToolImage(db: Db, slug: string): Promise<{ mime: StoredImageType; body: Buffer } | null> {
+  const [row] = await db.select({ mime: storedImages.mime, data: storedImages.data })
+    .from(storedImages).innerJoin(tools, eq(tools.id, storedImages.toolId)).where(eq(tools.slug, slug)).limit(1);
+  return row ? { mime: row.mime, body: Buffer.from(row.data, 'base64') } : null;
+}
+
+/** Outils suivis sans logo en base (pour le bouton de l'admin). */
+export async function toolsWithoutImage(db: Db): Promise<number> {
+  const rows = await db.select({ id: tools.id }).from(tools)
+    .leftJoin(storedImages, eq(storedImages.toolId, tools.id)).where(and(isNull(tools.archivedAt), isNull(storedImages.id)));
   return rows.length;
 }

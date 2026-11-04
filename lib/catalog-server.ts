@@ -8,7 +8,7 @@ import { loadCatalog } from './catalog-db';
 import { loadCreatorProfile, type CreatorProfile } from './creator-profile';
 import { loadCreatorFacts, type CreatorFacts } from './creator-directory';
 import type { Catalog } from './data';
-import { loadAvatarMap } from './stored-images';
+import { loadAvatarMap, loadLogoMap } from './stored-images';
 
 export const CATALOG_TAG = 'catalog';
 
@@ -36,16 +36,21 @@ export async function getCreatorFacts(): Promise<Record<string, CreatorFacts>> {
   return cachedCreatorFacts();
 }
 
-const cachedAvatarMap = unstable_cache(() => loadAvatarMap(getDb()), ['avatar-map-v1'], { tags: [CATALOG_TAG], revalidate: 3600 });
+export type MediaMap = { avatars: Record<string, string>; logos: Record<string, string>; logoDev: boolean };
+const cachedMediaMap = unstable_cache(async (): Promise<MediaMap> => {
+  const db = getDb();
+  const [avatars, { logos, logoDev }] = await Promise.all([loadAvatarMap(db), loadLogoMap(db)]);
+  return { avatars, logos, logoDev };
+}, ['media-map-v1'], { tags: [CATALOG_TAG], revalidate: 3600 });
 
-/** Photos des créateurs gardées en base, par nom. Vide si la base ne répond pas : les avatars gardent leurs initiales. */
-export async function getAvatarMap(): Promise<Record<string, string>> {
+/** Photos des créateurs (par nom) et logos des outils (par slug) gardés en base. Vide si la base ne répond pas. */
+export async function getMediaMap(): Promise<MediaMap> {
   try {
     await connection();
-    return await cachedAvatarMap();
+    return await cachedMediaMap();
   } catch (error) {
-    console.error('avatar map failed', error);
-    return {};
+    console.error('media map failed', error);
+    return { avatars: {}, logos: {}, logoDev: false };
   }
 }
 

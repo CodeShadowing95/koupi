@@ -4,6 +4,7 @@ import { isAdminRequest } from '@/lib/admin-guard';
 import { createTool, parseToolInput } from '@/lib/catalog-admin';
 import { revalidateCatalog } from '@/lib/catalog-server';
 import { readJsonBody } from '@/lib/http';
+import { refreshToolLogos } from '@/lib/stored-images';
 
 export async function POST(request: NextRequest) {
   if (!(await isAdminRequest(request))) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
@@ -14,6 +15,9 @@ export async function POST(request: NextRequest) {
     if (!input.ok) return NextResponse.json({ error: input.error }, { status: 400 });
     const result = await createTool(getDb(), input.data);
     if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });
+    // Son logo tout de suite (ADR-0027). Un échec ne bloque pas l'outil : « Actualiser le logo » le reprendra.
+    await refreshToolLogos(getDb(), { onlyToolId: result.data.id, logoDevToken: process.env.LOGO_DEV_TOKEN || undefined })
+      .catch(error => console.error('tool logo fetch failed', error));
     revalidateCatalog();
     return NextResponse.json({ ok: true, ...result.data });
   } catch (error) {

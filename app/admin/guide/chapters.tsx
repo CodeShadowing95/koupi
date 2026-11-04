@@ -367,6 +367,11 @@ function Outils() {
         <Step title="Description (facultative)">Une phrase pour la fiche. Vide, le site écrit « Les codes promo donnés par les créateurs pour … ».</Step>
       </Steps>
     </Section>
+    <Section id="logos" title="Les logos">
+      <p>Quand tu crées un outil, Koupi récupère <b>tout seul</b> son logo et le garde en base : sur Logo.dev d’abord, sinon l’icône du site de la marque. Le site et l’admin l’affichent ensuite sans dépendre d’un autre service.</p>
+      <p>Le bouton <b>Récupérer les logos</b> en haut de la page le fait pour les outils qui n’en ont pas encore (le nombre sur le bouton), par lots de 20. Si une marque change de logo ou de site, ouvre l’outil et clique <b>Actualiser le logo</b>.</p>
+      <Callout tone="tip">Un logo introuvable n’empêche rien : l’outil garde son initiale colorée. Vérifie alors que son site officiel est le bon domaine.</Callout>
+    </Section>
     <Section id="priorite" title="La priorité, de 1 à 5">
       <p>La priorité dit <b>quels outils couvrir en premier</b>. Elle classe les outils dans l’admin et sur le site.</p>
       <Legend rows={[

@@ -69,7 +69,7 @@ export const guideChapters: GuideChapter[] = [
   {
     slug: 'outils', part: 'catalog', title: 'Gérer les outils', minutes: 4,
     summary: 'Ajouter un outil, régler sa priorité, l’archiver ou le restaurer.',
-    goals: ['Ajouter un outil propre', 'Utiliser la priorité pour choisir quoi couvrir', 'Archiver sans rien perdre'],
+    goals: ['Ajouter un outil propre', 'Récupérer et actualiser les logos', 'Utiliser la priorité pour choisir quoi couvrir', 'Archiver sans rien perdre'],
     practice: { href: '/admin/outils', label: 'Ouvrir les outils' },
   },
   {
