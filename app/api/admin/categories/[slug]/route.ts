@@ -12,7 +12,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   try {
     const parsed = await readJsonBody(request, 1_000);
     if (!parsed.ok) return NextResponse.json({ error: 'Requête invalide.' }, { status: parsed.status });
-    const result = await renameCategory(getDb(), slug, parsed.data.name);
+    const result = await renameCategory(getDb(), slug, parsed.data.name, parsed.data.familySlug);
     if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.error === 'Catégorie introuvable.' ? 404 : 400 });
     revalidateCatalog();
     return NextResponse.json({ ok: true });

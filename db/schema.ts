@@ -57,9 +57,22 @@ export const rateLimits = pgTable('rate_limits', {
 ]);
 
 // Catégories d'outils (Hébergement web, VPN et sécurité…).
+// Familles de catégories (ADR-0026) : le niveau au-dessus des catégories, qui sert de menu (Sécurité, Vidéo…).
+export const categoryFamilies = pgTable('category_families', {
+  slug: text('slug').primaryKey(),
+  name: text('name').notNull().unique(),
+  position: integer('position').notNull().default(0),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  check('category_families_slug_format', sql`${table.slug} ~ '^[a-z0-9]+(-[a-z0-9]+)*$'`),
+  check('category_families_name_len', sql`char_length(trim(${table.name})) between 1 and 80`),
+]);
+
 export const categories = pgTable('categories', {
   slug: text('slug').primaryKey(),
   name: text('name').notNull().unique(),
+  /** Famille de la catégorie. Vide tant qu'elle n'est pas rangée. */
+  familySlug: text('family_slug').references(() => categoryFamilies.slug, { onDelete: 'set null', onUpdate: 'cascade' }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, table => [
   check('categories_slug_format', sql`${table.slug} ~ '^[a-z0-9]+(-[a-z0-9]+)*$'`),

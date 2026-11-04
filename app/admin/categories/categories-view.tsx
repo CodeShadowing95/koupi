@@ -1,7 +1,8 @@
 'use client';
 // Catégories d'outils, avec leur couverture : combien de leurs outils ont un code visible.
 import { useEffect, useState } from 'react';
-import type { AdminCategory } from '@/lib/catalog-admin';
+import type { AdminCategory, CategoryFamily } from '@/lib/catalog-admin';
+import { AdminSelect } from '@/components/admin-select';
 import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { FormDialog, sendJson } from '@/components/admin-form-dialog';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
@@ -18,25 +19,38 @@ const matches = (category: AdminCategory, filter: Filter) => filter === 'all' ||
 
 const sortFields: SortField<AdminCategory>[] = [
   { key: 'name', label: 'Nom', value: category => category.name, text: true },
+  { key: 'family', label: 'Famille', value: category => category.family ?? '', text: true },
   { key: 'tools', label: 'Nombre d’outils', value: category => category.tools },
   { key: 'coverage', label: 'Couverture', value: category => rate(category) },
 ];
 
-export function CategoriesView({ categories: all }: { categories: AdminCategory[] }) {
+// Famille choisie dans le filtre : '' = toutes, NONE = catégories pas encore rangées.
+const NONE = '-';
+
+export function CategoriesView({ categories: all, families }: { categories: AdminCategory[]; families: CategoryFamily[] }) {
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
+  const [family, setFamily] = useState('');
+  const inFamily = (category: AdminCategory) => !family || (family === NONE ? !category.familySlug : category.familySlug === family);
   // Les liens des autres pages ouvrent la liste déjà filtrée (?q=…).
   useEffect(() => { const q = new URLSearchParams(window.location.search).get('q'); if (q) setQuery(q); }, []);
-  const filtered = all.filter(category => matches(category, filter) && matchesSearch([category.name, category.slug], query));
+  const filtered = all.filter(category => matches(category, filter) && inFamily(category) && matchesSearch([category.name, category.slug, category.family ?? ''], query));
   const sort = useAdminSort(filtered, sortFields, 'name');
   const categories = sort.items;
-  const countOf = (value: Filter) => all.filter(category => matches(category, value)).length;
+  const countOf = (value: Filter) => all.filter(category => matches(category, value) && inFamily(category)).length;
   const [view, setView] = useAdminView();
   const [editing, setEditing] = useState<AdminCategory | 'new' | null>(null);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
   const selected = all.find(category => category.slug === selectedSlug) ?? null;
   const [name, setName] = useState('');
-  const open = (target: AdminCategory | 'new') => { setName(target === 'new' ? '' : target.name); setEditing(target); };
+  const [familySlug, setFamilySlug] = useState('');
+  const open = (target: AdminCategory | 'new') => {
+    setName(target === 'new' ? '' : target.name);
+    setFamilySlug(target === 'new' ? (family && family !== NONE ? family : '') : target.familySlug ?? '');
+    setEditing(target);
+  };
+  const unfiled = all.filter(category => !category.familySlug).length;
+  const familyOptions = [{ value: '', label: 'Toutes les familles' }, ...families.map(item => ({ value: item.slug, label: item.name })), ...(unfiled ? [{ value: NONE, label: `Sans famille (${unfiled})` }] : [])];
   const coverage = (category: AdminCategory) => (
     <span className="adm-cat-cover">
       <span className="adm-track" role="img" aria-label={`${category.covered} outils couverts sur ${category.tools}`}><span style={{ width: `${rate(category)}%` }} /></span>
@@ -51,7 +65,7 @@ export function CategoriesView({ categories: all }: { categories: AdminCategory[
           <div>
             <span className="eyebrow">Catalogue</span>
             <h1>Catégories</h1>
-            <p>Elles rangent les outils sur le site. La couverture dit combien de leurs outils ont au moins un code visible : une catégorie à 0 est vide sur le site.</p>
+            <p>Elles rangent les outils sur le site, et chacune appartient à une famille (Sécurité, Vidéo…). La couverture dit combien de leurs outils ont au moins un code visible : une catégorie à 0 est vide sur le site.</p>
           </div>
           <div className="adm-head-actions"><ExportMenu type="categories" /><button type="button" className="adm-btn adm-btn-pri" onClick={() => open('new')}>+ Nouvelle catégorie</button></div>
         </div>
@@ -61,6 +75,7 @@ export function CategoriesView({ categories: all }: { categories: AdminCategory[
         <div className="adm-toolbar">
           <label htmlFor="category-search" className="sr-only">Rechercher une catégorie</label>
           <input id="category-search" className="adm-search" type="search" placeholder="Rechercher une catégorie…" value={query} onChange={event => setQuery(event.target.value)} />
+          <AdminSelect id="category-family-filter" variant="filter" ariaLabel="Famille" value={family} onChange={setFamily} options={familyOptions} searchPlaceholder="Rechercher une famille…" />
           {view !== 'table' && <SortControl sort={sort} id="category-sort" />}
           <span className="adm-count" role="status">{categories.length} sur {countOf(filter)}</span>
           <ViewToggle view={view} onChange={setView} />
@@ -69,14 +84,15 @@ export function CategoriesView({ categories: all }: { categories: AdminCategory[
         {categories.length === 0 ? <div className="adm-empty">Aucune catégorie ne correspond.</div> : view === 'table' ? (
           <div className="adm-table-wrap">
             <table className="adm-table">
-              <thead><tr><SortHeader sort={sort} field="name">Catégorie</SortHeader><SortHeader sort={sort} field="tools">Outils couverts</SortHeader><SortHeader sort={sort} field="coverage">Couverture</SortHeader><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
+              <thead><tr><SortHeader sort={sort} field="name">Catégorie</SortHeader><SortHeader sort={sort} field="family">Famille</SortHeader><SortHeader sort={sort} field="tools">Outils couverts</SortHeader><SortHeader sort={sort} field="coverage">Couverture</SortHeader><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
               <tbody>
                 {categories.map(category => (
                   <tr key={category.slug} data-open onClick={openOnClick(() => setSelectedSlug(category.slug))}>
                     <td className="adm-cell-wrap"><button type="button" className="adm-open adm-open-wrap" title={`Voir le détail de ${category.name}`} onClick={() => setSelectedSlug(category.slug)}><b>{category.name}</b></button></td>
+                    <td className={category.family ? undefined : 'adm-cell-muted'}>{category.family ?? 'Sans famille'}</td>
                     <td>{coverage(category)}</td>
                     <td className="adm-cell-muted">{rate(category)} %</td>
-                    <td><div className="adm-cell-actions"><a href={`/admin/outils?category=${encodeURIComponent(category.slug)}`}>Outils</a><button type="button" className="adm-btn" onClick={() => open(category)}>Renommer</button></div></td>
+                    <td><div className="adm-cell-actions"><a href={`/admin/outils?category=${encodeURIComponent(category.slug)}`}>Outils</a><button type="button" className="adm-btn" onClick={() => open(category)}>Modifier</button></div></td>
                   </tr>
                 ))}
               </tbody>
@@ -87,11 +103,12 @@ export function CategoriesView({ categories: all }: { categories: AdminCategory[
             {categories.map(category => (
               <article className="adm-card" key={category.slug} data-open onClick={openOnClick(() => setSelectedSlug(category.slug))}>
                 <div className="adm-card-row"><button type="button" className="adm-open adm-card-title" title={`Voir le détail de ${category.name}`} onClick={() => setSelectedSlug(category.slug)}><b>{category.name}</b></button>{category.covered === 0 ? <StatusDot tone="muted">Vide</StatusDot> : <StatusDot tone="ok">{rate(category)} %</StatusDot>}</div>
+                <span className="adm-card-meta">{category.family ?? 'Sans famille'}</span>
                 <span className="adm-track" role="img" aria-label={`${category.covered} outils couverts sur ${category.tools}`}><span style={{ width: `${rate(category)}%` }} /></span>
                 <div className="adm-card-foot">
                   <span className="adm-card-meta">{category.covered} / {category.tools} outil{category.tools > 1 ? 's' : ''} couvert{category.covered > 1 ? 's' : ''}</span>
                   <IconLink icon="list" label="Voir les outils" href={`/admin/outils?category=${encodeURIComponent(category.slug)}`} />
-                  <IconButton icon="edit" label="Renommer" onClick={() => open(category)} />
+                  <IconButton icon="edit" label="Modifier" onClick={() => open(category)} />
                 </div>
               </article>
             ))}
@@ -102,11 +119,12 @@ export function CategoriesView({ categories: all }: { categories: AdminCategory[
           actions={selected && <>
             <a className="adm-btn" href={`/admin/outils?category=${encodeURIComponent(selected.slug)}`}>Voir les outils</a>
             <span style={{ flex: 1 }} />
-            <button type="button" className="adm-btn adm-btn-pri" onClick={() => open(selected)}>Renommer</button>
+            <button type="button" className="adm-btn adm-btn-pri" onClick={() => open(selected)}>Modifier</button>
           </>}>
           {selected && <>
             {coverage(selected)}
             <DetailList items={[
+              { label: 'Famille', value: selected.family ?? 'Sans famille' },
               { label: 'Outils suivis', value: `${selected.tools} outil${selected.tools > 1 ? 's' : ''}` },
               { label: 'Sur le site', value: `${selected.covered} avec un code visible` },
               { label: 'À couvrir', value: `${selected.tools - selected.covered} sans code visible` },
@@ -114,11 +132,12 @@ export function CategoriesView({ categories: all }: { categories: AdminCategory[
             ]} />
           </>}
         </AdminDrawer>
-        <FormDialog open={editing !== null} title={editing === 'new' ? 'Nouvelle catégorie' : `Renommer ${editing?.name ?? ''}`}
-          intro={editing === 'new' ? 'Elle apparaîtra sur le site dès qu’un de ses outils aura un code visible.' : 'Son adresse sur le site ne change pas.'}
+        <FormDialog open={editing !== null} title={editing === 'new' ? 'Nouvelle catégorie' : `Modifier ${editing?.name ?? ''}`}
+          intro={editing === 'new' ? 'Elle apparaîtra sur le site dès qu’un de ses outils aura un code visible.' : 'Son adresse sur le site ne change pas, même si tu la renommes.'}
           onClose={() => setEditing(null)}
-          onSubmit={() => editing === 'new' ? sendJson('/api/admin/categories', 'POST', { name }) : sendJson(`/api/admin/categories/${(editing as AdminCategory).slug}`, 'PATCH', { name })}>
+          onSubmit={() => editing === 'new' ? sendJson('/api/admin/categories', 'POST', { name, familySlug }) : sendJson(`/api/admin/categories/${(editing as AdminCategory).slug}`, 'PATCH', { name, familySlug })}>
           <div className="field adm-span-2"><label htmlFor="category-name">Nom</label><input id="category-name" value={name} onChange={event => setName(event.target.value)} required maxLength={80} /></div>
+          <div className="field adm-span-2"><label htmlFor="category-family">Famille</label><AdminSelect id="category-family" value={familySlug} onChange={setFamilySlug} options={[{ value: '', label: 'Sans famille' }, ...families.map(item => ({ value: item.slug, label: item.name }))]} placeholder="Choisir une famille…" searchPlaceholder="Rechercher une famille…" /></div>
         </FormDialog>
       </div>
     </main>

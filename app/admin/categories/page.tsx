@@ -1,9 +1,11 @@
 import { getDb } from '@/db';
-import { listCategoriesAdmin } from '@/lib/catalog-admin';
+import { listCategoriesAdmin, listFamilies } from '@/lib/catalog-admin';
 import { CategoriesView } from './categories-view';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Page() {
-  return <CategoriesView categories={await listCategoriesAdmin(getDb())} />;
+  const db = getDb();
+  const [categories, families] = await Promise.all([listCategoriesAdmin(db), listFamilies(db)]);
+  return <CategoriesView categories={categories} families={families} />;
 }
