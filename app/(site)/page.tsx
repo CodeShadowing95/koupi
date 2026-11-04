@@ -5,12 +5,13 @@ import { routes } from '@/lib/routes';
 import { Hero } from '@/components/site/hero';
 import { Marquee } from '@/components/site/marquee';
 import { HowItWorks } from '@/components/site/how-it-works';
-import { BoardingCoupon } from '@/components/site/boarding-coupon';
+import { FeaturedCodes } from '@/components/site/featured-codes';
 import { Counter } from '@/components/site/counter';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { CreatorsOrbit } from '@/components/site/creators-orbit';
 import { CategoryDisplay } from '@/components/site/category-display';
-import { compactCount, featuredCodes } from '@/lib/codes-board';
+import { compactCount } from '@/lib/codes-board';
+import { featuredPool } from '@/lib/featured-codes';
 import { CreatorRotator } from '@/components/site/creator-rotator';
 import { rotationCreators } from '@/lib/creator-rotation';
 import { VoteInvite } from '@/components/site/vote-invite';
@@ -22,7 +23,7 @@ const Arrow = () => (
 export default async function Home() {
   const { categories, codes, tools } = await getCatalog();
   const live = codes.filter(isPublic);
-  const featured = featuredCodes(live, 6);
+  const featured = featuredPool(live);
   const creators = new Set(live.map(code => code.creator));
   const toolOf = (name: string) => tools.find(tool => tool.name === name);
   // Un créateur par entrée, avec son nombre de codes visibles et un exemple de code.
@@ -46,16 +47,7 @@ export default async function Home() {
             <h2>Clique sur le talon,<br />c&apos;est copié.</h2>
             <p>Chaque code est celui d&apos;un créateur, avec la vidéo d&apos;où il vient. Monte le son.</p>
           </div>
-          <ul className="k-pass-grid">
-            {featured.map(code => {
-              const tool = toolOf(code.tool);
-              return (
-                <li key={code.id} data-reveal>
-                  <BoardingCoupon code={code} category={tool?.category} link={code.creatorLink || tool?.website || '#'} />
-                </li>
-              );
-            })}
-          </ul>
+          <FeaturedCodes pool={featured.map(code => ({ code, link: code.creatorLink || toolOf(code.tool)?.website || '#' }))} />
           <div className="k-more" data-reveal>
             <Link className="k-more-ticket" href={routes.codes} aria-label={`Voir plus de codes : ${compactCount(live.length)} codes de créateurs, avec filtres et recherche`}>
               <span className="k-more-body" aria-hidden="true">
