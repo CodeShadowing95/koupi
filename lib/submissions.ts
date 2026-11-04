@@ -8,6 +8,22 @@ export type SubmissionInput = {
   category?: string; creatorLink?: string; comment?: string; submitterEmail?: string;
 };
 
+/** Réduction enregistrée quand le créateur n'en annonce pas : le même libellé que l'import des codes trouvés sur YouTube. */
+export const DEFAULT_DISCOUNT = 'Offre du créateur';
+/** Un même code peut valoir pour plusieurs outils (une vidéo qui en présente plusieurs) : 5 au plus par envoi. */
+export const MAX_TOOLS_PER_SUBMISSION = 5;
+
+/** Les outils d'un envoi : nettoyés, sans doublon (casse ignorée), 5 au plus. Accepte aussi l'ancien champ unique. */
+export function toolNamesOf(value: unknown, single?: unknown): string[] {
+  const raw = Array.isArray(value) ? value : [single];
+  const out: string[] = [];
+  for (const item of raw) {
+    const name = typeof item === 'string' ? item.trim().slice(0, 120) : '';
+    if (name && !out.some(known => known.toLocaleLowerCase('fr-FR') === name.toLocaleLowerCase('fr-FR'))) out.push(name);
+  }
+  return out.slice(0, MAX_TOOLS_PER_SUBMISSION);
+}
+
 export function fingerprintOf(toolName: string, code: string): string {
   return createHash('sha256').update(`${toolName.toLocaleLowerCase('fr-FR')}::${code.toLocaleLowerCase('fr-FR')}`).digest('hex');
 }
@@ -39,6 +55,39 @@ export async function createSubmission(db: Db, input: SubmissionInput, ipHash: s
     adminNote: status === 'duplicate' ? 'Proposition similaire déjà présente.' : null,
   });
   return { status };
+}
+
+/** Une ligne d'un envoi : un outil et son code (une vidéo lue peut en donner plusieurs). */
+export type SubmissionItem = { toolName: string; code: string; discountLabel: string };
+/** Lignes par envoi au plus : les codes trouvés dans une vidéo, ou un code pour plusieurs outils. */
+export const MAX_ITEMS_PER_SUBMISSION = 8;
+
+/**
+ * Les lignes d'un envoi : la liste « items » (bon pré-rempli depuis une vidéo), sinon un code pour un ou plusieurs outils.
+ * Nettoyées, sans ligne incomplète ni doublon outil + code (casse ignorée), 8 au plus.
+ */
+export function submissionItemsOf(body: Record<string, unknown>): SubmissionItem[] {
+  const text = (value: unknown, max: number) => (typeof value === 'string' ? value.trim().slice(0, max) : '');
+  const raw: unknown[] = Array.isArray(body.items) ? body.items
+    : toolNamesOf(body.toolNames, body.toolName).map(toolName => ({ toolName, code: body.code, discountLabel: body.discountLabel }));
+  const out: SubmissionItem[] = [];
+  for (const entry of raw) {
+    if (!entry || typeof entry !== 'object') continue;
+    const item = entry as Record<string, unknown>;
+    const toolName = text(item.toolName, 120), code = text(item.code, 120), discountLabel = text(item.discountLabel, 240);
+    if (!toolName || !code) continue;
+    if (out.some(known => fingerprintOf(known.toolName, known.code) === fingerprintOf(toolName, code))) continue;
+    out.push({ toolName, code, discountLabel });
+  }
+  return out.slice(0, MAX_ITEMS_PER_SUBMISSION);
+}
+
+/** Un envoi de plusieurs lignes : une proposition par outil et par code, que l'admin valide une à une. */
+export async function createSubmissions(db: Db, input: Omit<SubmissionInput, 'toolName' | 'code' | 'discountLabel'> & { items: SubmissionItem[] }, ipHash: string): Promise<{ status: Submission['status'] }[]> {
+  const { items, ...rest } = input;
+  const results = [];
+  for (const item of items) results.push(await createSubmission(db, { ...rest, ...item, discountLabel: item.discountLabel || DEFAULT_DISCOUNT }, ipHash));
+  return results;
 }
 
 export const statusFilters = ['new', 'approved', 'rejected', 'duplicate', 'all'] as const;
