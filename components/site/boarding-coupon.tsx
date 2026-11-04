@@ -37,11 +37,12 @@ function shortDate(iso: string) {
 /**
  * compact : carte de la page créateur, mêmes infos que la vue liste plus les pouces (sans « Donné par » ni réussite, votes et date).
  * light : version allégée de l'accueil (logo et sceau, outil, créateur, réduction, talon), sans votes, chiffres ni source.
+ * votes : ajoute les pouces à la version allégée, à droite de la réduction (rangées de la page Codes).
  * linkTool : le papier du coupon (nom de l'outil compris) mène à sa fiche, sauf sur la fiche elle-même.
  */
-type Props = { code: Code; category?: string; link: string; compact?: boolean; light?: boolean; linkTool?: boolean };
+type Props = { code: Code; category?: string; link: string; compact?: boolean; light?: boolean; votes?: boolean; linkTool?: boolean };
 
-export function BoardingCoupon({ code, category, link, compact = false, light = false, linkTool = true }: Props) {
+export function BoardingCoupon({ code, category, link, compact = false, light = false, votes = false, linkTool = true }: Props) {
   const [torn, setTorn] = useState(false);
   const [failed, setFailed] = useState(false);
   const badge = codeBadge(code, { withDate: false });
@@ -85,7 +86,9 @@ export function BoardingCoupon({ code, category, link, compact = false, light = 
           {!light && <CodeThumbs code={code} />}
         </header>
 
-        {compact || light
+        {light && votes
+          ? <div className="k-pass-light-foot"><p className="k-pass-discount">{code.discount}</p><CodeThumbs code={code} /></div>
+          : compact || light
           ? <p className="k-pass-discount">{code.discount}</p>
           : <>
         <p className="k-pass-by">

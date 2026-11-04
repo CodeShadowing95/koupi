@@ -252,10 +252,10 @@ export function CodesBoard({ codes, tools, families, categories, initial, now }:
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
                 </button>
               </div>
-              <ChipRow label={row.title} className="is-codes">
+              <ChipRow label={row.title} className="is-codes" paged>
                 {row.codes.map(code => (
                   <div className="k-row-item" key={code.id}>
-                    <BoardingCoupon code={code} link={code.creatorLink || toolBySlug.get(code.toolSlug)?.website || '#'} light />
+                    <BoardingCoupon code={code} link={code.creatorLink || toolBySlug.get(code.toolSlug)?.website || '#'} light votes />
                   </div>
                 ))}
               </ChipRow>
