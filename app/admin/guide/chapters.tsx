@@ -53,13 +53,12 @@ function SeReperer() {
     <Section id="menu" title="Le menu de gauche">
       <p>Le menu est rangé par grandes tâches, de haut en bas :</p>
       <Legend rows={[
-        { term: 'Pilotage', meaning: <><b>Accueil</b> (ce qu’il y a à faire aujourd’hui), <b>Statistiques</b> (les chiffres en détail) et <b>Consommation</b> (le quota YouTube et la dépense IA).</> },
-        { term: 'Modération', meaning: <><b>Propositions</b> (les codes envoyés par les visiteurs), <b>Codes</b> (tout le catalogue), <b>Vérifications</b> (les dossiers préparés avec un score), <b>Podcasts suivis</b> (les podcasts que Koupi lit pour trouver des codes), <b>Demandes créateurs</b> et <b>Retours</b> (les avis des visiteurs). Un nombre orange à côté veut dire « des éléments t’attendent ».</> },
-        { term: 'Catalogue', meaning: <><b>Outils</b>, <b>Créateurs</b> et <b>Catégories</b> : ce qui organise le site.</> },
-        { term: 'Apprendre', meaning: 'Ce guide.' },
+        { term: 'Pilotage', meaning: <><b>Accueil</b> (ce qu’il y a à faire aujourd’hui), <b>Statistiques</b> (les chiffres en détail, avec <b>Consommation</b> en sous-menu : le quota YouTube et la dépense IA) et <b>Retours</b> (les avis des visiteurs).</> },
+        { term: 'Catalogue', meaning: <><b>Codes</b> (tout le catalogue), avec en sous-menus <b>Propositions</b> (les codes envoyés par les visiteurs), <b>Vérifications</b> (les dossiers préparés avec un score) et <b>Podcasts suivis</b>. Puis <b>Créateurs</b> (avec <b>Demandes</b>) et <b>Outils</b> (avec <b>Catégories</b>).</> },
+        { term: 'Aide et réglages', meaning: <>Ce <b>guide</b> et l’espace <b>Administration</b>.</> },
       ]} />
-      <p>En bas du menu, la jauge <b>Consommation</b> montre le quota YouTube du jour et le plafond IA du mois ; elle passe à l’orange à 70 %, au rouge à 90 %. En haut des listes (Propositions, Codes, Vérifications, Outils, Créateurs, Demandes), <b>Actualiser</b> relit la liste sans recharger la page ni perdre tes filtres.</p>
-      <p>En bas du menu, <b>Voir le site</b> ouvre le site public dans un nouvel onglet : pratique pour vérifier ce que voit un visiteur.</p>
+      <p>Un clic sur le nom ouvre la page. La <b>flèche</b> à droite déplie ses sous-menus ; ils restent ouverts quand tu es sur l’une de leurs pages. Un nombre orange veut dire « des éléments t’attendent » ; menu replié, un <b>point orange</b> près de la flèche dit qu’un sous-menu en a. <b>Voir le site</b> et <b>Se déconnecter</b> restent toujours en bas, sans défiler.</p>
+      <p>En haut des listes (Propositions, Codes, Vérifications, Outils, Créateurs, Demandes, Retours), <b>Actualiser</b> relit la liste sans recharger la page ni perdre tes filtres.</p>
     </Section>
     <Section id="recherche" title="Tout trouver avec ⌘K">
       <p>Appuie sur <Key>⌘</Key> <Key>K</Key> sur Mac, ou <Key>Ctrl</Key> <Key>K</Key> sur PC, depuis n’importe quelle page, ou clique sur « Rechercher » en haut. Avant même de taper, la fenêtre te propose tes derniers éléments ouverts (« Récents »), un « Accès rapide » au travail du jour (propositions, codes à tester et à retester, statistiques), les autres pages et les exports. Dès que tu tapes un code, un outil, un créateur ou le nom d’une page, les résultats remplacent ces suggestions, rangés par type, avec les lettres tapées en bleu. Chaque ligne reprend l’icône de sa rubrique dans le menu de gauche, et les exports ont une flèche de téléchargement : tu sais d’un coup d’œil où tu vas arriver.</p>

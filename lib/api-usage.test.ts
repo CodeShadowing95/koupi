@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import { countedYoutubeFetch, nextQuotaReset, quotaDay, recordApiUsage, serviceUsage, usageLevel, usageRatio, youtubeUnits } from './api-usage';
-import { usageGauges, usageSummary } from './api-usage-summary';
+import { usageSummary } from './api-usage-summary';
 
 describe('quota YouTube', () => {
   it('compte 100 unités pour une recherche, 1 pour une lecture', () => {
@@ -61,7 +61,7 @@ describe('consommation en base', () => {
     expect(youtube.days.at(-3)).toEqual({ day: '2026-11-02', units: 1 });
   });
 
-  it('relit la dépense IA du mois, jour par jour, et en fait les jauges du menu', async () => {
+  it('relit la dépense IA du mois, jour par jour', async () => {
     await db.insert(schema.aiUsage).values([
       { purpose: 'podcast_notes', model: 'm', costUsdMicros: 600_000, createdAt: new Date('2026-11-02T10:00:00Z') },
       { purpose: 'podcast_notes', model: 'm', costUsdMicros: 400_000, createdAt: new Date('2026-10-30T10:00:00Z') },
@@ -72,6 +72,6 @@ describe('consommation en base', () => {
     expect(summary.ai.days).toHaveLength(30);
     expect([summary.ai.days[0].day, summary.ai.days.at(-1)?.day]).toEqual(['2026-11-01', '2026-11-30']);
     expect(summary.ai.days[1].usdMicros).toBe(600_000);
-    expect(usageGauges(summary).map(gauge => [gauge.key, gauge.level])).toEqual([['youtube', 'warn'], ['ai', 'ok']]);
+    expect(summary.services[0].today).toBe(7_500);
   });
 });
