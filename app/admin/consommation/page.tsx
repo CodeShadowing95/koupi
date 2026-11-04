@@ -11,7 +11,10 @@ const percent = (ratio: number) => `${Math.round(ratio * 100)} %`;
 const parisTime = (iso: string) => new Date(iso).toLocaleTimeString('fr-FR', { timeZone: 'Europe/Paris', hour: '2-digit', minute: '2-digit' });
 const shortDay = (day: string) => new Date(`${day}T12:00:00Z`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 
-/** Histogramme simple, une barre par jour ; le tableau caché donne les mêmes chiffres aux lecteurs d'écran. */
+/**
+ * Histogramme simple, une barre par jour ; le tableau caché donne les mêmes chiffres aux lecteurs d'écran.
+ * Le tableau est caché dans un div : un tableau ne respecte pas la hauteur de 1 px de .sr-only et allongeait la page.
+ */
 function DayBars({ days, max, format, label }: { days: { day: string; value: number }[]; max: number; format: (value: number) => string; label: string }) {
   const top = Math.max(max, ...days.map(item => item.value), 1);
   return (
@@ -20,7 +23,7 @@ function DayBars({ days, max, format, label }: { days: { day: string; value: num
         {days.map(item => <span key={item.day} title={`${shortDay(item.day)} : ${format(item.value)}`}><i style={{ height: `${(item.value / top) * 100}%` }} /></span>)}
       </div>
       <figcaption className="adm-use-axis" aria-hidden="true"><span>{shortDay(days[0].day)}</span><span>{shortDay(days[days.length - 1].day)}</span></figcaption>
-      <table className="sr-only"><caption>{label}</caption><tbody>{days.map(item => <tr key={item.day}><th scope="row">{shortDay(item.day)}</th><td>{format(item.value)}</td></tr>)}</tbody></table>
+      <div className="sr-only"><table><caption>{label}</caption><tbody>{days.map(item => <tr key={item.day}><th scope="row">{shortDay(item.day)}</th><td>{format(item.value)}</td></tr>)}</tbody></table></div>
     </figure>
   );
 }
