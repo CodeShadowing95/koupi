@@ -485,8 +485,12 @@ function Categories() {
       <Callout tone="why">Une catégorie « Vide » n’a aucun outil visible : un visiteur qui l’ouvre ne trouve rien. L’onglet <b>Vides sur le site</b> les liste. Remplis-les en priorité ou ne les mets pas en avant.</Callout>
       <p><b>Voir les outils</b> ouvre la liste des outils filtrée sur la catégorie, pour repérer ceux qui manquent de codes.</p>
     </Section>
-    <Section id="gerer" title="Créer et renommer">
-      <p><b>Nouvelle catégorie</b> en crée une ; <b>Renommer</b> change son nom partout. Garde des noms courts, au pluriel quand c’est naturel, compréhensibles par tout le monde (« Banques en ligne » plutôt que « Néobanques »).</p>
+    <Section id="familles" title="Les familles">
+      <p>Chaque catégorie appartient à une <b>famille</b> : Sécurité et vie privée, Vidéo, Argent et indépendants… Les familles sont le premier niveau du menu, les catégories le second. La carte d’une catégorie affiche sa famille, et le filtre <b>Toutes les familles</b> n’en montre qu’une. <b>Sans famille</b> liste les catégories qui ne sont pas encore rangées.</p>
+      <Callout tone="tip">Une catégorie répond à un besoin précis (« Gestionnaires de mots de passe »), la famille regroupe les besoins voisins. Un outil n’a qu’une catégorie.</Callout>
+    </Section>
+    <Section id="gerer" title="Créer, renommer et ranger">
+      <p><b>Nouvelle catégorie</b> en crée une ; <b>Modifier</b> change son nom partout et sa famille. Garde des noms courts, au pluriel quand c’est naturel, compréhensibles par tout le monde (« Banques en ligne » plutôt que « Néobanques »).</p>
       <Callout tone="tip">Moins de catégories bien remplies valent mieux que beaucoup de catégories vides.</Callout>
     </Section>
     <Section id="chercher" title="Chercher des codes pour une catégorie">

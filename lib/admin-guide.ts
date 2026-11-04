@@ -79,9 +79,9 @@ export const guideChapters: GuideChapter[] = [
     practice: { href: '/admin/createurs', label: 'Ouvrir les créateurs' },
   },
   {
-    slug: 'categories', part: 'catalog', title: 'Organiser les catégories', minutes: 5,
-    summary: 'Les rayons du site : créer, renommer, repérer les catégories vides et y chercher des codes.',
-    goals: ['Comprendre la couverture d’une catégorie', 'Créer ou renommer une catégorie', 'Trouver les rayons vides à remplir', 'Chercher des codes sur YouTube pour une catégorie'],
+    slug: 'categories', part: 'catalog', title: 'Organiser les catégories', minutes: 6,
+    summary: 'Les rayons du site : familles, création, renommage, catégories vides et recherche de codes.',
+    goals: ['Comprendre la couverture d’une catégorie', 'Ranger une catégorie dans sa famille', 'Créer ou renommer une catégorie', 'Trouver les rayons vides à remplir', 'Chercher des codes sur YouTube pour une catégorie'],
     practice: { href: '/admin/categories', label: 'Ouvrir les catégories' },
   },
   {

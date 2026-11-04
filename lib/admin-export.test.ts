@@ -47,10 +47,10 @@ describe('export helpers', () => {
   });
 
   it('renders CSV as text and Excel as a zip archive', () => {
-    const sheet = categoriesSheet([{ slug: 'vpn', name: 'VPN', tools: 4, covered: 3 }]);
+    const sheet = categoriesSheet([{ slug: 'vpn', name: 'VPN', familySlug: 'securite', family: 'Sécurité et vie privée', tools: 4, covered: 3 }]);
     const csv = renderExport(sheet, 'csv');
     expect(csv.contentType).toContain('text/csv');
-    expect(String(csv.body)).toContain('VPN;4;3;75');
+    expect(String(csv.body)).toContain('VPN;Sécurité et vie privée;4;3;75');
     const xlsx = renderExport(sheet, 'xlsx');
     expect(xlsx.contentType).toBe('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     expect(Array.from((xlsx.body as Uint8Array).slice(0, 4))).toEqual([0x50, 0x4B, 0x03, 0x04]);
@@ -74,6 +74,6 @@ describe('catalogue sheets', () => {
   });
 
   it('gives a 0 % coverage to an empty category', () => {
-    expect(categoriesSheet([{ slug: 'x', name: 'X', tools: 0, covered: 0 }]).rows[0][3]).toBe(0);
+    expect(categoriesSheet([{ slug: 'x', name: 'X', familySlug: null, family: null, tools: 0, covered: 0 }]).rows[0][4]).toBe(0);
   });
 });

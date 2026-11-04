@@ -66,8 +66,8 @@ export function creatorsSheet(creators: AdminCreator[]): ExportSheet {
 export function categoriesSheet(categories: AdminCategory[]): ExportSheet {
   return {
     name: 'Catégories',
-    headers: ['Catégorie', 'Outils', 'Outils avec un code visible', 'Couverture (%)'],
-    rows: categories.map(category => [category.name, category.tools, category.covered, category.tools ? Math.round((category.covered / category.tools) * 100) : 0]),
+    headers: ['Catégorie', 'Famille', 'Outils', 'Outils avec un code visible', 'Couverture (%)'],
+    rows: categories.map(category => [category.name, category.family ?? '', category.tools, category.covered, category.tools ? Math.round((category.covered / category.tools) * 100) : 0]),
   };
 }
 

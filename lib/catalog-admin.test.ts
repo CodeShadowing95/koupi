@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import { loadCatalog } from './catalog-db';
-import { createCategory, createTool, listCategoriesAdmin, listCreatorsAdmin, listToolsAdmin, parseToolInput, renameCategory, updateCreatorProfile, setToolArchived, updateTool } from './catalog-admin';
+import { createCategory, createTool, listCategoriesAdmin, listFamilies, listCreatorsAdmin, listToolsAdmin, parseToolInput, renameCategory, updateCreatorProfile, setToolArchived, updateTool } from './catalog-admin';
 import { createCode } from './codes-admin';
 import { parseCreatorBio } from './creator-bio';
 
@@ -92,9 +92,27 @@ describe('catalogue dans l’admin', () => {
     expect(await renameCategory(db, 'vpn', 'VPN et sécurité')).toMatchObject({ ok: true });
     expect(await renameCategory(db, 'ia', 'VPN et sécurité')).toMatchObject({ ok: false });
     expect((await listCategoriesAdmin(db)).sort((a, b) => a.slug.localeCompare(b.slug))).toEqual([
-      { slug: 'creation-et-design', name: 'Création et design', tools: 0, covered: 0 },
-      { slug: 'ia', name: 'IA', tools: 0, covered: 0 },
-      { slug: 'vpn', name: 'VPN et sécurité', tools: 1, covered: 1 },
+      { slug: 'creation-et-design', name: 'Création et design', familySlug: null, family: null, tools: 0, covered: 0 },
+      { slug: 'ia', name: 'IA', familySlug: null, family: null, tools: 0, covered: 0 },
+      { slug: 'vpn', name: 'VPN et sécurité', familySlug: null, family: null, tools: 1, covered: 1 },
     ]);
+  });
+
+  it('range une catégorie dans une famille, ou l’en sort', async () => {
+    const families = await listFamilies(db);
+    expect(families).toHaveLength(14);
+    expect(families[0]).toEqual({ slug: 'securite', name: 'Sécurité et vie privée', position: 1 });
+    expect(await createCategory(db, 'Gestionnaires de mots de passe', 'securite')).toMatchObject({ ok: true });
+    expect(await createCategory(db, 'Antivirus', 'inconnue')).toEqual({ ok: false, error: 'Cette famille n’existe pas.' });
+    expect(await renameCategory(db, 'vpn', 'VPN', 'securite')).toMatchObject({ ok: true });
+    expect(await renameCategory(db, 'ia', 'IA', '../x')).toEqual({ ok: false, error: 'Famille invalide.' });
+    const bySlug = async (slug: string) => (await listCategoriesAdmin(db)).find(category => category.slug === slug);
+    expect(await bySlug('vpn')).toMatchObject({ familySlug: 'securite', family: 'Sécurité et vie privée' });
+    expect(await bySlug('gestionnaires-de-mots-de-passe')).toMatchObject({ familySlug: 'securite' });
+    // Renommer sans donner de famille la garde ; une famille vide l'enlève.
+    await renameCategory(db, 'vpn', 'VPN et sécurité');
+    expect(await bySlug('vpn')).toMatchObject({ familySlug: 'securite' });
+    await renameCategory(db, 'vpn', 'VPN et sécurité', '');
+    expect(await bySlug('vpn')).toMatchObject({ familySlug: null, family: null });
   });
 });
