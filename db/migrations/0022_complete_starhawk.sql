@@ -1,0 +1,2 @@
+ALTER TABLE "creator_accounts" DROP CONSTRAINT "creator_accounts_claim_code_format";--> statement-breakpoint
+ALTER TABLE "creator_accounts" ADD CONSTRAINT "creator_accounts_claim_code_format" CHECK ("creator_accounts"."claim_code" is null or "creator_accounts"."claim_code" ~ '^(MERKOD|KOUPI)-[A-Z0-9]{6}$');

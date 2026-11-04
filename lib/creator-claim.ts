@@ -13,7 +13,7 @@ type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 
 export function newClaimCode(pick: (max: number) => number = randomInt): string {
-  let code = 'KOUPI-';
+  let code = 'MERKOD-';
   for (let i = 0; i < 6; i++) code += ALPHABET[pick(ALPHABET.length)];
   return code;
 }
