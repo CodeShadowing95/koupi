@@ -134,6 +134,13 @@
       "when": 1793771940056,
       "tag": "0018_category_reclassify",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793781407169,
+      "tag": "0019_wise_famine",
+      "breakpoints": true
     }
   ]
 }

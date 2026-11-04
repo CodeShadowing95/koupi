@@ -29,5 +29,6 @@ Chaque décision importante est notée ici dans un fichier numéroté. On ne sup
 | [0023](0023-outils-a-ajouter.md) | Outils à ajouter, depuis les codes lus dans les podcasts | Proposée |
 | [0024](0024-analyse-ia-des-outils.md) | Analyse par l’IA des outils à ajouter | Proposée |
 | [0025](0025-ia-sur-les-notes-des-podcasts.md) | Lecture des notes de podcast par l’IA | Proposée |
+| [0027](0027-images-en-base.md) | Photos des créateurs et logos des outils gardés en base | Acceptée |
 
 Modèle : copier [`template.md`](template.md).

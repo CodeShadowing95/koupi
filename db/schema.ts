@@ -443,3 +443,24 @@ export const adminAuditLog = pgTable('admin_audit_log', {
   check('admin_audit_log_action_len', sql`char_length(${table.action}) between 1 and 60`),
   check('admin_audit_log_target_len', sql`char_length(${table.target}) between 1 and 200`),
 ]);
+
+// Images récupérées par Koupi et servies depuis Koupi (ADR-0027) : la photo de profil d'un créateur
+// (sa chaîne YouTube) ou le logo d'un outil. Le navigateur des visiteurs ne contacte jamais Google ni le site de l'outil.
+// Une image par créateur ou par outil, en base64 (150 Ko au plus), remplacée quand l'admin l'actualise.
+export const STORED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'] as const;
+export const storedImages = pgTable('stored_images', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  creatorId: uuid('creator_id').references(() => creators.id, { onDelete: 'cascade' }),
+  toolId: uuid('tool_id').references(() => tools.id, { onDelete: 'cascade' }),
+  mime: text('mime', { enum: STORED_IMAGE_TYPES }).notNull(),
+  data: text('data').notNull(),
+  bytes: integer('bytes').notNull(),
+  /** D'où vient l'image (photo de la chaîne, icône du site), pour la retrouver. */
+  sourceUrl: text('source_url').notNull(),
+  fetchedAt: timestamp('fetched_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  uniqueIndex('stored_images_creator_unique').on(table.creatorId),
+  uniqueIndex('stored_images_tool_unique').on(table.toolId),
+  check('stored_images_one_owner', sql`(${table.creatorId} is null) <> (${table.toolId} is null)`),
+  check('stored_images_bytes', sql`${table.bytes} between 1 and 153600`),
+]);

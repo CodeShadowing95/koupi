@@ -17,6 +17,7 @@ import type { AdminCreatorAccount } from '@/lib/creator-accounts-display';
 import { CREATOR_LEVEL_LABELS, type CreatorLevel } from '@/lib/verification';
 import { CreatorAccountsPanel, LevelDot } from './creator-accounts-panel';
 import { LinkAccountsButton } from './link-accounts';
+import { FetchAvatarsButton, RefreshAvatarButton } from './avatars-button';
 
 type Creator = AdminCreator & { accounts: AdminCreatorAccount[]; level: CreatorLevel };
 const LEVEL_ORDER: Record<CreatorLevel, number> = { spotted: 0, checked: 1, verified: 2 };
@@ -40,7 +41,7 @@ const sortFields: SortField<Creator>[] = [
   { key: 'visible', label: 'Codes visibles', value: creator => creator.visible },
 ];
 
-export function CreatorsView({ creators, toLink, youtubeReady }: { creators: Creator[]; toLink: number; youtubeReady: boolean }) {
+export function CreatorsView({ creators, toLink, missingPhotos, youtubeReady }: { creators: Creator[]; toLink: number; missingPhotos: number; youtubeReady: boolean }) {
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
   // Les liens des autres pages ouvrent la liste déjà filtrée (?q=…).
@@ -69,7 +70,7 @@ export function CreatorsView({ creators, toLink, youtubeReady }: { creators: Cre
             <h1>Créateurs</h1>
             <p>Les personnes à qui appartiennent les codes. Un créateur est ajouté automatiquement avec son premier code ; ici, tu corriges son nom, tu relies ses comptes et tu le contrôles.</p>
           </div>
-          <div className="adm-head-actions"><LinkAccountsButton toLink={toLink} youtubeReady={youtubeReady} /><ExportMenu type="createurs" /></div>
+          <div className="adm-head-actions"><LinkAccountsButton toLink={toLink} youtubeReady={youtubeReady} /><FetchAvatarsButton missing={missingPhotos} youtubeReady={youtubeReady} /><ExportMenu type="createurs" /></div>
         </div>
         <div className="adm-tabs" role="group" aria-label="Filtre">
           {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label} <span className="adm-tab-n">{countOf(item.value)}</span></button>)}
@@ -124,6 +125,7 @@ export function CreatorsView({ creators, toLink, youtubeReady }: { creators: Cre
           aside={selected && (selected.visible > 0 ? <StatusDot tone="ok">Sur le site</StatusDot> : <StatusDot tone="muted">Masqué</StatusDot>)}
           actions={selected && <>
             <a className="adm-btn" href={`/admin/codes?q=${encodeURIComponent(selected.name)}`}>Voir ses codes</a>
+            <RefreshAvatarButton creatorId={selected.id} hasChannel={selected.accounts.some(account => account.platform === 'youtube' && Boolean(account.externalId))} youtubeReady={youtubeReady} />
             <span style={{ flex: 1 }} />
             <button type="button" className="adm-btn adm-btn-pri" onClick={() => open(selected)}>Modifier le profil</button>
           </>}>

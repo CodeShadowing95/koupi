@@ -8,6 +8,7 @@ import { loadCatalog } from './catalog-db';
 import { loadCreatorProfile, type CreatorProfile } from './creator-profile';
 import { loadCreatorFacts, type CreatorFacts } from './creator-directory';
 import type { Catalog } from './data';
+import { loadAvatarMap } from './stored-images';
 
 export const CATALOG_TAG = 'catalog';
 
@@ -33,6 +34,19 @@ const cachedCreatorFacts = unstable_cache(() => loadCreatorFacts(getDb()), ['cre
 export async function getCreatorFacts(): Promise<Record<string, CreatorFacts>> {
   await connection();
   return cachedCreatorFacts();
+}
+
+const cachedAvatarMap = unstable_cache(() => loadAvatarMap(getDb()), ['avatar-map-v1'], { tags: [CATALOG_TAG], revalidate: 3600 });
+
+/** Photos des créateurs gardées en base, par nom. Vide si la base ne répond pas : les avatars gardent leurs initiales. */
+export async function getAvatarMap(): Promise<Record<string, string>> {
+  try {
+    await connection();
+    return await cachedAvatarMap();
+  } catch (error) {
+    console.error('avatar map failed', error);
+    return {};
+  }
 }
 
 export function revalidateCatalog() {
