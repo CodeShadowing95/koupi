@@ -1,11 +1,12 @@
-// Chercher des codes pour les catégories vides (aucun outil avec un code visible sur le site).
+// Chercher des codes pour les catégories vides (aucun outil avec un code visible sur le site), ou pour une catégorie choisie.
 // Pour chaque outil de ces catégories, une recherche YouTube « <outil> code promo » donne des vidéos récentes ;
+// pour une catégorie choisie, une dernière recherche « <catégorie> code promo » repère aussi des outils absents du catalogue ;
 // leurs descriptions passent par le même repérage que les podcasts (et par l'IA quand elle est active).
 // Rien n'est publié : chaque code trouvé arrive « En attente » dans Vérifications, où l'admin décide.
 // Quota YouTube : une recherche coûte 100 unités sur 10 000 par jour, la lecture des descriptions 1 unité.
-import { sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
-import { aiUsage, toolSuggestions, tools } from '@/db/schema';
+import { aiUsage, categories, toolSuggestions, tools } from '@/db/schema';
 import { aiStatusOf, extractCodes } from './ai-extract';
 import { listToolsAdmin, type AdminTool } from './catalog-admin';
 import { resolveCreator } from './codes-admin';
@@ -55,19 +56,30 @@ export function youtubeSearch(apiKey: string | undefined, fetchFn: typeof fetch 
   };
 }
 
-/** Catégories vides sur le site et leurs outils à chercher : priorité 1 d'abord, puis ceux qui ont le moins de codes. */
+/**
+ * Outils à chercher. Sans catégorie : ceux des catégories vides sur le site, priorité 1 d'abord, puis ceux qui ont le moins de codes.
+ * Avec une catégorie (vide ou non) : tous ses outils, ceux qui ont le moins de codes d'abord.
+ */
 export function toolsToSearch(all: AdminTool[], options: { categorySlug?: string; max?: number } = {}): { tools: AdminTool[]; remaining: number } {
   const active = all.filter(tool => !tool.archived);
-  const covered = new Set(active.filter(tool => tool.visible > 0).map(tool => tool.categorySlug));
-  const candidates = active
-    .filter(tool => !covered.has(tool.categorySlug) && (!options.categorySlug || tool.categorySlug === options.categorySlug))
-    .sort((a, b) => a.priority - b.priority || a.codes - b.codes || a.name.localeCompare(b.name, 'fr'));
+  const byName = (a: AdminTool, b: AdminTool) => a.name.localeCompare(b.name, 'fr');
+  let candidates: AdminTool[];
+  if (options.categorySlug) {
+    candidates = active.filter(tool => tool.categorySlug === options.categorySlug)
+      .sort((a, b) => a.visible - b.visible || a.codes - b.codes || a.priority - b.priority || byName(a, b));
+  } else {
+    const covered = new Set(active.filter(tool => tool.visible > 0).map(tool => tool.categorySlug));
+    candidates = active.filter(tool => !covered.has(tool.categorySlug))
+      .sort((a, b) => a.priority - b.priority || a.codes - b.codes || byName(a, b));
+  }
   const max = options.max ?? MAX_TOOLS_PER_RUN;
   return { tools: candidates.slice(0, max), remaining: Math.max(0, candidates.length - max) };
 }
 
 export type CategorySearchReport = {
   tools: number;
+  /** Recherches YouTube lancées (une par outil, plus une sur le nom de la catégorie choisie). */
+  searches: number;
   /** Outils des catégories vides pas encore cherchés à ce lancement (plafond atteint). */
   remaining: number;
   videos: number;
@@ -79,12 +91,21 @@ export type CategorySearchReport = {
   failed: string[];
 };
 
-/** Cherche des codes pour les outils des catégories vides (ou d'une seule, avec categorySlug). */
+/** Cherche des codes pour les outils des catégories vides, ou pour une catégorie choisie (categorySlug). */
 export async function searchCategoryCodes(db: Db, youtube: YoutubeSearch, options: { categorySlug?: string; max?: number; deps?: RunDeps; now?: Date } = {}): Promise<CategorySearchReport> {
   const now = options.now ?? new Date();
   const { tools: targets, remaining } = toolsToSearch(await listToolsAdmin(db), options);
-  const report: CategorySearchReport = { tools: targets.length, remaining, videos: 0, found: [], suggested: [], units: 0, aiRead: 0, failed: [] };
-  if (targets.length === 0) return report;
+  const queries = targets.map(tool => ({ label: tool.name, query: `${tool.name} code promo` }));
+  let origin = 'Recherche des catégories vides';
+  if (options.categorySlug) {
+    const [category] = await db.select({ name: categories.name }).from(categories).where(eq(categories.slug, options.categorySlug)).limit(1);
+    if (category) {
+      origin = `Recherche ciblée ${category.name}`;
+      queries.push({ label: category.name, query: `${category.name} code promo` });
+    }
+  }
+  const report: CategorySearchReport = { tools: targets.length, searches: 0, remaining, videos: 0, found: [], suggested: [], units: 0, aiRead: 0, failed: [] };
+  if (queries.length === 0) return report;
   const catalog = (await db.select({ id: tools.id, name: tools.name, website: tools.website }).from(tools).where(sql`${tools.archivedAt} is null`))
     .map(tool => ({ id: tool.id, name: tool.name, domain: domainOf(tool.website) }));
   const toolName = new Map(catalog.map(tool => [tool.id, tool.name]));
@@ -105,18 +126,19 @@ export async function searchCategoryCodes(db: Db, youtube: YoutubeSearch, option
     }
   }
 
-  for (const tool of targets) {
+  for (const { label, query } of queries) {
     let videos: FoundVideo[];
     try {
-      const ids = await youtube.search(`${tool.name} code promo`, { max: VIDEOS_PER_TOOL, publishedAfter: new Date(now.getTime() - SEARCH_DAYS * DAY) });
+      const ids = await youtube.search(query, { max: VIDEOS_PER_TOOL, publishedAfter: new Date(now.getTime() - SEARCH_DAYS * DAY) });
+      report.searches++;
       report.units += SEARCH_UNITS;
       const fresh = ids.filter(id => !seenVideos.has(id));
       fresh.forEach(id => seenVideos.add(id));
       videos = await youtube.videos(fresh);
       if (fresh.length) report.units += 1;
     } catch (error) {
-      console.error('category search failed', tool.name, error);
-      report.failed.push(tool.name);
+      console.error('category search failed', label, error);
+      report.failed.push(label);
       // Quota épuisé ou clé refusée : les recherches suivantes échoueraient aussi.
       if (String(error).includes(' 403')) break;
       continue;
@@ -130,8 +152,8 @@ export async function searchCategoryCodes(db: Db, youtube: YoutubeSearch, option
       for (const found of scan.found) {
         const codeId = await addPendingCode(db, {
           toolId: found.toolId, creatorId, code: found.code, discount: found.discount, sourceUrl, sourceTitle: video.title,
-          note: `Trouvé par la recherche des catégories vides (${tool.name}) : « ${found.evidence} »`, expiresOn: found.expiresOn,
-        }, `Recherche des catégories vides : ${tool.name}`);
+          note: `Trouvé par la recherche « ${query} » : « ${found.evidence} »`, expiresOn: found.expiresOn,
+        }, `${origin} : ${label}`);
         if (!codeId) continue;
         report.found.push({ tool: toolName.get(found.toolId) ?? '', code: found.code, creator: video.channelTitle });
         if (options.deps) await runVerification(db, codeId, options.deps).catch(error => console.error('category search verification failed', error));

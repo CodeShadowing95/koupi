@@ -25,7 +25,9 @@ describe('toolsToSearch', () => {
   });
   it('se limite à une catégorie et compte ce qui reste au-delà du plafond', () => {
     expect(toolsToSearch(all, { categorySlug: 'productivite', max: 2 })).toMatchObject({ tools: [{ name: 'Todoist' }, { name: 'Notion' }], remaining: 1 });
-    expect(toolsToSearch(all, { categorySlug: 'vpn' }).tools).toEqual([]);
+  });
+  it('cherche aussi une catégorie déjà couverte quand on la choisit, les outils sans code d’abord', () => {
+    expect(toolsToSearch(all, { categorySlug: 'vpn' }).tools.map(item => item.name)).toEqual(['Surfshark', 'NordVPN']);
   });
 });
 
@@ -68,7 +70,7 @@ describe('searchCategoryCodes', () => {
       ],
     });
     const report = await searchCategoryCodes(db, youtube, { now });
-    expect(report).toMatchObject({ tools: 2, remaining: 0, videos: 2, units: 201, found: [{ tool: 'Notion', code: 'SETUP50', creator: 'Tuto Prod' }], suggested: [{ tool: 'gradium.ai', code: 'GRAD10' }], failed: [] });
+    expect(report).toMatchObject({ tools: 2, searches: 2, remaining: 0, videos: 2, units: 201, found: [{ tool: 'Notion', code: 'SETUP50', creator: 'Tuto Prod' }], suggested: [{ tool: 'gradium.ai', code: 'GRAD10' }], failed: [] });
     const [code] = await db.select().from(schema.codes);
     expect(code).toMatchObject({ code: 'SETUP50', discount: '-50 %', status: 'pending', sourceUrl: 'https://www.youtube.com/watch?v=v1', sourceTitle: 'Mon setup' });
     const [creator] = await db.select().from(schema.creators);
@@ -82,11 +84,13 @@ describe('searchCategoryCodes', () => {
     expect(await db.select().from(schema.codes)).toHaveLength(1);
   });
 
-  it('ne cherche que la catégorie demandée', async () => {
-    const youtube = fake({});
+  it('cherche une catégorie choisie : ses outils puis son nom, pour trouver des outils absents du catalogue', async () => {
+    const youtube = fake({ 'VPN code promo': [{ id: 'v9', title: 'Top VPN', description: 'Mullvad : mullvad.net code MULL20\nNordVPN code NORD70', channelTitle: 'Geek' }] });
     const report = await searchCategoryCodes(db, youtube, { categorySlug: 'vpn', now });
-    expect(report.tools).toBe(1);
-    expect(youtube.search).toHaveBeenCalledWith('NordVPN code promo', expect.objectContaining({ max: 8 }));
+    expect(report).toMatchObject({ tools: 1, searches: 2, units: 201, found: [{ tool: 'NordVPN', code: 'NORD70' }], suggested: [{ tool: 'mullvad.net', code: 'MULL20' }] });
+    expect(vi.mocked(youtube.search).mock.calls.map(call => call[0])).toEqual(['NordVPN code promo', 'VPN code promo']);
+    const [log] = await db.select().from(schema.codeLogs);
+    expect(log.note).toBe('Recherche ciblée VPN : VPN');
   });
 
   it('s’arrête au premier refus de YouTube (quota épuisé)', async () => {
