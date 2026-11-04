@@ -40,8 +40,9 @@ const cachedAvatarMap = unstable_cache(() => loadAvatarMap(getDb()), ['avatar-ma
 
 /** Photos des créateurs gardées en base, par nom. Vide si la base ne répond pas : les avatars gardent leurs initiales. */
 export async function getAvatarMap(): Promise<Record<string, string>> {
+  // Hors du try : connection() interrompt volontairement le rendu statique, l'attraper figerait une page sans photos.
+  await connection();
   try {
-    await connection();
     return await cachedAvatarMap();
   } catch (error) {
     console.error('avatar map failed', error);
