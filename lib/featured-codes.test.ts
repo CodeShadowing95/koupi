@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Code } from './data';
-import { featuredPool, pageOf, shuffled } from './featured-codes';
+import { featuredPool, shuffled } from './featured-codes';
 
 const code = (id: string, tool: string, status: Code['status'] = 'pending', success = 0): Code =>
   ({ id, tool, status, success, votes: 0 } as unknown as Code);
@@ -30,20 +30,3 @@ describe('shuffled', () => {
   });
 });
 
-describe('pageOf', () => {
-  const order = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-
-  it('walks the pool page by page and wraps around', () => {
-    expect(pageOf(order, 0, 3)).toEqual(['a', 'b', 'c']);
-    expect(pageOf(order, 1, 3)).toEqual(['d', 'e', 'f']);
-    expect(pageOf(order, 2, 3)).toEqual(['g', 'h', 'a']);
-  });
-
-  it('never repeats a code on the same page', () => {
-    for (let page = 0; page < 10; page++) expect(new Set(pageOf(order, page, 6)).size).toBe(6);
-  });
-
-  it('shows everything when the pool is small', () => {
-    expect(pageOf(['a', 'b'], 3, 6)).toEqual(['a', 'b']);
-  });
-});

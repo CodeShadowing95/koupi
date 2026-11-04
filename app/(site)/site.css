@@ -813,10 +813,6 @@ button.k-coupon-stub{transition:transform .3s cubic-bezier(.2,.9,.3,1.3),backgro
 /* Date de fin d'un code, quand elle est loin : discrète, sans couleur d'alerte. */
 .k-status-plain{background:transparent;color:inherit;border:1.5px solid currentColor;opacity:.75}
 
-/* Accueil : « Voir d'autres codes » fait tourner les Codes du moment. */
-.k-featured-more{display:flex;justify-content:center;margin-top:28px}
-.k-featured-more .k-btn{gap:8px}
-.k-featured-more .k-btn:disabled{opacity:.6;cursor:default}
 /* Accueil : le bouton « Voir plus de codes » est un coupon incliné, festonné sur les côtés, avec son talon. */
 .k-more{display:flex;flex-direction:column;align-items:center;margin-top:64px}
 .k-more-ticket{position:relative;z-index:1;display:block;width:min(100%,440px);border-radius:var(--r-lg);outline:none}
