@@ -155,6 +155,13 @@
       "when": 1793786813124,
       "tag": "0021_easy_harpoon",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1793805116601,
+      "tag": "0022_complete_starhawk",
+      "breakpoints": true
     }
   ]
 }

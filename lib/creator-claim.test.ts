@@ -14,21 +14,21 @@ const now = new Date('2026-11-03T10:00:00Z');
 const later = (days: number) => new Date(now.getTime() + days * 86_400_000);
 
 describe('code de preuve', () => {
-  it('a la forme KOUPI-XXXXXX sans caractères ambigus', () => {
-    for (let i = 0; i < 50; i++) expect(newClaimCode()).toMatch(/^KOUPI-[A-HJKMNP-Z2-9]{6}$/);
-    expect(newClaimCode(() => 0)).toBe('KOUPI-AAAAAA');
+  it('a la forme MERKOD-XXXXXX sans caractères ambigus', () => {
+    for (let i = 0; i < 50; i++) expect(newClaimCode()).toMatch(/^MERKOD-[A-HJKMNP-Z2-9]{6}$/);
+    expect(newClaimCode(() => 0)).toBe('MERKOD-AAAAAA');
   });
   it('se retrouve dans une bio malgré les majuscules et les espaces', () => {
-    expect(bioContainsCode('Tech et IA. koupi - ab3cd7 ✨', 'KOUPI-AB3CD7')).toBe(true);
-    expect(bioContainsCode('Tech et IA. KOUPI-AB3CD8', 'KOUPI-AB3CD7')).toBe(false);
+    expect(bioContainsCode('Tech et IA. merkod - ab3cd7 ✨', 'MERKOD-AB3CD7')).toBe(true);
+    expect(bioContainsCode('Tech et IA. MERKOD-AB3CD8', 'MERKOD-AB3CD7')).toBe(false);
   });
   it('expire après 14 jours', () => {
     expect(claimCodeExpired(now, later(14))).toBe(false);
     expect(claimCodeExpired(now, later(15))).toBe(true);
   });
   it('donne un message prêt à envoyer', () => {
-    const message = claimMessage('KOUPI-AB3CD7', 'youtube', '@ana');
-    expect(message).toContain('KOUPI-AB3CD7');
+    const message = claimMessage('MERKOD-AB3CD7', 'youtube', '@ana');
+    expect(message).toContain('MERKOD-AB3CD7');
     expect(message).toContain('YouTube @ana');
   });
 });
@@ -40,9 +40,9 @@ describe('youtubeDescriptionReader', () => {
   it('rend la description, ou null si la chaîne n’existe plus', async () => {
     const fetchFn = vi.fn(async (url: string) => {
       expect(url).toContain(`id=${CHANNEL_ID}`);
-      return new Response(JSON.stringify({ items: [{ snippet: { description: 'Bio KOUPI-AB3CD7' } }] }));
+      return new Response(JSON.stringify({ items: [{ snippet: { description: 'Bio MERKOD-AB3CD7' } }] }));
     });
-    expect(await youtubeDescriptionReader('k', fetchFn as unknown as typeof fetch)!(CHANNEL_ID)).toBe('Bio KOUPI-AB3CD7');
+    expect(await youtubeDescriptionReader('k', fetchFn as unknown as typeof fetch)!(CHANNEL_ID)).toBe('Bio MERKOD-AB3CD7');
     const none = vi.fn(async () => new Response(JSON.stringify({ items: [] })));
     expect(await youtubeDescriptionReader('k', none as unknown as typeof fetch)!(CHANNEL_ID)).toBeNull();
   });
@@ -53,7 +53,7 @@ describe('preuve par la bio', () => {
   let creatorId: string;
   let youtube: string;
   let tiktok: string;
-  const code = () => 'KOUPI-AB3CD7';
+  const code = () => 'MERKOD-AB3CD7';
   const bio = (text: string | null) => async () => text;
 
   beforeEach(async () => {
@@ -70,20 +70,20 @@ describe('preuve par la bio', () => {
   const row = async (id: string) => (await db.select().from(schema.creatorAccounts).where(eq(schema.creatorAccounts.id, id)))[0];
 
   it('donne un code puis vérifie la bio YouTube : le créateur devient vérifié', async () => {
-    expect(await runClaimAction(db, youtube, 'start', { readDescription: null, now, newCode: code })).toEqual({ ok: true, data: { status: 'pending', code: 'KOUPI-AB3CD7' } });
-    expect(await row(youtube)).toMatchObject({ claimStatus: 'pending', claimMethod: 'bio_code', claimCode: 'KOUPI-AB3CD7' });
+    expect(await runClaimAction(db, youtube, 'start', { readDescription: null, now, newCode: code })).toEqual({ ok: true, data: { status: 'pending', code: 'MERKOD-AB3CD7' } });
+    expect(await row(youtube)).toMatchObject({ claimStatus: 'pending', claimMethod: 'bio_code', claimCode: 'MERKOD-AB3CD7' });
 
-    expect(await runClaimAction(db, youtube, 'check', { readDescription: bio('Pas encore'), now: later(1) })).toEqual({ ok: true, data: { status: 'pending', code: 'KOUPI-AB3CD7', found: false } });
+    expect(await runClaimAction(db, youtube, 'check', { readDescription: bio('Pas encore'), now: later(1) })).toEqual({ ok: true, data: { status: 'pending', code: 'MERKOD-AB3CD7', found: false } });
     expect(await creatorLevelFor(db, creatorId)).toBe('spotted');
 
-    expect(await runClaimAction(db, youtube, 'check', { readDescription: bio('Tech. KOUPI-AB3CD7'), now: later(2) })).toEqual({ ok: true, data: { status: 'verified', code: null, found: true } });
+    expect(await runClaimAction(db, youtube, 'check', { readDescription: bio('Tech. MERKOD-AB3CD7'), now: later(2) })).toEqual({ ok: true, data: { status: 'verified', code: null, found: true } });
     expect(await row(youtube)).toMatchObject({ claimStatus: 'verified', claimCode: null, claimCodeAt: null, claimedAt: later(2) });
     expect(await creatorLevelFor(db, creatorId)).toBe('verified');
   });
 
   it('refuse un code expiré ou une chaîne disparue', async () => {
     await runClaimAction(db, youtube, 'start', { readDescription: null, now, newCode: code });
-    expect(await runClaimAction(db, youtube, 'check', { readDescription: bio('KOUPI-AB3CD7'), now: later(15) })).toEqual({ ok: false, error: expect.stringContaining('nouveau code') });
+    expect(await runClaimAction(db, youtube, 'check', { readDescription: bio('MERKOD-AB3CD7'), now: later(15) })).toEqual({ ok: false, error: expect.stringContaining('nouveau code') });
     expect(await runClaimAction(db, youtube, 'check', { readDescription: bio(null), now: later(1) })).toEqual({ ok: false, error: 'Cette chaîne n’existe plus sur YouTube.' });
     expect(await runClaimAction(db, youtube, 'check', { readDescription: null, now: later(1) })).toEqual({ ok: false, error: expect.stringContaining('YOUTUBE_API_KEY') });
   });
@@ -117,13 +117,19 @@ describe('preuve par la bio', () => {
 
     await runClaimAction(db, youtube, 'start', { readDescription: null, now, newCode: code });
     await db.update(schema.creatorAccounts).set({ adminCheckedAt: null }).where(eq(schema.creatorAccounts.id, youtube));
-    expect(await runClaimAction(db, youtube, 'check', { readDescription: bio('KOUPI-AB3CD7'), now })).toEqual({ ok: false, error: expect.stringContaining('Contrôle d’abord ce compte') });
+    expect(await runClaimAction(db, youtube, 'check', { readDescription: bio('MERKOD-AB3CD7'), now })).toEqual({ ok: false, error: expect.stringContaining('Contrôle d’abord ce compte') });
     expect(await runClaimAction(db, youtube, 'confirm', { readDescription: null, now })).toEqual({ ok: false, error: expect.stringContaining('Contrôle d’abord ce compte') });
     expect(await creatorLevelFor(db, creatorId)).toBe('spotted');
   });
 
   it('la base refuse un code mal formé ou sans preuve en cours', async () => {
     await expect(db.update(schema.creatorAccounts).set({ claimStatus: 'pending', claimCode: 'abc', claimCodeAt: now }).where(eq(schema.creatorAccounts.id, youtube))).rejects.toThrow();
-    await expect(db.update(schema.creatorAccounts).set({ claimStatus: 'none', claimCode: 'KOUPI-AB3CD7', claimCodeAt: now }).where(eq(schema.creatorAccounts.id, youtube))).rejects.toThrow();
+    await expect(db.update(schema.creatorAccounts).set({ claimStatus: 'none', claimCode: 'MERKOD-AB3CD7', claimCodeAt: now }).where(eq(schema.creatorAccounts.id, youtube))).rejects.toThrow();
+  });
+
+  it('garde valables les codes KOUPI- donnés avant le changement de nom', async () => {
+    await db.update(schema.creatorAccounts).set({ claimStatus: 'pending', claimMethod: 'bio_code', claimCode: 'KOUPI-AB3CD7', claimCodeAt: now }).where(eq(schema.creatorAccounts.id, youtube));
+    expect(await runClaimAction(db, youtube, 'check', { readDescription: bio('Tech. koupi-ab3cd7'), now: later(1) })).toEqual({ ok: true, data: { status: 'verified', code: null, found: true } });
+    await expect(db.update(schema.creatorAccounts).set({ claimStatus: 'pending', claimCode: 'COUPI-AB3CD7', claimCodeAt: now }).where(eq(schema.creatorAccounts.id, tiktok))).rejects.toThrow();
   });
 });

@@ -449,7 +449,7 @@ function Createurs() {
       <p>Seul le vrai propriétaire d’un compte peut modifier sa bio. C’est la preuve la plus simple : tu donnes un code au créateur, il l’ajoute à la bio du compte, et Merkod le retrouve. Le créateur passe alors <b>Créateur vérifié</b>, et ce compte porte une coche bleue sur sa page.</p>
       <Steps>
         <Step title="Contrôle le compte d’abord">Coche <b>J’ai contrôlé ce compte</b> après avoir vérifié que c’est la vraie chaîne du créateur. Sans ce contrôle, Merkod refuse de donner un code.</Step>
-        <Step title="Donne un code">Dans le panneau du créateur, sous le compte, <b>Donner un code</b>. Merkod crée un code du type KOUPI-7F3K2Q, valable 14 jours.</Step>
+        <Step title="Donne un code">Dans le panneau du créateur, sous le compte, <b>Donner un code</b>. Merkod crée un code du type MERKOD-7F3K2Q, valable 14 jours.</Step>
         <Step title="Envoie-le">« Copier le message » prépare un e-mail prêt à envoyer, avec le code et la marche à suivre. Envoie-le à l’adresse laissée dans sa demande.</Step>
         <Step title="Retrouve le code">YouTube : <b>Lire la bio</b> lit la description de la chaîne (1 unité de quota). Si le code y est, c’est fait. Autres réseaux : ouvre le profil toi-même et clique <b>J’ai vu le code dans la bio</b>.</Step>
       </Steps>
