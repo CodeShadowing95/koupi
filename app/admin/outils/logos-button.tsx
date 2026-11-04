@@ -1,5 +1,5 @@
 'use client';
-// Logos des outils enregistrés dans Koupi (ADR-0027) : Logo.dev si sa clé est définie, sinon l'icône du site de la marque.
+// Logos des outils enregistrés dans Merkod (ADR-0027) : Logo.dev si sa clé est définie, sinon l'icône du site de la marque.
 // « Récupérer les logos » : ceux qui manquent, par lots de 20 enchaînés. « Actualiser le logo » : un outil qui a changé de logo.
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';

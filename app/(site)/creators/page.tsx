@@ -8,7 +8,7 @@ import { PageHead } from '@/components/site/page-head';
 import { VoteInvite } from '@/components/site/vote-invite';
 
 export const metadata: Metadata = {
-  title: 'Les créateurs · Koupi',
+  title: 'Les créateurs · Merkod',
   description: 'Les créateurs YouTube, TikTok, Instagram et podcasts qui donnent des codes promo pour des outils en ligne, avec la source de chaque code.',
   alternates: { canonical: routes.creators() },
 };

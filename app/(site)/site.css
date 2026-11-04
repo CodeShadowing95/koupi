@@ -1,5 +1,5 @@
-/* Koupi · site public, direction « Comptoir de nuit »
-   Fond encre bleu nuit, lueurs bleu Koupi et corail, coupons en papier crème perforé.
+/* Merkod · site public, direction « Comptoir de nuit »
+   Fond encre bleu nuit, lueurs bleu Merkod et corail, coupons en papier crème perforé.
    Toutes les classes sont préfixées k- et rangées sous .kp pour ne jamais toucher au back-office. */
 .kp{
   --bg:#07081A;
@@ -644,7 +644,7 @@ button.k-coupon-stub{transition:transform .3s cubic-bezier(.2,.9,.3,1.3),backgro
   .kp *,.kp *::before,.kp *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
 
-/* Logos des outils et sceau Koupi (ADR-0007) */
+/* Logos des outils et sceau Merkod (ADR-0007) */
 .k-tool-logo.is-real{background:#fff;overflow:hidden}
 .k-tool-logo.is-real img{display:block;width:58%;height:58%;object-fit:contain}
 .k-tool-logo.is-image img{width:100%;height:100%;object-fit:cover}
@@ -938,8 +938,8 @@ button.k-coupon-stub{transition:transform .3s cubic-bezier(.2,.9,.3,1.3),backgro
 @media (max-width:1180px){:is(.k-board-list,.k-pass-grid){grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:600px){:is(.k-board-list,.k-pass-grid){grid-template-columns:minmax(0,1fr)}}
 @media (prefers-reduced-motion:reduce){.k-pass-stub{transition:none}}
-/* Marque d'un créateur contrôlé par Koupi : coche à côté du nom, ou pastille sur sa page */
-/* Marque d'un créateur : rosette bleue (forme distincte de la pastille ronde des codes). Pleine = créateur vérifié, claire = contrôlé par Koupi. */
+/* Marque d'un créateur contrôlé par Merkod : coche à côté du nom, ou pastille sur sa page */
+/* Marque d'un créateur : rosette bleue (forme distincte de la pastille ronde des codes). Pleine = créateur vérifié, claire = contrôlé par Merkod. */
 .k-creator-check{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;margin-left:6px;vertical-align:-3px;flex:none}
 .k-creator-check svg{width:100%;height:100%;display:block}
 .k-creator-check .k-rosette-shape{fill:#C9D1FF}

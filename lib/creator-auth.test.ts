@@ -63,7 +63,7 @@ describe('connexion des créateurs', () => {
     expect(await createSignInLink(db, { email: 'ana@exemple.fr', slug: 'inconnu' }, context)).toEqual({ ok: false, error: 'Créateur inconnu.' });
   });
 
-  it('connecte une seule fois, avant 20 minutes, et crée le compte Koupi', async () => {
+  it('connecte une seule fois, avant 20 minutes, et crée le compte Merkod', async () => {
     await createSignInLink(db, { email: 'ana@exemple.fr', slug: 'ana' }, context);
     const first = await consumeSignInToken(db, TOKEN, minutes(5));
     expect(first).toMatchObject({ ok: true, data: { slug: 'ana' } });

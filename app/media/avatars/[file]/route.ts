@@ -1,7 +1,7 @@
 import { getDb } from '@/db';
 import { loadCreatorImage } from '@/lib/stored-images';
 
-// Photo d'un créateur gardée en base (ADR-0027), servie par Koupi : /media/avatars/<slug>.<ext>?v=<date>.
+// Photo d'un créateur gardée en base (ADR-0027), servie par Merkod : /media/avatars/<slug>.<ext>?v=<date>.
 // L'adresse change à chaque actualisation, le navigateur peut donc la garder longtemps.
 export async function GET(_request: Request, { params }: { params: Promise<{ file: string }> }) {
   const { file } = await params;

@@ -246,7 +246,7 @@ export const CLAIM_STATUSES = ['none', 'pending', 'verified', 'revoked'] as cons
 export const CLAIM_METHODS = ['oauth', 'bio_code', 'dm', 'manual'] as const;
 
 // Comptes d'un créateur sur les réseaux (voir ADR-0016). Un compte n'appartient qu'à un créateur.
-// Le niveau du créateur (Repéré, Contrôlé par Koupi, Créateur vérifié) se déduit de ses comptes.
+// Le niveau du créateur (Repéré, Contrôlé par Merkod, Créateur vérifié) se déduit de ses comptes.
 export const creatorAccounts = pgTable('creator_accounts', {
   id: uuid('id').primaryKey().defaultRandom(),
   creatorId: uuid('creator_id').notNull().references(() => creators.id, { onDelete: 'cascade' }),
@@ -340,7 +340,7 @@ export const aiUsage = pgTable('ai_usage', {
   check('ai_usage_purpose_len', sql`char_length(${table.purpose}) between 1 and 40`),
 ]);
 
-// Consommation des API externes (YouTube, plus tard Spotify…), comptée par Koupi lui-même : YouTube ne donne pas
+// Consommation des API externes (YouTube, plus tard Spotify…), comptée par Merkod lui-même : YouTube ne donne pas
 // le quota utilisé. Une ligne par service et par jour de quota du service (minuit heure du Pacifique pour YouTube).
 export const apiUsage = pgTable('api_usage', {
   /** Service appelé : 'youtube'. */
@@ -402,7 +402,7 @@ export const creatorRequests = pgTable('creator_requests', {
 
 export type CreatorRequestRow = typeof creatorRequests.$inferSelect;
 
-// Comptes Koupi des créateurs (ADR-0021) : on se connecte par un lien reçu par e-mail, sans mot de passe.
+// Comptes Merkod des créateurs (ADR-0021) : on se connecte par un lien reçu par e-mail, sans mot de passe.
 // creatorId reste vide tant que l'admin n'a pas donné l'accès à une page (après la preuve par la bio).
 export const creatorUsers = pgTable('creator_users', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -461,7 +461,7 @@ export const adminAuditLog = pgTable('admin_audit_log', {
   check('admin_audit_log_target_len', sql`char_length(${table.target}) between 1 and 200`),
 ]);
 
-// Images récupérées par Koupi et servies depuis Koupi (ADR-0027) : la photo de profil d'un créateur
+// Images récupérées par Merkod et servies depuis Merkod (ADR-0027) : la photo de profil d'un créateur
 // (sa chaîne YouTube) ou le logo d'un outil. Le navigateur des visiteurs ne contacte jamais Google ni le site de l'outil.
 // Une image par créateur ou par outil, en base64 (150 Ko au plus), remplacée quand l'admin l'actualise.
 export const STORED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'] as const;

@@ -16,7 +16,7 @@ import { VoteInvite } from '@/components/site/vote-invite';
 /** Coupons montrés dans les résultats ; au-delà, un lien vers la page Codes filtrée. */
 const CODES_SHOWN = 6;
 
-export const metadata = { title: 'Recherche · Koupi', robots: { index: false, follow: true } };
+export const metadata = { title: 'Recherche · Merkod', robots: { index: false, follow: true } };
 
 export default async function SearchResults({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q } = await searchParams;

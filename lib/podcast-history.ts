@@ -1,4 +1,4 @@
-// Historique d'un podcast suivi : ses derniers épisodes dans Apple Podcasts, lesquels Koupi a déjà lus,
+// Historique d'un podcast suivi : ses derniers épisodes dans Apple Podcasts, lesquels Merkod a déjà lus,
 // et les codes (ou outils à ajouter) trouvés dans chacun. Rien n'est enregistré : tout est recalculé à l'ouverture.
 import { and, eq, sql } from 'drizzle-orm';
 import type { Db } from '@/db';

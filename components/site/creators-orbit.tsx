@@ -68,7 +68,7 @@ export function CreatorsOrbit({ creators, total }: { creators: OrbitCreator[]; t
             ))}
           </div>
           <div className="k-orbit-core">
-            <span className="k-orbit-brand">KOUPI</span>
+            <span className="k-orbit-brand">MERKOD</span>
             <strong>{total}</strong>
             <span>{total > 1 ? 'créateurs crédités' : 'créateur crédité'}</span>
           </div>

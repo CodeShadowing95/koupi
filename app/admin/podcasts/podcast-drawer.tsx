@@ -1,5 +1,5 @@
 'use client';
-// Détail d'un podcast suivi : ses derniers épisodes, lesquels Koupi a lus, et ce qui a été trouvé dans chacun.
+// Détail d'un podcast suivi : ses derniers épisodes, lesquels Merkod a lus, et ce qui a été trouvé dans chacun.
 import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { AdminDrawer, DetailList } from '@/components/admin-drawer';
@@ -83,7 +83,7 @@ export function PodcastDrawer({ podcast, image, onClose, onShowTools, state, act
             </ol>
           ))}
           {history && history.olderCodes > 0 && <p className="muted">Et {history.olderCodes} code{history.olderCodes > 1 ? 's' : ''} venant d’épisodes plus anciens.</p>}
-          {history && <p className="muted adm-pod-history-note">« Lu » : Koupi a lu ses notes. Les épisodes trop anciens au moment du suivi, ou sortis depuis la dernière lecture, ne le sont pas.</p>}
+          {history && <p className="muted adm-pod-history-note">« Lu » : Merkod a lu ses notes. Les épisodes trop anciens au moment du suivi, ou sortis depuis la dernière lecture, ne le sont pas.</p>}
         </section>
       </>}
     </AdminDrawer>

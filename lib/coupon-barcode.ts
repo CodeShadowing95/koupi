@@ -24,7 +24,7 @@ export type Bar = { x: number; width: number };
  * dont la largeur (1 à 3) vient des bits du caractère. Renvoie aussi la largeur totale.
  */
 export function barcodeBars(code: string): { bars: Bar[]; width: number } {
-  const clean = code.trim().toUpperCase().slice(0, 24) || 'KOUPI';
+  const clean = code.trim().toUpperCase().slice(0, 24) || 'MERKOD';
   const widths: number[] = [1, 1, 1];
   for (const char of clean) {
     const bits = hashText(char + clean.length);

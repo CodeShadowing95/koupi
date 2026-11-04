@@ -6,7 +6,7 @@ import { CodesBoard } from '@/components/site/codes-board';
 import { VoteInvite } from '@/components/site/vote-invite';
 
 export const metadata: Metadata = {
-  title: 'Tous les codes promo · Koupi',
+  title: 'Tous les codes promo · Merkod',
   description: 'Tous les codes promo donnés par les créateurs, vérifiés et reliés à leur source. Filtre par catégorie, outil, créateur, type d’offre ou date de fin.',
 };
 

@@ -156,7 +156,7 @@ export function PodcastsView({ podcasts, images, starters, suggestions, categori
           <div>
             <span className="eyebrow">Modération</span>
             <h1>Podcasts suivis</h1>
-            <p>Les podcasts dont Koupi lit les nouveaux épisodes pour trouver des codes promo. Chaque code trouvé arrive dans Vérifications, où tu décides. Suivre un podcast crée aussi son créateur.</p>
+            <p>Les podcasts dont Merkod lit les nouveaux épisodes pour trouver des codes promo. Chaque code trouvé arrive dans Vérifications, où tu décides. Suivre un podcast crée aussi son créateur.</p>
           </div>
           <div className="adm-head-actions">
             <button type="button" className="adm-btn adm-btn-pri" disabled={busy !== null || !podcasts.some(podcast => podcast.active)} onClick={() => read()}>{busy === 'read-all' ? 'Lecture des épisodes…' : 'Lire les épisodes maintenant'}</button>

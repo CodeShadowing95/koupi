@@ -22,7 +22,7 @@ const SearchIcon = () => (
 export function HowItWorks({ example }: { example?: HowItWorksExample }) {
   const root = useRef<HTMLElement>(null);
   const tool = example?.tool ?? 'NordVPN';
-  const code = example?.code ?? 'KOUPI';
+  const code = example?.code ?? 'MERKOD';
   const discount = example?.discount ?? '−20 %';
 
   useGSAP(() => {

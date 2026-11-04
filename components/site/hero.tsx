@@ -196,7 +196,7 @@ export function Hero({ codes, tools }: { codes: Code[]; tools: Tool[] }) {
             <span className="k-line"><span><span className="k-rotator" aria-hidden="true">{rotating.map(word => <span key={word}>{word}</span>)}</span><span className="k-sr">ton outil</span>,</span></span>
             <span className="k-line"><span>prends le code.</span></span>
           </h1>
-          <p className="k-hero-copy" data-hero-fade>Koupi retrouve le code promo que <strong>ton créateur préféré</strong> a donné en vidéo. Vérifié à la main, crédité au créateur. Pas de compte, pas de pub.</p>
+          <p className="k-hero-copy" data-hero-fade>Merkod retrouve le code promo que <strong>ton créateur préféré</strong> a donné en vidéo. Vérifié à la main, crédité au créateur. Pas de compte, pas de pub.</p>
           <div className="k-hero-search" data-hero-fade><SearchDialog tools={tools} /></div>
           <div className="k-trust" data-hero-fade>
             <span><Check />Le code reste celui du créateur</span>

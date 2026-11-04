@@ -34,7 +34,7 @@ export async function loadCatalog(db: Db, options: { includeArchived?: boolean }
     return title ? { podcast: title } : {};
   };
 
-  // Niveau de chaque créateur d'après ses comptes : seul « Contrôlé par Koupi » ou « Créateur vérifié » est affiché.
+  // Niveau de chaque créateur d'après ses comptes : seul « Contrôlé par Merkod » ou « Créateur vérifié » est affiché.
   const accountsOf = new Map<string, (typeof accountRows)[number][]>();
   for (const account of accountRows) accountsOf.set(account.creatorId, [...(accountsOf.get(account.creatorId) ?? []), account]);
   const levelOf = new Map([...accountsOf].map(([creatorId, accounts]) => [creatorId, creatorLevelFromAccounts(accounts)]));

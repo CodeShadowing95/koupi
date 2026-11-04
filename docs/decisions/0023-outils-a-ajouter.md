@@ -7,7 +7,7 @@ Proposée
 2026-11-03
 
 ## Contexte
-La lecture des podcasts (ADR-0017) ne garde que les codes d'outils déjà au catalogue. Or beaucoup de sponsors de podcasts sont des outils que Koupi ne suit pas encore : sur Génération Do It Yourself, « code GDIY sur gradium.ai » ou « Cuure : cuure.com (code DOIT) » étaient perdus. L'admin doit pouvoir les voir, ajouter l'outil en un clic et envoyer le code dans Vérifications, sans IA.
+La lecture des podcasts (ADR-0017) ne garde que les codes d'outils déjà au catalogue. Or beaucoup de sponsors de podcasts sont des outils que Merkod ne suit pas encore : sur Génération Do It Yourself, « code GDIY sur gradium.ai » ou « Cuure : cuure.com (code DOIT) » étaient perdus. L'admin doit pouvoir les voir, ajouter l'outil en un clic et envoyer le code dans Vérifications, sans IA.
 
 ## Décision
 - Nouvelle table **`tool_suggestions`** (migration `0014_tool_suggestions`) : nom deviné, domaine (si un lien est cité), code, réduction, extrait des notes, épisode (lien et titre), podcast et créateur, état `open` / `added` / `ignored`, outil et code créés.

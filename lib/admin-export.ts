@@ -91,5 +91,5 @@ export function allSubmissions(db: Db): Promise<Submission[]> {
 }
 
 export function exportFileName(type: ExportType, format: ExportFormat = 'csv', now = new Date()): string {
-  return `koupi-${type}-${day(now)}.${format}`;
+  return `merkod-${type}-${day(now)}.${format}`;
 }

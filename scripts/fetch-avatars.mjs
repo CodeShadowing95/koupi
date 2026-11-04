@@ -1,5 +1,5 @@
 // Récupère la photo de profil YouTube des créateurs et l'enregistre dans public/avatars/.
-// Comme les logos (ADR-0007), les images sont servies par Koupi : le navigateur des visiteurs
+// Comme les logos (ADR-0007), les images sont servies par Merkod : le navigateur des visiteurs
 // n'envoie aucune requête à Google.
 //
 // Étapes : vidéo source de chaque code public → chaîne (videos.list) → photo (channels.list).

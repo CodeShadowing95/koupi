@@ -114,7 +114,7 @@ export function todos(catalog: CatalogInput, pendingSubmissions: number | null, 
   if (creatorRequests) list.push({
     id: 'creator-requests', tone: 'bad',
     title: `Répondre à ${creatorRequests} demande${creatorRequests > 1 ? 's' : ''} de créateurs`,
-    why: 'Un créateur qui revendique sa page est le meilleur signe que Koupi l’intéresse. Réponds vite, avant qu’il passe à autre chose.',
+    why: 'Un créateur qui revendique sa page est le meilleur signe que Merkod l’intéresse. Réponds vite, avant qu’il passe à autre chose.',
     cta: 'Voir les demandes', href: '/admin/createurs/demandes',
   });
   for (const code of stats.flagged.slice(0, 2)) list.push({

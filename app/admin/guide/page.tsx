@@ -10,8 +10,8 @@ export default function AdminGuide() {
         <header className="gd-hero">
           <div>
             <span className="eyebrow">Apprendre</span>
-            <h1>Guide de l’admin Koupi</h1>
-            <p>Tout ce qu’il faut pour gérer Koupi, même sans jamais avoir administré un site. {guideChapters.length} chapitres courts, environ {totalMinutes} minutes au total. Lis-les dans l’ordre la première fois, puis reviens-y comme à une notice.</p>
+            <h1>Guide de l’admin Merkod</h1>
+            <p>Tout ce qu’il faut pour gérer Merkod, même sans jamais avoir administré un site. {guideChapters.length} chapitres courts, environ {totalMinutes} minutes au total. Lis-les dans l’ordre la première fois, puis reviens-y comme à une notice.</p>
           </div>
           <GuideProgress />
         </header>

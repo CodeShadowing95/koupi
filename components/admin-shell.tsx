@@ -79,9 +79,9 @@ function Logo() {
   return (
     <>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="adm-logo-light" src="/koupi-logo.png" alt="Koupi" width={1100} height={480} />
+      <img className="adm-logo-light" src="/merkod-logo.png" alt="Merkod" width={1427} height={391} />
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="adm-logo-dark" src="/koupi-logo-dark.png" alt="" width={1100} height={480} />
+      <img className="adm-logo-dark" src="/merkod-logo-dark.png" alt="" width={1323} height={287} />
     </>
   );
 }
@@ -168,7 +168,7 @@ export function AdminShell({ children, toTest = 0, newFeedback = 0 }: { children
       <div className="adm-side-backdrop" aria-hidden="true" onClick={() => setMenuOpen(false)} />
       <nav className="adm-side" id="adm-side" aria-label="Navigation admin">
         <div className="adm-side-head">
-          <Link className="adm-brand" href="/admin" aria-label="Koupi, accueil admin"><Logo /><span className="admin-badge">Admin</span></Link>
+          <Link className="adm-brand" href="/admin" aria-label="Merkod, accueil admin"><Logo /><span className="admin-badge">Admin</span></Link>
           <button type="button" ref={closeButton} className="adm-icon-btn adm-side-close" aria-label="Fermer le menu" onClick={() => setMenuOpen(false)}>{icons.close}</button>
         </div>
         <div className="adm-side-scroll">
@@ -186,7 +186,7 @@ export function AdminShell({ children, toTest = 0, newFeedback = 0 }: { children
       </nav>
       <div className="adm-main">
         <header className="adm-top">
-          <Link className="adm-brand adm-top-brand" href="/admin" aria-label="Koupi, accueil admin"><Logo /><span className="admin-badge">Admin</span></Link>
+          <Link className="adm-brand adm-top-brand" href="/admin" aria-label="Merkod, accueil admin"><Logo /><span className="admin-badge">Admin</span></Link>
           <nav className="adm-crumbs" aria-label="Fil d’Ariane">
             {current && current !== '/admin' ? <><Link href="/admin">Accueil</Link> / {parents[current] && <><Link href={parents[current]}>{titles[parents[current]]}</Link> / </>}<b>{titles[current]}</b></> : <b>Accueil</b>}
           </nav>

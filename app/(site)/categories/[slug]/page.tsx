@@ -13,7 +13,7 @@ type Props = { params: Promise<{ slug: string }>; searchParams: Promise<Record<s
 export async function generateMetadata({ params }: Pick<Props, 'params'>) {
   const { slug } = await params;
   const category = (await getCatalog()).categories.find(item => item.slug === slug);
-  return category ? { title: `Codes promo ${category.name} · Koupi`, description: `Les codes promo des créateurs pour les outils ${category.name}, reliés à leur source et vérifiés.` } : {};
+  return category ? { title: `Codes promo ${category.name} · Merkod`, description: `Les codes promo des créateurs pour les outils ${category.name}, reliés à leur source et vérifiés.` } : {};
 }
 
 export default async function Category({ params, searchParams }: Props) {

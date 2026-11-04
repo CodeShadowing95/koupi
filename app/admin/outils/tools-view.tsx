@@ -83,7 +83,7 @@ export function ToolsView({ tools, categories, missingLogos }: { tools: AdminToo
           <div>
             <span className="eyebrow">Catalogue</span>
             <h1>Outils</h1>
-            <p>Les outils que Koupi suit. Un outil apparaît sur le site dès qu’il a un code vérifié ou à tester. Priorité 1 : à couvrir en premier.</p>
+            <p>Les outils que Merkod suit. Un outil apparaît sur le site dès qu’il a un code vérifié ou à tester. Priorité 1 : à couvrir en premier.</p>
           </div>
           <div className="adm-head-actions"><RefreshButton /><FetchLogosButton missing={missingLogos} /><ExportMenu type="outils" /><button type="button" className="adm-btn adm-btn-pri" onClick={() => open('new')}>+ Nouvel outil</button></div>
         </div>

@@ -160,7 +160,7 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
           <div>
             <span className="eyebrow">Modération</span>
             <h1>Vérifications</h1>
-            <p>Koupi lit la source de chaque code, fait les contrôles et propose un score. Tu gardes la décision : valider, noter le test au paiement ou rejeter.</p>
+            <p>Merkod lit la source de chaque code, fait les contrôles et propose un score. Tu gardes la décision : valider, noter le test au paiement ou rejeter.</p>
           </div>
           <div className="adm-head-actions">
             <RefreshButton />
@@ -183,7 +183,7 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
         </div>
         {filter === 'retest' && (
           <div className="adm-hint adm-vf-retest-hint">
-            <span>Chaque nuit, Koupi relit la source des codes vérifiés depuis plus de {RETEST_DAYS} jours. Ceux dont l’analyse n’est plus claire arrivent ici : la source a peut-être disparu ou le code n’y figure plus. « Valider » confirme le code et le retire de la liste.</span>
+            <span>Chaque nuit, Merkod relit la source des codes vérifiés depuis plus de {RETEST_DAYS} jours. Ceux dont l’analyse n’est plus claire arrivent ici : la source a peut-être disparu ou le code n’y figure plus. « Valider » confirme le code et le retire de la liste.</span>
             <button type="button" className="adm-btn" disabled={Boolean(busy) || Boolean(batch)} onClick={retestNow}>{busy === 'retest' ? 'Retests en cours…' : 'Lancer les retests maintenant'}</button>
           </div>
         )}

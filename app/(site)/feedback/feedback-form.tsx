@@ -11,7 +11,7 @@ const MAX = 2000;
 
 const KINDS = [
   { value: 'remark', label: 'Une remarque', hint: 'Ce qui t’a plu ou gêné', placeholder: 'Ex. La page d’un outil est claire, mais j’ai mis du temps à trouver le bouton Copier.' },
-  { value: 'idea', label: 'Une idée', hint: 'Ce qui manque à Koupi', placeholder: 'Ex. Recevoir un e-mail quand un code arrive pour Notion.' },
+  { value: 'idea', label: 'Une idée', hint: 'Ce qui manque à Merkod', placeholder: 'Ex. Recevoir un e-mail quand un code arrive pour Notion.' },
   { value: 'problem', label: 'Un problème', hint: 'Quelque chose ne marche pas', placeholder: 'Ex. Le code NORD20 est refusé au paiement depuis hier.' },
 ] as const;
 type Kind = typeof KINDS[number]['value'];
@@ -25,7 +25,7 @@ export function FeedbackForm() {
   const [error, setError] = useState('');
   const [fromPath, setFromPath] = useState('');
 
-  // La page d'où vient le visiteur, si c'est une page de Koupi : elle aide à comprendre une remarque.
+  // La page d'où vient le visiteur, si c'est une page de Merkod : elle aide à comprendre une remarque.
   // Le lien du menu la passe dans ?from= ; sinon (pied de page, lien direct) on lit la page précédente du navigateur.
   // Le serveur ne garde de toute façon qu'un chemin du site.
   useEffect(() => {

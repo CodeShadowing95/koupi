@@ -39,9 +39,9 @@ export function claimMessage(code: string, platform: CreatorPlatform, handle: st
     '',
     code,
     '',
-    `Le code reste valable ${CLAIM_CODE_DAYS} jours. Dis-nous quand c’est fait : ta page Koupi passera « Créateur vérifié », et tu pourras retirer le code ensuite.`,
+    `Le code reste valable ${CLAIM_CODE_DAYS} jours. Dis-nous quand c’est fait : ta page Merkod passera « Créateur vérifié », et tu pourras retirer le code ensuite.`,
     '',
-    'L’équipe Koupi',
+    'L’équipe Merkod',
   ].join('\n');
 }
 

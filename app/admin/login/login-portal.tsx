@@ -1,5 +1,5 @@
 'use client';
-// Portail de connexion admin : un « pass » Koupi au milieu d'un comptoir de codes qui défilent.
+// Portail de connexion admin : un « pass » Merkod au milieu d'un comptoir de codes qui défilent.
 // Animations GSAP (entrée, refus, entrée validée), toutes coupées si le système demande moins de mouvement.
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -9,11 +9,11 @@ import { ADMIN_ENTER_EVENT, type CouponOrigin } from '@/components/admin-coupon-
 
 // Codes décoratifs du fond : ils évoquent le catalogue sans en montrer un vrai.
 const ROWS = [
-  ['CREATEUR20', '-25 %', '3 MOIS OFFERTS', 'VÉRIFIÉ ✓', 'KOUPI10', '1 MOIS OFFERT', 'TESTÉ AUJOURD’HUI', '-40 %'],
+  ['CREATEUR20', '-25 %', '3 MOIS OFFERTS', 'VÉRIFIÉ ✓', 'MERKOD10', '1 MOIS OFFERT', 'TESTÉ AUJOURD’HUI', '-40 %'],
   ['BIENVENUE', 'À TESTER', 'PODCAST15', '-30 %', 'SOURCE ✓', 'YOUTUBE20', 'CODE·CRÉATEUR', '2 MOIS'],
-  ['-15 %', 'STORY10', 'VÉRIFIÉ ✓', 'ESSAI GRATUIT', 'KOUPI-ADMIN', '-50 %', 'LIEN CRÉATEUR', 'TIKTOK25'],
+  ['-15 %', 'STORY10', 'VÉRIFIÉ ✓', 'ESSAI GRATUIT', 'MERKOD-ADMIN', '-50 %', 'LIEN CRÉATEUR', 'TIKTOK25'],
   ['6 MOIS -20 %', 'NEWSLETTER', 'À RETESTER', 'INSTA12', '-35 %', 'PUBLIÉ', 'CODE DU JOUR', 'OFFERT'],
-  ['VIDEO30', 'MERCI ✓', '-10 %', 'PREMIUM', 'SNAP15', '1 AN -30 %', 'À VALIDER', 'KOUPI'],
+  ['VIDEO30', 'MERCI ✓', '-10 %', 'PREMIUM', 'SNAP15', '1 AN -30 %', 'À VALIDER', 'MERKOD'],
   ['TESTÉ ✓', 'LIVE20', '-45 %', 'CRÉDITÉ', 'ABONNÉS', '-20 %', 'SOURCE VIDÉO', 'BONUS'],
 ];
 // Code-barres du talon : largeurs fixes pour un rendu identique côté serveur et navigateur.
@@ -67,7 +67,7 @@ export function LoginPortal() {
         .from('.lp-row', { autoAlpha: 0, y: 30, stagger: 0.08, duration: 0.8 })
         .from('.lp-pass', { y: 120, rotate: -9, autoAlpha: 0, duration: 1, ease: 'back.out(1.4)' }, 0.15)
         .from('.lp-hole', { scale: 0, stagger: { each: 0.03, from: 'center' }, duration: 0.3, ease: 'back.out(3)' }, 0.6)
-        .to('.lp-kicker-text', { duration: 0.9, scrambleText: { text: 'Accès réservé · Admin', chars: 'KOUPI0123456789', speed: 0.6 } }, 0.55)
+        .to('.lp-kicker-text', { duration: 0.9, scrambleText: { text: 'Accès réservé · Admin', chars: 'MERKOD0123456789', speed: 0.6 } }, 0.55)
         .from(split.chars, { yPercent: 110, stagger: 0.022, duration: 0.6 }, 0.7)
         .from('.lp-reveal', { y: 16, autoAlpha: 0, stagger: 0.08, duration: 0.5 }, 1)
         .from('.lp-bar', { scaleY: 0, transformOrigin: 'bottom', stagger: 0.015, duration: 0.25 }, 0.9)
@@ -149,12 +149,12 @@ export function LoginPortal() {
       <section className="lp-pass" aria-labelledby="lp-title">
         <div className="lp-main">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="lp-logo adm-logo-light" src="/koupi-logo.png" alt="Koupi" width={1100} height={480} />
+          <img className="lp-logo adm-logo-light" src="/merkod-logo.png" alt="Merkod" width={1427} height={391} />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="lp-logo adm-logo-dark" src="/koupi-logo-dark.png" alt="" width={1100} height={480} />
+          <img className="lp-logo adm-logo-dark" src="/merkod-logo-dark.png" alt="" width={1323} height={287} />
           <p className="lp-kicker"><span className="lp-lamp-wrap" aria-hidden="true"><span className="lp-lamp" /><span className="lp-lamp-core" /></span><span className="lp-kicker-text">Accès réservé · Admin</span></p>
           <h1 id="lp-title" className="lp-title">Bon retour au comptoir.</h1>
-          <p className="lp-sub lp-reveal">Ton espace pour vérifier, publier et faire grandir Koupi.</p>
+          <p className="lp-sub lp-reveal">Ton espace pour vérifier, publier et faire grandir Merkod.</p>
 
           <form className="lp-form lp-reveal" onSubmit={submit}>
             <label htmlFor="password" className="lp-label">Mot de passe</label>

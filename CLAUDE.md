@@ -1,4 +1,4 @@
-# Koupi
+# Merkod
 
 Site web qui réunit les codes promo donnés par les créateurs (YouTube, podcasts, Instagram…) pour des outils en ligne. Chaque code est relié à sa source, crédite son créateur et est vérifié. Voir `README.md` pour le produit et le plan.
 

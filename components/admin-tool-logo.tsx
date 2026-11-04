@@ -7,7 +7,7 @@ export function AdminToolLogo({ slug, name }: { slug: string; name: string }) {
   if (!logo) return <span className="adm-tool-logo is-empty" title="Logo pas encore récupéré (bouton « Récupérer les logos »)" aria-hidden="true">{name.slice(0, 1).toUpperCase()}</span>;
   return (
     <span className={`adm-tool-logo is-${logo.kind}`} style={{ background: logo.bg }} aria-hidden="true">
-      {/* eslint-disable-next-line @next/next/no-img-element -- petite image servie par Koupi */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- petite image servie par Merkod */}
       <img src={logo.src} alt="" width={24} height={24} loading="lazy" decoding="async" />
     </span>
   );

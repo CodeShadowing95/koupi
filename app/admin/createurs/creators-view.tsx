@@ -1,6 +1,6 @@
 'use client';
 // Créateurs crédités : leurs codes, les outils qu'ils recommandent, et leurs comptes sur les réseaux
-// (YouTube, TikTok, Instagram…) qui donnent leur niveau : Repéré, Contrôlé par Koupi, Créateur vérifié.
+// (YouTube, TikTok, Instagram…) qui donnent leur niveau : Repéré, Contrôlé par Merkod, Créateur vérifié.
 import { useEffect, useState } from 'react';
 import type { AdminCreator } from '@/lib/catalog-admin';
 import { CREATOR_BIO_MAX } from '@/lib/creator-bio';

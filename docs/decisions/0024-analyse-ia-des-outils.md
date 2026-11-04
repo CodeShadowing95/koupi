@@ -10,7 +10,7 @@ Proposée
 Les outils à ajouter (ADR-0023) arrivent avec un nom et un site devinés. Pour les ajouter, l'admin doit comprendre ce que fait l'outil et choisir sa catégorie. Le catalogue a peu de catégories : un sponsor de podcast (des compléments alimentaires, par exemple) n'entre souvent dans aucune.
 
 ## Décision
-- Bouton **Analyser avec l'IA** sur chaque suggestion et dans le formulaire d'ajout. Koupi lit la **page d'accueil** du site (`lib/site-reader.ts`), puis le petit modèle (`AI_MODEL`, Haiku par défaut) rend un résumé, si c'est un outil en ligne, une catégorie existante ou le nom d'une nouvelle catégorie, et une justification (`lib/tool-analysis.ts`).
+- Bouton **Analyser avec l'IA** sur chaque suggestion et dans le formulaire d'ajout. Merkod lit la **page d'accueil** du site (`lib/site-reader.ts`), puis le petit modèle (`AI_MODEL`, Haiku par défaut) rend un résumé, si c'est un outil en ligne, une catégorie existante ou le nom d'une nouvelle catégorie, et une justification (`lib/tool-analysis.ts`).
 - L'IA propose, l'admin décide : l'analyse pré-remplit le formulaire, et rien n'est créé sans son clic. Une catégorie inventée par le modèle hors de la liste est écartée, et une « nouvelle » catégorie qui existe déjà sous ce nom est remplacée par celle-ci.
 - Le formulaire permet aussi de créer une **nouvelle catégorie à la main** (« + Nouvelle catégorie »), créée avec l'outil. Cela fonctionne sans IA.
 - Schéma : trois colonnes sur `tool_suggestions` (migration `0015_tool_suggestion_analysis`) : `analysis` (jsonb, la dernière analyse), `analysis_cost_usd_micros` (coût cumulé) et `analyzed_at`. `aiSpendSince` additionne ce coût à celui des vérifications : le **plafond mensuel** couvre les deux.

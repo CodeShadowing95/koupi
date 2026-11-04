@@ -11,7 +11,7 @@ export function SiteFooter({ logoDev = false }: { logoDev?: boolean }) {
       <div className="k-wrap">
         <div className="k-footer-in">
           <div>
-            <Image src="/koupi-logo-dark.png" alt="Koupi" width={971} height={348} />
+            <Image src="/merkod-logo-dark.png" alt="Merkod" width={1323} height={287} />
             <p>Le code du créateur. Crédité, vérifié. On ne remplace jamais son code par le nôtre.</p>
           </div>
           <div>
@@ -24,7 +24,7 @@ export function SiteFooter({ logoDev = false }: { logoDev?: boolean }) {
             </ul>
           </div>
           <div>
-            <h3>Koupi</h3>
+            <h3>Merkod</h3>
             <ul>
               <SiteLinkItem href={routes.feedback}>Ton avis</SiteLinkItem>
               <SiteLinkItem href={routes.transparency}>Transparence</SiteLinkItem>
@@ -34,7 +34,7 @@ export function SiteFooter({ logoDev = false }: { logoDev?: boolean }) {
           </div>
         </div>
         <div className="k-footer-bottom">
-          <span>© {new Date().getFullYear()} Koupi · 100 % pro-créateurs · <a className="k-footer-credit" href={PORTFOLIO_URL} target="_blank" rel="noopener">Made by {PUBLISHER_NAME}</a></span>
+          <span>© {new Date().getFullYear()} Merkod · 100 % pro-créateurs · <a className="k-footer-credit" href={PORTFOLIO_URL} target="_blank" rel="noopener">Made by {PUBLISHER_NAME}</a></span>
           <span>
             Zéro pub · zéro cookie publicitaire
             {(usesLogoDev() || logoDev) && <> · <a href="https://logo.dev" target="_blank" rel="noopener">Logos provided by Logo.dev</a></>}

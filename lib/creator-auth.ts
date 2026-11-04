@@ -73,7 +73,7 @@ export async function createSignInLink(db: Db, input: SignInRequest, context: Si
 export const DISABLED = `Ce compte est désactivé. Si tu penses que c’est une erreur, écris-nous à ${CONTACT_EMAIL}.`;
 const EXPIRED = 'Ce lien ne marche plus : il a déjà servi ou il a plus de 20 minutes. Demande-en un nouveau, ça prend dix secondes.';
 
-/** Utilise un lien : une seule fois, avant son expiration. Crée le compte Koupi du créateur à la première connexion. */
+/** Utilise un lien : une seule fois, avant son expiration. Crée le compte Merkod du créateur à la première connexion. */
 export async function consumeSignInToken(db: Db, token: string, now = new Date()): Promise<Parsed<{ userId: string; slug: string | null }>> {
   if (!/^[A-Za-z0-9_-]{20,100}$/.test(token)) return { ok: false, error: EXPIRED };
   const [used] = await db.update(creatorSignInTokens).set({ usedAt: now })
@@ -139,7 +139,7 @@ export async function grantCreatorAccess(db: Db, requestId: string, now = new Da
   return { ok: true, data: { userId: user.id } };
 }
 
-/** Retire l'accès donné à l'e-mail d'une revendication (le compte Koupi reste, sans page). */
+/** Retire l'accès donné à l'e-mail d'une revendication (le compte Merkod reste, sans page). */
 export async function revokeCreatorAccess(db: Db, requestId: string): Promise<Parsed<{ revoked: number }>> {
   const [request] = await db.select().from(creatorRequests).where(eq(creatorRequests.id, requestId)).limit(1);
   if (!request) return { ok: false, error: 'Demande introuvable.' };

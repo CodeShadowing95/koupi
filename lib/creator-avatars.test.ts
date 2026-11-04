@@ -22,7 +22,7 @@ describe('creatorAvatar', () => {
     expect(creatorAvatar('Créateur inconnu')).toBeNull();
   });
 
-  it('prend d’abord la photo gardée en base, et seulement une adresse de Koupi', () => {
+  it('prend d’abord la photo gardée en base, et seulement une adresse de Merkod', () => {
     expect(creatorAvatar('Léa Créa', { [creatorSlug('Léa Créa')]: '/media/avatars/lea-crea.jpg?v=1' })).toBe('/media/avatars/lea-crea.jpg?v=1');
     expect(creatorAvatar('Léa Créa', { [creatorSlug('Léa Créa')]: 'https://evil.example/x.jpg' })).toBeNull();
   });

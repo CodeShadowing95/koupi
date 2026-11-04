@@ -1,7 +1,7 @@
 'use client';
 // Fenêtre « Laisse un 👍 », montée sur chaque page où l'on copie un code. Elle entre une seule fois par navigateur, de biais depuis le coin
 // bas droit, pour rappeler qu'un pouce soutient le créateur du code. Par défaut elle attend le bon moment :
-// le visiteur a copié un code, est parti l'essayer et revient sur Koupi (voir lib/vote-invite.ts). Elle propose
+// le visiteur a copié un code, est parti l'essayer et revient sur Merkod (voir lib/vote-invite.ts). Elle propose
 // alors de voter tout de suite pour ce code.
 // En se fermant, elle se compresse jusqu'au bouton 👍 en bas à droite, qui la rouvre quand on veut la relire.
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -36,7 +36,7 @@ const REASONS = [
     icon: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></>,
   },
   {
-    title: 'Tu rends Koupi digne de confiance',
+    title: 'Tu rends Merkod digne de confiance',
     text: 'Ici, chaque code est jugé par ceux qui l’ont essayé. Pas de faux avis, juste des preuves.',
     icon: <path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6L12 3Zm-3.2 9.2 2.2 2.2 4.3-4.6" />,
   },

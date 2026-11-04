@@ -14,13 +14,13 @@ import { TrustPill } from '@/components/site/trust';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { CopyPageLink, SignOutButton } from '@/components/site/creator-space-actions';
 
-export const metadata: Metadata = { title: 'Mon espace · Koupi', robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: 'Mon espace · Merkod', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
 
 // Mêmes mots et mêmes pastilles que sur le site public ; « En relecture » et « Retiré » n'existent qu'ici.
 function CodeState({ code }: { code: Code }) {
-  if (code.status === 'pending') return <TrustPill seal="to_test" label="En relecture" title="Koupi relit ce code avant de le publier." dark />;
-  if (code.status === 'rejected') return <TrustPill seal="expired" label="Retiré" title="Ce code n’est plus affiché sur Koupi." dark />;
+  if (code.status === 'pending') return <TrustPill seal="to_test" label="En relecture" title="Merkod relit ce code avant de le publier." dark />;
+  if (code.status === 'rejected') return <TrustPill seal="expired" label="Retiré" title="Ce code n’est plus affiché sur Merkod." dark />;
   return <CodeBadge code={code} dark withDate={false} />;
 }
 
@@ -42,7 +42,7 @@ export default async function CreatorSpace() {
       <main className="k-page">
         <div className="k-wrap k-cs">
           {head}
-          <h1 className="k-cs-title">{account.claims.length ? 'On vérifie que c’est bien toi.' : 'Bienvenue sur Koupi.'}</h1>
+          <h1 className="k-cs-title">{account.claims.length ? 'On vérifie que c’est bien toi.' : 'Bienvenue sur Merkod.'}</h1>
           {account.claims.length > 0 ? (
             <>
               <p className="k-cs-lead">Ta demande pour {account.claims.map(claim => claim.name).join(', ')} est bien arrivée. Dès que c’est vérifié, tes chiffres s’affichent ici.</p>
@@ -103,7 +103,7 @@ export default async function CreatorSpace() {
               ))}
             </div>
           )}
-          <p className="k-cs-note">Les copies viennent du compteur anonyme de Koupi : un total par jour, rien sur les visiteurs. Bientôt : une alerte quand un code ne marche plus.</p>
+          <p className="k-cs-note">Les copies viennent du compteur anonyme de Merkod : un total par jour, rien sur les visiteurs. Bientôt : une alerte quand un code ne marche plus.</p>
         </section>
       </div>
     </main>

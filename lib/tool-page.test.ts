@@ -18,14 +18,14 @@ describe('fiche outil', () => {
   });
 
   it('titre de page : outil et réduction du meilleur code', () => {
-    expect(toolPageTitle('NordVPN', base)).toBe('Code promo NordVPN : 76 % + 4 mois offerts · Koupi');
-    expect(toolPageTitle('NordVPN', undefined)).toBe('Code promo NordVPN · Koupi');
+    expect(toolPageTitle('NordVPN', base)).toBe('Code promo NordVPN : 76 % + 4 mois offerts · Merkod');
+    expect(toolPageTitle('NordVPN', undefined)).toBe('Code promo NordVPN · Merkod');
   });
 
   it('description : créateur, réduction et niveau de vérification', () => {
-    expect(toolPageDescription('NordVPN', base, 1)).toBe('Code promo NordVPN de Tutorial Stack : 76 % + 4 mois offerts. Source vérifiée par Koupi, reliée à la vidéo d’où vient le code.');
+    expect(toolPageDescription('NordVPN', base, 1)).toBe('Code promo NordVPN de Tutorial Stack : 76 % + 4 mois offerts. Source vérifiée par Merkod, reliée à la vidéo d’où vient le code.');
     expect(toolPageDescription('NordVPN', { ...base, status: 'to_test' }, 3)).toBe('Code promo NordVPN de Tutorial Stack : 76 % + 4 mois offerts, et 2 autres codes de créateurs. Chaque code est relié à la vidéo d’où il vient.');
-    expect(toolPageDescription('NordVPN', undefined, 0)).toBe('Pas encore de code promo NordVPN donné par un créateur. Tu en connais un ? Propose-le, Koupi le vérifie.');
+    expect(toolPageDescription('NordVPN', undefined, 0)).toBe('Pas encore de code promo NordVPN donné par un créateur. Tu en connais un ? Propose-le, Merkod le vérifie.');
   });
 
   it('résumé des votes : rien sous 3 votes', () => {

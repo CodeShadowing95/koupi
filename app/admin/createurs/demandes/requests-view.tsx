@@ -18,7 +18,7 @@ const dateFr = (iso: string) => new Date(iso).toLocaleString('fr-FR', { dateStyl
 
 function replyLink(request: AdminCreatorRequest) {
   if (!request.email) return null;
-  const subject = request.kind === 'claim' ? `Ta page ${request.creator.name} sur Koupi` : `Ton signalement sur la page ${request.creator.name}`;
+  const subject = request.kind === 'claim' ? `Ta page ${request.creator.name} sur Merkod` : `Ton signalement sur la page ${request.creator.name}`;
   return `mailto:${request.email}?subject=${encodeURIComponent(subject)}`;
 }
 

@@ -7,7 +7,7 @@ Proposée
 2026-11-03
 
 ## Contexte
-L'espace créateur demande que les créateurs se connectent. Le doc de conception a retenu la connexion par lien envoyé par e-mail (pas de mot de passe). Les créateurs viennent surtout de YouTube et sont pressés : la moindre friction les fait partir. Koupi n'a pas encore de nom de domaine, donc pas encore d'envoi d'e-mails en production.
+L'espace créateur demande que les créateurs se connectent. Le doc de conception a retenu la connexion par lien envoyé par e-mail (pas de mot de passe). Les créateurs viennent surtout de YouTube et sont pressés : la moindre friction les fait partir. Merkod n'a pas encore de nom de domaine, donc pas encore d'envoi d'e-mails en production.
 
 ## Décision
 - Deux tables (migration `0011_creator_sign_in`) :

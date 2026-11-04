@@ -24,7 +24,7 @@ function nextStep(account: AdminCreatorAccount): string | null {
   if (account.level !== 'spotted') return null;
   if (account.adminCheckedAt && account.subscribers !== null && account.subscribers < MIN_SUBSCRIBERS) return `Moins de ${MIN_SUBSCRIBERS} abonnés : le créateur reste repéré.`;
   if (account.adminCheckedAt && account.subscribers === null) return 'Abonnés inconnus : indique-les pour atteindre le seuil.';
-  return 'Contrôle le compte pour le passer « Contrôlé par Koupi ».';
+  return 'Contrôle le compte pour le passer « Contrôlé par Merkod ».';
 }
 
 export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtubeReady }: {
@@ -94,7 +94,7 @@ export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtube
                 <label className="adm-ca-check">
                   <input type="checkbox" checked={account.platformVerified} disabled={busy !== null} onChange={event => patch(account, { platformVerified: event.target.checked })} />
                   <span>Badge certifié du réseau</span>
-                  <InfoTip id={`ca-badge-${account.id}`} label="Le badge certifié">Coche si la chaîne affiche la coche grise de compte certifié à côté de son nom. Le créateur passe alors « Contrôlé par Koupi », quel que soit son nombre d’abonnés.</InfoTip>
+                  <InfoTip id={`ca-badge-${account.id}`} label="Le badge certifié">Coche si la chaîne affiche la coche grise de compte certifié à côté de son nom. Le créateur passe alors « Contrôlé par Merkod », quel que soit son nombre d’abonnés.</InfoTip>
                 </label>
                 {hint && <p className="adm-ca-hint">{hint}</p>}
                 <div className="adm-ca-actions">
@@ -113,7 +113,7 @@ export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtube
       {error && <div className="notice notice-error" role="alert">{error}</div>}
 
       <FormDialog open={adding} title={`Relier un compte à ${creatorName}`} submitLabel={platform === 'youtube' ? 'Lire la chaîne et relier' : 'Relier'}
-        intro={platform === 'youtube' ? 'Koupi lit la chaîne sur YouTube : son identifiant, son nom et ses abonnés.' : 'Ce réseau n’a pas d’accès ouvert : recopie le pseudo, le lien et les abonnés affichés sur le profil.'}
+        intro={platform === 'youtube' ? 'Merkod lit la chaîne sur YouTube : son identifiant, son nom et ses abonnés.' : 'Ce réseau n’a pas d’accès ouvert : recopie le pseudo, le lien et les abonnés affichés sur le profil.'}
         onClose={() => setAdding(false)}
         onSubmit={() => sendJson(`/api/admin/creators/${creatorId}/accounts`, 'POST', platform === 'youtube' ? { platform, channel } : { platform, handle, url, subscribers })}>
         <div className="field adm-span-2">

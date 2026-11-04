@@ -97,7 +97,7 @@ export async function readSite(raw: string, deps: { fetchFn?: typeof fetch; reso
     try {
       response = await fetchFn(url, {
         redirect: 'manual', cache: 'no-store', signal: AbortSignal.timeout(TIMEOUT_MS),
-        headers: { accept: 'text/html,application/xhtml+xml', 'accept-language': 'fr,en;q=0.8', 'user-agent': 'KoupiBot/1.0 (+https://koupi.vercel.app)' },
+        headers: { accept: 'text/html,application/xhtml+xml', 'accept-language': 'fr,en;q=0.8', 'user-agent': 'MerkodBot/1.0 (+https://koupi.vercel.app)' },
       });
     } catch {
       return { ok: false, error: `Le site ${url.hostname} ne répond pas.` };

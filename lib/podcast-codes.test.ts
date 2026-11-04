@@ -35,9 +35,9 @@ describe('findPromoCodes', () => {
   });
 
   it('choisit l’outil le plus proche du code et ne garde pas deux fois le même', () => {
-    const found = findPromoCodes('Notion et NordVPN nous soutiennent. Chez NordVPN, code KOUPI.\nRappel NordVPN : code KOUPI', tools);
+    const found = findPromoCodes('Notion et NordVPN nous soutiennent. Chez NordVPN, code MERKOD.\nRappel NordVPN : code MERKOD', tools);
     expect(found).toHaveLength(1);
-    expect(found[0]).toMatchObject({ toolId: 't-nord', code: 'KOUPI', discount: 'Voir l’épisode' });
+    expect(found[0]).toMatchObject({ toolId: 't-nord', code: 'MERKOD', discount: 'Voir l’épisode' });
   });
 });
 

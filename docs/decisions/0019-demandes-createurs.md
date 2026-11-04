@@ -7,7 +7,7 @@ Proposée
 2026-11-03
 
 ## Contexte
-Koupi crée les pages des créateurs sans leur demander (modèle de la revendication, doc de conception de l'espace créateur). Il faut donc qu'un créateur puisse dire « c'est moi » et que n'importe qui puisse signaler une erreur sur une page, avant même que les comptes créateurs (connexion par lien magique) existent.
+Merkod crée les pages des créateurs sans leur demander (modèle de la revendication, doc de conception de l'espace créateur). Il faut donc qu'un créateur puisse dire « c'est moi » et que n'importe qui puisse signaler une erreur sur une page, avant même que les comptes créateurs (connexion par lien magique) existent.
 
 ## Décision
 - Nouvelle table `creator_requests` (migration `0009_creator_requests`) : créateur visé (suppression en cascade), type (`claim` ou `report`), e-mail, lien du compte, message, statut (`new`, `done`, `dismissed`), note de l'admin, empreinte de l'IP, dates de création et de traitement.
@@ -19,4 +19,4 @@ Koupi crée les pages des créateurs sans leur demander (modèle de la revendica
 
 ## Conséquences
 - Une table de plus, vide au départ. Les e-mails laissés sont des données personnelles : ils ne sortent pas de l'admin et ne figurent dans aucun export.
-- Les réponses se font à la main par e-mail tant que Koupi n'envoie pas d'e-mails.
+- Les réponses se font à la main par e-mail tant que Merkod n'envoie pas d'e-mails.

@@ -34,7 +34,7 @@ export async function middleware(request: NextRequest) {
   if (decision === 'pass') return NextResponse.next();
   const isApi = pathname.startsWith('/api/');
   if (decision === 'maintenance') {
-    if (isApi) return NextResponse.json({ error: 'Koupi est en pause pour quelques instants.' }, { status: 503, headers: { 'Retry-After': '600' } });
+    if (isApi) return NextResponse.json({ error: 'Merkod est en pause pour quelques instants.' }, { status: 503, headers: { 'Retry-After': '600' } });
     return NextResponse.rewrite(new URL('/maintenance', request.url), { status: 503, headers: { 'Retry-After': '600', 'Cache-Control': 'no-store' } });
   }
   if (isApi) return NextResponse.json({ error: 'Not found' }, { status: 404 });

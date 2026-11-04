@@ -63,8 +63,8 @@ export function SiteHeader() {
     <header ref={header} className={`k-header${scrolled || open ? ' is-scrolled' : ''}${open ? ' is-menu-open' : ''}`}>
       <a className="k-skip" href="#contenu">Aller au contenu</a>
       <div className="k-wrap k-header-in">
-        <Link className="k-logo" href={routes.home} aria-label="Koupi, accueil">
-          <Image src="/koupi-logo-dark.png" alt="Koupi" width={971} height={348} priority />
+        <Link className="k-logo" href={routes.home} aria-label="Merkod, accueil">
+          <Image src="/merkod-logo-dark.png" alt="Merkod" width={1323} height={287} priority />
         </Link>
         <nav className="k-nav" aria-label="Navigation principale">
           {shown.map(link => (

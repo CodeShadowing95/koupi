@@ -1,8 +1,8 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="public/koupi-logo-dark.png">
-  <img src="public/koupi-logo.png" alt="Koupi" width="260">
+  <source media="(prefers-color-scheme: dark)" srcset="public/merkod-logo-dark.png">
+  <img src="public/merkod-logo.png" alt="Merkod" width="260">
 </picture>
 
 ### Le code du créateur, vérifié.
@@ -23,14 +23,14 @@ reliés à leur source, crédités à leur créateur et testés par la communaut
 <br>
 
 <p align="center">
-  <img src="docs/images/accueil.png" alt="Page d'accueil de Koupi : recherche d'un outil et coupons de créateurs" width="900">
+  <img src="docs/images/accueil.png" alt="Page d'accueil de Merkod : recherche d'un outil et coupons de créateurs" width="900">
 </p>
 
 ## À propos
 
 Avant de payer un abonnement à un outil en ligne (hébergement, VPN, IA, logiciels pour freelances, outils de création), beaucoup de gens cherchent le code promo qu'un créateur a donné dans une vidéo. Ces codes sont éparpillés, souvent expirés, et les sites de coupons classiques ne disent ni d'où ils viennent ni s'ils marchent.
 
-Koupi part de la source : chaque code est rattaché à la vidéo ou au post qui l'a donné, crédite le créateur qui l'a négocié, et affiche son taux de réussite selon les votes des visiteurs. Pas de compte, pas de publicité.
+Merkod part de la source : chaque code est rattaché à la vidéo ou au post qui l'a donné, crédite le créateur qui l'a négocié, et affiche son taux de réussite selon les votes des visiteurs. Pas de compte, pas de publicité.
 
 **Version actuelle : <!-- koupi:version -->0.3.0<!-- /koupi:version -->** · voir le [changelog](CHANGELOG.md) · statut : V0 en préparation, pas encore ouverte au public.
 
@@ -43,7 +43,7 @@ Koupi part de la source : chaque code est rattaché à la vidéo ou au post qui 
 - **Page créateur** avec ses codes et sa photo de profil.
 - **Votes** « ça marche / ça ne marche plus » et mesure d'audience anonyme, stockée dans notre propre base.
 - **Proposer un code**, protégé par Cloudflare Turnstile et une limite de débit.
-- **Invitation au vote** au retour sur Koupi, après avoir copié un code.
+- **Invitation au vote** au retour sur Merkod, après avoir copié un code.
 - Page **Transparence** sur la façon dont les codes sont trouvés et vérifiés.
 
 **Back-office** (`/admin`)
@@ -134,7 +134,7 @@ Les migrations de base de données sont appliquées avant chaque build Vercel.
 
 ## Versions et releases
 
-Koupi suit le [versionnage sémantique](https://semver.org/lang/fr/). Le numéro de version est calculé à partir des messages de commit ([Conventional Commits](https://www.conventionalcommits.org/fr/v1.0.0/)) :
+Merkod suit le [versionnage sémantique](https://semver.org/lang/fr/). Le numéro de version est calculé à partir des messages de commit ([Conventional Commits](https://www.conventionalcommits.org/fr/v1.0.0/)) :
 
 ```bash
 npm run release -- --dry-run   # aperçu de la version et du changelog
