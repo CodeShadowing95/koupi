@@ -45,8 +45,9 @@ const cachedMediaMap = unstable_cache(async (): Promise<MediaMap> => {
 
 /** Photos des créateurs (par nom) et logos des outils (par slug) gardés en base. Vide si la base ne répond pas. */
 export async function getMediaMap(): Promise<MediaMap> {
+  // Hors du try : connection() interrompt volontairement le rendu statique, l'attraper figerait une page sans images.
+  await connection();
   try {
-    await connection();
     return await cachedMediaMap();
   } catch (error) {
     console.error('media map failed', error);
