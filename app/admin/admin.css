@@ -380,7 +380,9 @@ a.tool-card:hover{color:var(--ink);border-color:var(--ink);box-shadow:var(--shad
 
 /* ===== Coque : menu latéral + barre du haut ===== */
 .adm-shell{display:flex;min-height:100vh}
-.adm-side{flex:0 0 248px;width:248px;position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--card);border-right:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column;gap:20px}
+.adm-side{flex:0 0 248px;width:248px;position:sticky;top:0;height:100vh;overflow:hidden;background:var(--card);border-right:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column;gap:16px}
+/* Les groupes défilent seuls si l'écran est vraiment bas ; le bas du menu (Voir le site, Se déconnecter) reste en place. */
+.adm-side-scroll{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:18px;margin:0 -6px;padding:0 6px}
 .adm-brand{display:flex;align-items:center;gap:8px;padding:0 8px;color:var(--ink)!important}
 .adm-brand img{height:26px;width:auto}
 .adm-side-group{display:flex;flex-direction:column;gap:2px}
@@ -392,7 +394,7 @@ a.tool-card:hover{color:var(--ink);border-color:var(--ink);box-shadow:var(--shad
 .adm-side-link .adm-side-text{flex:1}
 .adm-side-count{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .adm-side-link .adm-count-badge{margin-left:0}
-.adm-side-foot{margin-top:auto;border-top:1px solid var(--line);padding-top:12px}
+.adm-side-foot{flex:none;border-top:1px solid var(--line);padding-top:12px}
 .adm-side-foot form{margin:0}
 .adm-main{flex:1;min-width:0;display:flex;flex-direction:column}
 .adm-top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:10px 32px;min-height:60px;background:var(--card);border-bottom:1px solid var(--line)}
@@ -1329,15 +1331,7 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-refresh{display:inline-flex;align-items:center;gap:6px}
 .adm-refresh[aria-busy="true"] svg{animation:adm-spin .8s linear infinite}
 @media (prefers-reduced-motion:reduce){.adm-refresh[aria-busy="true"] svg{animation:none}}
-/* Jauge de consommation du menu latéral */
-.adm-usage{display:flex;flex-direction:column;gap:8px;margin-top:auto;padding:12px 10px 4px;border-radius:12px;color:inherit;text-decoration:none}
-.adm-usage .adm-side-label{padding:0}
-.adm-usage:hover{background:var(--hover,rgba(0,0,0,.04))}
-.adm-usage:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
-.adm-usage + .adm-side-foot{margin-top:12px}
-.adm-usage-row{display:flex;flex-direction:column;gap:4px}
-.adm-usage-name{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--ink-soft)}
-.adm-usage-name b{font-variant-numeric:tabular-nums;color:var(--ink)}
+/* Barres de consommation (page Consommation) */
 .adm-usage-bar{height:6px;border-radius:999px;background:var(--line);overflow:hidden}
 .adm-usage-bar i{display:block;height:100%;border-radius:inherit;background:var(--ok);transition:width .4s ease}
 .adm-usage-bar.is-warn i{background:var(--warn)}
@@ -1357,3 +1351,20 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-use-bars span:last-child i{opacity:1}
 .adm-use-axis{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px}
 .adm-fb-message{margin:0;white-space:pre-line;font-size:15px;line-height:1.5;color:var(--ink)}
+
+/* Sous-menus du menu latéral : la flèche déplie la liste sous l'item */
+.adm-side-row{position:relative;display:flex;align-items:center}
+.adm-side-row>.adm-side-link{padding-right:36px}
+.adm-side-toggle{position:absolute;right:4px;top:50%;transform:translateY(-50%);display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border:0;border-radius:6px;background:transparent;color:var(--muted);cursor:pointer}
+.adm-side-toggle:hover{background:var(--line);color:var(--ink)}
+.adm-side-toggle:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.adm-side-toggle svg{transition:transform .2s ease}
+.adm-side-toggle[aria-expanded="true"] svg{transform:rotate(90deg)}
+.adm-side-row:has(.adm-count-badge)>.adm-side-link .adm-count-badge{margin-right:2px}
+.adm-side-dot{position:absolute;right:34px;width:8px;height:8px;border-radius:50%;background:var(--badge);pointer-events:none}
+.adm-side-row:has(> .adm-side-link .adm-count-badge) .adm-side-dot{right:auto;left:26px;top:8px}
+.adm-side-sub{display:flex;flex-direction:column;gap:2px;margin:2px 0 4px 19px;padding-left:10px;border-left:1px solid var(--line)}
+.adm-side-sub[hidden]{display:none}
+.adm-side-link.is-sub{min-height:34px;font-size:13.5px}
+.adm-side-link.is-sub svg{width:16px;height:16px}
+@media (prefers-reduced-motion:reduce){.adm-side-toggle svg{transition:none}}

@@ -9,7 +9,6 @@ import { matchesSearch } from '@/lib/admin-search';
 import { Key } from '@/components/admin-guide';
 import { RETEST_DAYS } from '@/lib/admin-stats';
 import { RefreshButton } from '@/components/admin-refresh-button';
-import { USAGE_CHANGED } from '@/components/admin-usage-gauge';
 
 type Ai = { status: AiStatus; spentUsdMicros: number; budgetUsdMicros: number; model: string; reviewModel: string };
 type Filter = 'all' | Verdict | 'retest';
@@ -81,7 +80,6 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
 
   const analyze = useCallback(async (item: QueueItem, mode: 'standard' | 'review' = 'standard') => {
     const response = await fetch(`/api/admin/verifications/${item.id}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mode }) }).catch(() => null);
-    window.dispatchEvent(new Event(USAGE_CHANGED)); // l'analyse lit YouTube et l'IA : la jauge du menu se met à jour
     return Boolean(response?.ok);
   }, []);
 
