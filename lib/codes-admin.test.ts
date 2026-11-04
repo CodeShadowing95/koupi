@@ -57,6 +57,7 @@ describe('actions de l’admin', () => {
     expect(result.ok).toBe(true);
     expect(await db.select().from(schema.creators)).toHaveLength(1);
     expect((await toolOptions(db)).map(tool => tool.slug)).toEqual(['nordvpn', 'runway']);
+    expect((await toolOptions(db)).find(tool => tool.slug === 'runway')?.website).toBe('https://runwayml.com');
     expect(await createCode(db, { ...base, toolSlug: 'inconnu' })).toEqual({ ok: false, error: 'Outil introuvable.' });
   });
 

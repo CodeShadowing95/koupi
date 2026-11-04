@@ -10,7 +10,7 @@ import { expiryOf } from '@/lib/code-expiry';
 import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { Pagination, usePagination } from '@/components/admin-pagination';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
-import { CopyCode, IconButton, IconLink, StatusDot, type Tone } from '@/components/admin-card';
+import { CopyCode, IconButton, ToolSiteLink, IconLink, StatusDot, type Tone } from '@/components/admin-card';
 import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
 
@@ -45,6 +45,7 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
   const countOf = (value: Filter) => codes.filter(code => matchesFilter(code, value, stale)).length;
   const router = useRouter();
   const [editing, setEditing] = useState<EditorTarget | null>(null);
+  const siteOf = new Map(tools.map(tool => [tool.slug, tool.website]));
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = codes.find(code => code.id === selectedId) ?? null;
   const [busy, setBusy] = useState('');
@@ -116,7 +117,7 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
                 {current.items.map(code => (
                   <tr key={code.id} data-open onClick={openOnClick(() => setSelectedId(code.id))}>
                     <td className="mono"><span className="adm-code-cell"><button type="button" className="adm-open" title={`Voir le détail de ${code.code}`} onClick={() => setSelectedId(code.id)}>{code.code}</button><CopyCode code={code.code} /></span></td>
-                    <td className="adm-cell-nowrap">{code.tool}</td>
+                    <td className="adm-cell-nowrap"><ToolSiteLink name={code.tool} website={siteOf.get(code.toolSlug)} /></td>
                     <td className="adm-cell-wrap">{code.discount}</td>
                     <td className="adm-cell-wrap">{code.creator}</td>
                     <td className="adm-cell-muted">{code.votes}</td>
@@ -134,7 +135,7 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
             {current.items.map(code => (
               <article className="adm-card" key={code.id} data-open onClick={openOnClick(() => setSelectedId(code.id))}>
                 <div className="adm-card-row"><button type="button" className="mono adm-open" title={`Voir le détail de ${code.code}`} onClick={() => setSelectedId(code.id)}>{code.code}</button><CopyCode code={code.code} /><StatusDot tone={statusTone[code.status]}>{statusLabel[code.status].label}</StatusDot></div>
-                <p className="adm-card-line" title={`${code.tool} · ${code.discount}`}>{code.tool} <span>· {code.discount}</span></p>
+                <p className="adm-card-line" title={`${code.tool} · ${code.discount}`}><ToolSiteLink name={code.tool} website={siteOf.get(code.toolSlug)} /> <span>· {code.discount}</span></p>
                 <div className="adm-card-foot">
                   <span className="adm-card-meta" title={[cardMeta(code), code.note && `Note : ${code.note}`].filter(Boolean).join('\n')}>{cardMeta(code)}</span>
                   {iconActions(code)}
@@ -152,7 +153,7 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
           actions={selected && <>{actions(selected)}<span style={{ flex: 1 }} /><button type="button" className="adm-btn adm-btn-pri" onClick={() => setEditing({ kind: 'edit', code: selected })}>Modifier</button></>}>
           {selected && <>
             <DetailList items={[
-              { label: 'Outil', value: <a href={`/admin/outils?q=${encodeURIComponent(selected.tool)}`}>{selected.tool}</a> },
+              { label: 'Outil', value: <><ToolSiteLink name={selected.tool} website={siteOf.get(selected.toolSlug)} /> · <a href={`/admin/outils?q=${encodeURIComponent(selected.tool)}`}>fiche admin</a></> },
               { label: 'Réduction', value: selected.discount },
               { label: 'Créateur', value: <a href={`/admin/createurs?q=${encodeURIComponent(selected.creator)}`}>{selected.creator}</a> },
               { label: 'Source', value: <a href={selected.source} target="_blank" rel="noopener noreferrer">{selected.sourceTitle || 'Ouvrir la source'} ↗</a> },

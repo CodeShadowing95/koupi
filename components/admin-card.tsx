@@ -56,3 +56,9 @@ export function CopyCode({ code }: { code: string }) {
     </button>
   );
 }
+
+/** Nom de l'outil qui ouvre son site officiel dans un nouvel onglet, pour y essayer un code. Sans site valide : le nom seul. */
+export function ToolSiteLink({ name, website, className }: { name: string; website?: string; className?: string }) {
+  if (!website || !/^https?:\/\/[^\s/]+/i.test(website)) return <span className={className}>{name}</span>;
+  return <a className={`adm-tool-site${className ? ` ${className}` : ''}`} href={website} target="_blank" rel="noopener noreferrer" title={`Ouvrir le site de ${name} pour essayer le code`}>{name}<span aria-hidden="true"> ↗</span><span className="sr-only"> (nouvel onglet)</span></a>;
+}
