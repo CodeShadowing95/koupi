@@ -16,6 +16,8 @@ export const routes = {
   forCreators: (slug?: string) => (slug ? `/for-creators?c=${encodeURIComponent(slug)}` : '/for-creators'),
   /** Espace du créateur connecté. */
   creatorSpace: '/creator',
+  /** Page « Ton avis » : remarques, idées et problèmes des visiteurs. */
+  feedback: '/feedback',
   transparency: '/transparency',
   legal: '/legal',
   privacy: '/privacy',

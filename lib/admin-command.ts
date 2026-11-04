@@ -29,6 +29,7 @@ export const ADMIN_PAGES: CommandItem[] = [
   { kind: 'page', label: 'Vérifications', detail: 'Analyse des sources, score et IA', href: '/admin/verifications', keywords: 'verifier ia score analyse source' },
   { kind: 'page', label: 'Podcasts suivis', detail: 'Podcasts lus pour trouver des codes', href: '/admin/podcasts', keywords: 'podcast episode audio podcast index' },
   { kind: 'page', label: 'Demandes créateurs', detail: 'C’est ma page, page incorrecte', href: '/admin/createurs/demandes', keywords: 'revendication revendiquer signalement reclamation createur' },
+  { kind: 'page', label: 'Retours', detail: 'Avis des visiteurs', href: '/admin/retours', keywords: 'avis feedback remarques idees problemes suggestions' },
   { kind: 'page', label: 'Outils', detail: 'Catalogue', href: '/admin/outils' },
   { kind: 'page', label: 'Créateurs', detail: 'Catalogue', href: '/admin/createurs' },
   { kind: 'page', label: 'Catégories', detail: 'Catalogue', href: '/admin/categories' },

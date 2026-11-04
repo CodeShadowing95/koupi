@@ -26,6 +26,7 @@ export function SiteFooter({ logoDev = false }: { logoDev?: boolean }) {
           <div>
             <h3>Koupi</h3>
             <ul>
+              <SiteLinkItem href={routes.feedback}>Ton avis</SiteLinkItem>
               <SiteLinkItem href={routes.transparency}>Transparence</SiteLinkItem>
               <SiteLinkItem href={routes.legal}>Mentions légales</SiteLinkItem>
               <SiteLinkItem href={routes.privacy}>Confidentialité</SiteLinkItem>

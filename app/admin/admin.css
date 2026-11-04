@@ -1356,3 +1356,4 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-use-bars i{display:block;width:100%;min-height:1px;border-radius:3px 3px 0 0;background:var(--blue);opacity:.85}
 .adm-use-bars span:last-child i{opacity:1}
 .adm-use-axis{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px}
+.adm-fb-message{margin:0;white-space:pre-line;font-size:15px;line-height:1.5;color:var(--ink)}
