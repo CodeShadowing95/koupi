@@ -24,7 +24,7 @@ export type SitePage = {
 export const SITE_PAGES: SitePage[] = [
   { key: 'home', label: 'Accueil', paths: ['/'], locked: 'Point d’entrée du site', effect: '—' },
   { key: 'codes', label: 'Codes', paths: ['/codes'], effect: 'Lien « Codes » du menu et du pied de page' },
-  { key: 'categories', label: 'Catégories', paths: ['/categories'], effect: 'Lien du menu, catégories de l’accueil, catégorie sur les fiches outils' },
+  { key: 'categories', label: 'Pages de catégorie', paths: ['/categories'], effect: 'Catégorie cliquable sur les fiches outils (les pastilles de la page Codes restent)' },
   { key: 'tools', label: 'Fiches outils', paths: ['/tools'], effect: 'Les coupons et la recherche ne mènent plus à une fiche' },
   { key: 'creators', label: 'Créateurs', paths: ['/creators'], effect: 'Lien du menu, noms des créateurs cliquables sur les coupons' },
   { key: 'search', label: 'Recherche', paths: ['/search'], effect: 'Page de résultats ; sans fiches outils non plus, la recherche disparaît' },

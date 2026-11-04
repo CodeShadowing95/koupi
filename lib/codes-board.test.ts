@@ -179,3 +179,37 @@ describe('compactCount', () => {
     expect(compactCount(2_500_000)).toBe('+2M');
   });
 });
+
+describe('famille de catégories', () => {
+  const famTools: Tool[] = [{ ...tool('nord', 'VPN'), family: 'securite' }, { ...tool('canva', 'Design'), family: 'creation' }, tool('loose', 'Autre')];
+  const codes = [code('a'), code('b', { tool: 'canva', toolSlug: 'canva' }), code('c', { tool: 'loose', toolSlug: 'loose' })];
+  const filters = (patch: Partial<typeof DEFAULT_FILTERS>) => ({ ...DEFAULT_FILTERS, ...patch });
+
+  it('ne garde que les codes des outils de la famille', () => {
+    expect(filterCodes(codes, famTools, filters({ family: 'securite' }), NOW).map(c => c.id)).toEqual(['a']);
+  });
+
+  it('compte les codes par famille sans tenir compte de la famille choisie', () => {
+    expect(facetCounts(codes, famTools, filters({ family: 'securite' }), NOW).family).toEqual({ securite: 1, creation: 1 });
+  });
+
+  it('compte tous les codes pour la pastille « Tous », rangés ou non', () => {
+    expect(facetCounts(codes, famTools, filters({ family: 'securite', category: 'VPN' }), NOW).allFamilies).toBe(3);
+  });
+
+  it('compte les catégories à l’intérieur de la famille choisie', () => {
+    expect(facetCounts(codes, famTools, filters({ family: 'creation' }), NOW).category).toEqual({ Design: 1 });
+  });
+
+  it('passe par l’adresse', () => {
+    const parsed = parseFilters({ family: 'securite', category: 'VPN' });
+    expect(parsed.family).toBe('securite');
+    expect(filtersToParams(parsed).toString()).toBe('family=securite&category=VPN');
+  });
+
+  it('retirer la famille retire aussi sa catégorie', () => {
+    const pill = activeFilters(filters({ family: 'securite', category: 'VPN' }), { tool: () => '', creator: () => '', family: () => 'Sécurité' })
+      .find(p => p.key === 'family');
+    expect(pill).toEqual({ key: 'family', label: 'Sécurité', patch: { family: '', category: '' } });
+  });
+});

@@ -1,11 +1,11 @@
 // Lecture du catalogue (catégories, outils, codes) depuis la base.
 import { and, asc, eq, isNull } from 'drizzle-orm';
 import type { Db } from '@/db';
-import { categories as categoriesTable, codes as codesTable, creatorAccounts, creators as creatorsTable, tools as toolsTable, watchedSources } from '@/db/schema';
+import { categories as categoriesTable, categoryFamilies, codes as codesTable, creatorAccounts, creators as creatorsTable, tools as toolsTable, watchedSources } from '@/db/schema';
 import { appleEpisodeRef } from './apple-podcasts';
 import { creatorLevelFromAccounts } from './creator-level';
 import type { CreatorLevel } from './verification';
-import { isPublic, successRate, type Catalog, type Category, type Code, type Tool } from './data';
+import { isPublic, successRate, type Catalog, type Category, type Code, type Family, type Tool } from './data';
 
 function shownLevel(level: CreatorLevel | undefined): Pick<Code, 'creatorLevel'> {
   return level === 'checked' || level === 'verified' ? { creatorLevel: level } : {};
@@ -15,7 +15,7 @@ export function defaultDescription(name: string) { return `Les codes promo donn�
 
 /** includeArchived : l'admin voit aussi les codes archivés (pour les restaurer). Le site, jamais. */
 export async function loadCatalog(db: Db, options: { includeArchived?: boolean } = {}): Promise<Catalog> {
-  const [categoryRows, toolRows, codeRows, accountRows, podcastRows] = await Promise.all([
+  const [categoryRows, toolRows, codeRows, accountRows, podcastRows, familyRows] = await Promise.all([
     db.select().from(categoriesTable).orderBy(asc(categoriesTable.createdAt), asc(categoriesTable.name)),
     db.select().from(toolsTable).where(isNull(toolsTable.archivedAt)),
     db.select({ code: codesTable, tool: { name: toolsTable.name, slug: toolsTable.slug }, creator: { name: creatorsTable.name, slug: creatorsTable.slug } })
@@ -24,6 +24,7 @@ export async function loadCatalog(db: Db, options: { includeArchived?: boolean }
       .orderBy(asc(codesTable.createdAt), asc(codesTable.code)),
     db.select().from(creatorAccounts),
     db.select({ externalId: watchedSources.externalId, title: watchedSources.title }).from(watchedSources).where(eq(watchedSources.platform, 'podcast')),
+    db.select({ slug: categoryFamilies.slug, name: categoryFamilies.name }).from(categoryFamilies).orderBy(asc(categoryFamilies.position), asc(categoryFamilies.name)),
   ]);
   // Nom du podcast suivi pour un code venu d'un épisode Apple Podcasts.
   const podcastTitle = new Map(podcastRows.map(row => [row.externalId, row.title]));
@@ -64,6 +65,7 @@ export async function loadCatalog(db: Db, options: { includeArchived?: boolean }
   const live = codes.filter(code => !code.archived);
 
   const categoryName = new Map(categoryRows.map(row => [row.slug, row.name]));
+  const familyOf = new Map(categoryRows.map(row => [row.slug, row.familySlug]));
   const publicCount = new Map<string, number>();
   for (const code of live) if (isPublic(code)) publicCount.set(code.toolSlug, (publicCount.get(code.toolSlug) ?? 0) + 1);
 
@@ -77,6 +79,7 @@ export async function loadCatalog(db: Db, options: { includeArchived?: boolean }
       description: row.description ?? defaultDescription(row.name),
       priority: row.priority,
       codes: publicCount.get(row.slug) ?? 0,
+      ...(familyOf.get(row.categorySlug) ? { family: familyOf.get(row.categorySlug)! } : {}),
     }))
     .sort((a, b) => a.priority - b.priority || a.name.localeCompare(b.name, 'fr'));
 
@@ -88,5 +91,7 @@ export async function loadCatalog(db: Db, options: { includeArchived?: boolean }
     tracked: toolRows.filter(tool => tool.categorySlug === row.slug).length,
   }));
 
-  return { categories, tools, codes, tracked: toolRows.length };
+  const families: Family[] = familyRows;
+
+  return { categories, families, tools, codes, tracked: toolRows.length };
 }

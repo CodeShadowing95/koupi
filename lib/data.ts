@@ -4,7 +4,13 @@ import type { CreatorLevel } from './verification';
 
 /** family : slug de la famille de la catégorie (ADR-0026), null si elle n'est pas rangée. */
 export type Category = { slug: string; name: string; family: string | null; count: number; tracked: number };
-export type Tool = { slug: string; name: string; category: string; website: string; description: string; priority: number; codes: number };
+export type Tool = {
+  slug: string; name: string; category: string; website: string; description: string; priority: number; codes: number;
+  /** Slug de la famille de sa catégorie, absent si la catégorie n'est pas rangée. */
+  family?: string;
+};
+/** Famille de catégories (Sécurité, Vidéo…), dans l'ordre du menu. */
+export type Family = { slug: string; name: string };
 export type CodeStatus = 'verified' | 'to_test' | 'pending' | 'rejected';
 export type Code = {
   id: string; tool: string; toolSlug: string; creator: string; creatorSlug: string; code: string; discount: string; status: CodeStatus;
@@ -25,6 +31,7 @@ export type Code = {
 };
 export type Catalog = {
   categories: Category[];
+  families: Family[];
   /** Outils publiés : au moins un code visible sur le site. */
   tools: Tool[];
   /** Tous les codes non archivés, quel que soit leur statut. */
