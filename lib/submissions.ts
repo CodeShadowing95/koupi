@@ -8,6 +8,22 @@ export type SubmissionInput = {
   category?: string; creatorLink?: string; comment?: string; submitterEmail?: string;
 };
 
+/** Réduction enregistrée quand le créateur n'en annonce pas : le même libellé que l'import des codes trouvés sur YouTube. */
+export const DEFAULT_DISCOUNT = 'Offre du créateur';
+/** Un même code peut valoir pour plusieurs outils (une vidéo qui en présente plusieurs) : 5 au plus par envoi. */
+export const MAX_TOOLS_PER_SUBMISSION = 5;
+
+/** Les outils d'un envoi : nettoyés, sans doublon (casse ignorée), 5 au plus. Accepte aussi l'ancien champ unique. */
+export function toolNamesOf(value: unknown, single?: unknown): string[] {
+  const raw = Array.isArray(value) ? value : [single];
+  const out: string[] = [];
+  for (const item of raw) {
+    const name = typeof item === 'string' ? item.trim().slice(0, 120) : '';
+    if (name && !out.some(known => known.toLocaleLowerCase('fr-FR') === name.toLocaleLowerCase('fr-FR'))) out.push(name);
+  }
+  return out.slice(0, MAX_TOOLS_PER_SUBMISSION);
+}
+
 export function fingerprintOf(toolName: string, code: string): string {
   return createHash('sha256').update(`${toolName.toLocaleLowerCase('fr-FR')}::${code.toLocaleLowerCase('fr-FR')}`).digest('hex');
 }
@@ -39,6 +55,14 @@ export async function createSubmission(db: Db, input: SubmissionInput, ipHash: s
     adminNote: status === 'duplicate' ? 'Proposition similaire déjà présente.' : null,
   });
   return { status };
+}
+
+/** Un envoi pour plusieurs outils : une proposition par outil, que l'admin valide une à une. */
+export async function createSubmissions(db: Db, input: Omit<SubmissionInput, 'toolName'> & { toolNames: string[] }, ipHash: string): Promise<{ status: Submission['status'] }[]> {
+  const { toolNames, ...rest } = input;
+  const results = [];
+  for (const toolName of toolNames) results.push(await createSubmission(db, { ...rest, toolName, discountLabel: rest.discountLabel || DEFAULT_DISCOUNT }, ipHash));
+  return results;
 }
 
 export const statusFilters = ['new', 'approved', 'rejected', 'duplicate', 'all'] as const;

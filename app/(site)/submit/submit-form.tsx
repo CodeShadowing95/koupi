@@ -15,6 +15,8 @@ import { playCouponTear } from '@/lib/coupon-sound';
 
 const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
 const TEAR_MS = 950;
+/** Un code donné pour plusieurs outils : l'outil principal plus 4 autres au plus (voir MAX_TOOLS_PER_SUBMISSION). */
+const MAX_EXTRA_TOOLS = 4;
 
 const Scissors = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3" /><circle cx="6" cy="18" r="3" /><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12" /></svg>
@@ -36,6 +38,7 @@ export function SubmitForm({ categories }: { categories: Category[] }) {
   const [token, setToken] = useState('');
   const [code, setCode] = useState('');
   const [discount, setDiscount] = useState('');
+  const [extraTools, setExtraTools] = useState<string[]>([]);
   const turnstile = useRef<TurnstileHandle>(null);
   const number = couponNumber(code);
 
@@ -51,7 +54,7 @@ export function SubmitForm({ categories }: { categories: Category[] }) {
       const response = await fetch('/api/submissions', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ toolName: form.get('tool'), creatorName: form.get('creator'), code: form.get('code'), discountLabel: form.get('discount'), sourceUrl: form.get('source'), category: form.get('category'), comment: form.get('comment'), turnstileToken: token }),
+        body: JSON.stringify({ toolNames: [form.get('tool'), ...extraTools], creatorName: form.get('creator'), code: form.get('code'), discountLabel: form.get('discount'), sourceUrl: form.get('source'), category: form.get('category'), comment: form.get('comment'), turnstileToken: token }),
       });
       const body = await response.json() as { error?: string };
       if (!response.ok) { setError(body.error || 'La proposition n’a pas pu être envoyée.'); setSending(false); turnstile.current?.reset(); return; }
@@ -79,7 +82,7 @@ export function SubmitForm({ categories }: { categories: Category[] }) {
               <span className="k-bon-stamp" aria-hidden="true"><span>En vérification</span></span>
               <div className="k-bon-actions">
                 <Link className="k-btn k-btn-primary" href={routes.home}>Retour à l&apos;accueil</Link>
-                <button type="button" className="k-btn k-btn-ghost k-bon-again" onClick={() => { setPhase('form'); setSending(false); setCode(''); setDiscount(''); setToken(''); }}>Proposer un autre code</button>
+                <button type="button" className="k-btn k-btn-ghost k-bon-again" onClick={() => { setPhase('form'); setSending(false); setCode(''); setDiscount(''); setExtraTools([]); setToken(''); }}>Proposer un autre code</button>
               </div>
             </div>
           </div>
@@ -109,6 +112,19 @@ export function SubmitForm({ categories }: { categories: Category[] }) {
                   <span className="k-bon-key">Outil</span>
                   <input name="tool" required maxLength={120} placeholder="Hostinger, NordVPN…" autoComplete="off" />
                 </label>
+                {extraTools.map((tool, index) => (
+                  <div key={index} className="k-bon-line k-bon-extra">
+                    <label className="k-bon-extra-field">
+                      <span className="k-bon-key">Et aussi</span>
+                      <input required maxLength={120} placeholder="Un autre outil" value={tool} autoComplete="off" autoFocus={index === extraTools.length - 1 && !tool}
+                        onChange={event => setExtraTools(list => list.map((item, i) => (i === index ? event.target.value : item)))} />
+                    </label>
+                    <button type="button" className="k-bon-extra-remove" aria-label={`Retirer ${tool || 'cet outil'}`} onClick={() => setExtraTools(list => list.filter((_, i) => i !== index))}>×</button>
+                  </div>
+                ))}
+                {extraTools.length < MAX_EXTRA_TOOLS && (
+                  <button type="button" className="k-bon-add-tool" onClick={() => setExtraTools(list => [...list, ''])}>+ Le même code marche pour un autre outil</button>
+                )}
                 <label className="k-bon-line">
                   <span className="k-bon-key">Donné par</span>
                   <input name="creator" required maxLength={160} placeholder="Nom de la chaîne ou du compte" autoComplete="off" />
@@ -116,8 +132,8 @@ export function SubmitForm({ categories }: { categories: Category[] }) {
               </div>
               <label className={`k-bon-burst${discount ? ' is-filled' : ''}`}>
                 <span className="k-bon-burst-label">Réduction</span>
-                <input name="discount" required maxLength={60} placeholder="−10 %" value={discount} style={{ fontSize: discount.length > 14 ? 15 : discount.length > 8 ? 19 : 26 }} onChange={event => setDiscount(event.target.value)} autoComplete="off" />
-                <span className="k-bon-burst-sub">annoncée</span>
+                <input name="discount" maxLength={60} placeholder="−10 %" value={discount} style={{ fontSize: discount.length > 14 ? 15 : discount.length > 8 ? 19 : 26 }} onChange={event => setDiscount(event.target.value)} autoComplete="off" />
+                <span className="k-bon-burst-sub">si annoncée</span>
               </label>
             </div>
 
@@ -146,7 +162,7 @@ export function SubmitForm({ categories }: { categories: Category[] }) {
             </label>
 
             <div className="k-bon-small">
-              <p>* Le lien de la vidéo ou du post sert à créditer la bonne personne et à vérifier que le code a été donné en public. Sans lien, la proposition est refusée. Pas de codes de parrainage personnels. Offre non cumulable avec la mauvaise foi.</p>
+              <p>* Le lien de la vidéo ou du post sert à créditer la bonne personne et à vérifier que le code a été donné en public. Sans lien, la proposition est refusée. Pas de réduction annoncée ? Laisse la pastille vide. Un code valable pour plusieurs outils donne une proposition par outil. Pas de codes de parrainage personnels. Offre non cumulable avec la mauvaise foi.</p>
               {turnstileSiteKey && <div className="k-bon-captcha"><Turnstile ref={turnstile} siteKey={turnstileSiteKey} onToken={setToken} /></div>}
             </div>
             {error && <div className="k-notice k-notice-error" role="alert">{error}</div>}

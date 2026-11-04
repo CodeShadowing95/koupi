@@ -4,7 +4,7 @@ import { migrate } from 'drizzle-orm/pglite/migrator';
 import { beforeAll, describe, expect, it } from 'vitest';
 import type { Db } from '@/db';
 import * as schema from '@/db/schema';
-import { createSubmission, listSubmissions, moderateSubmission } from './submissions';
+import { createSubmission, createSubmissions, DEFAULT_DISCOUNT, listSubmissions, moderateSubmission, toolNamesOf } from './submissions';
 
 // Base Postgres en mémoire (PGlite) avec les vraies migrations du dépôt.
 let db: Db;
@@ -50,6 +50,23 @@ describe('propositions', () => {
 
   it('renvoie null pour une proposition inconnue', async () => {
     expect(await moderateSubmission(db, '00000000-0000-0000-0000-000000000000', 'reject', null)).toBeNull();
+  });
+});
+
+describe('un code pour plusieurs outils', () => {
+  it('garde les outils distincts, 5 au plus, et accepte l’ancien champ unique', () => {
+    expect(toolNamesOf([' Notion ', 'notion', '', 'Canva', 3])).toEqual(['Notion', 'Canva']);
+    expect(toolNamesOf(undefined, 'Hostinger')).toEqual(['Hostinger']);
+    expect(toolNamesOf(['a', 'b', 'c', 'd', 'e', 'f'])).toHaveLength(5);
+    expect(toolNamesOf(undefined, undefined)).toEqual([]);
+  });
+
+  it('crée une proposition par outil, avec « Offre du créateur » sans réduction', async () => {
+    const results = await createSubmissions(db, { ...input, toolNames: ['Brevo', 'Systeme.io'], code: 'MULTI', discountLabel: '' }, 'hash');
+    expect(results).toEqual([{ status: 'new' }, { status: 'new' }]);
+    const rows = (await listSubmissions(db, { status: 'new' })).filter(row => row.code === 'MULTI');
+    expect(rows.map(row => row.toolName).sort()).toEqual(['Brevo', 'Systeme.io']);
+    expect(rows.every(row => row.discountLabel === DEFAULT_DISCOUNT)).toBe(true);
   });
 });
 
