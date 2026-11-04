@@ -1308,3 +1308,17 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-pod-chip[aria-pressed="true"],.adm-pod-chip[aria-pressed="true"]:hover:not(:disabled){border-color:var(--blue);background:var(--blue);color:var(--on-blue)}
 .adm-pod-top-note{margin:0;font-size:13px}
 .adm-pod-rank{flex:none;width:28px;text-align:center;font-size:14px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* Copier un code : petite icône juste après le code (cartes, tableau, panneau). */
+.adm-code-cell{display:inline-flex;align-items:center;gap:4px;min-width:0;max-width:100%}
+.adm-copy{flex:none;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:6px;background:transparent;color:var(--muted);cursor:pointer;transition:color .15s ease,background .15s ease}
+.adm-copy:hover{color:var(--ink);background:var(--blue-soft)}
+.adm-copy.is-copied{color:var(--ok)}
+.adm-copy svg{width:14px;height:14px}
+.adm-card-row>.adm-copy{margin-left:-4px}
+.adm-drawer-title .adm-copy{width:28px;height:28px}
+.adm-drawer-title .adm-copy svg{width:16px;height:16px}
+/* Nom de l'outil → son site officiel, pour essayer un code copié. */
+.admin-root a.adm-tool-site{color:inherit;font-weight:inherit;text-decoration:underline;text-decoration-color:var(--line-strong);text-underline-offset:3px}
+.admin-root a.adm-tool-site:hover{color:var(--blue);text-decoration-color:currentColor}
+.adm-tool-site span[aria-hidden]{font-size:.85em;color:var(--muted)}

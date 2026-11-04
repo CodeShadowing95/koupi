@@ -170,11 +170,12 @@ export async function applyCodeAction(db: Db, id: string, action: CodeQuickActio
   return { ok: true, data: { status, archived: Boolean(current.archivedAt) } };
 }
 
-export type ToolOption = { slug: string; name: string; category: string };
+/** website : le site officiel, où l'admin essaie un code. */
+export type ToolOption = { slug: string; name: string; category: string; website: string };
 
 /** Tous les outils suivis (même sans code), pour les listes de choix de l'admin. */
 export async function toolOptions(db: Db): Promise<ToolOption[]> {
-  const rows = await db.select({ slug: tools.slug, name: tools.name, category: categories.name }).from(tools)
+  const rows = await db.select({ slug: tools.slug, name: tools.name, category: categories.name, website: tools.website }).from(tools)
     .innerJoin(categories, eq(tools.categorySlug, categories.slug)).where(isNull(tools.archivedAt));
   return rows.sort((a, b) => a.name.localeCompare(b.name, 'fr'));
 }
