@@ -2,7 +2,8 @@
 // Les données viennent de la base (lib/catalog-db.ts), chargées côté serveur par getCatalog() (lib/catalog-server.ts).
 import type { CreatorLevel } from './verification';
 
-export type Category = { slug: string; name: string; count: number; tracked: number };
+/** family : slug de la famille de la catégorie (ADR-0026), null si elle n'est pas rangée. */
+export type Category = { slug: string; name: string; family: string | null; count: number; tracked: number };
 export type Tool = { slug: string; name: string; category: string; website: string; description: string; priority: number; codes: number };
 export type CodeStatus = 'verified' | 'to_test' | 'pending' | 'rejected';
 export type Code = {

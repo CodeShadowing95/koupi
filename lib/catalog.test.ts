@@ -43,9 +43,9 @@ describe('build-catalog', () => {
     expect(result.tools.map(tool => tool.slug)).toEqual(['abby']);
     expect(result.tools[0]).toMatchObject({ description: 'Facturation simple.', website: 'https://abby.fr', codes: 1 });
     expect(result.categories).toEqual([
-      { slug: 'finance-et-freelance', name: 'Finance et freelance', count: 1, tracked: 1 },
-      { slug: 'ia', name: 'IA', count: 0, tracked: 1 },
-      { slug: 'e-commerce-et-site', name: 'E-commerce et site', count: 0, tracked: 1 },
+      { slug: 'finance-et-freelance', name: 'Finance et freelance', family: null, count: 1, tracked: 1 },
+      { slug: 'ia', name: 'IA', family: null, count: 0, tracked: 1 },
+      { slug: 'e-commerce-et-site', name: 'E-commerce et site', family: null, count: 0, tracked: 1 },
     ]);
     expect(result.tracked).toBe(3);
   });
@@ -55,6 +55,7 @@ describe('build-catalog', () => {
       toolsCsv: readFileSync('data/outils-v0.csv', 'utf8'),
       candidatesCsv: readFileSync('data/candidats-tous.csv', 'utf8'),
       manual: JSON.parse(readFileSync('data/catalogue-manuel.json', 'utf8')),
+      categoriesCsv: readFileSync('data/categories.csv', 'utf8'),
     });
     expect(catalog).toEqual(fresh);
   });

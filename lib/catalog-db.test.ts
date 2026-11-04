@@ -14,6 +14,7 @@ const input = {
   toolsCsv: readFileSync('data/outils-v0.csv', 'utf8'),
   candidatesCsv: readFileSync('data/candidats-tous.csv', 'utf8'),
   manual: JSON.parse(readFileSync('data/catalogue-manuel.json', 'utf8')),
+  categoriesCsv: readFileSync('data/categories.csv', 'utf8'),
 };
 const files = buildCatalog(input);
 

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { routes } from './routes';
-import { legacyRedirects } from './legacy-redirects.mjs';
+import { readFileSync } from 'node:fs';
+import { categoryRedirects, legacyRedirects } from './legacy-redirects.mjs';
+import { parseCsv, slugify } from '../scripts/build-catalog.mjs';
 
 describe('routes', () => {
   it('builds English public paths', () => {
@@ -20,5 +22,14 @@ describe('routes', () => {
       expect(redirect.destination).not.toMatch(/outils|createurs|recherche|proposer|trousseau|transparence|mentions|confidentialite/);
     }
     expect(legacyRedirects).toHaveLength(9);
+  });
+
+  it('redirige chaque ancienne catégorie vers une catégorie qui existe dans data/', () => {
+    const current = new Set(parseCsv(readFileSync('data/categories.csv', 'utf8')).map(row => slugify(row.categorie)));
+    expect(categoryRedirects).toHaveLength(10);
+    for (const redirect of categoryRedirects) {
+      expect(current.has(redirect.source.replace('/categories/', ''))).toBe(false);
+      expect(current.has(redirect.destination.replace('/categories/', ''))).toBe(true);
+    }
   });
 });

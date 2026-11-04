@@ -15,9 +15,9 @@ const codes: Code[] = [
   code({ code: 'D1', tool: 'Divi', creator: 'Dan', status: 'rejected', votes: 1, success: 0 }),
 ];
 const categories: Category[] = [
-  { slug: 'finance', name: 'Finance', count: 1, tracked: 2 },
-  { slug: 'marketing', name: 'Marketing', count: 1, tracked: 4 },
-  { slug: 'ia', name: 'IA', count: 0, tracked: 3 },
+  { slug: 'finance', name: 'Finance', family: null, count: 1, tracked: 2 },
+  { slug: 'marketing', name: 'Marketing', family: null, count: 1, tracked: 4 },
+  { slug: 'ia', name: 'IA', family: null, count: 0, tracked: 3 },
 ];
 const catalog = { codes, tools: [], categories, tracked: 10 };
 
