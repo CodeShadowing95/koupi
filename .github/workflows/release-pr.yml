@@ -52,7 +52,7 @@ jobs:
             echo
             node scripts/release-notes.mjs "$VERSION"
           } > body.md
-          title="chore(release): v$VERSION"
+          title="chore(release): Release v$VERSION"
           existing=$(gh pr list --base main --head develop --state open --json number --jq '.[0].number')
           if [ -n "$existing" ]; then
             gh pr edit "$existing" --title "$title" --body-file body.md

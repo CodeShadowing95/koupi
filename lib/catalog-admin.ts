@@ -2,9 +2,10 @@
 // Comme pour les codes, on n'efface rien : un outil est archivé (il disparaît du site avec ses codes).
 import { and, asc, eq, ne, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
-import { categories, codes, creators, tools } from '@/db/schema';
+import { categories, categoryFamilies, codes, creators, tools } from '@/db/schema';
 import { slugify } from './slug';
 import { validUrl } from './codes-admin';
+import { parseCreatorBio } from './creator-bio';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 function text(value: unknown, max: number): string { return typeof value === 'string' ? value.trim().slice(0, max) : ''; }
@@ -72,11 +73,11 @@ export async function setToolArchived(db: Db, id: string, archived: boolean): Pr
 
 // ---------- Créateurs ----------
 
-export type AdminCreator = { id: string; slug: string; name: string; codes: number; visible: number; tools: string[] };
+export type AdminCreator = { id: string; slug: string; name: string; bio: string | null; codes: number; visible: number; tools: string[] };
 
 export async function listCreatorsAdmin(db: Db): Promise<AdminCreator[]> {
   const rows = await db.select({
-    id: creators.id, slug: creators.slug, name: creators.name,
+    id: creators.id, slug: creators.slug, name: creators.name, bio: creators.bio,
     codes: sql<number>`count(${codes.id}) filter (where ${codes.archivedAt} is null)::int`,
     visible: sql<number>`count(${codes.id}) filter (where ${visible})::int`,
     tools: sql<string[]>`coalesce(array_agg(distinct ${tools.name}) filter (where ${tools.name} is not null and ${codes.archivedAt} is null), '{}')`,
@@ -85,25 +86,50 @@ export async function listCreatorsAdmin(db: Db): Promise<AdminCreator[]> {
   return rows;
 }
 
-/** Renomme un créateur (orthographe, nom de chaîne). Son adresse sur le site reste la même. */
-export async function renameCreator(db: Db, id: string, rawName: unknown): Promise<Parsed<{ id: string }>> {
-  const name = text(rawName, 160);
+/** Modifie le profil d'un créateur : nom (orthographe, nom de chaîne) et présentation. Son adresse sur le site reste la même. */
+export async function updateCreatorProfile(db: Db, id: string, input: { name?: unknown; bio?: unknown }): Promise<Parsed<{ id: string }>> {
+  const name = text(input.name, 160);
   if (!name) return { ok: false, error: 'Indique le nom du créateur.' };
-  const rows = await db.update(creators).set({ name, updatedAt: new Date() }).where(eq(creators.id, id)).returning({ id: creators.id });
+  // Sans champ « bio » dans la requête, la présentation reste telle quelle.
+  const bio = input.bio === undefined ? null : parseCreatorBio(input.bio);
+  if (bio && !bio.ok) return bio;
+  const rows = await db.update(creators).set({ name, ...(bio ? { bio: bio.data } : {}), updatedAt: new Date() }).where(eq(creators.id, id)).returning({ id: creators.id });
   return rows.length ? { ok: true, data: { id } } : { ok: false, error: 'Créateur introuvable.' };
 }
 
 // ---------- Catégories ----------
 
-export type AdminCategory = { slug: string; name: string; tools: number; covered: number };
+export type AdminCategory = { slug: string; name: string; familySlug: string | null; family: string | null; tools: number; covered: number };
+export type CategoryFamily = { slug: string; name: string; position: number };
+
+/** Familles de catégories (ADR-0026), dans l'ordre du menu. */
+export async function listFamilies(db: Db): Promise<CategoryFamily[]> {
+  return db.select({ slug: categoryFamilies.slug, name: categoryFamilies.name, position: categoryFamilies.position })
+    .from(categoryFamilies).orderBy(asc(categoryFamilies.position), asc(categoryFamilies.name));
+}
 
 export async function listCategoriesAdmin(db: Db): Promise<AdminCategory[]> {
   const toolRows = await listToolsAdmin(db);
-  const rows = await db.select().from(categories).orderBy(asc(categories.createdAt), asc(categories.name));
+  const rows = await db.select({ slug: categories.slug, name: categories.name, familySlug: categories.familySlug, family: categoryFamilies.name })
+    .from(categories).leftJoin(categoryFamilies, eq(categories.familySlug, categoryFamilies.slug))
+    .orderBy(asc(categories.createdAt), asc(categories.name));
   return rows.map(row => {
     const inCategory = toolRows.filter(tool => tool.categorySlug === row.slug && !tool.archived);
-    return { slug: row.slug, name: row.name, tools: inCategory.length, covered: inCategory.filter(tool => tool.visible > 0).length };
+    return { ...row, tools: inCategory.length, covered: inCategory.filter(tool => tool.visible > 0).length };
   });
+}
+
+/**
+ * Famille demandée par le formulaire : undefined = ne pas toucher, '' ou null = aucune famille,
+ * sinon le slug d'une famille qui existe.
+ */
+async function parseFamily(db: Db, raw: unknown): Promise<Parsed<string | null | undefined>> {
+  if (raw === undefined) return { ok: true, data: undefined };
+  if (raw === null || raw === '') return { ok: true, data: null };
+  const slug = text(raw, 80);
+  if (!slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) return { ok: false, error: 'Famille invalide.' };
+  const [row] = await db.select({ slug: categoryFamilies.slug }).from(categoryFamilies).where(eq(categoryFamilies.slug, slug)).limit(1);
+  return row ? { ok: true, data: row.slug } : { ok: false, error: 'Cette famille n’existe pas.' };
 }
 
 async function categoryNameTaken(db: Db, name: string, exceptSlug?: string) {
@@ -111,20 +137,24 @@ async function categoryNameTaken(db: Db, name: string, exceptSlug?: string) {
   return (await db.select({ slug: categories.slug }).from(categories).where(exceptSlug ? and(condition, ne(categories.slug, exceptSlug)) : condition).limit(1)).length > 0;
 }
 
-export async function createCategory(db: Db, rawName: unknown): Promise<Parsed<{ slug: string }>> {
+export async function createCategory(db: Db, rawName: unknown, rawFamily?: unknown): Promise<Parsed<{ slug: string }>> {
   const name = text(rawName, 80), slug = slugify(name);
   if (!name || !slug) return { ok: false, error: 'Indique le nom de la catégorie.' };
+  const family = await parseFamily(db, rawFamily);
+  if (!family.ok) return family;
   if (await categoryNameTaken(db, name)) return { ok: false, error: 'Cette catégorie existe déjà.' };
-  const [row] = await db.insert(categories).values({ slug, name }).onConflictDoNothing().returning({ slug: categories.slug });
+  const [row] = await db.insert(categories).values({ slug, name, familySlug: family.data ?? null }).onConflictDoNothing().returning({ slug: categories.slug });
   return row ? { ok: true, data: row } : { ok: false, error: 'Une catégorie a déjà cette adresse sur le site.' };
 }
 
-/** Renomme une catégorie. Son adresse sur le site (slug) reste la même. */
-export async function renameCategory(db: Db, slug: string, rawName: unknown): Promise<Parsed<{ slug: string }>> {
+/** Renomme une catégorie et change sa famille (si rawFamily est donné). Son adresse sur le site (slug) reste la même. */
+export async function renameCategory(db: Db, slug: string, rawName: unknown, rawFamily?: unknown): Promise<Parsed<{ slug: string }>> {
   const name = text(rawName, 80);
   if (!name) return { ok: false, error: 'Indique le nom de la catégorie.' };
+  const family = await parseFamily(db, rawFamily);
+  if (!family.ok) return family;
   if (await categoryNameTaken(db, name, slug)) return { ok: false, error: 'Une autre catégorie porte déjà ce nom.' };
-  const rows = await db.update(categories).set({ name }).where(eq(categories.slug, slug)).returning({ slug: categories.slug });
+  const rows = await db.update(categories).set({ name, ...(family.data !== undefined ? { familySlug: family.data } : {}) }).where(eq(categories.slug, slug)).returning({ slug: categories.slug });
   return rows.length ? { ok: true, data: { slug } } : { ok: false, error: 'Catégorie introuvable.' };
 }
 

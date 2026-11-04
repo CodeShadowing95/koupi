@@ -149,6 +149,12 @@
     "kind": "image",
     "source": "Logo.dev"
   },
+  "cuure": {
+    "src": "/logos/cuure.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
   "cyberghost": {
     "src": "/logos/cyberghost.png",
     "bg": "#ffffff",
@@ -253,6 +259,12 @@
   },
   "grammarly": {
     "src": "/logos/grammarly.png",
+    "bg": "#ffffff",
+    "kind": "image",
+    "source": "Logo.dev"
+  },
+  "granola": {
+    "src": "/logos/granola.png",
     "bg": "#ffffff",
     "kind": "image",
     "source": "Logo.dev"

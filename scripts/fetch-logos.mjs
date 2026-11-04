@@ -1,5 +1,5 @@
 // Récupère les logos des outils et les enregistre dans public/logos/.
-// Les logos sont servis par Koupi lui-même : aucune requête vers un service tiers
+// Les logos sont servis par Merkod lui-même : aucune requête vers un service tiers
 // depuis le navigateur des visiteurs (voir ADR-0007).
 //
 // Ordre de recherche pour chaque outil :
@@ -122,7 +122,7 @@ const EXT = { 'image/svg+xml': 'svg', 'image/png': 'png', 'image/x-icon': 'ico',
 
 /** L'icône déclarée par le site officiel (la plus grande trouvée). */
 async function fromWebsite(tool) {
-  const page = await fetch(tool.website, { redirect: 'follow', headers: { 'user-agent': 'KoupiLogoBot/1.0 (+https://github.com/CodeShadowing95/koupi)' } });
+  const page = await fetch(tool.website, { redirect: 'follow', headers: { 'user-agent': 'MerkodLogoBot/1.0 (+https://github.com/CodeShadowing95/koupi)' } });
   if (!page.ok) throw new Error(`page ${page.status}`);
   const html = await page.text();
   const base = page.url;

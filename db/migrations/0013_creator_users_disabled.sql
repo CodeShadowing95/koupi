@@ -1,0 +1,1 @@
+ALTER TABLE "creator_users" ADD COLUMN "disabled_at" timestamp with time zone;

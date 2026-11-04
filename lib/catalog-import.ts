@@ -18,7 +18,7 @@ export async function importCatalog(db: Db, input: ImportInput): Promise<ImportR
   const now = Date.now();
   const at = (i: number) => ({ createdAt: new Date(now + i), updatedAt: new Date(now + i) });
 
-  const categoryValues = built.categories.map((category, i) => ({ slug: category.slug, name: category.name, createdAt: new Date(now + i) }));
+  const categoryValues = built.categories.map((category, i) => ({ slug: category.slug, name: category.name, familySlug: category.family, createdAt: new Date(now + i) }));
   const insertedCategories = categoryValues.length
     ? await db.insert(categories).values(categoryValues).onConflictDoNothing().returning({ slug: categories.slug })
     : [];

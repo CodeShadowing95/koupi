@@ -6,9 +6,14 @@ import type { ToolOption } from '@/lib/codes-admin';
 import { CodeEditor, type EditorTarget } from '@/components/admin-code-editor';
 import { matchesSearch } from '@/lib/admin-search';
 import { RETEST_DAYS, staleCodes } from '@/lib/admin-stats';
+import { expiryOf } from '@/lib/code-expiry';
 import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { Pagination, usePagination } from '@/components/admin-pagination';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
+import { CopyCode, IconButton, ToolSiteLink, IconLink, StatusDot, type Tone } from '@/components/admin-card';
+import { ExportMenu } from '@/components/admin-export-menu';
+import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
+import { RefreshButton } from '@/components/admin-refresh-button';
 
 const statusLabel: Record<Code['status'], { label: string; className: string }> = {
   verified: { label: 'Vérifié', className: 'adm-pill adm-pill-ok' },
@@ -21,6 +26,9 @@ const filters: { value: Filter; label: string }[] = [
   { value: 'all', label: 'Tous' }, { value: 'to_test', label: 'À tester' }, { value: 'retest', label: 'À retester' }, { value: 'pending', label: 'En attente' }, { value: 'verified', label: 'Vérifiés' }, { value: 'rejected', label: 'Rejetés' }, { value: 'archived', label: 'Archivés' },
 ];
 const matchesFilter = (code: Code, filter: Filter, stale: Set<string>) => filter === 'archived' ? Boolean(code.archived) : filter === 'retest' ? stale.has(code.id) : !code.archived && (filter === 'all' || code.status === filter);
+const statusTone: Record<Code['status'], Tone> = { verified: 'ok', to_test: 'warn', pending: 'muted', rejected: 'bad' };
+const shortTested = (iso: string | null) => iso ? `testé le ${new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}` : 'jamais testé';
+const cardMeta = (code: Code) => `${code.creator} · ${code.votes} vote${code.votes > 1 ? 's' : ''}${code.votes > 0 ? ` · ${code.success} %` : ''} · ${shortTested(code.lastTestedAt)}`;
 const testedLabel = (iso: string | null) => iso ? `Testé le ${new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}` : 'Jamais testé';
 const sortFields: SortField<Code>[] = [
   { key: 'created', label: 'Date d’ajout', value: code => code.createdAt },
@@ -38,6 +46,9 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
   const countOf = (value: Filter) => codes.filter(code => matchesFilter(code, value, stale)).length;
   const router = useRouter();
   const [editing, setEditing] = useState<EditorTarget | null>(null);
+  const siteOf = new Map(tools.map(tool => [tool.slug, tool.website]));
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = codes.find(code => code.id === selectedId) ?? null;
   const [busy, setBusy] = useState('');
   const creators = [...new Set(codes.map(code => code.creator))].sort((a, b) => a.localeCompare(b, 'fr'));
   async function quick(code: Code, action: 'verify' | 'reject' | 'restore') {
@@ -53,6 +64,12 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
         {(code.status !== 'verified' || stale.has(code.id)) && <button type="button" className="adm-btn adm-btn-ok" disabled={busy === code.id} onClick={() => quick(code, 'verify')} title="Tu l’as essayé et il marche">✓ Marche</button>}
         {code.status !== 'rejected' && <button type="button" className="adm-btn adm-btn-no" disabled={busy === code.id} onClick={() => quick(code, 'reject')} title="Tu l’as essayé et il ne marche pas">✗ Ne marche pas</button>}
       </span>;
+  const iconActions = (code: Code) => code.archived
+    ? <IconButton icon="restore" label="Restaurer" disabled={busy === code.id} onClick={() => quick(code, 'restore')} />
+    : <>
+        {(code.status !== 'verified' || stale.has(code.id)) && <IconButton icon="check" tone="ok" label="Il marche (tu l’as essayé)" disabled={busy === code.id} onClick={() => quick(code, 'verify')} />}
+        {code.status !== 'rejected' && <IconButton icon="cross" tone="bad" label="Il ne marche pas (tu l’as essayé)" disabled={busy === code.id} onClick={() => quick(code, 'reject')} />}
+      </>;
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<Filter>('all');
   const [view, setView] = useAdminView();
@@ -76,7 +93,7 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
             <h1>Codes</h1>
             <p>Vérifie la source, complète la réduction, puis publie uniquement les codes fiables. Seuls les codes vérifiés et à tester sont visibles sur le site.</p>
           </div>
-          <div className="adm-head-actions"><a className="adm-btn" href="/api/admin/export?type=codes" download>Exporter en CSV</a><button type="button" className="adm-btn adm-btn-pri" onClick={() => setEditing({ kind: 'create' })}>+ Nouveau code</button></div>
+          <div className="adm-head-actions"><RefreshButton /><ExportMenu type="codes" /><button type="button" className="adm-btn adm-btn-pri" onClick={() => setEditing({ kind: 'create' })}>+ Nouveau code</button></div>
         </div>
         <div className="adm-tabs" role="group" aria-label="Statut">
           {filters.map(filter => <button key={filter.value} type="button" className="adm-tab" aria-pressed={status === filter.value} onClick={() => setStatus(filter.value)}>{filter.label} {(filter.value === 'to_test' || filter.value === 'retest') && countOf(filter.value) > 0 && status !== filter.value ? <span className="adm-count-badge">{countOf(filter.value)}</span> : <span className="adm-tab-n">{countOf(filter.value)}</span>}</button>)}
@@ -99,9 +116,9 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
               </thead>
               <tbody>
                 {current.items.map(code => (
-                  <tr key={code.id}>
-                    <td className="mono">{code.code}</td>
-                    <td className="adm-cell-nowrap">{code.tool}</td>
+                  <tr key={code.id} data-open onClick={openOnClick(() => setSelectedId(code.id))}>
+                    <td className="mono"><span className="adm-code-cell"><button type="button" className="adm-open" title={`Voir le détail de ${code.code}`} onClick={() => setSelectedId(code.id)}>{code.code}</button><CopyCode code={code.code} /></span></td>
+                    <td className="adm-cell-nowrap"><ToolSiteLink name={code.tool} website={siteOf.get(code.toolSlug)} /></td>
                     <td className="adm-cell-wrap">{code.discount}</td>
                     <td className="adm-cell-wrap">{code.creator}</td>
                     <td className="adm-cell-muted">{code.votes}</td>
@@ -117,22 +134,40 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
         ) : (
           <div className="adm-grid adm-page-enter" key={`grid-${current.page}`}>
             {current.items.map(code => (
-              <article className="adm-card" key={code.id}>
-                <div className="adm-card-top"><span className="mono">{code.code}</span><span className={statusLabel[code.status].className}>{statusLabel[code.status].label}</span></div>
-                <h3>{code.tool} · {code.discount}</h3>
-                <p>{code.creator} · {code.votes} votes, {code.success} % de réussite</p>
-                {code.note && <p className="adm-note">Note : {code.note}</p>}
-                <p className="adm-tested">{testedLabel(code.lastTestedAt)}</p>
+              <article className="adm-card" key={code.id} data-open onClick={openOnClick(() => setSelectedId(code.id))}>
+                <div className="adm-card-row"><button type="button" className="mono adm-open" title={`Voir le détail de ${code.code}`} onClick={() => setSelectedId(code.id)}>{code.code}</button><CopyCode code={code.code} /><StatusDot tone={statusTone[code.status]}>{statusLabel[code.status].label}</StatusDot></div>
+                <p className="adm-card-line" title={`${code.tool} · ${code.discount}`}><ToolSiteLink name={code.tool} website={siteOf.get(code.toolSlug)} /> <span>· {code.discount}</span></p>
                 <div className="adm-card-foot">
-                  {actions(code)}
-                  <a href={code.source} target="_blank" rel="noopener noreferrer">Source ↗</a>
-                  <button type="button" className="adm-btn" style={{ marginLeft: 'auto' }} onClick={() => setEditing({ kind: 'edit', code })}>Modifier</button>
+                  <span className="adm-card-meta" title={[cardMeta(code), code.note && `Note : ${code.note}`].filter(Boolean).join('\n')}>{cardMeta(code)}</span>
+                  {iconActions(code)}
+                  <IconLink icon="external" label="Voir la source" href={code.source} external />
+                  <IconButton icon="edit" label="Modifier" onClick={() => setEditing({ kind: 'edit', code })} />
                 </div>
               </article>
             ))}
           </div>
         )}
         <Pagination current={current} onChange={goTo} label="codes" size={size} onSizeChange={changeSize} />
+        <AdminDrawer open={selected !== null} onClose={() => setSelectedId(null)} label={`Détail du code ${selected?.code ?? ''}`} eyebrow={selected?.archived ? 'Code archivé' : 'Code'}
+          title={selected && <span className="adm-code-cell"><span className="mono">{selected.code}</span><CopyCode code={selected.code} /></span>}
+          aside={selected && <StatusDot tone={statusTone[selected.status]}>{statusLabel[selected.status].label}</StatusDot>}
+          actions={selected && <>{actions(selected)}<span style={{ flex: 1 }} /><button type="button" className="adm-btn adm-btn-pri" onClick={() => setEditing({ kind: 'edit', code: selected })}>Modifier</button></>}>
+          {selected && <>
+            <DetailList items={[
+              { label: 'Outil', value: <><ToolSiteLink name={selected.tool} website={siteOf.get(selected.toolSlug)} /> · <a href={`/admin/outils?q=${encodeURIComponent(selected.tool)}`}>fiche admin</a></> },
+              { label: 'Réduction', value: selected.discount },
+              { label: 'Créateur', value: <a href={`/admin/createurs?q=${encodeURIComponent(selected.creator)}`}>{selected.creator}</a> },
+              { label: 'Source', value: <a href={selected.source} target="_blank" rel="noopener noreferrer">{selected.sourceTitle || 'Ouvrir la source'} ↗</a> },
+              { label: 'Lien du créateur', value: selected.creatorLink && <a href={selected.creatorLink} target="_blank" rel="noopener noreferrer">Ouvrir ↗</a> },
+              { label: 'Votes', value: selected.votes > 0 ? `${selected.votes} vote${selected.votes > 1 ? 's' : ''} · ${selected.success} % de réussite` : 'Aucun vote' },
+              { label: 'Dernier test', value: testedLabel(selected.lastTestedAt) + (stale.has(selected.id) ? ' · à retester' : '') },
+              { label: 'Testé au paiement', value: selected.paymentTestedAt && new Date(selected.paymentTestedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) },
+              { label: 'Valable jusqu’au', value: selected.expiresOn && `${new Date(`${selected.expiresOn}T12:00:00Z`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}${expiryOf(selected.expiresOn).state === 'expired' ? ' · date passée' : ''}` },
+              { label: 'Ajouté le', value: new Date(selected.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) },
+            ]} />
+            {selected.note && <p className="adm-detail-quote">Note : {selected.note}</p>}
+          </>}
+        </AdminDrawer>
         <CodeEditor target={editing} tools={tools} categories={categories} creators={creators} onClose={() => setEditing(null)} />
       </div>
     </main>

@@ -4,7 +4,7 @@ import { coverageByCategory, flaggedCodes, overview, reliabilityBuckets, staleCo
 
 const code = (over: Partial<Code>): Code => ({
   id: over.code ?? 'X', tool: 'Abby', toolSlug: 'abby', creator: 'Créa', creatorSlug: 'crea', code: 'X', discount: '-10 %', status: 'to_test',
-  source: 'https://youtube.com/watch?v=x', sourceTitle: 'Vidéo', votes: 0, success: 0, lastTestedAt: null, createdAt: '2026-11-01T00:00:00.000Z', ...over,
+  source: 'https://youtube.com/watch?v=x', sourceTitle: 'Vidéo', votes: 0, success: 0, lastTestedAt: null, paymentTestedAt: null, expiresOn: null, createdAt: '2026-11-01T00:00:00.000Z', ...over,
 });
 
 const codes: Code[] = [
@@ -15,9 +15,9 @@ const codes: Code[] = [
   code({ code: 'D1', tool: 'Divi', creator: 'Dan', status: 'rejected', votes: 1, success: 0 }),
 ];
 const categories: Category[] = [
-  { slug: 'finance', name: 'Finance', count: 1, tracked: 2 },
-  { slug: 'marketing', name: 'Marketing', count: 1, tracked: 4 },
-  { slug: 'ia', name: 'IA', count: 0, tracked: 3 },
+  { slug: 'finance', name: 'Finance', family: null, count: 1, tracked: 2 },
+  { slug: 'marketing', name: 'Marketing', family: null, count: 1, tracked: 4 },
+  { slug: 'ia', name: 'IA', family: null, count: 0, tracked: 3 },
 ];
 const catalog = { codes, tools: [], categories, tracked: 10 };
 
@@ -63,6 +63,9 @@ describe('actions du jour', () => {
 
   it('ne parle pas des propositions quand la file est vide ou inconnue', () => {
     expect(todos(catalog, 0).map(todo => todo.id)).not.toContain('submissions');
+    expect(todos(catalog, 0, new Date(), 2).map(todo => todo.id)[0]).toBe('creator-requests');
+    expect(todos(catalog, 0, new Date(), 2)[0].title).toBe('Répondre à 2 demandes de créateurs');
+    expect(todos(catalog, 0, new Date(), 0).map(todo => todo.id)).not.toContain('creator-requests');
     expect(todos(catalog, null).map(todo => todo.id)).not.toContain('submissions');
   });
 

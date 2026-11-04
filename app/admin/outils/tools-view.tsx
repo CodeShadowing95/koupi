@@ -10,7 +10,12 @@ import { FormDialog, sendJson } from '@/components/admin-form-dialog';
 import { AdminSelect } from '@/components/admin-select';
 import { InfoTip } from '@/components/admin-info-tip';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
-import { AdminToolName } from '@/components/admin-tool-logo';
+import { AdminToolLogo, AdminToolName } from '@/components/admin-tool-logo';
+import { IconButton, IconLink, StatusDot } from '@/components/admin-card';
+import { ExportMenu } from '@/components/admin-export-menu';
+import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
+import { FetchLogosButton, RefreshLogoButton } from './logos-button';
+import { RefreshButton } from '@/components/admin-refresh-button';
 
 type Filter = 'all' | 'published' | 'empty' | 'archived';
 const filters: { value: Filter; label: string }[] = [
@@ -28,19 +33,26 @@ const sortFields: SortField<AdminTool>[] = [
 
 type Form = { name: string; categorySlug: string; website: string; description: string; priority: number };
 
-export function ToolsView({ tools, categories }: { tools: AdminTool[]; categories: AdminCategory[] }) {
+export function ToolsView({ tools, categories, missingLogos }: { tools: AdminTool[]; categories: AdminCategory[]; missingLogos: number }) {
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
+  const [category, setCategory] = useState('');
   // Les liens des autres pages ouvrent la liste déjà filtrée (?q=…).
-  useEffect(() => { const q = new URLSearchParams(window.location.search).get('q'); if (q) setQuery(q); }, []);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('q')) setQuery(params.get('q') ?? '');
+    if (params.get('category')) setCategory(params.get('category') ?? '');
+  }, []);
   const [view, setView] = useAdminView();
   const [editing, setEditing] = useState<AdminTool | 'new' | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = tools.find(tool => tool.id === selectedId) ?? null;
   const [form, setForm] = useState<Form>({ name: '', categorySlug: categories[0]?.slug ?? '', website: '', description: '', priority: 3 });
-  const filtered = tools.filter(tool => matches(tool, filter) && matchesSearch([tool.name, tool.category, tool.website, tool.description], query));
+  const filtered = tools.filter(tool => matches(tool, filter) && (!category || tool.categorySlug === category) && matchesSearch([tool.name, tool.category, tool.website, tool.description], query));
   const sort = useAdminSort(filtered, sortFields, 'name');
   const visible = sort.items;
-  const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${filter}|${query}|${sort.resetKey}`);
+  const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${filter}|${category}|${query}|${sort.resetKey}`);
   const countOf = (value: Filter) => tools.filter(tool => matches(tool, value)).length;
 
   function open(target: AdminTool | 'new') {
@@ -60,6 +72,8 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
 
   const status = (tool: AdminTool) => tool.archived ? <span className="adm-pill adm-pill-bad">Archivé</span>
     : tool.visible > 0 ? <span className="adm-pill adm-pill-ok">Publié</span> : <span className="adm-pill">Sans code</span>;
+  const statusDot = (tool: AdminTool) => tool.archived ? <StatusDot tone="bad">Archivé</StatusDot>
+    : tool.visible > 0 ? <StatusDot tone="ok">Publié</StatusDot> : <StatusDot tone="muted">Sans code</StatusDot>;
   const codesLink = (tool: AdminTool) => <a href={`/admin/codes?q=${encodeURIComponent(tool.name)}`}>{tool.visible} visible{tool.visible > 1 ? 's' : ''} / {tool.codes}</a>;
 
   return (
@@ -69,9 +83,9 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
           <div>
             <span className="eyebrow">Catalogue</span>
             <h1>Outils</h1>
-            <p>Les outils que Koupi suit. Un outil apparaît sur le site dès qu’il a un code vérifié ou à tester. Priorité 1 : à couvrir en premier.</p>
+            <p>Les outils que Merkod suit. Un outil apparaît sur le site dès qu’il a un code vérifié ou à tester. Priorité 1 : à couvrir en premier.</p>
           </div>
-          <div className="adm-head-actions"><button type="button" className="adm-btn adm-btn-pri" onClick={() => open('new')}>+ Nouvel outil</button></div>
+          <div className="adm-head-actions"><RefreshButton /><FetchLogosButton missing={missingLogos} /><ExportMenu type="outils" /><button type="button" className="adm-btn adm-btn-pri" onClick={() => open('new')}>+ Nouvel outil</button></div>
         </div>
         <div className="adm-tabs" role="group" aria-label="Filtre">
           {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label} <span className="adm-tab-n">{countOf(item.value)}</span></button>)}
@@ -79,6 +93,9 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
         <div className="adm-toolbar">
           <label htmlFor="tool-search" className="sr-only">Rechercher un outil</label>
           <input id="tool-search" className="adm-search" type="search" placeholder="Rechercher un outil, une catégorie…" value={query} onChange={event => setQuery(event.target.value)} />
+          <AdminSelect id="tool-category-filter" variant="filter" ariaLabel="Catégorie" value={category} onChange={setCategory}
+            options={[{ value: '', label: 'Toutes les catégories' }, ...categories.map(item => ({ value: item.slug, label: item.name, hint: `${item.tools} outil${item.tools > 1 ? 's' : ''}` }))]}
+            searchPlaceholder="Rechercher une catégorie…" />
           {view !== 'table' && <SortControl sort={sort} id="tool-sort" />}
           <span className="adm-count" role="status">{visible.length} sur {countOf(filter)}</span>
           <ViewToggle view={view} onChange={setView} />
@@ -91,8 +108,8 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
               <thead><tr><SortHeader sort={sort} field="name">Outil</SortHeader><SortHeader sort={sort} field="category">Catégorie</SortHeader><SortHeader sort={sort} field="codes">Codes</SortHeader><SortHeader sort={sort} field="priority">Priorité</SortHeader><th scope="col">Statut</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
               <tbody>
                 {current.items.map(tool => (
-                  <tr key={tool.id}>
-                    <td className="adm-cell-nowrap"><AdminToolName slug={tool.slug} name={tool.name} /></td>
+                  <tr key={tool.id} data-open onClick={openOnClick(() => setSelectedId(tool.id))}>
+                    <td className="adm-cell-nowrap"><button type="button" className="adm-open" title={`Voir le détail de ${tool.name}`} onClick={() => setSelectedId(tool.id)}><AdminToolName slug={tool.slug} name={tool.name} /></button></td>
                     <td className="adm-cell-wrap">{tool.category}</td>
                     <td className="adm-cell-nowrap">{codesLink(tool)}</td>
                     <td className="adm-cell-muted">{tool.priority}</td>
@@ -106,14 +123,16 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
         ) : (
           <div className="adm-grid adm-page-enter" key={`grid-${current.page}`}>
             {current.items.map(tool => (
-              <article className="adm-card" key={tool.id}>
-                <div className="adm-card-top"><AdminToolName slug={tool.slug} name={tool.name} />{status(tool)}</div>
-                <h3>{tool.category}</h3>
-                <p>Codes : {codesLink(tool)} · priorité {tool.priority}</p>
-                {tool.description && <p className="adm-note">{tool.description}</p>}
+              <article className="adm-card" key={tool.id} data-open onClick={openOnClick(() => setSelectedId(tool.id))}>
+                <div className="adm-card-row">
+                  <div className="adm-card-id"><AdminToolLogo slug={tool.slug} name={tool.name} /><div><button type="button" className="adm-open" title={`Voir le détail de ${tool.name}`} onClick={() => setSelectedId(tool.id)}><b>{tool.name}</b></button><small title={tool.description ?? undefined}>{tool.category}</small></div></div>
+                  {statusDot(tool)}
+                </div>
                 <div className="adm-card-foot">
-                  <a href={tool.website} target="_blank" rel="noopener noreferrer">Site ↗</a>
-                  <button type="button" className="adm-btn" style={{ marginLeft: 'auto' }} onClick={() => open(tool)}>Modifier</button>
+                  <span className="adm-card-meta">{codesLink(tool)}</span>
+                  <span className="adm-prio" title={`Priorité ${tool.priority}`}>P{tool.priority}</span>
+                  <IconLink icon="external" label="Site officiel" href={tool.website} external />
+                  <IconButton icon="edit" label="Modifier" onClick={() => open(tool)} />
                 </div>
               </article>
             ))}
@@ -121,6 +140,27 @@ export function ToolsView({ tools, categories }: { tools: AdminTool[]; categorie
         )}
         <Pagination current={current} onChange={goTo} label="outils" size={size} onSizeChange={changeSize} />
 
+        <AdminDrawer open={selected !== null} onClose={() => setSelectedId(null)} label={`Détail de ${selected?.name ?? ''}`} eyebrow="Outil"
+          title={selected && <span className="adm-drawer-name"><AdminToolLogo slug={selected.slug} name={selected.name} />{selected.name}</span>}
+          aside={selected && statusDot(selected)}
+          actions={selected && <>
+            <button type="button" className="adm-btn adm-btn-danger" onClick={() => archive(selected)}>{selected.archived ? 'Restaurer' : 'Archiver'}</button>
+            <span style={{ flex: 1 }} />
+            <RefreshLogoButton toolId={selected.id} />
+            <a className="adm-btn" href={`/admin/codes?q=${encodeURIComponent(selected.name)}`}>Voir ses codes</a>
+            <button type="button" className="adm-btn adm-btn-pri" onClick={() => open(selected)}>Modifier</button>
+          </>}>
+          {selected && <>
+            {selected.description && <p className="adm-detail-quote">{selected.description}</p>}
+            <DetailList items={[
+              { label: 'Catégorie', value: <a href={`/admin/outils?category=${encodeURIComponent(selected.categorySlug)}`}>{selected.category}</a> },
+              { label: 'Site officiel', value: <a href={selected.website} target="_blank" rel="noopener noreferrer">{selected.website.replace(/^https?:\/\//, '').replace(/\/$/, '')} ↗</a> },
+              { label: 'Codes', value: codesLink(selected) },
+              { label: 'Priorité', value: priorityLabel[selected.priority] ?? selected.priority },
+              { label: 'Page publique', value: selected.visible > 0 && !selected.archived && <a href={`/tools/${selected.slug}`} target="_blank" rel="noopener noreferrer">/tools/{selected.slug} ↗</a> },
+            ]} />
+          </>}
+        </AdminDrawer>
         <FormDialog
           open={editing !== null}
           title={editing === 'new' ? 'Nouvel outil' : `Modifier ${editing?.name ?? ''}`}

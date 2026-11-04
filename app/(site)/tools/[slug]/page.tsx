@@ -1,78 +1,94 @@
-import Link from 'next/link';
+import type { Metadata } from 'next';
+import Link from '@/components/site/site-pages';
 import { notFound } from 'next/navigation';
 import { isPublic, type Code } from '@/lib/data';
 import { getCatalog } from '@/lib/catalog-server';
 import { routes } from '@/lib/routes';
-import { MiniCoupon, TearTicket } from '@/components/site/coupon';
+import { isTrusted, sortToolCodes, toolPageDescription, toolPageTitle, votesSummary } from '@/lib/tool-page';
+import { TearTicket } from '@/components/site/coupon';
+import { BoardingCoupon } from '@/components/site/boarding-coupon';
 import { ToolSeal } from '@/components/site/tool-logo';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { VoteButtons } from '@/components/site/vote-buttons';
+import { CodeBadge } from '@/components/site/code-badge';
+import { CreatorMark } from '@/components/site/creator-mark';
+import { Crumbs } from '@/components/site/page-head';
+import { episodeNumber } from '@/lib/source-label';
+import { VoteInvite } from '@/components/site/vote-invite';
 
-function StatusBadge({ status, testedAt, dark = false }: { status: Code['status']; testedAt?: string | null; dark?: boolean }) {
-  // « Testé, daté » : la date du dernier test est affichée quand on la connaît.
-  const date = testedAt ? new Date(testedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Paris' }) : null;
-  if (status === 'verified') return <span className={`k-status k-status-ok${dark ? ' is-dark' : ''}`}>✓ Vérifié{date ? ` le ${date}` : ''}</span>;
-  return <span className={`k-status k-status-warn${dark ? ' is-dark' : ''}`}>◷ À tester</span>;
+/** « GDIY, épisode #574 » pour un podcast suivi, « « titre de la vidéo » » sinon. */
+function ticketSource(code: Code): string {
+  const number = episodeNumber(code.sourceTitle);
+  if (code.podcast) return number ? `${code.podcast}, épisode #${number}` : `${code.podcast} (« ${code.sourceTitle} »)`;
+  return `« ${code.sourceTitle} »`;
 }
 
 function votesLabel(code: Code) {
-  return code.votes < 3 ? 'Pas encore assez de votes pour un taux de réussite.' : `Marche pour ${code.success} % des ${code.votes} personnes qui ont voté.`;
+  return votesSummary(code) ? `${votesSummary(code)}.` : 'Pas encore assez de votes pour un taux de réussite.';
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+async function toolCodes(slug: string) {
+  const { tools, codes, categories } = await getCatalog();
+  const tool = tools.find(item => item.slug === slug);
+  if (!tool) return null;
+  const sorted = sortToolCodes(codes.filter(code => code.toolSlug === tool.slug && isPublic(code)));
+  return { tool, sorted, category: categories.find(item => item.name === tool.category) };
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const tool = (await getCatalog()).tools.find(item => item.slug === slug);
-  return tool ? { title: `Code promo ${tool.name} · Koupi` } : {};
+  const found = await toolCodes(slug);
+  if (!found) return {};
+  const title = toolPageTitle(found.tool.name, found.sorted[0]);
+  const description = toolPageDescription(found.tool.name, found.sorted[0], found.sorted.length);
+  return { title, description, alternates: { canonical: routes.tool(slug) }, openGraph: { title, description } };
 }
 
+// Fiche outil : la page où l'on arrive en cherchant « code promo <outil> ». L'essentiel d'abord (outil, réduction,
+// le code à copier), la preuve ensuite (vidéo, votes), puis les autres codes.
 export default async function ToolPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const { tools, codes } = await getCatalog();
-  const tool = tools.find(item => item.slug === slug);
-  if (!tool) notFound();
-  const active = codes.filter(code => code.toolSlug === tool.slug && isPublic(code));
-  const sorted = [...active].sort((a, b) => (a.status === 'verified' ? 0 : 1) - (b.status === 'verified' ? 0 : 1) || b.success - a.success);
+  const found = await toolCodes(slug);
+  if (!found) notFound();
+  const { tool, sorted, category } = found;
   const [best, ...others] = sorted;
 
   return (
     <main className="k-page">
       <div className="k-wrap">
-        <nav className="k-crumbs" aria-label="Fil d'Ariane">
-          <Link href={routes.home}>Accueil</Link><span aria-hidden="true">/</span>
-          <Link href={routes.categories}>{tool.category}</Link><span aria-hidden="true">/</span>
-          <span aria-current="page" style={{ color: 'var(--text)' }}>{tool.name}</span>
-        </nav>
-        <div className="k-tool-layout" style={{ marginTop: 28 }}>
+        <Crumbs items={[{ label: tool.category, href: category ? routes.category(category.slug) : routes.codes }, { label: tool.name }]} />
+        <div className="k-tool-layout">
           <section>
             <div className="k-tool-head">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div className="k-tool-kicker">
                 <ToolSeal tool={tool.slug} name={tool.name} />
-                <span className="k-eyebrow">Code promo {tool.name}</span>
+                <span className="k-eyebrow">{sorted.length > 1 ? `${sorted.length} codes de créateurs` : best ? 'Le code d’un créateur' : tool.category}</span>
               </div>
+              <h1>
+                Code promo {tool.name}
+                {best && <em className={isTrusted(best) ? undefined : 'is-warn'}>{best.discount}</em>}
+              </h1>
               {best ? (
-                <h1>de {best.creator}<br />{best.status === 'verified' ? <em>marche.</em> : <em className="is-warn">est à tester.</em>}</h1>
+                <p className="k-tool-proof">
+                  <CodeBadge code={best} dark />
+                  <span>donné par <Link href={routes.creator(best.creatorSlug)}>{best.creator}</Link><CreatorMark level={best.creatorLevel} compact /></span>
+                </p>
               ) : (
-                <h1>Pas encore de code<br />pour {tool.name}.</h1>
+                <p>Pas encore de code donné par un créateur pour {tool.name}.</p>
               )}
-              <p>{tool.description} <a className="k-link" href={tool.website} target="_blank" rel="noopener noreferrer">Site officiel ↗</a></p>
             </div>
 
             {best ? (
               <TearTicket code={best.code} codeId={best.id} link={best.creatorLink || tool.website} creator={best.creator} discount={best.discount} tool={tool.name} seal={<ToolSeal tool={tool.slug} name={tool.name} size="lg" />}>
                 <div className="k-ticket-who">
-                  <CreatorAvatar name={best.creator} style={{ width: 52, height: 52 }} />
+                  <CreatorAvatar name={best.creator} className="k-ticket-avatar" />
                   <span>
-                    <strong><Link href={routes.creator(best.creatorSlug)}>{best.creator}</Link></strong>
-                    <span>l&apos;a donné dans « {best.sourceTitle} » · <a href={best.source} target="_blank" rel="noopener noreferrer">voir la vidéo ↗</a></span>
+                    <strong><Link href={routes.creator(best.creatorSlug)}>{best.creator}</Link><CreatorMark level={best.creatorLevel} compact /></strong>
+                    <span className="k-ticket-source">l&apos;a donné dans {ticketSource(best)}</span>
                   </span>
                 </div>
                 <span className="k-ticket-discount">{best.discount}</span>
-                <div className="k-ticket-meta"><StatusBadge status={best.status} testedAt={best.lastTestedAt} /><span>Lien du créateur ouvert tel quel</span></div>
-                <div className="k-ticket-votes">
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>{votesLabel(best)}</span>
-                  {best.votes >= 3 && <div className="k-meter"><span style={{ width: `${best.success}%` }} /></div>}
-                  <VoteButtons codeId={best.id} code={best.code} />
-                </div>
+                <div className="k-ticket-meta"><span>Lien du créateur ouvert tel quel</span></div>
               </TearTicket>
             ) : (
               <div className="k-empty">
@@ -82,47 +98,47 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
               </div>
             )}
 
-            {others.length > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginTop: 64 }}>
-                <h2 style={{ fontSize: 32 }} data-reveal>Les autres codes {tool.name}</h2>
-                <div className="k-code-list">
-                  {others.map(code => (
-                    <div className="k-coupon-card" key={code.id} data-reveal>
-                      <MiniCoupon
-                        codeId={code.id}
-                        className="k-row-coupon"
-                        code={code.code}
-                        link={code.creatorLink || tool.website}
-                        avatar={<CreatorAvatar name={code.creator} />}
-                        title={<>{code.creator} · {code.discount}</>}
-                        subtitle={code.sourceTitle}
-                      />
-                      <div className="k-coupon-meta">
-                        <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}><StatusBadge status={code.status} testedAt={code.lastTestedAt} dark />{votesLabel(code)}</span>
-                        <a href={code.source} target="_blank" rel="noopener noreferrer">Source ↗</a>
-                        <VoteButtons codeId={code.id} code={code.code} />
-                      </div>
-                    </div>
-                  ))}
+            {best && (
+              <div className="k-tool-check">
+                <div className="k-tool-check-text">
+                  <strong>{votesLabel(best)}</strong>
+                  {best.votes >= 3 && <div className="k-meter"><span style={{ width: `${best.success}%` }} /></div>}
+                  <a className="k-link" href={best.source} target="_blank" rel="noopener noreferrer">Voir la vidéo d&apos;où vient le code ↗</a>
                 </div>
+                <VoteButtons code={best} />
+              </div>
+            )}
+
+            {others.length > 0 && (
+              <div className="k-tool-others">
+                <h2 data-reveal>Les autres codes {tool.name}</h2>
+                <ul className="k-pass-rows">
+                  {others.map(code => (
+                    <li key={code.id} data-reveal>
+                      <BoardingCoupon code={code} link={code.creatorLink || tool.website} linkTool={false} />
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
           </section>
 
           <aside className="k-aside">
-            <div className="k-panel k-panel-glow">
-              <span className="k-eyebrow">Bientôt</span>
-              <h2>Et si ce code meurt avant ton renouvellement&nbsp;?</h2>
-              <p>On pourra te prévenir par e-mail avec le prochain code qui marche. Sans compte, avec un lien pour te désinscrire dans chaque message.</p>
+            <div className="k-panel">
+              <span className="k-eyebrow">{tool.category}</span>
+              <h2>{tool.name}</h2>
+              <p>{tool.description}</p>
+              <a className="k-link" href={tool.website} target="_blank" rel="noopener noreferrer">Site officiel ↗</a>
             </div>
             <div className="k-panel">
-              <span className="k-eyebrow">La règle Koupi</span>
-              <p>Chaque code reste celui du créateur. Son lien est ouvert tel quel, sans suivi ajouté par Koupi.</p>
+              <span className="k-eyebrow">La règle Merkod</span>
+              <p>Chaque code reste celui du créateur. Son lien est ouvert tel quel, sans suivi ajouté par Merkod : sa commission lui revient.</p>
               <Link className="k-link" href={routes.submit(tool.slug)}>Signaler un problème ou proposer un code →</Link>
             </div>
           </aside>
         </div>
       </div>
+      <VoteInvite trigger="copy" />
     </main>
   );
 }

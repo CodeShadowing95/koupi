@@ -9,6 +9,10 @@ import { ViewToggle, useAdminView } from '@/components/admin-view-toggle';
 import { Pagination, usePagination } from '@/components/admin-pagination';
 import { AdminSelect } from '@/components/admin-select';
 import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from '@/components/admin-sort';
+import { CopyCode, IconLink, StatusDot, type Tone } from '@/components/admin-card';
+import { ExportMenu } from '@/components/admin-export-menu';
+import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
+import { RefreshButton } from '@/components/admin-refresh-button';
 type Submission = { id: string; tool_name: string; creator_name: string; code: string; discount_label: string; source_url: string; creator_link: string | null; comment: string | null; submitter_email: string | null; status: string; admin_note: string | null; created_at: string; category: string | null; created_code_id: string | null };
 const sortFields: SortField<Submission>[] = [
   { key: 'received', label: 'Date de réception', value: item => item.created_at },
@@ -19,11 +23,14 @@ const sortFields: SortField<Submission>[] = [
 export function PropositionsView({ categories, tools, creators }: { categories: Category[]; tools: ToolOption[]; creators: string[] }) {
   const [editing, setEditing] = useState<EditorTarget | null>(null);
   const [items, setItems] = useState<Submission[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = items.find(item => item.id === selectedId) ?? null;
   const [status, setStatus] = useState('new');
   const [category, setCategory] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [loading, setLoading] = useState(true);
+  const [counts, setCounts] = useState<Record<string, number> | null>(null);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [view, setView] = useAdminView();
@@ -34,9 +41,9 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
     if (nextFrom) params.set('from', nextFrom);
     if (nextTo) params.set('to', nextTo);
     const response = await fetch(`/api/admin/submissions?${params.toString()}`);
-    const body = await response.json() as { submissions?: Submission[]; error?: string };
+    const body = await response.json() as { submissions?: Submission[]; counts?: Record<string, number>; error?: string };
     if (!response.ok) { setError(body.error || 'Impossible de charger la file.'); setLoading(false); return; }
-    setItems(body.submissions || []); setLoading(false);
+    setItems(body.submissions || []); setCounts(body.counts ?? null); setLoading(false);
   }
   useEffect(() => { void load(); }, [status, category, from, to]);
   // La recherche globale ouvre la liste déjà filtrée (?q=CODE).
@@ -50,6 +57,7 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
   }
   function resetFilters() { setCategory(''); setFrom(''); setTo(''); }
   const statusPill: Record<string, string> = { new: 'adm-pill', duplicate: 'adm-pill adm-pill-warn', approved: 'adm-pill adm-pill-ok', rejected: 'adm-pill adm-pill-bad' };
+  const statusTone: Record<string, Tone> = { new: 'info', duplicate: 'warn', approved: 'ok', rejected: 'bad' };
   const statusName: Record<string, string> = { new: 'À traiter', duplicate: 'Doublon', approved: 'Validée', rejected: 'Refusée' };
   function decisionButtons(item: Submission) {
     return item.status === 'new' ? <>
@@ -72,11 +80,11 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
             <h1>Propositions</h1>
             <p>Vérifie la source et décide ce qui peut entrer dans le catalogue public.</p>
           </div>
-          <div className="adm-head-actions"><a className="adm-btn" href="/api/admin/export?type=propositions" download>Exporter en CSV</a></div>
+          <div className="adm-head-actions"><RefreshButton onRefresh={() => load()} /><ExportMenu type="propositions" /></div>
         </div>
         <div className="adm-toolbar">
           <div className="adm-filters">
-            {['new', 'duplicate', 'approved', 'rejected', 'all'].map(option => <button key={option} type="button" className="adm-filter" aria-pressed={status === option} onClick={() => setStatus(option)}>{option === 'new' ? 'À traiter' : option === 'duplicate' ? 'Doublons' : option === 'approved' ? 'Validées' : option === 'rejected' ? 'Refusées' : 'Toutes'}</button>)}
+            {['new', 'duplicate', 'approved', 'rejected', 'all'].map(option => <button key={option} type="button" className="adm-filter" aria-pressed={status === option} onClick={() => setStatus(option)}>{option === 'new' ? 'À traiter' : option === 'duplicate' ? 'Doublons' : option === 'approved' ? 'Validées' : option === 'rejected' ? 'Refusées' : 'Toutes'}{counts && <span className="adm-tab-n">{counts[option] ?? 0}</span>}</button>)}
           </div>
           <ViewToggle view={view} onChange={setView} />
         </div>
@@ -104,8 +112,8 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
               </thead>
               <tbody>
                 {current.items.map(item => (
-                  <tr key={item.id}>
-                    <td className="mono">{item.code}</td>
+                  <tr key={item.id} data-open onClick={openOnClick(() => setSelectedId(item.id))}>
+                    <td className="mono"><span className="adm-code-cell"><button type="button" className="adm-open" title={`Voir le détail de ${item.code}`} onClick={() => setSelectedId(item.id)}>{item.code}</button><CopyCode code={item.code} /></span></td>
                     <td className="adm-cell-wrap">{item.tool_name}</td>
                     <td className="adm-cell-wrap">{item.discount_label}</td>
                     <td className="adm-cell-wrap">{item.creator_name}</td>
@@ -123,23 +131,40 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
         ) : (
           <div className="adm-grid adm-page-enter" key={`grid-${current.page}`}>
             {current.items.map(item => (
-              <article className="adm-card" key={item.id}>
-                <div className="adm-card-top"><span className="mono">{item.code}</span><span className={statusPill[item.status] || 'adm-pill'}>{statusName[item.status] || item.status}</span></div>
-                <h3>{item.tool_name} · {item.discount_label}</h3>
-                <p>{item.creator_name} · {new Date(item.created_at).toLocaleDateString('fr-FR')}{item.submitter_email ? ` · ${item.submitter_email}` : ''}</p>
-                {item.comment && <p title={item.comment}>« {item.comment} »</p>}
+              <article className="adm-card" key={item.id} data-open onClick={openOnClick(() => setSelectedId(item.id))}>
+                <div className="adm-card-row"><button type="button" className="mono adm-open" title={`Voir le détail de ${item.code}`} onClick={() => setSelectedId(item.id)}>{item.code}</button><CopyCode code={item.code} /><span className="adm-card-date">{new Date(item.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}</span><StatusDot tone={statusTone[item.status] ?? 'muted'}>{statusName[item.status] || item.status}</StatusDot></div>
+                <p className="adm-card-line" title={`${item.tool_name} · ${item.discount_label} · ${item.creator_name}`}>{item.tool_name} <span>· {item.discount_label} · {item.creator_name}</span></p>
+                <p className="adm-card-sub is-quote" title={[item.comment, item.submitter_email].filter(Boolean).join(' · ') || undefined}>{item.comment ? `« ${item.comment} »` : 'Sans commentaire'}</p>
                 <div className="adm-card-foot">
-                  <a href={item.source_url} target="_blank" rel="noopener noreferrer">Source ↗</a>
-                  {item.creator_link && <a href={item.creator_link} target="_blank" rel="noopener noreferrer">Lien ↗</a>}
-                </div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {decisionButtons(item)}
+                  <span className="adm-card-push" />
+                  {item.creator_link && <IconLink icon="external" label="Lien du créateur" href={item.creator_link} external />}
+                  <IconLink icon="external" label="Voir la source" href={item.source_url} external />
                 </div>
               </article>
             ))}
           </div>
         )}
         {!loading && <Pagination current={current} onChange={goTo} label="propositions" size={size} onSizeChange={changeSize} />}
+        <AdminDrawer open={selected !== null} onClose={() => setSelectedId(null)} label={`Proposition ${selected?.code ?? ''}`} eyebrow="Proposition"
+          title={selected && <span className="adm-code-cell"><span className="mono">{selected.code}</span><CopyCode code={selected.code} /></span>}
+          aside={selected && <StatusDot tone={statusTone[selected.status] ?? 'muted'}>{statusName[selected.status] || selected.status}</StatusDot>}
+          actions={selected && decisionButtons(selected)}>
+          {selected && <>
+            <DetailList items={[
+              { label: 'Outil', value: selected.tool_name },
+              { label: 'Catégorie', value: selected.category },
+              { label: 'Réduction', value: selected.discount_label },
+              { label: 'Créateur', value: selected.creator_name },
+              { label: 'Source', value: <a href={selected.source_url} target="_blank" rel="noopener noreferrer">Ouvrir la source ↗</a> },
+              { label: 'Lien du créateur', value: selected.creator_link && <a href={selected.creator_link} target="_blank" rel="noopener noreferrer">Ouvrir ↗</a> },
+              { label: 'Reçue le', value: new Date(selected.created_at).toLocaleString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) },
+              { label: 'E-mail', value: selected.submitter_email && <a href={`mailto:${selected.submitter_email}`}>{selected.submitter_email}</a> },
+              { label: 'Note de décision', value: selected.admin_note },
+            ]} />
+            {selected.comment && <p className="adm-detail-quote">« {selected.comment} »</p>}
+          </>}
+        </AdminDrawer>
         <CodeEditor target={editing} tools={tools} categories={categories} creators={creators} onClose={() => setEditing(null)} onSaved={() => { void load(); window.dispatchEvent(new Event(SUBMISSIONS_CHANGED)); }} />
       </div>
     </main>

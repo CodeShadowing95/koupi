@@ -9,7 +9,7 @@ export const TIPS: Tip[] = [
   { title: 'Les recherches vides sont ta liste de courses.', text: 'Quand un visiteur cherche un outil sans trouver de code, c’est une demande réelle. Va chercher un créateur qui en parle : c’est le code le plus utile à ajouter.', href: '/admin/stats#audience', cta: 'Voir les recherches sans résultat →' },
   { title: 'Une catégorie vide fait fuir.', text: 'Un visiteur qui ouvre une catégorie sans aucun code ne revient pas. Mieux vaut un code par catégorie que dix codes dans la même.', href: '/admin/categories', cta: 'Voir la couverture des catégories →' },
   { title: 'Écoute les votes.', text: 'Deux « ça n’a pas marché » d’affilée sur un code, c’est un signal : reteste-le aujourd’hui plutôt que d’attendre la date de rappel.', href: '/admin/codes', cta: 'Ouvrir les codes →' },
-  { title: 'Crédite toujours le créateur.', text: 'Garde son nom exact et le lien de la vidéo. C’est ce qui rend Koupi différent des sites qui remplacent les codes des créateurs par les leurs.', href: '/admin/createurs', cta: 'Voir les créateurs →' },
+  { title: 'Crédite toujours le créateur.', text: 'Garde son nom exact et le lien de la vidéo. C’est ce qui rend Merkod différent des sites qui remplacent les codes des créateurs par les leurs.', href: '/admin/createurs', cta: 'Voir les créateurs →' },
 ];
 
 /** Conseil du jour : le même toute la journée (heure de Paris), le suivant le lendemain. */

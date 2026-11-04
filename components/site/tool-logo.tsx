@@ -1,11 +1,13 @@
+'use client';
 import { useId } from 'react';
-import { sealText, toolLogo } from '@/lib/tool-logos';
+import { sealText } from '@/lib/tool-logos';
+import { useToolLogo } from '@/components/avatar-map';
 
 type Props = { tool: string; name: string; className?: string };
 
 /** Le logo de l'outil dans un disque de sa couleur. Sans logo : son initiale. */
 export function ToolLogo({ tool, name, className = '' }: Props) {
-  const logo = toolLogo(tool) ?? toolLogo(name);
+  const logo = useToolLogo(tool, name);
   if (!logo) {
     return <span className={`k-tool-logo ${className}`} aria-hidden="true">{name.slice(0, 1).toUpperCase()}</span>;
   }
@@ -18,7 +20,7 @@ export function ToolLogo({ tool, name, className = '' }: Props) {
 }
 
 /**
- * Le sceau Koupi : le logo de l'outil au centre, son nom écrit en cercle autour,
+ * Le sceau Merkod : le logo de l'outil au centre, son nom écrit en cercle autour,
  * comme un tampon posé sur le coupon. L'anneau tourne doucement (GSAP, voir effects.tsx).
  */
 export function ToolSeal({ tool, name, size = 'md', className = '' }: Props & { size?: 'sm' | 'md' | 'lg' }) {

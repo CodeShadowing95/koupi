@@ -5,7 +5,7 @@
 //   1. reads the commits since the last tag (vX.Y.Z),
 //   2. computes the next version from their Conventional Commits types,
 //   3. writes package.json, package-lock.json, README.md (version) and CHANGELOG.md on a new branch dev-release-vX.Y.Z,
-//   4. commits "chore(release): vX.Y.Z", pushes and opens the PR to develop (gh CLI) or prints its link.
+//   4. commits "chore(release): Release vX.Y.Z", pushes and opens the PR to develop (gh CLI) or prints its link.
 // The tag and the GitHub Release are created later by .github/workflows/release.yml, once main receives the version.
 //
 // Options:
@@ -155,7 +155,7 @@ if (existsSync('README.md')) {
 const changelog = existsSync('CHANGELOG.md') ? readFileSync('CHANGELOG.md', 'utf8') : '';
 writeFileSync('CHANGELOG.md', prependSection(changelog, section));
 
-const title = `chore(release): v${version}`;
+const title = `chore(release): Release v${version}`;
 git('add', 'package.json', 'package-lock.json', 'README.md', 'CHANGELOG.md');
 git('commit', '--quiet', '-m', title);
 console.log(`→ Commit « ${title} » sur ${branch}`);

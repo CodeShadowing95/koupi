@@ -1,9 +1,9 @@
 'use client';
-import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { gsap, MOTION_OK, MOTION_REDUCED, useGSAP } from '@/lib/gsap';
 import { copyText, openCreatorLink } from '@/lib/copy';
 import { track } from '@/lib/track';
+import { CODE_COPIED_EVENT, type CopiedCode } from '@/lib/vote-invite';
 import { playCouponSnip, playCouponTear } from '@/lib/coupon-sound';
 import { resist, tearDecision } from '@/lib/tear';
 
@@ -88,6 +88,8 @@ export function TearTicket({ code, codeId, link, creator, discount, tool, seal, 
     animateTear(vertical);
     const ok = await copying;
     setFailed(!ok);
+    // Prévient la fenêtre « Laisse un 👍 » : elle s'ouvrira au retour du visiteur.
+    if (codeId) window.dispatchEvent(new CustomEvent<CopiedCode>(CODE_COPIED_EVENT, { detail: { id: codeId, code, tool, creator } }));
     // Le temps de voir le coupon se détacher, puis on ouvre le lien du créateur.
     window.setTimeout(() => { track('open', codeId); openCreatorLink(link); }, 850);
   });
@@ -157,7 +159,7 @@ export function TearTicket({ code, codeId, link, creator, discount, tool, seal, 
           <span className="k-ticket-foil" aria-hidden="true" />
           <span className="k-ticket-label">Code promo</span>
           <span className="k-ticket-code">{code}</span>
-          <span style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <span className="k-ticket-stack">
             <span className="k-ticket-action">{torn ? 'Recopier' : 'Copier et ouvrir'}</span>
             {!torn && (
               <span className="k-ticket-hint">
@@ -184,63 +186,4 @@ export function TearTicket({ code, codeId, link, creator, discount, tool, seal, 
       </div>
     </div>
   );
-}
-
-type MiniProps = {
-  code: string;
-  codeId?: string;
-  title: React.ReactNode;
-  subtitle: React.ReactNode;
-  avatar?: React.ReactNode;
-  className?: string;
-} & ({ href: string; link?: never } | { link: string; href?: never });
-
-/** Petit coupon : soit un lien vers la fiche (href), soit une copie rapide du code (link). */
-export function MiniCoupon({ code, codeId, title, subtitle, avatar, className = '', href, link }: MiniProps) {
-  const root = useRef<HTMLDivElement>(null);
-  const stubRef = useRef<HTMLButtonElement>(null);
-  const [copied, setCopied] = useState(false);
-  const { contextSafe } = useGSAP({ scope: root });
-
-  const copy = contextSafe(async () => {
-    const copying = copyText(code);
-    track('copy', codeId);
-    playCouponSnip();
-    const mm = gsap.matchMedia();
-    mm.add(MOTION_OK, () => {
-      gsap.timeline()
-        .to(stubRef.current, { x: 12, y: 6, rotation: 7, duration: 0.28, ease: 'power3.out' })
-        .to(stubRef.current, { x: 0, y: 0, rotation: 0, duration: 0.7, ease: 'elastic.out(1, 0.45)' }, '+=0.5');
-    });
-    setCopied(true);
-    await copying;
-    window.setTimeout(() => { if (link && link !== '#') track('open', codeId); openCreatorLink(link ?? ''); }, 450);
-    window.setTimeout(() => setCopied(false), 2400);
-  });
-
-  const body = (
-    <>
-      <div className="k-coupon-main k-paper">
-        {avatar}
-        <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-          <strong>{title}</strong>
-          <span>{subtitle}</span>
-        </span>
-      </div>
-      {href ? (
-        <span className="k-coupon-stub"><small>Code</small><span className="k-coupon-code">{code}</span></span>
-      ) : (
-        <button ref={stubRef} type="button" className="k-coupon-stub" onClick={copy} aria-label={`Copier le code ${code} et ouvrir le lien du créateur`}>
-          <small>{copied ? 'Copié ✓' : 'Copier'}</small>
-          <span className="k-coupon-code">{code}</span>
-        </button>
-      )}
-      <span className="k-sr" role="status">{copied ? `Code ${code} copié` : ''}</span>
-    </>
-  );
-
-  if (href) {
-    return <Link href={href} className={`k-coupon ${className}`} ref={root as unknown as React.Ref<HTMLAnchorElement>}>{body}</Link>;
-  }
-  return <div className={`k-coupon ${className}`} ref={root}>{body}</div>;
 }

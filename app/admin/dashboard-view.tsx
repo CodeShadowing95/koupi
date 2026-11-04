@@ -9,6 +9,7 @@ import type { Insights } from '@/lib/admin-insights';
 import type { Audience } from '@/lib/audience';
 import { SUBMISSIONS_CHANGED } from './pending-count';
 import { tipOfDay } from '@/lib/admin-tips';
+import { AdminAiTeaser } from '@/components/admin-ai-teaser';
 
 
 const actionLabel: Record<string, string> = { approved: 'validée', rejected: 'refusée', duplicate: 'marquée en doublon', new: 'remise à traiter' };
@@ -64,7 +65,7 @@ export function DashboardView({ catalog }: { catalog: Catalog }) {
   const { audience, audienceFailed } = useAudience();
   const coverage = coverageByCategory(catalog.categories);
   const { insights, failed } = useInsights();
-  const list = todos(catalog, insights?.pending ?? null);
+  const list = todos(catalog, insights?.pending ?? null, new Date(), insights?.creatorRequests ?? null);
   const [tip] = useState(() => tipOfDay());
   const delay = insights?.medianDelayHours ?? null;
   const verifiedOk = (stats.verifiedRate ?? 0) >= TARGETS.verified;
@@ -118,6 +119,7 @@ export function DashboardView({ catalog }: { catalog: Catalog }) {
             {failed && <p className="adm-panel-sub" style={{ paddingTop: 10 }}>La file des propositions n’a pas pu être lue.</p>}
           </section>
 
+          <div className="adm-col">
           <section className="adm-panel" aria-labelledby="pipeline-title">
             <h2 id="pipeline-title">Le parcours des {stats.total} codes</h2>
             <p className="adm-panel-sub" style={{ fontSize: 13 }}>Chaque code avance de haut en bas. Le but : en avoir le plus possible en « Vérifié ».</p>
@@ -129,6 +131,8 @@ export function DashboardView({ catalog }: { catalog: Catalog }) {
             ))}
             <Link href="/admin/guide" style={{ marginTop: 'auto', fontSize: 13, fontWeight: 600 }}>Comprendre la vie d’un code →</Link>
           </section>
+          <AdminAiTeaser />
+          </div>
         </div>
 
         <section aria-labelledby="kpi-title" style={{ marginTop: 24 }}>

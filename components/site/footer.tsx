@@ -1,39 +1,43 @@
-import Link from 'next/link';
+import { SiteLinkItem } from '@/components/site/site-pages';
 import Image from 'next/image';
 import { routes } from '@/lib/routes';
 import { usesLogoDev } from '@/lib/tool-logos';
+import { PORTFOLIO_URL, PUBLISHER_NAME } from '@/lib/site-contact';
 
-export function SiteFooter() {
+/** logoDev : au moins un logo stocké vient de Logo.dev, l'attribution reste donc due. */
+export function SiteFooter({ logoDev = false }: { logoDev?: boolean }) {
   return (
     <footer className="k-footer">
       <div className="k-wrap">
         <div className="k-footer-in">
           <div>
-            <Image src="/koupi-logo-dark.png" alt="Koupi" width={971} height={348} />
+            <Image src="/merkod-logo-dark.png" alt="Merkod" width={1323} height={287} />
             <p>Le code du créateur. Crédité, vérifié. On ne remplace jamais son code par le nôtre.</p>
           </div>
           <div>
             <h3>Explorer</h3>
             <ul>
-              <li><Link href={routes.categories}>Catégories</Link></li>
-              <li><Link href={routes.keyring}>Mon trousseau</Link></li>
-              <li><Link href={routes.submit()}>Proposer un code</Link></li>
+              <SiteLinkItem href={routes.codes}>Tous les codes</SiteLinkItem>
+              <SiteLinkItem href={routes.creators()}>Créateurs</SiteLinkItem>
+              <SiteLinkItem href={routes.submit()}>Proposer un code</SiteLinkItem>
+              <SiteLinkItem href={routes.forCreators()}>Pour les créateurs</SiteLinkItem>
             </ul>
           </div>
           <div>
-            <h3>Koupi</h3>
+            <h3>Merkod</h3>
             <ul>
-              <li><Link href={routes.transparency}>Transparence</Link></li>
-              <li><Link href={routes.legal}>Mentions légales</Link></li>
-              <li><Link href={routes.privacy}>Confidentialité</Link></li>
+              <SiteLinkItem href={routes.feedback}>Ton avis</SiteLinkItem>
+              <SiteLinkItem href={routes.transparency}>Transparence</SiteLinkItem>
+              <SiteLinkItem href={routes.legal}>Mentions légales</SiteLinkItem>
+              <SiteLinkItem href={routes.privacy}>Confidentialité</SiteLinkItem>
             </ul>
           </div>
         </div>
         <div className="k-footer-bottom">
-          <span>© {new Date().getFullYear()} Koupi · 100 % pro-créateurs</span>
+          <span>© {new Date().getFullYear()} Merkod · 100 % pro-créateurs · <a className="k-footer-credit" href={PORTFOLIO_URL} target="_blank" rel="noopener">Made by {PUBLISHER_NAME}</a></span>
           <span>
             Zéro pub · zéro cookie publicitaire
-            {usesLogoDev() && <> · <a href="https://logo.dev" target="_blank" rel="noopener">Logos provided by Logo.dev</a></>}
+            {(usesLogoDev() || logoDev) && <> · <a href="https://logo.dev" target="_blank" rel="noopener">Logos provided by Logo.dev</a></>}
           </span>
         </div>
       </div>

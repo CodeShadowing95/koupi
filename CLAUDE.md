@@ -1,4 +1,4 @@
-# Koupi
+# Merkod
 
 Site web qui réunit les codes promo donnés par les créateurs (YouTube, podcasts, Instagram…) pour des outils en ligne. Chaque code est relié à sa source, crédite son créateur et est vérifié. Voir `README.md` pour le produit et le plan.
 
@@ -38,7 +38,7 @@ Avant chaque commit : `npm run typecheck && npm test && npm run build` doivent p
 ## Façon de travailler
 
 - **Branches** : on part de `develop`. Chaque branche s'appelle `dev-<sujet>` (ex. `dev-votes`). La PR vise `develop`, jamais `main`. `develop` part en production par une PR de release vers `main` (merge commit, jamais squash), préparée par `npm run release` (voir `docs/release.md`).
-- **Titres de PR et commits** : strictement `<type>(<scope>): <description>`, en anglais, ex. `feat(votes): add vote buttons`. Le scope est obligatoire. Pas de préfixe de branche dans le titre. Un changement cassant prend un `!` (`feat(api)!: …`).
+- **Titres de PR et commits** : strictement `<type>(<scope>): <description>`, en anglais, ex. `feat(votes): Add vote buttons`. Le scope est obligatoire. La description commence toujours par une majuscule. Pas de préfixe de branche dans le titre. Un changement cassant prend un `!` (`feat(api)!: …`).
 - **Types** (pour les commits et les PR) :
 
   | Type | Quand l'utiliser |
@@ -58,6 +58,7 @@ Avant chaque commit : `npm run typecheck && npm test && npm run build` doivent p
   Un changement d'apparence de l'interface (CSS, design) est un `feat` ou un `fix`, pas un `style`.
 - **Seul `README.md`** peut être poussé directement. Tout le reste passe par une PR que Vastolorde relit et fusionne.
 - **Une PR = une étape** : petite, avec une description de ce qui change et comment le tester (voir `.github/pull_request_template.md`).
+- **Guide de l'admin** : toute fonctionnalité ajoutée, modifiée ou retirée dans l'espace admin met à jour le guide (`/admin/guide`) dans la même PR : le chapitre concerné dans `app/admin/guide/chapters.tsx`, et `lib/admin-guide.ts` pour les objectifs ou un nouveau chapitre.
 - **Décision d'architecture** (nouvelle dépendance importante, changement de service, de schéma ou de flux) : ajouter un ADR dans `docs/decisions/`.
 
 ## Cycle d'une fonctionnalité

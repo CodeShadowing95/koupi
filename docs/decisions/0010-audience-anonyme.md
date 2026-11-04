@@ -7,7 +7,7 @@ Proposée
 2026-11-01
 
 ## Contexte
-L'admin a besoin de savoir quels codes servent (copies, liens ouverts), ce que les visiteurs cherchent sans le trouver, et si un code marche encore (votes). Koupi promet « zéro pub, zéro pistage » : pas d'outil d'analyse tiers, pas de cookie, rien qui permette de suivre une personne.
+L'admin a besoin de savoir quels codes servent (copies, liens ouverts), ce que les visiteurs cherchent sans le trouver, et si un code marche encore (votes). Merkod promet « zéro pub, zéro pistage » : pas d'outil d'analyse tiers, pas de cookie, rien qui permette de suivre une personne.
 
 ## Décision
 - **Votes** : `POST /api/codes/[id]/vote` ajoute 1 à `votes_up` ou `votes_down` du code. Seuls les totaux sont gardés. Une IP hachée (sel secret) limite à un vote par code et par jour, et à 30 votes par heure ; ces clés de limite sont effacées après 24 h. Le navigateur garde le vote en `localStorage` pour ne pas reposer la question.
@@ -19,5 +19,5 @@ L'admin a besoin de savoir quels codes servent (copies, liens ouverts), ce que l
 - **Compter les visiteurs uniques** : demande un identifiant (cookie ou empreinte). Écarté : on compte des gestes, pas des personnes.
 
 ## Conséquences
-- Pas de chiffre de « visiteurs », par choix. Les copies et ouvertures suffisent pour montrer aux marques ce que Koupi apporte.
+- Pas de chiffre de « visiteurs », par choix. Les copies et ouvertures suffisent pour montrer aux marques ce que Merkod apporte.
 - Une recherche peut contenir du texte libre : elle est tronquée et n'est reliée à personne. La page Confidentialité l'explique.

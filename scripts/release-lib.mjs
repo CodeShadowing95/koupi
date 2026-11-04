@@ -76,7 +76,7 @@ export function renderSection({ version, previousVersion, date, commits, repoUrl
 }
 
 export const CHANGELOG_HEADER =
-  '# Changelog\n\nToutes les versions de Koupi. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).\n';
+  '# Changelog\n\nToutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).\n';
 
 /** Adds a section at the top of the changelog, under its header. */
 export function prependSection(changelog, section) {

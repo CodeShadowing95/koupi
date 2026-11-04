@@ -13,7 +13,7 @@ Une release passe par deux PR : une vers `develop` qui fixe la version et le cha
 
    Le script récupère `origin/develop`, lit les commits depuis le dernier tag `vX.Y.Z`, calcule la nouvelle version, met à jour `package.json`, `package-lock.json`, la version affichée dans `README.md` et `CHANGELOG.md` sur une branche `dev-release-vX.Y.Z`, commite `chore(release): vX.Y.Z`, pousse et ouvre la PR vers `develop` (avec `gh` si il est installé et connecté, sinon il affiche le lien pour l'ouvrir).
 2. **Relire et merger la PR vers `develop`** : relis le changelog, la CI doit être verte. `develop` est déployée en Preview sur Vercel : c'est la recette.
-3. **PR de release** : l'Action `Release PR` (`.github/workflows/release-pr.yml`) ouvre toute seule la PR `chore(release): vX.Y.Z` de `develop` vers `main`, avec les notes de version. Si d'autres corrections arrivent sur `develop` avant le merge, elles partent avec.
+3. **PR de release** : l'Action `Release PR` (`.github/workflows/release-pr.yml`) ouvre toute seule la PR `chore(release): Release vX.Y.Z` de `develop` vers `main`, avec les notes de version. Si d'autres corrections arrivent sur `develop` avant le merge, elles partent avec.
 4. **Mettre en production** : merge la PR de release avec **Create a merge commit**, jamais Squash ni Rebase. Un squash casse l'historique commun de `develop` et `main`, et la release suivante affiche de faux conflits.
 5. **Automatique ensuite** : Vercel déploie `main` en Production. L'Action `Release` (`.github/workflows/release.yml`) crée le tag `vX.Y.Z` et la GitHub Release avec la section du changelog.
 
@@ -51,5 +51,5 @@ Le changelog ne liste que les changements visibles (cassants, nouveautés, corre
 | « Des fichiers sont modifiés » | Commite ou `git stash` avant `npm run release`. |
 | « déjà en version X, pas encore en production » | Une release attend sur `develop` : merge la PR de release vers `main` d'abord. |
 | « ni feat, ni fix… » | Rien de visible depuis la dernière version. `--patch` pour publier quand même. |
-| La PR de release ne s'ouvre pas | Vérifier le réglage Actions ci-dessus et l'onglet Actions › Release PR. On peut aussi l'ouvrir à la main : base `main`, compare `develop`, titre `chore(release): vX.Y.Z`. |
+| La PR de release ne s'ouvre pas | Vérifier le réglage Actions ci-dessus et l'onglet Actions › Release PR. On peut aussi l'ouvrir à la main : base `main`, compare `develop`, titre `chore(release): Release vX.Y.Z`. |
 | Pas de tag après le merge dans `main` | Onglet Actions › Release. L'Action ne fait rien si le tag existe déjà. Relancer le job suffit. |

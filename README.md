@@ -1,8 +1,8 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="public/koupi-logo-dark.png">
-  <img src="public/koupi-logo.png" alt="Koupi" width="260">
+  <source media="(prefers-color-scheme: dark)" srcset="public/merkod-logo-dark.png">
+  <img src="public/merkod-logo.png" alt="Merkod" width="260">
 </picture>
 
 ### Le code du créateur, vérifié.
@@ -10,7 +10,7 @@
 Les codes promo que les créateurs donnent en vidéo, réunis au même endroit,<br>
 reliés à leur source, crédités à leur créateur et testés par la communauté.
 
-[![Version](https://img.shields.io/badge/version-0.3.0-2f3fe0)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.4.0-2f3fe0)](CHANGELOG.md)
 [![CI](https://github.com/CodeShadowing95/koupi/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/CodeShadowing95/koupi/actions/workflows/ci.yml)
 [![Next.js](https://img.shields.io/badge/Next.js-15.5-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
@@ -23,27 +23,27 @@ reliés à leur source, crédités à leur créateur et testés par la communaut
 <br>
 
 <p align="center">
-  <img src="docs/images/accueil.png" alt="Page d'accueil de Koupi : recherche d'un outil et coupons de créateurs" width="900">
+  <img src="docs/images/accueil.png" alt="Page d'accueil de Merkod : recherche d'un outil et coupons de créateurs" width="900">
 </p>
 
 ## À propos
 
 Avant de payer un abonnement à un outil en ligne (hébergement, VPN, IA, logiciels pour freelances, outils de création), beaucoup de gens cherchent le code promo qu'un créateur a donné dans une vidéo. Ces codes sont éparpillés, souvent expirés, et les sites de coupons classiques ne disent ni d'où ils viennent ni s'ils marchent.
 
-Koupi part de la source : chaque code est rattaché à la vidéo ou au post qui l'a donné, crédite le créateur qui l'a négocié, et affiche son taux de réussite selon les votes des visiteurs. Pas de compte, pas de publicité.
+Merkod part de la source : chaque code est rattaché à la vidéo ou au post qui l'a donné, crédite le créateur qui l'a négocié, et affiche son taux de réussite selon les votes des visiteurs. Pas de compte, pas de publicité.
 
-**Version actuelle : <!-- koupi:version -->0.3.0<!-- /koupi:version -->** · voir le [changelog](CHANGELOG.md) · statut : V0 en préparation, pas encore ouverte au public.
+**Version actuelle : <!-- koupi:version -->0.4.0<!-- /koupi:version -->** · voir le [changelog](CHANGELOG.md) · statut : V0 en préparation, pas encore ouverte au public.
 
 ## Fonctionnalités
 
 **Site public**
 
-- **Recherche** d'un outil depuis l'accueil, avec suggestions, et pages par **catégorie**.
+- **Recherche** des codes par outil, créateur ou catégorie, avec suggestions, et pages par **catégorie**.
 - **Fiche outil** : tous les codes de créateurs, la source, la date du dernier test, copie du code en un clic.
 - **Page créateur** avec ses codes et sa photo de profil.
 - **Votes** « ça marche / ça ne marche plus » et mesure d'audience anonyme, stockée dans notre propre base.
 - **Proposer un code**, protégé par Cloudflare Turnstile et une limite de débit.
-- **Trousseau** des créateurs suivis, gardé dans le navigateur, sans compte.
+- **Invitation au vote** au retour sur Merkod, après avoir copié un code.
 - Page **Transparence** sur la façon dont les codes sont trouvés et vérifiés.
 
 **Back-office** (`/admin`)
@@ -134,7 +134,7 @@ Les migrations de base de données sont appliquées avant chaque build Vercel.
 
 ## Versions et releases
 
-Koupi suit le [versionnage sémantique](https://semver.org/lang/fr/). Le numéro de version est calculé à partir des messages de commit ([Conventional Commits](https://www.conventionalcommits.org/fr/v1.0.0/)) :
+Merkod suit le [versionnage sémantique](https://semver.org/lang/fr/). Le numéro de version est calculé à partir des messages de commit ([Conventional Commits](https://www.conventionalcommits.org/fr/v1.0.0/)) :
 
 ```bash
 npm run release -- --dry-run   # aperçu de la version et du changelog
@@ -146,7 +146,7 @@ La commande met à jour `package.json`, ce README et le [changelog](CHANGELOG.md
 ## Contribuer
 
 1. Partir de `develop` sur une branche `dev-<sujet>`.
-2. Commits et titre de PR au format `<type>(<scope>): <description>`, en anglais (ex. `feat(search): add category filter`).
+2. Commits et titre de PR au format `<type>(<scope>): <description>`, en anglais (ex. `feat(search): Add category filter`), la description commençant par une majuscule.
 3. Vérifier en local : `npm run typecheck && npm test && npm run build`.
 4. Ouvrir une PR vers `develop` en suivant le [modèle](.github/pull_request_template.md). La CI doit être verte avant le merge.
 

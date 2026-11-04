@@ -2,21 +2,26 @@ import Link from 'next/link';
 import '@/app/(site)/site.css';
 import { SiteHeader } from '@/components/site/header';
 import { SiteFooter } from '@/components/site/footer';
+import { PageHead } from '@/components/site/page-head';
+import { SitePagesProvider } from '@/components/site/site-pages';
+import { getSiteState } from '@/lib/site-settings-server';
 
-export default function NotFound() {
+export default async function NotFound() {
+  const { off } = await getSiteState();
   return (
+    <SitePagesProvider off={off}>
     <div className="kp">
       <div className="k-bg" aria-hidden="true"><span className="k-glow k-glow-blue" /><span className="k-glow k-glow-coral" /></div>
       <SiteHeader />
       <main className="k-page k-main" id="contenu">
-        <div className="k-wrap k-page-head">
-          <span className="k-eyebrow">Erreur 404</span>
-          <h1>Ce ticket ne mène nulle part.</h1>
-          <p>La page n&apos;existe pas ou plus. Cherche un outil depuis l&apos;accueil.</p>
-          <Link className="k-btn k-btn-paper k-btn-ticket" href="/" style={{ alignSelf: 'flex-start' }}>Retour à l&apos;accueil</Link>
+        <div className="k-wrap">
+          <PageHead eyebrow="Erreur 404" title="Ce ticket ne mène nulle part." lead="La page n'existe pas ou plus. Cherche un outil depuis l'accueil.">
+            <Link className="k-btn k-btn-paper k-btn-ticket k-self-start" href="/">Retour à l&apos;accueil</Link>
+          </PageHead>
         </div>
       </main>
       <SiteFooter />
     </div>
+    </SitePagesProvider>
   );
 }

@@ -102,7 +102,7 @@ export function reliabilityBuckets(codes: Code[]): { low: number; mid: number; h
 export type Todo = { id: string; tone: 'warn' | 'bad' | 'info'; title: string; why: string; cta: string; href: string };
 
 /** Les actions du jour, de la plus utile à la moins utile. */
-export function todos(catalog: CatalogInput, pendingSubmissions: number | null, now = new Date()): Todo[] {
+export function todos(catalog: CatalogInput, pendingSubmissions: number | null, now = new Date(), creatorRequests: number | null = null): Todo[] {
   const stats = overview(catalog);
   const list: Todo[] = [];
   if (pendingSubmissions) list.push({
@@ -110,6 +110,12 @@ export function todos(catalog: CatalogInput, pendingSubmissions: number | null, 
     title: `Répondre à ${pendingSubmissions} proposition${pendingSubmissions > 1 ? 's' : ''} de visiteurs`,
     why: 'Quelqu’un a pris le temps de partager un code. Une réponse rapide donne envie de recommencer.',
     cta: 'Ouvrir la file', href: '/admin/propositions',
+  });
+  if (creatorRequests) list.push({
+    id: 'creator-requests', tone: 'bad',
+    title: `Répondre à ${creatorRequests} demande${creatorRequests > 1 ? 's' : ''} de créateurs`,
+    why: 'Un créateur qui revendique sa page est le meilleur signe que Merkod l’intéresse. Réponds vite, avant qu’il passe à autre chose.',
+    cta: 'Voir les demandes', href: '/admin/createurs/demandes',
   });
   for (const code of stats.flagged.slice(0, 2)) list.push({
     id: `flag-${code.id}`, tone: 'bad',

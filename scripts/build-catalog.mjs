@@ -2,6 +2,7 @@
 //
 // Entrées :
 // - data/outils-v0.csv : les outils suivis (nom, catégorie, site).
+// - data/categories.csv : les catégories dans l'ordre du menu, avec leur famille (slug de category_families, ADR-0026).
 // - data/candidats-tous.csv : les codes trouvés sur YouTube, avec le premier tri (colonne « proposition »).
 // - data/catalogue-manuel.json : ce qui a été saisi à la main (descriptions d'outils, statut, réduction, votes).
 //
@@ -63,7 +64,7 @@ export function discountFromExcerpt(excerpt) {
   return 'Offre du créateur';
 }
 
-export function buildCatalog({ toolsCsv, candidatesCsv, manual }) {
+export function buildCatalog({ toolsCsv, candidatesCsv, manual, categoriesCsv = '' }) {
   const toolRows = parseCsv(toolsCsv);
   const candidates = parseCsv(candidatesCsv);
   const manualByKey = new Map(manual.codes.map(code => [`${code.tool.toLowerCase()}|${code.code}`, code]));
@@ -105,6 +106,7 @@ export function buildCatalog({ toolsCsv, candidatesCsv, manual }) {
   // Le site ne montre que les outils qui ont au moins un code public (vérifié ou à tester).
   const isPublic = code => code.status === 'verified' || code.status === 'to_test';
   const withCodes = new Set(codes.filter(isPublic).map(code => code.tool.toLowerCase()));
+  const familyOf = new Map(parseCsv(categoriesCsv).map(row => [row.categorie, row.famille || null]));
   const tools = toolRows
     .filter(row => withCodes.has(row.outil.toLowerCase()))
     .map(row => {
@@ -118,13 +120,16 @@ export function buildCatalog({ toolsCsv, candidatesCsv, manual }) {
         description: manual.descriptions[slug] ?? `Les codes promo donnés par les créateurs pour ${row.outil}.`,
         priority: Number(row.priorite) || 3,
         codes: toolCodes.length,
+        ...(familyOf.get(row.categorie) ? { family: familyOf.get(row.categorie) } : {}),
       };
     })
     .sort((a, b) => a.priority - b.priority || a.name.localeCompare(b.name, 'fr'));
 
-  // Toutes les catégories suivies, avec le nombre d'outils publiés (count) et suivis (tracked) dans chacune.
-  const categories = [...new Set(toolRows.map(row => row.categorie))].map(name => ({
-    slug: slugify(name), name, count: tools.filter(tool => tool.category === name).length,
+  // Toutes les catégories suivies, avec leur famille, le nombre d'outils publiés (count) et suivis (tracked) dans chacune.
+  // L'ordre est celui de data/categories.csv, puis celui des outils pour une catégorie qui n'y est pas.
+  const names = [...new Set([...familyOf.keys()].filter(name => toolRows.some(row => row.categorie === name)).concat(toolRows.map(row => row.categorie)))];
+  const categories = names.map(name => ({
+    slug: slugify(name), name, family: familyOf.get(name) ?? null, count: tools.filter(tool => tool.category === name).length,
     tracked: toolRows.filter(row => row.categorie === name).length,
   }));
 
@@ -136,6 +141,7 @@ if (isMainScript()) {
     toolsCsv: readFileSync('data/outils-v0.csv', 'utf8'),
     candidatesCsv: readFileSync('data/candidats-tous.csv', 'utf8'),
     manual: JSON.parse(readFileSync('data/catalogue-manuel.json', 'utf8')),
+    categoriesCsv: readFileSync('data/categories.csv', 'utf8'),
   });
   writeFileSync('lib/catalog.json', JSON.stringify(catalog, null, 1) + '\n');
   const count = status => catalog.codes.filter(code => code.status === status).length;
