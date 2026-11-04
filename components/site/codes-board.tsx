@@ -5,7 +5,7 @@ import { flushSync } from 'react-dom';
 import type { Code, Family, Tool } from '@/lib/data';
 import {
   activeFilters, type CodeFilters, type CodeSort, type CodeStatusFilter, DEADLINES, DEFAULT_FILTERS, facetCounts, filterCodes,
-  filtersToParams, lastChanceCodes, OFFERS, relaxSuggestions, type TrustFilter, TRUSTS,
+  filtersToParams, isBrowsing, browseRows, type FacetCounts, lastChanceCodes, OFFERS, relaxSuggestions, type TrustFilter, TRUSTS,
 } from '@/lib/codes-board';
 import { routes } from '@/lib/routes';
 import { Flip, gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
@@ -16,20 +16,20 @@ import { AdminSelect, type SelectOption } from '@/components/admin-select';
 import { ChipRow } from '@/components/site/chip-row';
 
 // « Tous les codes » : en haut, une barre de pastilles comme sur YouTube (les familles de catégories, puis les
-// catégories de la famille choisie). La recherche et les filtres à gauche (statut, outil, créateur, confiance,
-// type d'offre, échéance, nouveautés, tri), chacun avec le nombre de codes qu'il donnerait,
-// les coupons à droite, trois par ligne. Les filtres choisis s'affichent en pastilles au-dessus des coupons.
+// catégories de la famille choisie). Dessous, la recherche, le bouton « Filtres » et le tri. Le bouton ouvre une fenêtre
+// avec tous les autres filtres (statut, outil, créateur, confiance, type d'offre, échéance, nouveautés), chacun avec
+// le nombre de codes qu'il donnerait ; le bouton du bas dit en direct combien de codes on verra (« Afficher 42 codes »).
+// Rien ne change tant qu'on n'a pas validé. Les filtres choisis s'affichent en pastilles au-dessus des coupons.
+// Sans aucun filtre, des rangées thématiques qui défilent sur le côté (testés au paiement, nouveautés, familles,
+// créateurs…) passent avant la liste complète ; « Tout voir » applique le filtre de la rangée.
 // Un bandeau « Dernière chance » montre les codes qui expirent sous 7 jours. Sans résultat, un coupon vierge
 // propose les filtres à retirer et invite à proposer un code. Les animations restent simples :
 // les coupons sortent en fondu quand on change un filtre, puis les nouveaux entrent.
 // Les filtres sont recopiés dans l'adresse pour pouvoir partager une recherche.
-// Deux vues : « Cartes » (coupon debout, toutes les infos, trois par ligne) et « Liste » (un coupon couché par ligne,
+// Deux vues : « Cartes » (coupon debout, toutes les infos) et « Liste » (un coupon couché par ligne,
 // talon à droite, l'essentiel), affichée par défaut. Au changement, chaque coupon se transforme sur place (GSAP Flip) ; le choix est retenu.
-// Les filtres courants (recherche, statut, tri) sont toujours visibles ; les autres se déplient
-// avec « Plus de filtres », ouvert d'emblée si l'un d'eux est déjà choisi (lien partagé).
-// Sur téléphone, seule la recherche reste visible au-dessus des codes : un bouton « Filtres (n) » ouvre le reste.
 
-const PAGE = 12; // 4 lignes de 3 coupons
+const PAGE = 12;
 const STATUSES: { value: CodeStatusFilter; label: string }[] = [
   { value: 'all', label: 'Tous' },
   { value: 'verified', label: 'Vérifiés' },
@@ -53,8 +53,6 @@ const VIEW_KEY = 'koupi-codes-view';
 const FLIP_TARGETS = '.k-board-item, .k-pass, .k-pass-main, .k-pass-stub, .k-pass-logo, .k-pass-thumbs, .k-pass-title strong, .k-pass-who, .k-pass-facts .is-wide, .k-pass-stub-code, .k-pass-action';
 
 const count = (value: number | undefined) => String(value ?? 0);
-/** Filtres rangés derrière « Plus de filtres » (noms de paramètres dans l'adresse). */
-const MORE_KEYS = ['tool', 'creator', 'trust', 'offer', 'deadline', 'fresh'];
 
 const reduced = () => typeof window !== 'undefined' && !window.matchMedia(MOTION_OK).matches;
 
@@ -66,9 +64,10 @@ export function CodesBoard({ codes, tools, families, categories, initial, now }:
   const [limit, setLimit] = useState(PAGE);
   const entered = useRef(0);
   const [view, setView] = useState<View>('list');
-  const [moreOpen, setMoreOpen] = useState(() => { const params = filtersToParams(initial); return MORE_KEYS.some(key => params.has(key)); });
-  // Sur téléphone, seule la recherche est visible : les filtres s'ouvrent avec le bouton « Filtres ».
-  const [panelOpen, setPanelOpen] = useState(false);
+  // Fenêtre « Filtres » : on règle un brouillon, appliqué seulement avec « Afficher n codes ».
+  const dialog = useRef<HTMLDialogElement>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [draft, setDraft] = useState<CodeFilters>(initial);
 
   // La vue choisie la dernière fois (préférence de ce navigateur seulement).
   useEffect(() => {
@@ -99,17 +98,21 @@ export function CodesBoard({ codes, tools, families, categories, initial, now }:
   const openFamily = filters.family || categories.find(category => category.name === filters.category)?.family || '';
   const familyChips = families.filter(family => (counts.family[family.slug] ?? 0) > 0 || family.slug === openFamily);
   const categoryChips = categories.filter(category => category.family === openFamily && ((counts.category[category.name] ?? 0) > 0 || category.name === filters.category));
-  const toolOptions = useMemo<SelectOption[]>(() => [
-    { value: '', label: 'Tous les outils', hint: count(Object.values(counts.tool).reduce((a, b) => a + b, 0)) },
-    ...tools.filter(tool => codes.some(code => code.toolSlug === tool.slug))
-      .sort((a, b) => a.name.localeCompare(b.name, 'fr'))
-      .map(tool => ({ value: tool.slug, label: tool.name, hint: count(counts.tool[tool.slug]) })),
-  ], [tools, codes, counts.tool]);
-  const creatorOptions = useMemo<SelectOption[]>(() => [
-    { value: '', label: 'Tous les créateurs', hint: count(Object.values(counts.creator).reduce((a, b) => a + b, 0)) },
+  const toolsWithCodes = useMemo(() => tools.filter(tool => codes.some(code => code.toolSlug === tool.slug))
+    .sort((a, b) => a.name.localeCompare(b.name, 'fr')), [tools, codes]);
+  const toolOptionsFor = (facets: FacetCounts): SelectOption[] => [
+    { value: '', label: 'Tous les outils', hint: count(Object.values(facets.tool).reduce((a, b) => a + b, 0)) },
+    ...toolsWithCodes.map(tool => ({ value: tool.slug, label: tool.name, hint: count(facets.tool[tool.slug]) })),
+  ];
+  const creatorOptionsFor = (facets: FacetCounts): SelectOption[] => [
+    { value: '', label: 'Tous les créateurs', hint: count(Object.values(facets.creator).reduce((a, b) => a + b, 0)) },
     ...[...creatorNames].sort((a, b) => a[1].localeCompare(b[1], 'fr'))
-      .map(([slug, name]) => ({ value: slug, label: name, hint: count(counts.creator[slug]) })),
-  ], [creatorNames, counts.creator]);
+      .map(([slug, name]) => ({ value: slug, label: name, hint: count(facets.creator[slug]) })),
+  ];
+  const draftCounts = useMemo(() => facetCounts(codes, tools, draft, now), [codes, tools, draft, now]);
+  const draftTotal = useMemo(() => filterCodes(codes, tools, draft, now).length, [codes, tools, draft, now]);
+  const browsing = isBrowsing(shown);
+  const rows = useMemo(() => browseRows(codes, tools, families, now), [codes, tools, families, now]);
   // La famille et la catégorie se lisent sur les pastilles du haut : elles ne sont pas répétées au-dessus des coupons.
   const pills = activeFilters(filters, {
     tool: slug => toolBySlug.get(slug)?.name ?? '',
@@ -121,9 +124,7 @@ export function CodesBoard({ codes, tools, families, categories, initial, now }:
     creator: slug => creatorNames.get(slug) ?? '',
     family: slug => familyNames.get(slug) ?? '',
   }), now)), [results.length, codes, tools, shown, now, toolBySlug, creatorNames, familyNames]);
-  // Filtres repliés derrière « Plus de filtres » : combien sont choisis parmi ceux qu'on ne voit pas.
-  const hiddenActive = pills.filter(pill => !['q', 'status'].includes(pill.key)).length;
-  // Sur téléphone, tous les filtres choisis hors recherche, affichés sur le bouton « Filtres ».
+  // Les filtres choisis hors recherche, affichés sur le bouton « Filtres ».
   const panelActive = pills.filter(pill => pill.key !== 'q').length;
 
   // La recherche texte attend une courte pause dans la frappe avant de filtrer.
@@ -159,9 +160,9 @@ export function CodesBoard({ codes, tools, families, categories, initial, now }:
   const reset = () => { setQuery(''); setFilters(current => ({ ...DEFAULT_FILTERS, sort: current.sort })); };
   const remove = (patch: Partial<CodeFilters>) => { if ('query' in patch) setQuery(''); update(patch); };
   const toFilters = () => root.current?.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
-  const toggleTrust = (trust: TrustFilter) => update({
-    trust: filters.trust.includes(trust) ? filters.trust.filter(t => t !== trust) : [...filters.trust, trust],
-  });
+  const openFilters = () => { setDraft({ ...filters, query }); setDialogOpen(true); dialog.current?.showModal(); };
+  const applyFilters = () => { update(draft); dialog.current?.close(); };
+  const seeRow = (patch: Partial<CodeFilters>) => { update(patch); toFilters(); };
 
   return (
     <div className={`k-board${view === 'list' ? ' is-list' : ''}`} ref={root}>
@@ -196,7 +197,7 @@ export function CodesBoard({ codes, tools, families, categories, initial, now }:
           )}
         </nav>
       )}
-      <aside className="k-board-side" aria-label="Filtres">
+      <div className="k-board-toolbar">
         <form role="search" onSubmit={event => event.preventDefault()}>
           <label className="k-board-search">
             <span className="k-sr">Chercher un outil, un créateur ou un code</span>
@@ -204,125 +205,66 @@ export function CodesBoard({ codes, tools, families, categories, initial, now }:
             <input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Outil, créateur, code…" maxLength={80} />
           </label>
         </form>
-
-        <button type="button" className="k-board-panel-toggle" aria-expanded={panelOpen} aria-controls="k-board-filters" onClick={() => setPanelOpen(open => !open)}>
+        <button type="button" className="k-board-filter-btn" aria-haspopup="dialog" onClick={openFilters}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
           Filtres
           {panelActive > 0 && <span className="k-board-count is-on">{panelActive}</span>}
         </button>
-
-        <div className={`k-board-filters${panelOpen ? ' is-open' : ''}`} id="k-board-filters">
-        <div className="k-board-group">
-          <h2>Statut</h2>
-          <div className="k-board-checks" role="radiogroup" aria-label="Statut">
-            {STATUSES.map(status => (
-              <button type="button" role="radio" key={status.value} className="k-board-check is-radio" aria-checked={filters.status === status.value}
-                onClick={() => update({ status: status.value })}>
-                <span className="k-board-box" aria-hidden="true" />
-                <span>{status.label}</span>
-                {status.value !== 'all' && (
-                  <span className={`k-codeseal is-${status.value}`} aria-hidden="true"><TrustGlyph seal={status.value} /></span>
-                )}
-                <span className="k-board-count">{counts.status[status.value]}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <label className="k-board-group">
-          <h2>Trier par</h2>
+        <label className="k-board-sort">
+          <span className="k-sr">Trier par</span>
           <select className="k-board-select" value={filters.sort} onChange={event => update({ sort: event.target.value as CodeSort })}>
             {SORTS.map(sort => <option key={sort.value} value={sort.value}>{sort.label}</option>)}
           </select>
         </label>
+      </div>
 
-        <button type="button" className="k-board-toggle" aria-expanded={moreOpen} aria-controls="k-board-more" onClick={() => setMoreOpen(open => !open)}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
-          {moreOpen ? 'Moins de filtres' : 'Plus de filtres'}
-          {hiddenActive > 0 && <span className="k-board-count is-on">{hiddenActive}</span>}
-          <svg className="k-board-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
-        </button>
-
-        <div className={`k-board-extra${moreOpen ? ' is-open' : ''}`} id="k-board-more">
-          <div className="k-board-group">
-            <h2>Outil</h2>
-            <AdminSelect
-              id="k-board-tool" classPrefix="k-combo" ariaLabel="Outil"
-              value={filters.tool} onChange={tool => update({ tool })}
-              options={toolOptions} searchPlaceholder="Chercher un outil…"
-            />
-          </div>
-
-          <div className="k-board-group">
-            <h2>Créateur</h2>
-            <AdminSelect
-              id="k-board-creator" classPrefix="k-combo" ariaLabel="Créateur"
-              value={filters.creator} onChange={creator => update({ creator })}
-              options={creatorOptions} searchPlaceholder="Chercher un créateur…"
-            />
-          </div>
-
-          <div className="k-board-group">
-            <h2>Confiance</h2>
-            <div className="k-board-checks">
-              {TRUSTS.map(trust => {
-                const on = filters.trust.includes(trust.value);
-                return (
-                  <button type="button" key={trust.value} className="k-board-check" aria-pressed={on}
-                    disabled={!on && counts.trust[trust.value] === 0} onClick={() => toggleTrust(trust.value)}>
-                    <span className="k-board-box" aria-hidden="true" />
-                    <span>{trust.label}</span>
-                    <span className="k-board-count">{counts.trust[trust.value]}</span>
-                  </button>
-                );
-              })}
+      <dialog ref={dialog} className="k-req-dialog k-filters-dialog" aria-labelledby="k-filters-title"
+        onClose={() => setDialogOpen(false)} onClick={event => { if (event.target === dialog.current) dialog.current?.close(); }}>
+        {dialogOpen && (
+          <div className="k-filters-sheet">
+            <header className="k-filters-head">
+              <h2 id="k-filters-title">Filtres</h2>
+              <button type="button" className="k-req-close" aria-label="Fermer" onClick={() => dialog.current?.close()}>×</button>
+            </header>
+            <div className="k-filters-body">
+              <FilterFields value={draft} counts={draftCounts} onChange={patch => setDraft(current => ({ ...current, ...patch }))}
+                toolOptions={toolOptionsFor(draftCounts)} creatorOptions={creatorOptionsFor(draftCounts)} />
             </div>
+            <footer className="k-filters-foot">
+              <button type="button" className="k-link-btn" onClick={() => setDraft(current => ({ ...DEFAULT_FILTERS, query: current.query, sort: current.sort, family: current.family, category: current.category }))}>Tout effacer</button>
+              <button type="button" className="k-btn k-btn-primary" disabled={draftTotal === 0} onClick={applyFilters}>
+                {draftTotal === 0 ? 'Aucun code' : `Afficher ${draftTotal} ${draftTotal > 1 ? 'codes' : 'code'}`}
+              </button>
+            </footer>
           </div>
-
-          <div className="k-board-group">
-            <h2>Type d&apos;offre</h2>
-            <div className="k-board-chips">
-              {OFFERS.map(offer => {
-                const on = filters.offer === offer.value;
-                return (
-                  <button type="button" key={offer.value} className="k-board-chip" aria-pressed={on}
-                    disabled={!on && counts.offer[offer.value] === 0} onClick={() => update({ offer: on ? '' : offer.value })}>
-                    {offer.label} <span className="k-board-count">{counts.offer[offer.value]}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="k-board-group">
-            <h2>Échéance</h2>
-            <div className="k-board-chips">
-              {DEADLINES.map(deadline => {
-                const on = filters.deadline === deadline.value;
-                return (
-                  <button type="button" key={deadline.value} className="k-board-chip" aria-pressed={on}
-                    disabled={!on && counts.deadline[deadline.value] === 0} onClick={() => update({ deadline: on ? '' : deadline.value })}>
-                    {deadline.label} <span className="k-board-count">{counts.deadline[deadline.value]}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <button type="button" role="switch" className="k-board-switch" aria-checked={filters.fresh}
-            disabled={!filters.fresh && counts.fresh === 0} onClick={() => update({ fresh: !filters.fresh })}>
-            <span className="k-board-knob" aria-hidden="true" />
-            <span>Ajoutés cette semaine</span>
-            <span className="k-board-count">{counts.fresh}</span>
-          </button>
-
-        </div>
-        </div>
-      </aside>
+        )}
+      </dialog>
 
       <div className="k-board-results">
+      {browsing && rows.length > 0 && (
+        <div className="k-rows">
+          {rows.map(row => (
+            <section className="k-row" key={row.key} aria-labelledby={`k-row-${row.key}`}>
+              <div className="k-row-head">
+                <h2 id={`k-row-${row.key}`}>{row.title}</h2>
+                <button type="button" className="k-row-all" onClick={() => seeRow(row.patch)} aria-label={`Tout voir : ${row.title}, ${row.total} codes`}>
+                  Tout voir <span>{row.total}</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+                </button>
+              </div>
+              <ChipRow label={row.title} className="is-codes" paged>
+                {row.codes.map(code => (
+                  <div className="k-row-item" key={code.id}>
+                    <BoardingCoupon code={code} link={code.creatorLink || toolBySlug.get(code.toolSlug)?.website || '#'} light votes />
+                  </div>
+                ))}
+              </ChipRow>
+            </section>
+          ))}
+        </div>
+      )}
       <div className="k-board-bar">
-        <p role="status"><strong>{results.length}</strong> {results.length > 1 ? 'codes trouvés' : 'code trouvé'}</p>
+        <p role="status">{browsing && rows.length > 0 && <span className="k-board-bar-title">Tous les codes · </span>}<strong>{results.length}</strong> {results.length > 1 ? 'codes trouvés' : 'code trouvé'}</p>
         <div className="k-board-tools">
           <div className="k-board-views" role="group" aria-label="Affichage des codes">
             <button type="button" aria-pressed={view === 'list'} onClick={() => switchView('list')} title="Liste : un code par ligne, l'essentiel">
@@ -428,5 +370,104 @@ export function CodesBoard({ codes, tools, families, categories, initial, now }:
       )}
       </div>
     </div>
+  );
+}
+
+type FieldsProps = {
+  value: CodeFilters; counts: FacetCounts; onChange: (patch: Partial<CodeFilters>) => void;
+  toolOptions: SelectOption[]; creatorOptions: SelectOption[];
+};
+
+/** Les filtres de la fenêtre « Filtres », chacun avec le nombre de codes qu'il donnerait. */
+function FilterFields({ value, counts, onChange, toolOptions, creatorOptions }: FieldsProps) {
+  const toggleTrust = (trust: TrustFilter) => onChange({
+    trust: value.trust.includes(trust) ? value.trust.filter(t => t !== trust) : [...value.trust, trust],
+  });
+  return (
+    <>
+      <div className="k-board-group">
+        <h3>Statut</h3>
+        <div className="k-board-checks" role="radiogroup" aria-label="Statut">
+          {STATUSES.map(status => (
+            <button type="button" role="radio" key={status.value} className="k-board-check is-radio" aria-checked={value.status === status.value}
+              onClick={() => onChange({ status: status.value })}>
+              <span className="k-board-box" aria-hidden="true" />
+              <span>{status.label}</span>
+              {status.value !== 'all' && (
+                <span className={`k-codeseal is-${status.value}`} aria-hidden="true"><TrustGlyph seal={status.value} /></span>
+              )}
+              <span className="k-board-count">{counts.status[status.value]}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="k-filters-pair">
+        <div className="k-board-group">
+          <h3>Outil</h3>
+          <AdminSelect id="k-board-tool" classPrefix="k-combo" ariaLabel="Outil" value={value.tool} onChange={tool => onChange({ tool })}
+            options={toolOptions} searchPlaceholder="Chercher un outil…" />
+        </div>
+        <div className="k-board-group">
+          <h3>Créateur</h3>
+          <AdminSelect id="k-board-creator" classPrefix="k-combo" ariaLabel="Créateur" value={value.creator} onChange={creator => onChange({ creator })}
+            options={creatorOptions} searchPlaceholder="Chercher un créateur…" />
+        </div>
+      </div>
+
+      <div className="k-board-group">
+        <h3>Confiance</h3>
+        <div className="k-board-checks">
+          {TRUSTS.map(trust => {
+            const on = value.trust.includes(trust.value);
+            return (
+              <button type="button" key={trust.value} className="k-board-check" aria-pressed={on}
+                disabled={!on && counts.trust[trust.value] === 0} onClick={() => toggleTrust(trust.value)}>
+                <span className="k-board-box" aria-hidden="true" />
+                <span>{trust.label}</span>
+                <span className="k-board-count">{counts.trust[trust.value]}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="k-board-group">
+        <h3>Type d&apos;offre</h3>
+        <div className="k-board-chips">
+          {OFFERS.map(offer => {
+            const on = value.offer === offer.value;
+            return (
+              <button type="button" key={offer.value} className="k-board-chip" aria-pressed={on}
+                disabled={!on && counts.offer[offer.value] === 0} onClick={() => onChange({ offer: on ? '' : offer.value })}>
+                {offer.label} <span className="k-board-count">{counts.offer[offer.value]}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="k-board-group">
+        <h3>Échéance</h3>
+        <div className="k-board-chips">
+          {DEADLINES.map(deadline => {
+            const on = value.deadline === deadline.value;
+            return (
+              <button type="button" key={deadline.value} className="k-board-chip" aria-pressed={on}
+                disabled={!on && counts.deadline[deadline.value] === 0} onClick={() => onChange({ deadline: on ? '' : deadline.value })}>
+                {deadline.label} <span className="k-board-count">{counts.deadline[deadline.value]}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <button type="button" role="switch" className="k-board-switch" aria-checked={value.fresh}
+        disabled={!value.fresh && counts.fresh === 0} onClick={() => onChange({ fresh: !value.fresh })}>
+        <span className="k-board-knob" aria-hidden="true" />
+        <span>Ajoutés cette semaine</span>
+        <span className="k-board-count">{counts.fresh}</span>
+      </button>
+    </>
   );
 }
