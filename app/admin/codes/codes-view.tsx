@@ -13,6 +13,7 @@ import { LetterBar, SortControl, SortHeader, useAdminSort, type SortField } from
 import { CopyCode, IconButton, ToolSiteLink, IconLink, StatusDot, type Tone } from '@/components/admin-card';
 import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
+import { RefreshButton } from '@/components/admin-refresh-button';
 
 const statusLabel: Record<Code['status'], { label: string; className: string }> = {
   verified: { label: 'Vérifié', className: 'adm-pill adm-pill-ok' },
@@ -92,7 +93,7 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
             <h1>Codes</h1>
             <p>Vérifie la source, complète la réduction, puis publie uniquement les codes fiables. Seuls les codes vérifiés et à tester sont visibles sur le site.</p>
           </div>
-          <div className="adm-head-actions"><ExportMenu type="codes" /><button type="button" className="adm-btn adm-btn-pri" onClick={() => setEditing({ kind: 'create' })}>+ Nouveau code</button></div>
+          <div className="adm-head-actions"><RefreshButton /><ExportMenu type="codes" /><button type="button" className="adm-btn adm-btn-pri" onClick={() => setEditing({ kind: 'create' })}>+ Nouveau code</button></div>
         </div>
         <div className="adm-tabs" role="group" aria-label="Statut">
           {filters.map(filter => <button key={filter.value} type="button" className="adm-tab" aria-pressed={status === filter.value} onClick={() => setStatus(filter.value)}>{filter.label} {(filter.value === 'to_test' || filter.value === 'retest') && countOf(filter.value) > 0 && status !== filter.value ? <span className="adm-count-badge">{countOf(filter.value)}</span> : <span className="adm-tab-n">{countOf(filter.value)}</span>}</button>)}

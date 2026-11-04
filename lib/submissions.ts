@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { and, desc, eq, gte, inArray, lt } from 'drizzle-orm';
+import { and, count, desc, eq, gte, inArray, lt } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { moderationLogs, submissions, type Submission } from '@/db/schema';
 
@@ -96,9 +96,9 @@ export function isStatusFilter(value: string): value is StatusFilter { return (s
 
 export type SubmissionFilters = { status: StatusFilter; category?: string; from?: string | null; to?: string | null };
 
-export async function listSubmissions(db: Db, filters: SubmissionFilters): Promise<Submission[]> {
+/** Catégorie et période : ce que filtrent la liste et les nombres des onglets. */
+function periodConditions(filters: Omit<SubmissionFilters, 'status'>) {
   const conditions = [];
-  if (filters.status !== 'all') conditions.push(eq(submissions.status, filters.status));
   if (filters.category) conditions.push(eq(submissions.category, filters.category));
   if (filters.from) conditions.push(gte(submissions.createdAt, new Date(`${filters.from}T00:00:00.000Z`)));
   if (filters.to) {
@@ -106,8 +106,27 @@ export async function listSubmissions(db: Db, filters: SubmissionFilters): Promi
     end.setUTCDate(end.getUTCDate() + 1);
     conditions.push(lt(submissions.createdAt, end));
   }
+  return conditions;
+}
+
+export async function listSubmissions(db: Db, filters: SubmissionFilters): Promise<Submission[]> {
+  const conditions = periodConditions(filters);
+  if (filters.status !== 'all') conditions.push(eq(submissions.status, filters.status));
   return db.select().from(submissions).where(conditions.length ? and(...conditions) : undefined)
     .orderBy(desc(submissions.createdAt)).limit(100);
+}
+
+/** Nombre de propositions par statut (et au total), avec les mêmes filtres de catégorie et de période que la liste. */
+export async function countSubmissions(db: Db, filters: Omit<SubmissionFilters, 'status'> = {}): Promise<Record<StatusFilter, number>> {
+  const conditions = periodConditions(filters);
+  const rows = await db.select({ status: submissions.status, n: count() }).from(submissions)
+    .where(conditions.length ? and(...conditions) : undefined).groupBy(submissions.status);
+  const counts: Record<StatusFilter, number> = { new: 0, approved: 0, rejected: 0, duplicate: 0, all: 0 };
+  for (const row of rows) {
+    if (row.status in counts) counts[row.status as StatusFilter] = Number(row.n);
+    counts.all += Number(row.n);
+  }
+  return counts;
 }
 
 export type ModerationAction = 'approve' | 'reject' | 'mark_duplicate' | 'restore';
