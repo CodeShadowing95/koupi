@@ -4,10 +4,11 @@ import { eq } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { creatorAccounts, type CreatorAccountRow } from '@/db/schema';
 import { creatorLevelOf, type CreatorLevel } from './verification';
+import { cleanMetrics } from './account-metrics';
 
 const RANK: Record<CreatorLevel, number> = { spotted: 0, checked: 1, verified: 2 };
 
-type AccountFacts = Pick<CreatorAccountRow, 'claimStatus' | 'platformVerified' | 'adminCheckedAt' | 'subscribers'>;
+type AccountFacts = Pick<CreatorAccountRow, 'claimStatus' | 'platformVerified' | 'adminCheckedAt' | 'subscribers'> & { metrics?: unknown };
 
 export function accountLevelOf(account: AccountFacts): CreatorLevel {
   return creatorLevelOf({
@@ -15,6 +16,7 @@ export function accountLevelOf(account: AccountFacts): CreatorLevel {
     platformVerified: account.platformVerified,
     adminChecked: account.adminCheckedAt !== null,
     subscribers: account.subscribers,
+    ratingCount: cleanMetrics(account.metrics).ratingCount ?? null,
   });
 }
 

@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { Icon, StatusDot } from '@/components/admin-card';
 import { Callout, Demo, Key, Legend, Section, Step, Steps } from '@/components/admin-guide';
 import { FLAG_MAX_SUCCESS, FLAG_MIN_VOTES, RETEST_DAYS, TARGETS } from '@/lib/admin-stats';
-import { CLEAR_SCORE, CREATOR_LEVEL_LABELS, MIN_SUBSCRIBERS, REJECT_BELOW } from '@/lib/verification';
+import { CLEAR_SCORE, CREATOR_LEVEL_LABELS, MIN_RATINGS, MIN_SUBSCRIBERS, REJECT_BELOW } from '@/lib/verification';
 import { FIRST_READ_DAYS } from '@/lib/podcast-read';
 import { SITE_PAGES } from '@/lib/site-pages';
 
@@ -429,7 +429,7 @@ function Createurs() {
       <p>Le niveau dit à quel point Merkod est sûr que le créateur est bien celui qu’il prétend être. Il compte dans le score des <Link href="/admin/verifications">Vérifications</Link>.</p>
       <Legend rows={[
         { term: <StatusDot tone="muted">{CREATOR_LEVEL_LABELS.spotted}</StatusDot>, meaning: 'Merkod connaît son nom, mais personne n’a encore contrôlé ses comptes. C’est le niveau de départ.' },
-        { term: <StatusDot tone="ok">{CREATOR_LEVEL_LABELS.checked}</StatusDot>, meaning: `Tu as contrôlé un de ses comptes et il a au moins ${MIN_SUBSCRIBERS} abonnés, ou ce compte a le badge certifié du réseau.` },
+        { term: <StatusDot tone="ok">{CREATOR_LEVEL_LABELS.checked}</StatusDot>, meaning: `Tu as contrôlé un de ses comptes et il a au moins ${MIN_SUBSCRIBERS} abonnés (ou, pour un podcast, au moins ${MIN_RATINGS} notes sur Apple Podcasts), ou ce compte a le badge certifié du réseau.` },
         { term: <StatusDot tone="info">{CREATOR_LEVEL_LABELS.verified}</StatusDot>, meaning: 'Le créateur a prouvé lui-même qu’un compte est à lui, avec un code dans sa bio (voir plus bas).' },
       ]} />
       <p>Le filtre <b>À contrôler</b> liste les créateurs déjà sur le site mais encore repérés : commence par eux.</p>

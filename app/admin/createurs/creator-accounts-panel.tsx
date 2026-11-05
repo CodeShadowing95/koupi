@@ -6,7 +6,7 @@ import { StatusDot, type Tone } from '@/components/admin-card';
 import { FormDialog, sendJson } from '@/components/admin-form-dialog';
 import { InfoTip } from '@/components/admin-info-tip';
 import { PlatformIcon } from '@/components/platform-icon';
-import { CREATOR_LEVEL_LABELS, MIN_SUBSCRIBERS, type CreatorLevel } from '@/lib/verification';
+import { CREATOR_LEVEL_LABELS, MIN_RATINGS, MIN_SUBSCRIBERS, type CreatorLevel } from '@/lib/verification';
 import { AccountClaim } from './account-claim';
 import { audienceLine } from '@/lib/account-metrics';
 import { PLATFORM_LABELS, formatSubscribers, type AdminCreatorAccount, type CreatorPlatform } from '@/lib/creator-accounts-display';
@@ -24,7 +24,12 @@ const day = (iso: string) => dayFormat.format(new Date(iso));
 function nextStep(account: AdminCreatorAccount): string | null {
   if (account.level !== 'spotted') return null;
   if (account.adminCheckedAt && account.subscribers !== null && account.subscribers < MIN_SUBSCRIBERS) return `Moins de ${MIN_SUBSCRIBERS} abonnés : le créateur reste repéré.`;
-  if (account.adminCheckedAt && account.subscribers === null && account.platform === 'podcast') return 'Les abonnés d’un podcast ne sont pas publics : indique-les à la main si tu les connais, ou coche le badge certifié.';
+  if (account.adminCheckedAt && account.platform === 'podcast' && account.subscribers === null) {
+    const ratings = account.metrics.ratingCount;
+    return ratings === undefined
+      ? `Note inconnue : clique sur « Actualiser ». Il faut au moins ${MIN_RATINGS} notes pour un podcast.`
+      : `Moins de ${MIN_RATINGS} notes : le créateur reste repéré.`;
+  }
   if (account.adminCheckedAt && account.subscribers === null) return 'Abonnés inconnus : indique-les pour atteindre le seuil.';
   return 'Contrôle le compte pour le passer « Contrôlé par Merkod ».';
 }

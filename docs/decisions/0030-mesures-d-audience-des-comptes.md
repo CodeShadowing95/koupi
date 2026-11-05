@@ -24,4 +24,4 @@ L'audience d'un créateur se résumait au nombre d'abonnés (`creator_accounts.s
 ## Conséquences
 - Le JSON n'est pas contraint par Postgres au-delà d'« être un objet » : toute écriture passe par `cleanMetrics`.
 - La note Apple dépend de la page web d'Apple ; si sa structure change, la lecture rend null (testée sur un extrait réel de la page).
-- Les podcasts restent « Repérés » sauf badge certifié ou abonnés saisis à la main : un seuil propre aux podcasts (nombre de notes ?) reste à décider.
+- Seuil des podcasts (choix de l'éditeur, 2026-11-05) : un podcast contrôlé par l'admin passe « Contrôlé par Merkod » à partir de 50 notes (`MIN_RATINGS`), l'équivalent des 1 000 abonnés d'une chaîne.
