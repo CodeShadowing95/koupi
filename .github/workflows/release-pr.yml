@@ -1,7 +1,11 @@
 name: Release PR
 
 # When develop receives a new version (merge of a dev-release-vX.Y.Z PR),
-# opens or updates the release PR develop -> main. See docs/release.md.
+# opens or updates the release PR develop -> main and turns on auto-merge.
+# With the RELEASE_TOKEN secret (a fine-grained token of the repo owner), the PR is opened in the
+# owner's name: CI runs without approval, the PR merges itself once green, and the push to main
+# triggers release.yml (tag + GitHub Release). Without it, the PR waits for a manual merge.
+# See docs/release.md.
 
 on:
   push:
@@ -42,13 +46,18 @@ jobs:
       - name: Open or update the PR
         if: steps.version.outputs.release == 'true'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || github.token }}
+          AUTO_MERGE: ${{ secrets.RELEASE_TOKEN != '' }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           {
             echo "Met en production la version **$VERSION**."
             echo
-            echo "Merge avec **Create a merge commit** (jamais Squash). Au merge : déploiement Production sur Vercel, puis tag \`v$VERSION\` et GitHub Release."
+            if [ "$AUTO_MERGE" = "true" ]; then
+              echo "Cette PR se merge toute seule (merge commit) dès que la CI est verte. Au merge : déploiement Production sur Vercel, puis tag \`v$VERSION\` et GitHub Release."
+            else
+              echo "Merge avec **Create a merge commit** (jamais Squash). Au merge : déploiement Production sur Vercel, puis tag \`v$VERSION\` et GitHub Release."
+            fi
             echo
             node scripts/release-notes.mjs "$VERSION"
           } > body.md
@@ -59,4 +68,11 @@ jobs:
             echo "Updated PR #$existing"
           else
             gh pr create --base main --head develop --title "$title" --body-file body.md
+            existing=$(gh pr list --base main --head develop --state open --json number --jq '.[0].number')
+          fi
+          if [ "$AUTO_MERGE" = "true" ]; then
+            # --auto waits for the required checks; if they already passed, merge right away.
+            gh pr merge "$existing" --auto --merge || gh pr merge "$existing" --merge
+          else
+            echo "No RELEASE_TOKEN secret: merge the release PR by hand."
           fi

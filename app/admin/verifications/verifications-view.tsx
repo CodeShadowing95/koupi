@@ -9,6 +9,7 @@ import { matchesSearch } from '@/lib/admin-search';
 import { Key } from '@/components/admin-guide';
 import { RETEST_DAYS } from '@/lib/admin-stats';
 import { RefreshButton } from '@/components/admin-refresh-button';
+import { USAGE_CHANGED } from '@/components/admin-usage-gauge';
 
 type Ai = { status: AiStatus; spentUsdMicros: number; budgetUsdMicros: number; model: string; reviewModel: string };
 type Filter = 'all' | Verdict | 'retest';
@@ -25,7 +26,8 @@ const statusLabel: Record<QueueItem['status'], string> = { pending: 'En attente'
 const isRetest = (item: QueueItem) => item.status === 'verified';
 const matchesFilter = (item: QueueItem, filter: Filter) => filter === 'retest' ? isRetest(item) : !isRetest(item) && (filter === 'all' || verdictOf(item.check) === filter);
 const shortDay = (day: string) => new Date(`${day}T12:00:00Z`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
-const dateTime = (iso: string) => new Date(iso).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+// Heure de Paris, côté serveur comme dans le navigateur : sinon le texte diffère au chargement et React refait la page.
+const dateTime = (iso: string) => new Date(iso).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' });
 
 type Decision = 'verify' | 'payment_test' | 'reject';
 const decisionDone: Record<Decision, string> = { verify: 'validé', payment_test: 'validé et testé au paiement', reject: 'rejeté' };
@@ -80,6 +82,7 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
 
   const analyze = useCallback(async (item: QueueItem, mode: 'standard' | 'review' = 'standard') => {
     const response = await fetch(`/api/admin/verifications/${item.id}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ mode }) }).catch(() => null);
+    window.dispatchEvent(new Event(USAGE_CHANGED)); // l'analyse lit YouTube et l'IA : la jauge du menu se met à jour
     return Boolean(response?.ok);
   }, []);
 

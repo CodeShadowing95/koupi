@@ -1331,7 +1331,14 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-refresh{display:inline-flex;align-items:center;gap:6px}
 .adm-refresh[aria-busy="true"] svg{animation:adm-spin .8s linear infinite}
 @media (prefers-reduced-motion:reduce){.adm-refresh[aria-busy="true"] svg{animation:none}}
-/* Barres de consommation (page Consommation) */
+/* Jauge de consommation, en bas du menu latéral : une ligne par service (YouTube, IA), sans faire défiler le menu */
+.adm-usage{display:flex;flex-direction:column;gap:6px;margin:0 0 6px;padding:8px 10px;border-radius:10px;color:inherit;text-decoration:none}
+.adm-usage:hover{background:var(--hover,rgba(0,0,0,.04))}
+.adm-usage:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.adm-usage-row{display:grid;grid-template-columns:52px 1fr 38px;align-items:center;gap:8px}
+.adm-usage-name{font-size:12px;font-weight:600;color:var(--ink-soft)}
+.adm-usage-value{font-size:12px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+/* Barres de consommation (menu et page Consommation) */
 .adm-usage-bar{height:6px;border-radius:999px;background:var(--line);overflow:hidden}
 .adm-usage-bar i{display:block;height:100%;border-radius:inherit;background:var(--ok);transition:width .4s ease}
 .adm-usage-bar.is-warn i{background:var(--warn)}
