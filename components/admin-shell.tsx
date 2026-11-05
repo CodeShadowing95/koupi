@@ -24,6 +24,7 @@ const icons = {
   ticket: <AdminIcon name="ticket" />,
   shield: <AdminIcon name="shield" />,
   mic: <AdminIcon name="mic" />,
+  radar: <AdminIcon name="radar" />,
   tool: <AdminIcon name="tool" />,
   users: <AdminIcon name="users" />,
   folder: <AdminIcon name="folder" />,
@@ -50,6 +51,7 @@ function navGroups(counts: { toTest?: number; pending?: number; newFeedback?: nu
     { href: '/admin/codes', label: 'Codes', icon: icons.ticket, count: counts.toTest, countLabel: 'à tester', children: [
       { href: '/admin/propositions', label: 'Propositions', icon: icons.inbox, count: counts.pending, countLabel: 'à valider' },
       { href: '/admin/verifications', label: 'Vérifications', icon: icons.shield },
+      { href: '/admin/sources', label: 'Sources', icon: icons.radar },
       { href: '/admin/podcasts', label: 'Podcasts suivis', icon: icons.mic },
     ] },
     { href: '/admin/createurs', label: 'Créateurs', icon: icons.users, children: [

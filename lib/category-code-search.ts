@@ -84,6 +84,8 @@ export function toolsToSearch(all: AdminTool[], options: { categorySlug?: string
 }
 
 export type CategorySearchReport = {
+  /** Ce qui a été cherché, pour le journal des passages : « Catégories vides », « Catégorie VPN », « Outil NordVPN ». */
+  scope: string;
   tools: number;
   /** Recherches YouTube lancées (une par outil, plus une sur le nom de la catégorie choisie). */
   searches: number;
@@ -111,17 +113,20 @@ export async function searchCategoryCodes(db: Db, youtube: YoutubeSearch, option
   const { tools: targets, remaining } = toolsToSearch(await listToolsAdmin(db), options);
   const subjects: { label: string; toolId: string | null; categorySlug: string | null }[] = targets.map(tool => ({ label: tool.name, toolId: tool.id, categorySlug: null }));
   let origin = 'Recherche des catégories vides';
+  let scope = 'Catégories vides';
   if (options.toolId) {
     origin = `Recherche ciblée ${targets[0]?.name ?? 'outil'}`;
+    scope = `Outil ${targets[0]?.name ?? ''}`.trim();
   } else if (options.categorySlug) {
     const [category] = await db.select({ name: categories.name }).from(categories).where(eq(categories.slug, options.categorySlug)).limit(1);
     if (category) {
       origin = `Recherche ciblée ${category.name}`;
+      scope = `Catégorie ${category.name}`;
       subjects.push({ label: category.name, toolId: null, categorySlug: options.categorySlug });
     }
   }
   const report: CategorySearchReport = {
-    tools: targets.length, searches: 0, remaining, videos: 0, skipped: 0, newChannels: 0, knownChannels: 0, variants: [], found: [], suggested: [], units: 0, aiRead: 0, failed: [],
+    scope, tools: targets.length, searches: 0, remaining, videos: 0, skipped: 0, newChannels: 0, knownChannels: 0, variants: [], found: [], suggested: [], units: 0, aiRead: 0, failed: [],
   };
   if (subjects.length === 0) return report;
   const catalog = (await db.select({ id: tools.id, name: tools.name, website: tools.website }).from(tools).where(sql`${tools.archivedAt} is null`))

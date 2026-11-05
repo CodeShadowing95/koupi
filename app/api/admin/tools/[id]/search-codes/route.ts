@@ -3,6 +3,8 @@ import { getDb } from '@/db';
 import { isAdminRequest, UUID_PATTERN } from '@/lib/admin-guard';
 import { searchCategoryCodes, youtubeSearch } from '@/lib/category-code-search';
 import { verificationDeps } from '@/lib/verification-deps';
+import { recordRun } from '@/lib/source-runs';
+import { searchSummary } from '@/lib/source-run-summaries';
 
 // Une recherche YouTube, puis l'analyse de chaque code trouvé.
 export const maxDuration = 120;
@@ -15,7 +17,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const youtube = youtubeSearch(process.env.YOUTUBE_API_KEY);
   if (!youtube) return NextResponse.json({ error: 'La clé YouTube manque : ajoute YOUTUBE_API_KEY dans les réglages Vercel.' }, { status: 503 });
   try {
-    const report = await searchCategoryCodes(getDb(), youtube, { toolId: id, deps: verificationDeps() });
+    const db = getDb();
+    const report = await recordRun(db, { source: 'youtube_search', trigger: 'manual', scope: 'Outil' },
+      () => searchCategoryCodes(db, youtube, { toolId: id, deps: verificationDeps() }), searchSummary);
     if (report.tools === 0) return NextResponse.json({ error: 'Outil introuvable ou archivé.' }, { status: 404 });
     return NextResponse.json({ ok: true, ...report });
   } catch (error) {

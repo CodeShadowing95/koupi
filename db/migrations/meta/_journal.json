@@ -183,6 +183,13 @@
       "when": 1793888543723,
       "tag": "0025_freezing_skullbuster",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1793899601314,
+      "tag": "0026_bitter_champions",
+      "breakpoints": true
     }
   ]
 }
