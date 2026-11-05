@@ -26,8 +26,10 @@ const dbPath = args.find(arg => !arg.startsWith('--') && !/^\d+$/.test(arg));
 const dryRun = args.includes('--dry-run');
 const limitIndex = args.indexOf('--limit');
 const limit = limitIndex >= 0 ? Number(args[limitIndex + 1]) : MAX_FEEDS;
-const base = (process.env.MERKOD_URL ?? '').replace(/\/+$/, '');
-const secret = process.env.CRON_SECRET ?? '';
+// Adresse du site, tolérante aux erreurs de saisie dans GitHub : espaces, guillemets, « https:// » oublié.
+const rawBase = (process.env.MERKOD_URL ?? '').trim().replace(/^["']|["']$/g, '').trim().replace(/\/+$/, '');
+const base = rawBase && !/^https?:\/\//i.test(rawBase) ? `https://${rawBase}` : rawBase;
+const secret = (process.env.CRON_SECRET ?? '').trim();
 
 function fail(message: string): never {
   console.error(message);
@@ -38,7 +40,8 @@ const apiKey = process.env.PODCASTINDEX_API_KEY ?? '';
 const apiSecret = process.env.PODCASTINDEX_API_SECRET ?? '';
 const useDump = Boolean(dbPath && existsSync(dbPath));
 if (!useDump && !(apiKey && apiSecret)) fail('Ni base téléchargée ni clés de l’API (PODCASTINDEX_API_KEY, PODCASTINDEX_API_SECRET) : rien à lire.');
-if (!/^(https:\/\/|http:\/\/localhost[:/])/.test(base) || !secret) fail('MERKOD_URL (https://…) et CRON_SECRET sont nécessaires.');
+if (!secret) fail('CRON_SECRET est vide : ajoute-le dans les secrets du dépôt (Settings > Secrets and variables > Actions).');
+if (!/^(https:\/\/[^\s/]+|http:\/\/localhost[:/])/.test(base)) fail(`MERKOD_URL n’est pas une adresse valide (reçu : « ${rawBase} »). Mets l’adresse du site, par exemple https://merkod.vercel.app.`);
 if (!Number.isSafeInteger(limit) || limit < 1) fail('--limit doit être un nombre positif.');
 
 const headers = { authorization: `Bearer ${secret}`, 'user-agent': 'Merkod podcast candidates (+https://github.com/CodeShadowing95/koupi)' };
