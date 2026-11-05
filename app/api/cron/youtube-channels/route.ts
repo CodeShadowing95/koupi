@@ -3,6 +3,8 @@ import { getDb } from '@/db';
 import { safeEqual } from '@/lib/admin-session';
 import { verificationDeps } from '@/lib/verification-deps';
 import { readYoutubeChannels, youtubeChannels } from '@/lib/youtube-channel-read';
+import { recordRun } from '@/lib/source-runs';
+import { channelSummary } from '@/lib/source-run-summaries';
 
 export const maxDuration = 300;
 
@@ -15,7 +17,9 @@ export async function GET(request: NextRequest) {
   const youtube = youtubeChannels(process.env.YOUTUBE_API_KEY);
   if (!youtube) return NextResponse.json({ error: 'Lecture désactivée : YOUTUBE_API_KEY manquant.' }, { status: 503 });
   try {
-    const report = await readYoutubeChannels(getDb(), youtube, { deps: verificationDeps() });
+    const db = getDb();
+    const report = await recordRun(db, { source: 'youtube_channel', trigger: 'cron', scope: 'Toutes les chaînes suivies' },
+      () => readYoutubeChannels(db, youtube, { deps: verificationDeps() }), channelSummary);
     return NextResponse.json({ ok: true, channels: report.channels, videos: report.videos, units: report.units, codesFound: report.found.length, failed: report.failed.length });
   } catch (error) {
     console.error('cron youtube channels read failed', error);

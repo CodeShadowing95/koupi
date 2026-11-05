@@ -55,7 +55,7 @@ function SeReperer() {
       <p>Le menu est rangé par grandes tâches, de haut en bas :</p>
       <Legend rows={[
         { term: 'Pilotage', meaning: <><b>Accueil</b> (ce qu’il y a à faire aujourd’hui), <b>Statistiques</b> (les chiffres en détail, avec <b>Consommation</b> en sous-menu : le quota YouTube et la dépense IA) et <b>Retours</b> (les avis des visiteurs).</> },
-        { term: 'Catalogue', meaning: <><b>Codes</b> (tout le catalogue), avec en sous-menus <b>Propositions</b> (les codes envoyés par les visiteurs), <b>Vérifications</b> (les dossiers préparés avec un score) et <b>Podcasts suivis</b>. Puis <b>Créateurs</b> (avec <b>Demandes</b>) et <b>Outils</b> (avec <b>Catégories</b>).</> },
+        { term: 'Catalogue', meaning: <><b>Codes</b> (tout le catalogue), avec en sous-menus <b>Propositions</b> (les codes envoyés par les visiteurs), <b>Vérifications</b> (les dossiers préparés avec un score), <b>Sources</b> (d’où viennent les codes, ce qu’elles rapportent et coûtent) et <b>Podcasts suivis</b>. Puis <b>Créateurs</b> (avec <b>Demandes</b>) et <b>Outils</b> (avec <b>Catégories</b>).</> },
         { term: 'Aide et réglages', meaning: <>Ce <b>guide</b> et l’espace <b>Administration</b>.</> },
       ]} />
       <p>Un clic sur le nom ouvre la page. La <b>flèche</b> à droite déplie ses sous-menus ; ils restent ouverts quand tu es sur l’une de leurs pages. Un nombre orange veut dire « des éléments t’attendent » ; menu replié, un <b>point orange</b> près de la flèche dit qu’un sous-menu en a. <b>Voir le site</b> et <b>Se déconnecter</b> restent toujours en bas, sans défiler.</p>
@@ -557,6 +557,39 @@ function Categories() {
   </>;
 }
 
+function Sources() {
+  return <>
+    <Section id="quoi" title="D’où viennent les codes">
+      <p>Merkod trouve ses codes à plusieurs endroits : les <b>chaînes YouTube suivies</b>, les <b>podcasts suivis</b>, la <b>recherche YouTube</b> par outil ou par catégorie, les <b>propositions des visiteurs</b>, et ce que tu ajoutes à la main. La page <Link href="/admin/sources">Sources</Link> les réunit sur une seule page, une carte par source, pour voir laquelle rapporte et laquelle coûte.</p>
+    </Section>
+    <Section id="carte" title="Lire une carte">
+      <p>Chaque carte dit ce que la source lit, puis donne quatre chiffres :</p>
+      <Steps>
+        <Step title="Trouvés">Les codes que cette source a apportés, et combien ce mois-ci.</Step>
+        <Step title="Publiés">Ceux que tu as validés, avec la part des codes jugés (publiés ou rejetés) qui ont été publiés. Une source qui ramène surtout des codes rejetés te fait perdre du temps.</Step>
+        <Step title="En attente">Ceux qui attendent ta décision dans Vérifications.</Step>
+        <Step title="Copiés">Combien de fois les visiteurs ont copié ses codes ce mois-ci. C’est le vrai rendement.</Step>
+      </Steps>
+      <p>Dessous : le <b>dernier passage</b> et son état, le <b>prochain</b> (« Chaque nuit à 04:30 » pour les podcasts, puis les chaînes une demi-heure après, à l’heure de Paris ; « Quand tu le lances » pour la recherche), et ce que la source a coûté ce mois-ci en unités du quota YouTube et en IA.</p>
+      <Demo caption="Les trois états d’un passage.">
+        <div className="gd-row"><StatusDot tone="ok">Réussi</StatusDot><StatusDot tone="warn">En partie</StatusDot><StatusDot tone="bad">Échec</StatusDot></div>
+      </Demo>
+      <Callout tone="why">« En partie » veut dire qu’une partie n’a pas répondu (une chaîne, un flux de podcast) : le reste a bien été lu. « Échec » veut dire que rien n’a pu être lu, souvent une clé manquante ou le quota YouTube épuisé.</Callout>
+    </Section>
+    <Section id="lancer" title="Lancer une source à la main">
+      <p>Les chaînes et les podcasts sont lus chaque nuit tout seuls. <b>Lire maintenant</b> les lit tout de suite ; <b>Chercher pour les catégories vides</b> lance la recherche YouTube. Avant de lancer, Merkod te dit ce que ça va coûter : environ une unité par chaîne suivie, et jusqu’à 2 000 unités pour une recherche, sur 10 000 par jour.</p>
+      <Callout tone="tip">Pour chercher sur une seule catégorie ou un seul outil, passe par leur page : les liens <b>Par catégorie</b> et <b>Par outil</b> y mènent. Les codes d’outils absents du catalogue vont dans <Link href="/admin/podcasts?tab=outils">Outils à ajouter</Link>, lié depuis la page.</Callout>
+    </Section>
+    <Section id="journal" title="Le journal des passages">
+      <p>En bas de la page, chaque passage est noté, la nuit comme à la main : quand, quelle source, qui l’a lancé (<b>La nuit</b> ou <b>Toi</b>), ce qui a été lu, combien de vidéos ou d’épisodes, les codes trouvés (et ceux hors catalogue), les unités dépensées et l’état. Un passage raté affiche l’erreur : c’est là qu’on voit qu’une tâche de nuit ne tourne plus.</p>
+      <Callout tone="tip">Une fois par semaine, regarde le journal : s’il n’y a pas eu de passage de nuit depuis deux jours, ou s’il n’y a que des échecs, la clé YouTube ou la tâche de nuit est à vérifier.</Callout>
+    </Section>
+    <Section id="bientot" title="Les sources à venir">
+      <p>La carte <b>Bientôt</b> liste les sources prévues : la recherche sur le web par l’IA, Spotify et Podcast Index. Elles auront leur carte et leurs passages au journal dès qu’elles seront branchées.</p>
+    </Section>
+  </>;
+}
+
 function Indicateurs() {
   return <>
     <Section id="pourquoi" title="Pourquoi des chiffres">
@@ -679,6 +712,7 @@ export const chapterContent: Record<string, () => ReactNode> = {
   outils: Outils,
   createurs: Createurs,
   categories: Categories,
+  sources: Sources,
   indicateurs: Indicateurs,
   routine: Routine,
   administration: Administration,

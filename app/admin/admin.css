@@ -1391,6 +1391,7 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 /* Page Créateurs : entretien des comptes sous le titre, et panneau d'un créateur en onglets */
 .adm-head{flex-wrap:wrap}
 .adm-head>div:first-child{flex:1 1 320px}
+@media(max-width:700px){.adm-head>div:first-child{flex-basis:auto}}
 .adm-head-actions{flex-wrap:wrap;justify-content:flex-end}
 .adm-maint{display:flex;flex-wrap:wrap;gap:12px 28px;padding:12px 14px;margin:-4px 0 16px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
 .adm-maint-group{display:flex;flex-direction:column;gap:6px;min-width:0}
@@ -1416,3 +1417,29 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-ca-intro{margin:0;font-size:13px;line-height:1.5;color:var(--muted)}
 .adm-ca-photo{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;padding-top:4px}
 .adm-ca-photo .adm-btn{flex:none}
+
+/* Page Sources */
+.adm-src-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;margin-bottom:28px}
+.adm-src-card{display:flex;flex-direction:column;gap:12px;padding:16px 18px;background:var(--card);border:1px solid var(--line);border-radius:14px;min-width:0}
+.adm-src-card header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.adm-src-card h2{margin:0;font-size:17px;font-weight:700;letter-spacing:-.01em}
+.adm-src-card.is-soon{border-style:dashed;background:transparent}
+.adm-src-what{margin:0;font-size:13.5px;line-height:1.5;color:var(--ink-soft)}
+.adm-src-tiles{margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.adm-src-tiles>div{padding:8px 12px;display:grid;grid-template-columns:auto 1fr;align-items:baseline;column-gap:8px;border-radius:10px;background:var(--bg,var(--blue-soft));border:1px solid var(--line);min-width:0}
+.adm-src-tiles dt{grid-column:1/-1;font-size:11.5px;color:var(--muted)}
+.adm-src-tiles dd{margin:2px 0 0;font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.adm-src-tiles small{display:block;font-size:11.5px;color:var(--muted)}
+.adm-src-actions a.adm-btn-pri,.adm-src-actions a.adm-btn-pri:hover{color:var(--on-blue);text-decoration:none}
+.adm-src-facts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:13px}
+.adm-src-facts li{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px}
+.adm-src-facts span{color:var(--muted)}
+.adm-src-facts b{font-weight:600;display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.adm-src-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:4px}
+.adm-src-msg{flex-basis:100%;margin:0;font-size:13px}
+.adm-src-msg.is-ok{color:var(--ok)}
+.adm-src-msg.is-error{color:var(--bad)}
+.adm-src-journal-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.adm-src-journal-head h2{margin:0;font-size:20px;font-weight:800;letter-spacing:-.02em}
+.adm-src-error{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+@media(max-width:560px){.adm-src-grid{grid-template-columns:1fr}}

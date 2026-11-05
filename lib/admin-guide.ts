@@ -85,6 +85,12 @@ export const guideChapters: GuideChapter[] = [
     practice: { href: '/admin/categories', label: 'Ouvrir les catégories' },
   },
   {
+    slug: 'sources', part: 'catalog', title: 'Sources de codes', minutes: 5,
+    summary: 'Les endroits où Merkod trouve des codes : ce que chacun rapporte, ce qu’il coûte, quand il passe et le journal des passages.',
+    goals: ['Lire le rendement d’une source', 'Savoir quand passe chaque source et ce qu’elle coûte', 'Lancer une source à la main en connaissant le coût', 'Repérer un passage raté dans le journal'],
+    practice: { href: '/admin/sources', label: 'Ouvrir les sources' },
+  },
+  {
     slug: 'indicateurs', part: 'steer', title: 'Lire les indicateurs', minutes: 5,
     summary: 'Couverture, codes vérifiés, réussite, délai : ce qu’ils disent et quoi faire.',
     goals: ['Lire les quatre indicateurs clés', 'Savoir quel geste fait monter chaque chiffre', 'Utiliser la liste « À faire »', 'Surveiller le quota YouTube et la dépense IA'],

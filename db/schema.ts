@@ -405,6 +405,40 @@ export const youtubeSeenVideos = pgTable('youtube_seen_videos', {
   check('youtube_seen_videos_codes_positive', sql`${table.codes} >= 0`),
 ]);
 
+export const SOURCE_RUN_SOURCES = ['youtube_search', 'youtube_channel', 'podcast'] as const;
+export const SOURCE_RUN_TRIGGERS = ['manual', 'cron'] as const;
+export const SOURCE_RUN_STATUSES = ['ok', 'partial', 'failed'] as const;
+
+// Journal des passages des sources de codes (ADR-0035) : chaque recherche YouTube, lecture des chaînes suivies
+// ou des podcasts, lancée à la main ou par la tâche de nuit, avec ce qu'elle a lu, trouvé et coûté.
+export const sourceRuns = pgTable('source_runs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  source: text('source', { enum: SOURCE_RUN_SOURCES }).notNull(),
+  trigger: text('trigger', { enum: SOURCE_RUN_TRIGGERS }).notNull(),
+  /** Ce qui a été lu : « Catégories vides », « Catégorie VPN », « Outil NordVPN », « Toutes les chaînes »… */
+  scope: text('scope').notNull().default(''),
+  status: text('status', { enum: SOURCE_RUN_STATUSES }).notNull(),
+  /** Vidéos ou épisodes lus. */
+  items: integer('items').notNull().default(0),
+  codes: integer('codes').notNull().default(0),
+  /** Codes d'outils absents du catalogue, gardés en suggestion. */
+  suggested: integer('suggested').notNull().default(0),
+  /** Unités du quota YouTube (environ). */
+  units: integer('units').notNull().default(0),
+  /** Message d'erreur, ou ce qui n'a pas répondu. */
+  error: text('error'),
+  startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
+  finishedAt: timestamp('finished_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  index('source_runs_source_idx').on(table.source, table.startedAt.desc()),
+  index('source_runs_started_idx').on(table.startedAt.desc()),
+  check('source_runs_source_valid', sql`${table.source} in ('youtube_search','youtube_channel','podcast')`),
+  check('source_runs_trigger_valid', sql`${table.trigger} in ('manual','cron')`),
+  check('source_runs_status_valid', sql`${table.status} in ('ok','partial','failed')`),
+  check('source_runs_counts_positive', sql`${table.items} >= 0 and ${table.codes} >= 0 and ${table.suggested} >= 0 and ${table.units} >= 0`),
+  check('source_runs_scope_len', sql`char_length(${table.scope}) <= 200`),
+]);
+
 export type ToolSuggestionRow = typeof toolSuggestions.$inferSelect;
 
 export type Submission = typeof submissions.$inferSelect;

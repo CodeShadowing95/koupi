@@ -4,6 +4,8 @@ import { isAdminRequest } from '@/lib/admin-guard';
 import { readJsonBody } from '@/lib/http';
 import { searchCategoryCodes, youtubeSearch } from '@/lib/category-code-search';
 import { verificationDeps } from '@/lib/verification-deps';
+import { recordRun } from '@/lib/source-runs';
+import { searchSummary } from '@/lib/source-run-summaries';
 
 // Jusqu'à 20 recherches YouTube, puis l'analyse de chaque code trouvé : on laisse du temps.
 export const maxDuration = 300;
@@ -18,7 +20,9 @@ export async function POST(request: NextRequest) {
   const youtube = youtubeSearch(process.env.YOUTUBE_API_KEY);
   if (!youtube) return NextResponse.json({ error: 'La clé YouTube manque : ajoute YOUTUBE_API_KEY dans les réglages Vercel.' }, { status: 503 });
   try {
-    const report = await searchCategoryCodes(getDb(), youtube, { categorySlug: slug, deps: verificationDeps() });
+    const db = getDb();
+    const report = await recordRun(db, { source: 'youtube_search', trigger: 'manual', scope: slug ? `Catégorie ${slug}` : 'Catégories vides' },
+      () => searchCategoryCodes(db, youtube, { categorySlug: slug, deps: verificationDeps() }), searchSummary);
     return NextResponse.json({ ok: true, ...report });
   } catch (error) {
     console.error('category code search failed', error);
