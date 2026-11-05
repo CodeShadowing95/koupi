@@ -1,5 +1,5 @@
 'use client';
-// Photos des créateurs depuis leur chaîne YouTube reliée (ADR-0027).
+// Photos des créateurs depuis leur chaîne YouTube reliée, sinon la pochette de leur podcast (ADR-0027).
 // « Récupérer les photos » : celles qui manquent, d'un coup. « Actualiser la photo » : un créateur qui a changé d'avatar.
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -49,14 +49,15 @@ function ReportNotice({ report, error, close }: { report: Report | null; error: 
   );
 }
 
-/** En haut de la page Créateurs : récupère les photos de ceux qui ont une chaîne reliée mais pas encore de photo. */
+/** En haut de la page Créateurs : récupère les photos de ceux qui ont une chaîne ou un podcast relié mais pas encore de photo. */
 export function FetchAvatarsButton({ missing, youtubeReady }: { missing: number; youtubeReady: boolean }) {
   const { busy, report, error, run, close } = useAvatarRefresh();
-  const title = !youtubeReady ? 'Ajoute YOUTUBE_API_KEY pour récupérer les photos'
-    : missing === 0 ? 'Tous les créateurs qui ont une chaîne reliée ont leur photo' : 'Récupère la photo de profil de leur chaîne YouTube';
+  const title = missing === 0 ? 'Tous les créateurs qui ont une chaîne ou un podcast relié ont leur photo'
+    : youtubeReady ? 'Récupère la photo de leur chaîne YouTube, ou la pochette de leur podcast'
+    : 'Récupère la pochette de leur podcast (les chaînes YouTube demandent YOUTUBE_API_KEY)';
   return (
     <>
-      <button type="button" className="adm-btn" disabled={busy || missing === 0 || !youtubeReady} onClick={() => run()} title={title}>
+      <button type="button" className="adm-btn" disabled={busy || missing === 0} onClick={() => run()} title={title}>
         {busy ? 'Récupération…' : `Récupérer les photos${missing ? ` (${missing})` : ''}`}
       </button>
       <ReportNotice report={report} error={error} close={close} />
@@ -64,13 +65,16 @@ export function FetchAvatarsButton({ missing, youtubeReady }: { missing: number;
   );
 }
 
-/** Dans le détail d'un créateur : reprend la photo actuelle de sa chaîne. */
-export function RefreshAvatarButton({ creatorId, hasChannel, youtubeReady }: { creatorId: string; hasChannel: boolean; youtubeReady: boolean }) {
+/** Dans le détail d'un créateur : reprend la photo actuelle de sa chaîne, ou la pochette de son podcast. */
+export function RefreshAvatarButton({ creatorId, source, youtubeReady }: { creatorId: string; source: 'youtube' | 'podcast' | null; youtubeReady: boolean }) {
   const { busy, report, error, run, close } = useAvatarRefresh();
-  const title = !youtubeReady ? 'Ajoute YOUTUBE_API_KEY pour récupérer les photos' : !hasChannel ? 'Relie d’abord sa chaîne YouTube' : 'Reprend la photo actuelle de sa chaîne YouTube';
+  const blocked = source === null || (source === 'youtube' && !youtubeReady);
+  const title = source === null ? 'Relie d’abord sa chaîne YouTube ou son podcast'
+    : source === 'podcast' ? 'Reprend la pochette actuelle de son podcast'
+    : youtubeReady ? 'Reprend la photo actuelle de sa chaîne YouTube' : 'Ajoute YOUTUBE_API_KEY pour récupérer les photos';
   return (
     <>
-      <button type="button" className="adm-btn" disabled={busy || !hasChannel || !youtubeReady} onClick={() => run(creatorId)} title={title}>
+      <button type="button" className="adm-btn" disabled={busy || blocked} onClick={() => run(creatorId)} title={title}>
         {busy ? 'Récupération…' : 'Actualiser la photo'}
       </button>
       <ReportNotice report={report} error={error} close={close} />

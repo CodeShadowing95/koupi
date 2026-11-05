@@ -34,7 +34,7 @@ export async function listPodcasts(db: Db): Promise<AdminPodcast[]> {
 }
 
 /** Suit un podcast trouvé dans l'annuaire. Le refuse s'il est déjà suivi. */
-export async function followPodcast(db: Db, feed: PodcastFeed): Promise<Parsed<{ id: string }>> {
+export async function followPodcast(db: Db, feed: PodcastFeed): Promise<Parsed<{ id: string; creatorId: string }>> {
   const feedId = String(feed.id);
   const [existing] = await db.select({ id: watchedSources.id }).from(watchedSources)
     .where(and(eq(watchedSources.platform, 'podcast'), eq(watchedSources.externalId, feedId))).limit(1);
@@ -53,7 +53,7 @@ export async function followPodcast(db: Db, feed: PodcastFeed): Promise<Parsed<{
     platform: 'podcast', externalId: feedId, title: feed.title.slice(0, 200),
     feedUrl: feed.feedUrl || null, creatorId,
   }).returning({ id: watchedSources.id });
-  return { ok: true, data: { id: row.id } };
+  return { ok: true, data: { id: row.id, creatorId } };
 }
 
 export async function setPodcastActive(db: Db, id: string, active: boolean): Promise<boolean> {

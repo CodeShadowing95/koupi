@@ -1,10 +1,11 @@
 // Photos des créateurs (et plus tard logos des outils) récupérées par Merkod et servies depuis Merkod (ADR-0027).
-// La photo vient de la chaîne YouTube reliée au créateur : récupérée dès que la chaîne est reliée,
+// La photo vient de la chaîne YouTube reliée au créateur, sinon de la pochette de son podcast : récupérée dès que le compte est relié,
 // ou quand l'admin clique « Actualiser la photo ». Les photos déjà dans le dépôt (npm run avatars) restent en secours.
-import { and, eq, isNotNull, isNull } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNotNull, isNull } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { creatorAccounts, creators, storedImages, tools, STORED_IMAGE_TYPES } from '@/db/schema';
 import type { YoutubeBatch } from './creator-youtube-link';
+import type { PodcastDirectory } from './apple-podcasts';
 import { creatorSlug } from './ui';
 
 export type StoredImageType = typeof STORED_IMAGE_TYPES[number];
@@ -54,31 +55,62 @@ export async function saveCreatorImage(db: Db, creatorId: string, image: Fetched
 
 export type AvatarReport = { updated: string[]; failed: { creator: string; reason: string }[] };
 
+/** Les pochettes Apple Podcasts sont servies par ce domaine. */
+export const APPLE_IMAGE_HOSTS = ['mzstatic.com'];
+
+/** Pochette Apple en 240 px au lieu de 600 (…/600x600bb.jpg → …/240x240bb.jpg) : 10 à 30 Ko au lieu de 100. */
+export function smallArtwork(url: string): string {
+  return url.replace(/\/\d+x\d+bb\.(jpg|png|webp)$/i, '/240x240bb.$1');
+}
+
+type AvatarSources = {
+  youtube?: Pick<YoutubeBatch, 'channels'> | null;
+  /** Annuaire Apple Podcasts : la pochette sert de photo aux créateurs qui n'ont qu'un podcast. */
+  podcasts?: Pick<PodcastDirectory, 'podcasts'> | null;
+};
+
 /**
- * Récupère la photo de la chaîne YouTube reliée de chaque créateur (ou d'un seul).
- * missingOnly : seulement ceux qui n'ont pas encore de photo en base. Coût : 1 unité de quota par lot de 50 chaînes.
+ * Récupère la photo de chaque créateur (ou d'un seul) : celle de sa chaîne YouTube reliée, sinon la pochette de son
+ * podcast. missingOnly : seulement ceux qui n'ont pas encore de photo en base.
+ * Coût : 1 unité de quota YouTube par lot de 50 chaînes ; Apple est gratuit (100 podcasts par appel).
  */
-export async function refreshCreatorAvatars(db: Db, youtube: Pick<YoutubeBatch, 'channels'>, options: { onlyCreatorId?: string; missingOnly?: boolean; fetchFn?: typeof fetch; now?: Date } = {}): Promise<AvatarReport> {
+export async function refreshCreatorAvatars(db: Db, sources: AvatarSources, options: { onlyCreatorId?: string; missingOnly?: boolean; fetchFn?: typeof fetch; now?: Date } = {}): Promise<AvatarReport> {
   const report: AvatarReport = { updated: [], failed: [] };
-  const conditions = [eq(creatorAccounts.platform, 'youtube'), isNotNull(creatorAccounts.externalId)];
+  const conditions = [inArray(creatorAccounts.platform, ['youtube', 'podcast']), isNotNull(creatorAccounts.externalId)];
   if (options.onlyCreatorId) conditions.push(eq(creatorAccounts.creatorId, options.onlyCreatorId));
   if (options.missingOnly) conditions.push(isNull(storedImages.id));
-  const rows = await db.select({ creatorId: creatorAccounts.creatorId, channelId: creatorAccounts.externalId, name: creators.name })
+  const rows = await db.select({ creatorId: creatorAccounts.creatorId, platform: creatorAccounts.platform, externalId: creatorAccounts.externalId, name: creators.name })
     .from(creatorAccounts)
     .innerJoin(creators, eq(creators.id, creatorAccounts.creatorId))
     .leftJoin(storedImages, eq(storedImages.creatorId, creatorAccounts.creatorId))
-    .where(and(...conditions));
-  // Un créateur peut avoir deux chaînes : la première suffit pour sa photo.
-  const byCreator = new Map<string, { channelId: string; name: string }>();
-  for (const row of rows) if (row.channelId && !byCreator.has(row.creatorId)) byCreator.set(row.creatorId, { channelId: row.channelId, name: row.name });
+    .where(and(...conditions))
+    .orderBy(asc(creatorAccounts.createdAt));
+  // Une seule source par créateur : sa première chaîne YouTube, sinon son premier podcast.
+  const byCreator = new Map<string, { platform: 'youtube' | 'podcast'; externalId: string; name: string }>();
+  for (const row of rows) {
+    if (!row.externalId || (row.platform !== 'youtube' && row.platform !== 'podcast')) continue;
+    const current = byCreator.get(row.creatorId);
+    if (!current || (current.platform === 'podcast' && row.platform === 'youtube')) byCreator.set(row.creatorId, { platform: row.platform, externalId: row.externalId, name: row.name });
+  }
   if (byCreator.size === 0) return report;
 
-  const infos = await youtube.channels([...byCreator.values()].map(item => item.channelId));
-  for (const [creatorId, { channelId, name }] of byCreator) {
-    const thumbnail = infos.get(channelId)?.thumbnail;
-    if (!thumbnail) { report.failed.push({ creator: name, reason: 'Sa chaîne n’a pas de photo lisible.' }); continue; }
+  const pick = (platform: 'youtube' | 'podcast') => [...byCreator.values()].filter(item => item.platform === platform).map(item => item.externalId);
+  const channelIds = pick('youtube');
+  const podcastIds = pick('podcast').map(Number).filter(id => Number.isSafeInteger(id) && id > 0);
+  const [channels, feeds] = await Promise.all([
+    channelIds.length && sources.youtube ? sources.youtube.channels(channelIds) : Promise.resolve(null),
+    podcastIds.length && sources.podcasts ? sources.podcasts.podcasts(podcastIds).then(list => new Map(list.map(feed => [String(feed.id), feed.image]))) : Promise.resolve(null),
+  ]);
+
+  for (const [creatorId, { platform, externalId, name }] of byCreator) {
+    if (platform === 'youtube' && !channels) { report.failed.push({ creator: name, reason: 'La clé YouTube manque : sa chaîne ne peut pas être lue.' }); continue; }
+    if (platform === 'podcast' && !feeds) { report.failed.push({ creator: name, reason: 'Apple Podcasts n’a pas pu être lu.' }); continue; }
+    const source = platform === 'youtube' ? channels?.get(externalId)?.thumbnail : feeds?.get(externalId);
+    if (!source) { report.failed.push({ creator: name, reason: platform === 'youtube' ? 'Sa chaîne n’a pas de photo lisible.' : 'Son podcast n’a pas de pochette lisible.' }); continue; }
     try {
-      const image = await fetchImage(thumbnail, YOUTUBE_IMAGE_HOSTS, options.fetchFn);
+      const image = platform === 'youtube'
+        ? await fetchImage(source, YOUTUBE_IMAGE_HOSTS, options.fetchFn)
+        : await fetchImage(smallArtwork(source), APPLE_IMAGE_HOSTS, options.fetchFn) ?? await fetchImage(source, APPLE_IMAGE_HOSTS, options.fetchFn);
       if (!image) { report.failed.push({ creator: name, reason: 'La photo n’a pas pu être téléchargée.' }); continue; }
       await saveCreatorImage(db, creatorId, image, options.now);
       report.updated.push(name);
@@ -109,11 +141,11 @@ export async function loadCreatorImage(db: Db, slug: string): Promise<{ mime: St
   return row ? { mime: row.mime, body: Buffer.from(row.data, 'base64') } : null;
 }
 
-/** Créateurs qui ont une chaîne YouTube reliée mais pas encore de photo en base (pour le bouton de l'admin). */
+/** Créateurs qui ont une chaîne YouTube ou un podcast relié mais pas encore de photo en base (pour le bouton de l'admin). */
 export async function creatorsWithoutImage(db: Db): Promise<number> {
   const rows = await db.selectDistinct({ id: creatorAccounts.creatorId }).from(creatorAccounts)
     .leftJoin(storedImages, eq(storedImages.creatorId, creatorAccounts.creatorId))
-    .where(and(eq(creatorAccounts.platform, 'youtube'), isNotNull(creatorAccounts.externalId), isNull(storedImages.id)));
+    .where(and(inArray(creatorAccounts.platform, ['youtube', 'podcast']), isNotNull(creatorAccounts.externalId), isNull(storedImages.id)));
   return rows.length;
 }
 

@@ -145,7 +145,7 @@ export async function linkChannelForCode(db: Db, codeId: string, youtube: Youtub
     if (!row) return;
     await linkYoutubeChannels(db, youtube, { onlyCreatorId: row.creatorId });
     // Sa photo arrive avec sa chaîne : rien à lancer à la main.
-    await refreshCreatorAvatars(db, youtube, { onlyCreatorId: row.creatorId, missingOnly: true });
+    await refreshCreatorAvatars(db, { youtube }, { onlyCreatorId: row.creatorId, missingOnly: true });
   } catch (error) {
     console.error('youtube channel link failed', error);
   }

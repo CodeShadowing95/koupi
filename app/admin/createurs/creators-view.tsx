@@ -126,7 +126,7 @@ export function CreatorsView({ creators, toLink, missingPhotos, youtubeReady }: 
           aside={selected && (selected.visible > 0 ? <StatusDot tone="ok">Sur le site</StatusDot> : <StatusDot tone="muted">Masqué</StatusDot>)}
           actions={selected && <>
             <a className="adm-btn" href={`/admin/codes?q=${encodeURIComponent(selected.name)}`}>Voir ses codes</a>
-            <RefreshAvatarButton creatorId={selected.id} hasChannel={selected.accounts.some(account => account.platform === 'youtube' && Boolean(account.externalId))} youtubeReady={youtubeReady} />
+            <RefreshAvatarButton creatorId={selected.id} source={selected.accounts.some(account => account.platform === 'youtube' && Boolean(account.externalId)) ? 'youtube' : selected.accounts.some(account => account.platform === 'podcast' && Boolean(account.externalId)) ? 'podcast' : null} youtubeReady={youtubeReady} />
             <span style={{ flex: 1 }} />
             <button type="button" className="adm-btn adm-btn-pri" onClick={() => open(selected)}>Modifier le profil</button>
           </>}>
