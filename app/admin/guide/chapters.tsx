@@ -336,7 +336,7 @@ function Podcasts() {
       </Steps>
     </Section>
     <Section id="candidats" title="Les podcasts candidats">
-      <p>Chaque lundi, Merkod parcourt la <b>base publique de Podcast Index</b>, un annuaire ouvert de plus de 4 millions de podcasts. Il garde ceux qui ont publié depuis 90 jours, en français ou en anglais, dans les catégories Technologie, Business et Éducation, et qu’Apple connaît (pour pouvoir les suivre). Il lit leurs épisodes récents avec le même repérage que les podcasts suivis, sans IA : un podcast qui cite un <b>outil du catalogue près d’un code</b> devient candidat.</p>
+      <p>Chaque lundi, Merkod parcourt la <b>base publique de Podcast Index</b>, un annuaire ouvert de plus de 4 millions de podcasts. Il prend les 10 000 plus populaires qui ont publié depuis 90 jours, en français ou en anglais, et qu’Apple connaît (pour pouvoir les suivre). Tous les genres sont lus : un podcast d’humour ou de sport a aussi des sponsors. Il lit leurs épisodes récents avec le même repérage que les podcasts suivis, sans IA : un podcast qui cite un <b>outil du catalogue près d’un code</b> devient candidat.</p>
       <p>L’onglet <b>Candidats</b> les montre, ceux qui citent le plus d’outils en premier. Pour chacun : l’auteur, la langue, la catégorie, le nombre d’épisodes, la date du dernier, puis chaque outil cité avec le code, l’extrait des notes et le lien vers l’épisode.</p>
       <Legend rows={[
         { term: 'Suivre', meaning: 'Le podcast rejoint tes Suivis, comme depuis une recherche. Il est lu dès la nuit suivante et ses codes arrivent dans Vérifications.' },

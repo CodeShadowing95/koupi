@@ -13,8 +13,8 @@ Les podcasts suivis viennent d'une recherche par nom ou des classements d'Apple 
 Un script (`scripts/podcast-index-candidates.ts`) tourne chaque lundi dans une GitHub Action (`.github/workflows/podcast-index.yml`), qui télécharge et décompresse la base :
 
 1. Il demande à Merkod (`GET /api/cron/podcast-index`) les outils du catalogue et les podcasts déjà suivis.
-2. Il choisit dans la base les podcasts vivants, connus d'Apple (`itunesId`), actifs depuis 90 jours, en français ou en anglais, en Technology, Business ou Education, les plus populaires d'abord (3 000 au plus).
-3. Il lit leurs flux RSS (12 à la fois, 15 s et 4 Mo au plus par flux) et cherche, dans les épisodes des 90 derniers jours, un outil du catalogue près d'un code, avec le repérage sans IA des podcasts suivis (`lib/podcast-codes.ts`).
+2. Il choisit dans la base les podcasts vivants, connus d'Apple (`itunesId`), actifs depuis 90 jours, en français ou en anglais, toutes catégories, les plus populaires d'abord (10 000 au plus). Les sponsors passent dans tous les genres : le tri se fait ensuite, sur la présence d'un outil du catalogue près d'un code.
+3. Il lit leurs flux RSS (24 à la fois, 15 s et 4 Mo au plus par flux) et cherche, dans les épisodes des 90 derniers jours, un outil du catalogue près d'un code, avec le repérage sans IA des podcasts suivis (`lib/podcast-codes.ts`).
 4. Il envoie les candidats (500 au plus, 5 codes chacun) à `POST /api/cron/podcast-index`, qui relit chaque champ et ne garde que les outils du catalogue.
 
 Les deux appels utilisent `CRON_SECRET`, le secret des tâches de nuit. Côté GitHub, il faut le secret `CRON_SECRET` et la variable `MERKOD_URL` ; sans eux, l'Action s'arrête sans erreur.
@@ -28,6 +28,7 @@ La base est lue avec `node:sqlite`, intégré à Node 22 : aucune dépendance aj
 - **Script dans une fonction Vercel** : la base ne tient pas dans ses limites.
 - **Librairie SQLite (better-sqlite3)** : une dépendance native de plus, alors que Node la fournit.
 - **Écrire directement en base depuis l'Action** : il faudrait confier `DATABASE_URL` à GitHub. Passer par une route bornée et relue donne moins de droits.
+- **Se limiter à Technology, Business et Education** : envisagé d'abord, écarté parce que les codes d'outils (VPN, Notion, Canva…) passent aussi dans les podcasts d'humour, de société ou de sport.
 - **Créer directement des codes en attente** : trop de bruit sans avoir choisi le podcast ; le suivi garde l'admin maître de ses sources.
 
 ## Conséquences

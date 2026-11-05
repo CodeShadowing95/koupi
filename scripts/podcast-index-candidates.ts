@@ -1,11 +1,11 @@
 // Podcasts candidats depuis la base publique de Podcast Index (ADR-0036). Lancé chaque semaine par la GitHub Action
 // .github/workflows/podcast-index.yml, qui télécharge la base (plusieurs Go : trop gros pour Vercel).
 //
-//   npx tsx scripts/podcast-index-candidates.ts <podcastindex_feeds.db> [--dry-run] [--limit 3000]
+//   npx tsx scripts/podcast-index-candidates.ts <podcastindex_feeds.db> [--dry-run] [--limit 10000]
 //
 // Variables : MERKOD_URL (adresse du site, ex. https://merkod.vercel.app) et CRON_SECRET (le même que sur Vercel).
 // 1. Merkod donne les outils du catalogue et les podcasts déjà suivis.
-// 2. La base donne les podcasts actifs, en français ou en anglais, en Technologie, Business ou Éducation.
+// 2. La base donne les podcasts actifs, en français ou en anglais, toutes catégories, les plus populaires d'abord.
 // 3. Leurs flux RSS sont lus ; un podcast qui cite un outil du catalogue près d'un code devient candidat.
 // 4. Les candidats sont envoyés à Merkod (sauf avec --dry-run, qui les affiche).
 // La base est lue avec le module SQLite intégré à Node (node:sqlite) : aucune dépendance ajoutée.
@@ -13,7 +13,7 @@ import { DatabaseSync } from 'node:sqlite';
 import type { CatalogTool } from '../lib/podcast-codes';
 import { candidateQuery, categoryOf, MAX_CANDIDATES, MAX_FEEDS, parseFeedItems, scanFeed, type CandidateInput } from '../lib/podcast-index';
 
-const CONCURRENCY = 12;
+const CONCURRENCY = 24;
 const FEED_TIMEOUT_MS = 15_000;
 const FEED_MAX_BYTES = 4_000_000;
 

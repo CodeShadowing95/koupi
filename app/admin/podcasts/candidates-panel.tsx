@@ -34,8 +34,8 @@ export function CandidatesPanel({ candidates }: { candidates: AdminCandidate[] }
   return (
     <section id="pod-panel-candidates" role="tabpanel" aria-labelledby="pod-tab-candidates">
       <p className="muted adm-pod-cand-intro">
-        Chaque lundi, Merkod parcourt la base publique de Podcast Index : les podcasts actifs depuis 90 jours, en français ou en anglais,
-        en Technologie, Business ou Éducation. Il lit leurs épisodes et garde ceux qui citent un outil du catalogue près d’un code.
+        Chaque lundi, Merkod parcourt la base publique de Podcast Index : les 10 000 podcasts les plus populaires, actifs depuis 90 jours,
+        en français ou en anglais, tous genres confondus. Il lit leurs épisodes et garde ceux qui citent un outil du catalogue près d’un code.
         {lastRun ? <> Dernier passage le <b>{day(lastRun)}</b>.</> : null} <b>Suivre</b> en fait un podcast lu chaque nuit ; <b>Écarter</b> le range sans le supprimer.
       </p>
       {error && <div className="notice notice-error" role="alert">{error}</div>}

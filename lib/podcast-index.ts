@@ -8,11 +8,16 @@ import { findPromoCodes, type CatalogTool } from './podcast-codes';
 export const PODCAST_INDEX_DUMP_URL = 'https://public.podcastindex.org/podcastindex_feeds.db.tgz';
 /** Un podcast est actif s'il a publié un épisode dans ces jours-là ; seuls ces épisodes sont lus. */
 export const ACTIVE_DAYS = 90;
-/** Catégories de Podcast Index gardées, avec leur nom en français pour l'admin. */
-export const CANDIDATE_CATEGORIES: Record<string, string> = { Technology: 'Technologie', Business: 'Business', Education: 'Éducation' };
+/** Noms en français des catégories de Podcast Index les plus courantes, pour l'admin. Toutes les catégories sont lues. */
+export const CATEGORY_LABELS: Record<string, string> = {
+  Technology: 'Technologie', Business: 'Business', Education: 'Éducation', Comedy: 'Humour', Society: 'Société', Culture: 'Culture',
+  News: 'Actualités', Health: 'Santé', Fitness: 'Forme', Sports: 'Sport', Arts: 'Arts', Science: 'Sciences', Games: 'Jeux vidéo',
+  Leisure: 'Loisirs', Music: 'Musique', Tv: 'Séries et films', Film: 'Cinéma', History: 'Histoire', Religion: 'Religion',
+  Spirituality: 'Spiritualité', Kids: 'Enfants', Family: 'Famille', Fiction: 'Fiction', True: 'Faits divers', Crime: 'Faits divers', Government: 'Politique',
+};
 export const CANDIDATE_LANGUAGES = ['fr', 'en'] as const;
 /** Podcasts lus au plus par passage (les plus populaires d'abord), candidats et outils gardés au plus par envoi. */
-export const MAX_FEEDS = 3000;
+export const MAX_FEEDS = 10_000;
 export const MAX_CANDIDATES = 500;
 export const MAX_HITS = 5;
 
@@ -24,30 +29,27 @@ export type CandidateInput = {
 
 /**
  * La requête SQLite qui choisit les podcasts à lire dans la base : vivants, connus d'Apple (pour pouvoir les suivre),
- * actifs depuis 90 jours, en français ou en anglais, dans une des catégories gardées. Les plus populaires d'abord.
+ * actifs depuis 90 jours, en français ou en anglais, toutes catégories. Les plus populaires d'abord. Le vrai tri vient
+ * ensuite : un podcast n'est gardé que s'il cite un outil du catalogue près d'un code.
  */
 export function candidateQuery(now: Date, limit = MAX_FEEDS): { sql: string; params: (string | number)[] } {
   const since = Math.floor(now.getTime() / 1000) - ACTIVE_DAYS * 86_400;
-  const categories = Object.keys(CANDIDATE_CATEGORIES);
-  const columns = Array.from({ length: 10 }, (_, index) => `category${index + 1}`);
-  const inCategory = columns.map(column => `${column} in (${categories.map(() => '?').join(', ')})`).join(' or ');
   return {
-    sql: `select id, url, title, itunesId, itunesAuthor, imageUrl, language, episodeCount, newestItemPubdate, ${columns.join(', ')}
+    sql: `select id, url, title, itunesId, itunesAuthor, imageUrl, language, episodeCount, newestItemPubdate, category1, category2, category3
       from podcasts
       where dead = 0 and itunesId > 0 and newestItemPubdate >= ? and episodeCount >= 3
         and (lower(language) like 'fr%' or lower(language) like 'en%')
-        and (${inCategory})
       order by popularityScore desc, newestItemPubdate desc
       limit ?`,
-    params: [since, ...columns.flatMap(() => categories), limit],
+    params: [since, limit],
   };
 }
 
-/** La première catégorie gardée d'une ligne de la base, en français. */
+/** La première catégorie d'une ligne de la base, en français quand on connaît sa traduction. */
 export function categoryOf(row: Record<string, unknown>): string {
-  for (let index = 1; index <= 10; index++) {
-    const name = CANDIDATE_CATEGORIES[String(row[`category${index}`] ?? '')];
-    if (name) return name;
+  for (let index = 1; index <= 3; index++) {
+    const name = String(row[`category${index}`] ?? '').trim();
+    if (name) return (CATEGORY_LABELS[name] ?? name).slice(0, 40);
   }
   return '';
 }

@@ -6,7 +6,7 @@ const NOW = new Date('2026-11-05T12:00:00Z');
 const daysAgo = (days: number) => Math.floor(NOW.getTime() / 1000) - days * 86_400;
 
 describe('candidateQuery', () => {
-  it('garde les podcasts vivants, connus d’Apple, actifs, en français ou en anglais, dans les bonnes catégories', () => {
+  it('garde les podcasts vivants, connus d’Apple, actifs, en français ou en anglais, toutes catégories', () => {
     const db = new DatabaseSync(':memory:');
     const categories = Array.from({ length: 10 }, (_, i) => `category${i + 1} TEXT NOT NULL DEFAULT ''`).join(', ');
     db.exec(`CREATE TABLE podcasts (id INTEGER PRIMARY KEY, url TEXT, title TEXT, itunesId INTEGER, itunesAuthor TEXT, imageUrl TEXT, language TEXT,
@@ -18,13 +18,13 @@ describe('candidateQuery', () => {
     insert.run(4, 'Sans Apple', 0, 'fr', 20, daysAgo(3), 9, 0, 'Business', '');
     insert.run(5, 'Endormi', 15, 'fr', 20, daysAgo(120), 9, 0, 'Business', '');
     insert.run(6, 'En allemand', 16, 'de', 20, daysAgo(3), 9, 0, 'Business', '');
-    insert.run(7, 'Hors sujet', 17, 'fr', 20, daysAgo(3), 9, 0, 'Comedy', '');
+    insert.run(7, 'Humour', 17, 'fr', 20, daysAgo(3), 1, 0, 'Comedy', '');
+    insert.run(9, 'Sans catégorie connue', 19, 'en', 20, daysAgo(3), 0, 0, 'Pets', '');
     insert.run(8, 'Trop jeune', 18, 'fr', 1, daysAgo(3), 9, 0, 'Education', '');
     const query = candidateQuery(NOW, 10);
     const rows = db.prepare(query.sql).all(...query.params) as Record<string, unknown>[];
-    expect(rows.map(row => row.title)).toEqual(['Bon, populaire', 'Bon']);
-    expect(categoryOf(rows[0])).toBe('Technologie');
-    expect(categoryOf(rows[1])).toBe('Business');
+    expect(rows.map(row => row.title)).toEqual(['Bon, populaire', 'Bon', 'Humour', 'Sans catégorie connue']);
+    expect(rows.map(categoryOf)).toEqual(['Arts', 'Business', 'Humour', 'Pets']);
   });
 });
 
