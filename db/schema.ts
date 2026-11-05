@@ -588,3 +588,38 @@ export const feedback = pgTable('feedback', {
   check('feedback_email_len', sql`${table.email} is null or char_length(${table.email}) between 3 and 320`),
   check('feedback_from_path', sql`${table.fromPath} is null or (${table.fromPath} ~ '^/' and char_length(${table.fromPath}) <= 300)`),
 ]);
+
+export const PODCAST_CANDIDATE_STATUSES = ['new', 'dismissed'] as const;
+
+/** Un code repéré dans un épisode d'un podcast candidat (lib/podcast-index.ts). */
+export type PodcastCandidateHit = { toolId: string; code: string; evidence: string; episodeTitle: string; episodeUrl: string | null; publishedAt: string | null };
+
+// Podcasts candidats trouvés chaque semaine dans la base publique de Podcast Index (ADR-0036) : actifs, en français
+// ou en anglais, et qui citent un outil du catalogue près d'un code. L'admin les suit (Podcasts > Candidats) ou les écarte.
+export const podcastCandidates = pgTable('podcast_candidates', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  /** Identifiant Apple Podcasts : c'est par lui qu'on suit le podcast, comme pour une recherche. */
+  itunesId: text('itunes_id').notNull(),
+  podcastIndexId: integer('podcast_index_id').notNull().default(0),
+  title: text('title').notNull(),
+  author: text('author').notNull().default(''),
+  feedUrl: text('feed_url').notNull(),
+  imageUrl: text('image_url'),
+  language: text('language').notNull().default(''),
+  category: text('category').notNull().default(''),
+  episodeCount: integer('episode_count').notNull().default(0),
+  newestEpisodeAt: timestamp('newest_episode_at', { withTimezone: true }),
+  /** Les codes d'outils du catalogue repérés au dernier passage (5 au plus). */
+  hits: jsonb('hits').$type<PodcastCandidateHit[]>().notNull().default([]),
+  status: text('status', { enum: PODCAST_CANDIDATE_STATUSES }).notNull().default('new'),
+  firstSeenAt: timestamp('first_seen_at', { withTimezone: true }).notNull().defaultNow(),
+  lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  uniqueIndex('podcast_candidates_itunes_idx').on(table.itunesId),
+  index('podcast_candidates_status_idx').on(table.status, table.lastSeenAt.desc()),
+  check('podcast_candidates_status_valid', sql`${table.status} in ('new','dismissed')`),
+  check('podcast_candidates_itunes_format', sql`${table.itunesId} ~ '^[0-9]{1,15}$'`),
+  check('podcast_candidates_title_len', sql`char_length(trim(${table.title})) between 1 and 200`),
+  check('podcast_candidates_feed_url_http', sql`${table.feedUrl} ~* '^https?://'`),
+  check('podcast_candidates_counts_positive', sql`${table.episodeCount} >= 0 and ${table.podcastIndexId} >= 0`),
+]);

@@ -155,7 +155,7 @@ export function SourcesView({ activity, yields, inventory, runs, now: nowIso, yo
 
           <article className="adm-src-card is-soon">
             <header><h2>Bientôt</h2><StatusDot tone="muted">Prévu</StatusDot></header>
-            <p className="adm-src-what">Recherche par l’IA sur le web, Spotify et l’annuaire Podcast Index. Elles apparaîtront ici avec leur rendement et leur coût dès qu’elles seront branchées.</p>
+            <p className="adm-src-what">Recherche par l’IA sur le web et Spotify. Elles apparaîtront ici avec leur rendement et leur coût dès qu’elles seront branchées. L’annuaire Podcast Index propose déjà chaque lundi des podcasts à suivre, dans Podcasts › Candidats.</p>
           </article>
         </div>
 
