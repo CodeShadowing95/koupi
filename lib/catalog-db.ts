@@ -61,6 +61,8 @@ export async function loadCatalog(db: Db, options: { includeArchived?: boolean }
     createdAt: code.createdAt.toISOString(),
     ...shownLevel(levelOf.get(code.creatorId)),
     ...(code.archivedAt ? { archived: true } : {}),
+    // L'origine ne sert qu'à l'admin : le site public n'en a pas besoin.
+    ...(options.includeArchived ? { origin: code.origin } : {}),
   }));
   const live = codes.filter(code => !code.archived);
 

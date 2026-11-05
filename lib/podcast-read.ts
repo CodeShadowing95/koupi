@@ -10,6 +10,7 @@ import { applePodcastUrl } from './podcasts-admin';
 import { appleEpisodeRef, type PodcastDirectory } from './apple-podcasts';
 import { resolveCreator } from './codes-admin';
 import { domainOf, scanPromoCodes } from './podcast-codes';
+import type { CodeOrigin } from './code-origin';
 import { runVerification, type RunDeps } from './verification-run';
 
 /** Premier passage : on remonte ce nombre de jours. Ensuite, depuis la dernière lecture (avec une marge). */
@@ -28,9 +29,11 @@ export type PodcastReadReport = {
   aiRead: number;
 };
 
-export type PodcastCodeInput = { toolId: string; creatorId: string; code: string; discount: string; sourceUrl: string; sourceTitle: string; note: string; podcastTitle: string; expiresOn?: string };
+export type PodcastCodeInput = { toolId: string; creatorId: string; code: string; discount: string; sourceUrl: string; sourceTitle: string; note: string; podcastTitle: string; expiresOn?: string;
+  /** Podcast par défaut ; une suggestion d'outil venue d'une vidéo garde son origine YouTube. */
+  origin?: CodeOrigin };
 
-export type PendingCodeInput = Omit<PodcastCodeInput, 'podcastTitle'>;
+export type PendingCodeInput = Omit<PodcastCodeInput, 'podcastTitle' | 'origin'> & { origin: CodeOrigin };
 
 /** Ajoute en attente un code trouvé automatiquement, sauf s'il est déjà connu pour cet outil. null s'il existait. */
 export async function addPendingCode(db: Db, input: PendingCodeInput, logNote: string): Promise<string | null> {
@@ -40,7 +43,7 @@ export async function addPendingCode(db: Db, input: PendingCodeInput, logNote: s
   if (known) return null;
   const [created] = await db.insert(codes).values({
     toolId: input.toolId, creatorId: input.creatorId, code: input.code, discount: input.discount, sourceUrl: input.sourceUrl,
-    sourceTitle: input.sourceTitle.slice(0, 300), status: 'pending', note: input.note.slice(0, 1000),
+    sourceTitle: input.sourceTitle.slice(0, 300), status: 'pending', note: input.note.slice(0, 1000), origin: input.origin,
     ...(input.expiresOn && /^\d{4}-\d{2}-\d{2}$/.test(input.expiresOn) ? { expiresOn: input.expiresOn } : {}),
   }).returning({ id: codes.id });
   await db.insert(codeLogs).values({ codeId: created.id, action: 'create', nextStatus: 'pending', note: logNote.slice(0, 1000) });
@@ -48,8 +51,8 @@ export async function addPendingCode(db: Db, input: PendingCodeInput, logNote: s
 }
 
 /** Ajoute en attente un code trouvé dans un podcast, sauf s'il est déjà connu pour cet outil. null s'il existait. */
-export async function addPodcastCode(db: Db, { podcastTitle, ...input }: PodcastCodeInput): Promise<string | null> {
-  return addPendingCode(db, input, `Lecture du podcast ${podcastTitle}`);
+export async function addPodcastCode(db: Db, { podcastTitle, origin, ...input }: PodcastCodeInput): Promise<string | null> {
+  return addPendingCode(db, { ...input, origin: origin ?? 'podcast' }, `Lecture du podcast ${podcastTitle}`);
 }
 
 /** Lit les épisodes récents des podcasts actifs (ou d'un seul, même en pause, avec onlyId). */

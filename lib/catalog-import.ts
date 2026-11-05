@@ -53,6 +53,7 @@ export async function importCatalog(db: Db, input: ImportInput): Promise<ImportR
     const up = Math.round((code.votes * code.success) / 100);
     return [{
       importKey: code.id,
+      origin: 'import' as const,
       toolId,
       code: code.code,
       discount: code.discount,
