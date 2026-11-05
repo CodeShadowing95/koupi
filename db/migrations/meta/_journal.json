@@ -176,6 +176,13 @@
       "when": 1793883257028,
       "tag": "0024_happy_carmella_unuscione",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1793888543723,
+      "tag": "0025_freezing_skullbuster",
+      "breakpoints": true
     }
   ]
 }

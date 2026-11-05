@@ -1,5 +1,5 @@
 'use client';
-// « Chercher des codes » dans le panneau d'un outil : une recherche YouTube « <outil> code promo » pour cet outil seul.
+// « Chercher des codes » dans le panneau d'un outil : une recherche YouTube pour cet outil seul, avec une formulation nouvelle à chaque fois (lib/youtube-queries.ts).
 // Les codes trouvés arrivent « En attente » dans Vérifications ; rien n'est publié.
 import { useState } from 'react';
 import { CodeSearchReport, runCodeSearch, type CodeSearchResult } from '@/components/admin-code-search-report';
@@ -25,7 +25,7 @@ export function ToolCodeSearch({ toolId, toolName, archived, youtubeReady }: { t
   return (
     <div className="adm-tool-search">
       <div className="adm-tool-search-row">
-        <button type="button" className="adm-btn" disabled={busy || disabledReason !== null} title={disabledReason ?? `Cherche « ${toolName} code promo » sur YouTube (environ ${SEARCH_UNITS} unités du quota du jour)`} onClick={search}>
+        <button type="button" className="adm-btn" disabled={busy || disabledReason !== null} title={disabledReason ?? `Cherche des codes pour ${toolName} sur YouTube, en écartant les vidéos déjà lues (environ ${SEARCH_UNITS} unités du quota du jour)`} onClick={search}>
           {busy ? 'Recherche…' : 'Chercher des codes'}
         </button>
         <small className="muted">{disabledReason ?? `Une recherche YouTube, environ ${SEARCH_UNITS} unités sur 10 000 par jour.`}</small>
