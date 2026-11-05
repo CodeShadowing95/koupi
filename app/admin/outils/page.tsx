@@ -8,5 +8,5 @@ export const dynamic = 'force-dynamic';
 export default async function Page() {
   const db = getDb();
   const [tools, categories, missingLogos] = await Promise.all([listToolsAdmin(db), listCategoriesAdmin(db), toolsWithoutImage(db)]);
-  return <ToolsView tools={tools} categories={categories} missingLogos={missingLogos} />;
+  return <ToolsView tools={tools} categories={categories} missingLogos={missingLogos} youtubeReady={Boolean(process.env.YOUTUBE_API_KEY)} />;
 }

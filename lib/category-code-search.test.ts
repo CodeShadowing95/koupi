@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm';
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
 import { migrate } from 'drizzle-orm/pglite/migrator';
@@ -28,6 +29,10 @@ describe('toolsToSearch', () => {
   });
   it('cherche aussi une catégorie déjà couverte quand on la choisit, les outils sans code d’abord', () => {
     expect(toolsToSearch(all, { categorySlug: 'vpn' }).tools.map(item => item.name)).toEqual(['Surfshark', 'NordVPN']);
+  });
+  it('cherche un seul outil choisi, même déjà couvert, jamais un outil archivé', () => {
+    expect(toolsToSearch(all, { toolId: 'NordVPN' })).toMatchObject({ tools: [{ name: 'NordVPN' }], remaining: 0 });
+    expect(toolsToSearch(all, { toolId: 'Vieux' }).tools).toEqual([]);
   });
 });
 
@@ -91,6 +96,15 @@ describe('searchCategoryCodes', () => {
     expect(vi.mocked(youtube.search).mock.calls.map(call => call[0])).toEqual(['NordVPN code promo', 'VPN code promo']);
     const [log] = await db.select().from(schema.codeLogs);
     expect(log.note).toBe('Recherche ciblée VPN : VPN');
+  });
+
+  it('cherche un seul outil : une seule recherche, notée dans le journal et dans l’origine du code', async () => {
+    const [nord] = await db.select().from(schema.tools).where(eq(schema.tools.slug, 'nordvpn'));
+    const youtube = fake({ 'NordVPN code promo': [{ id: 'v5', title: 'VPN', description: 'NordVPN code NORD70', channelTitle: 'Geek' }] });
+    const report = await searchCategoryCodes(db, youtube, { toolId: nord.id, now });
+    expect(report).toMatchObject({ tools: 1, searches: 1, units: 101, found: [{ tool: 'NordVPN', code: 'NORD70' }] });
+    const [log] = await db.select().from(schema.codeLogs);
+    expect(log.note).toBe('Recherche ciblée NordVPN : NordVPN');
   });
 
   it('s’arrête au premier refus de YouTube (quota épuisé)', async () => {

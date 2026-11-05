@@ -61,11 +61,14 @@ export function youtubeSearch(apiKey: string | undefined, fetchFn: typeof fetch 
  * Outils à chercher. Sans catégorie : ceux des catégories vides sur le site, priorité 1 d'abord, puis ceux qui ont le moins de codes.
  * Avec une catégorie (vide ou non) : tous ses outils, ceux qui ont le moins de codes d'abord.
  */
-export function toolsToSearch(all: AdminTool[], options: { categorySlug?: string; max?: number } = {}): { tools: AdminTool[]; remaining: number } {
+export function toolsToSearch(all: AdminTool[], options: { categorySlug?: string; toolId?: string; max?: number } = {}): { tools: AdminTool[]; remaining: number } {
   const active = all.filter(tool => !tool.archived);
   const byName = (a: AdminTool, b: AdminTool) => a.name.localeCompare(b.name, 'fr');
   let candidates: AdminTool[];
-  if (options.categorySlug) {
+  if (options.toolId) {
+    // Un seul outil, choisi dans sa fiche : même s'il a déjà des codes visibles.
+    candidates = active.filter(tool => tool.id === options.toolId);
+  } else if (options.categorySlug) {
     candidates = active.filter(tool => tool.categorySlug === options.categorySlug)
       .sort((a, b) => a.visible - b.visible || a.codes - b.codes || a.priority - b.priority || byName(a, b));
   } else {
@@ -92,13 +95,15 @@ export type CategorySearchReport = {
   failed: string[];
 };
 
-/** Cherche des codes pour les outils des catégories vides, ou pour une catégorie choisie (categorySlug). */
-export async function searchCategoryCodes(db: Db, youtube: YoutubeSearch, options: { categorySlug?: string; max?: number; deps?: RunDeps; now?: Date } = {}): Promise<CategorySearchReport> {
+/** Cherche des codes pour les outils des catégories vides, pour une catégorie choisie (categorySlug) ou pour un seul outil (toolId). */
+export async function searchCategoryCodes(db: Db, youtube: YoutubeSearch, options: { categorySlug?: string; toolId?: string; max?: number; deps?: RunDeps; now?: Date } = {}): Promise<CategorySearchReport> {
   const now = options.now ?? new Date();
   const { tools: targets, remaining } = toolsToSearch(await listToolsAdmin(db), options);
   const queries = targets.map(tool => ({ label: tool.name, query: `${tool.name} code promo` }));
   let origin = 'Recherche des catégories vides';
-  if (options.categorySlug) {
+  if (options.toolId) {
+    origin = `Recherche ciblée ${targets[0]?.name ?? 'outil'}`;
+  } else if (options.categorySlug) {
     const [category] = await db.select({ name: categories.name }).from(categories).where(eq(categories.slug, options.categorySlug)).limit(1);
     if (category) {
       origin = `Recherche ciblée ${category.name}`;

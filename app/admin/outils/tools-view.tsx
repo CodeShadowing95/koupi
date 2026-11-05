@@ -15,6 +15,7 @@ import { IconButton, IconLink, StatusDot } from '@/components/admin-card';
 import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
 import { FetchLogosButton, RefreshLogoButton } from './logos-button';
+import { ToolCodeSearch } from './tool-code-search';
 import { RefreshButton } from '@/components/admin-refresh-button';
 
 type Filter = 'all' | 'published' | 'empty' | 'archived';
@@ -33,7 +34,7 @@ const sortFields: SortField<AdminTool>[] = [
 
 type Form = { name: string; categorySlug: string; website: string; description: string; priority: number };
 
-export function ToolsView({ tools, categories, missingLogos }: { tools: AdminTool[]; categories: AdminCategory[]; missingLogos: number }) {
+export function ToolsView({ tools, categories, missingLogos, youtubeReady }: { tools: AdminTool[]; categories: AdminCategory[]; missingLogos: number; youtubeReady: boolean }) {
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
@@ -152,6 +153,7 @@ export function ToolsView({ tools, categories, missingLogos }: { tools: AdminToo
           </>}>
           {selected && <>
             {selected.description && <p className="adm-detail-quote">{selected.description}</p>}
+            <ToolCodeSearch key={selected.id} toolId={selected.id} toolName={selected.name} archived={selected.archived} youtubeReady={youtubeReady} />
             <DetailList items={[
               { label: 'Catégorie', value: <a href={`/admin/outils?category=${encodeURIComponent(selected.categorySlug)}`}>{selected.category}</a> },
               { label: 'Site officiel', value: <a href={selected.website} target="_blank" rel="noopener noreferrer">{selected.website.replace(/^https?:\/\//, '').replace(/\/$/, '')} ↗</a> },

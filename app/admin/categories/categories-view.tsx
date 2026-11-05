@@ -1,6 +1,5 @@
 'use client';
 // Catégories d'outils, avec leur couverture : combien de leurs outils ont un code visible.
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import type { AdminCategory, CategoryFamily } from '@/lib/catalog-admin';
 import { AdminSelect } from '@/components/admin-select';
@@ -11,12 +10,7 @@ import { matchesSearch } from '@/lib/admin-search';
 import { IconButton, IconLink, StatusDot } from '@/components/admin-card';
 import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
-import type { CategorySearchReport } from '@/lib/category-code-search';
-
-/** Ce que la recherche de codes peut utiliser : la clé YouTube (obligatoire) et l'IA (facultative). */
-export type CodeSearchAvailability = { youtube: boolean; ai: { active: boolean; label: string } };
-type SearchResult = CategorySearchReport & { scope: string };
-const plural = (count: number, word: string, many = `${word}s`) => `${count} ${count > 1 ? many : word}`;
+import { CodeSearchReport, plural, runCodeSearch, type CodeSearchAvailability, type CodeSearchResult } from '@/components/admin-code-search-report';
 
 const rate = (category: AdminCategory) => category.tools ? Math.round((category.covered / category.tools) * 100) : 0;
 
@@ -62,22 +56,16 @@ export function CategoriesView({ categories: all, families, search }: { categori
   const emptyCount = all.filter(category => matches(category, 'empty')).length;
   // Recherche de codes sur YouTube : toutes les catégories vides, ou une seule catégorie (slug).
   const [searching, setSearching] = useState<string | null>(null);
-  const [result, setResult] = useState<SearchResult | null>(null);
+  const [result, setResult] = useState<CodeSearchResult | null>(null);
   const [searchError, setSearchError] = useState('');
   const searchCodes = async (target?: AdminCategory) => {
     setSearching(target?.slug ?? 'empty');
     setSearchError('');
     setResult(null);
-    try {
-      const response = await fetch('/api/admin/categories/search-codes', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(target ? { slug: target.slug } : {}) });
-      const body = await response.json().catch(() => ({}));
-      if (!response.ok) setSearchError(body.error ?? 'Recherche impossible pour le moment.');
-      else { setResult({ ...body, scope: target ? target.name : 'les catégories vides' }); setSelectedSlug(null); }
-    } catch {
-      setSearchError('Recherche impossible : vérifie ta connexion.');
-    } finally {
-      setSearching(null);
-    }
+    const outcome = await runCodeSearch('/api/admin/categories/search-codes', target ? { slug: target.slug } : {}, target ? target.name : 'les catégories vides');
+    if ('error' in outcome) setSearchError(outcome.error);
+    else { setResult(outcome.result); setSelectedSlug(null); }
+    setSearching(null);
   };
   const searchTitle = !search.youtube ? 'La clé YouTube manque (YOUTUBE_API_KEY)' : undefined;
   const coverage = (category: AdminCategory) => (
@@ -106,19 +94,7 @@ export function CategoriesView({ categories: all, families, search }: { categori
         </p>
         {searching && <div className="notice" role="status">Recherche sur YouTube pour {searching === 'empty' ? 'les catégories vides' : all.find(category => category.slug === searching)?.name}… Cela peut prendre une à deux minutes.</div>}
         {searchError && <div className="notice notice-error" role="alert">{searchError}</div>}
-        {result && (
-          <div className={`notice adm-pod-report${result.searches === 0 && result.failed.length > 0 ? ' notice-error' : ''}`} role="status">
-            <p>Recherche pour {result.scope} : {plural(result.searches, 'recherche')} YouTube, {plural(result.videos, 'vidéo lue', 'vidéos lues')}{result.aiRead > 0 ? `, dont ${result.aiRead} relue${result.aiRead > 1 ? 's' : ''} par l’IA` : ''}, environ {result.units} unités du quota du jour (10 000). {result.found.length === 0 ? 'Aucun nouveau code trouvé.' : `${plural(result.found.length, 'nouveau code', 'nouveaux codes')} en attente :`}</p>
-            {result.found.length > 0 && <ul>{result.found.map(item => <li key={`${item.tool}-${item.code}`}><b className="mono">{item.code}</b> pour {item.tool} <span className="muted">({item.creator})</span></li>)}</ul>}
-            {result.suggested.length > 0 && <p>{plural(result.suggested.length, 'code')} pour des outils absents du catalogue : {result.suggested.map(item => `${item.code} (${item.tool})`).join(', ')}. <a href="/admin/podcasts?tab=outils">Voir les outils à ajouter</a></p>}
-            {result.remaining > 0 && <p>{plural(result.remaining, 'outil')} pas encore cherché{result.remaining > 1 ? 's' : ''} : relance demain pour garder du quota.</p>}
-            {result.failed.length > 0 && <p>YouTube n’a pas répondu pour : {result.failed.join(', ')}.</p>}
-            <div className="adm-pod-report-actions">
-              {result.found.length > 0 && <Link href="/admin/verifications" className="adm-btn adm-btn-pri">Ouvrir les vérifications</Link>}
-              <button type="button" className="adm-btn" onClick={() => setResult(null)}>Fermer</button>
-            </div>
-          </div>
-        )}
+        {result && <CodeSearchReport result={result} onClose={() => setResult(null)} />}
         <div className="adm-tabs" role="group" aria-label="Filtre">
           {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label} <span className="adm-tab-n">{countOf(item.value)}</span></button>)}
         </div>

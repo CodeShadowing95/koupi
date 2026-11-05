@@ -1383,3 +1383,7 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
   background-repeat:no-repeat;background-position:right 10px center;background-size:14px}
 .adm-filter-select:hover{border-color:var(--field-hover)}
 .adm-filter-select:focus{border-color:var(--blue);box-shadow:var(--field-ring);outline:0}
+
+/* « Chercher des codes » dans le panneau d'un outil. */
+.adm-tool-search{display:flex;flex-direction:column;gap:10px}
+.adm-tool-search-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}

@@ -382,6 +382,11 @@ function Outils() {
       <p>Le bouton <b>Récupérer les logos</b> en haut de la page le fait pour les outils qui n’en ont pas encore (le nombre sur le bouton), par lots de 20. Si une marque change de logo ou de site, ouvre l’outil et clique <b>Actualiser le logo</b>.</p>
       <Callout tone="tip">Un logo introuvable n’empêche rien : l’outil garde son initiale colorée. Vérifie alors que son site officiel est le bon domaine.</Callout>
     </Section>
+    <Section id="chercher" title="Chercher des codes pour un outil">
+      <p>Dans le panneau d’un outil, <b>Chercher des codes</b> cherche sur YouTube « <i>outil</i> code promo » parmi les vidéos de l’année, pour cet outil seul, même s’il a déjà des codes. C’est une recherche, soit environ 100 unités du quota du jour (sur 10 000).</p>
+      <p>Le compte rendu s’affiche dans le panneau : vidéos lues, unités utilisées, codes trouvés. Comme pour les catégories, <b>rien n’est publié</b> : les codes arrivent « En attente » dans <Link href="/admin/verifications">Vérifications</Link>, et ceux d’outils absents du catalogue vont dans <b>Podcasts › Outils à ajouter</b>. Le bouton est grisé sans clé YouTube, ou si l’outil est archivé.</p>
+      <Callout tone="tip">Utilise-le pour un outil très copié qui n’a qu’un ou deux créateurs : d’autres chaînes en parlent sûrement. Pour plusieurs outils d’un coup, passe par la page <Link href="/admin/categories">Catégories</Link>.</Callout>
+    </Section>
     <Section id="priorite" title="La priorité, de 1 à 5">
       <p>La priorité dit <b>quels outils couvrir en premier</b>. Elle classe les outils dans l’admin et sur le site.</p>
       <Legend rows={[
