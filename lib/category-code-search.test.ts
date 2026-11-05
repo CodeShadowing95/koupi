@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm';
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
 import { migrate } from 'drizzle-orm/pglite/migrator';
@@ -11,7 +12,7 @@ const now = new Date('2026-11-04T05:00:00Z');
 
 const tool = (name: string, categorySlug: string, extra: Partial<AdminTool> = {}): AdminTool => ({
   id: name, slug: name.toLowerCase(), name, categorySlug, category: categorySlug, website: `https://${name.toLowerCase()}.com`,
-  description: null, priority: 3, codes: 0, visible: 0, archived: false, ...extra,
+  description: null, priority: 3, codes: 0, visible: 0, archived: false, creators: 0, ...extra,
 });
 
 describe('toolsToSearch', () => {
@@ -29,18 +30,22 @@ describe('toolsToSearch', () => {
   it('cherche aussi une catégorie déjà couverte quand on la choisit, les outils sans code d’abord', () => {
     expect(toolsToSearch(all, { categorySlug: 'vpn' }).tools.map(item => item.name)).toEqual(['Surfshark', 'NordVPN']);
   });
+  it('cherche un seul outil choisi, même déjà couvert, jamais un outil archivé', () => {
+    expect(toolsToSearch(all, { toolId: 'NordVPN' })).toMatchObject({ tools: [{ name: 'NordVPN' }], remaining: 0 });
+    expect(toolsToSearch(all, { toolId: 'Vieux' }).tools).toEqual([]);
+  });
 });
 
 describe('youtubeSearch', () => {
   it('cherche les vidéos de l’année puis lit leurs descriptions complètes', async () => {
     const fetchFn = vi.fn(async (url: string) => new Response(JSON.stringify(url.includes('/search?')
       ? { items: [{ id: { videoId: 'abc' } }, { id: {} }] }
-      : { items: [{ id: 'abc', snippet: { title: 'Avis', description: 'code X', channelTitle: 'Chaîne' } }] })));
+      : { items: [{ id: 'abc', snippet: { title: 'Avis', description: 'code X', channelTitle: 'Chaîne', channelId: 'UC1' } }] })));
     const youtube = youtubeSearch('KEY', fetchFn as unknown as typeof fetch)!;
     expect(await youtube.search('Notion code promo', { max: 8, publishedAfter: new Date('2025-11-04T00:00:00Z') })).toEqual(['abc']);
     const searchUrl = new URL(fetchFn.mock.calls[0][0]);
     expect(Object.fromEntries(searchUrl.searchParams)).toMatchObject({ q: 'Notion code promo', type: 'video', maxResults: '8', publishedAfter: '2025-11-04T00:00:00.000Z', key: 'KEY' });
-    expect(await youtube.videos(['abc'])).toEqual([{ id: 'abc', title: 'Avis', description: 'code X', channelTitle: 'Chaîne' }]);
+    expect(await youtube.videos(['abc'])).toEqual([{ id: 'abc', title: 'Avis', description: 'code X', channelTitle: 'Chaîne', channelId: 'UC1' }]);
     expect(youtubeSearch(undefined)).toBeNull();
   });
 });
@@ -59,7 +64,7 @@ describe('searchCategoryCodes', () => {
 
   const fake = (videos: Record<string, FoundVideo[]>, fail?: Error): YoutubeSearch => ({
     search: vi.fn(async (query: string) => { if (fail) throw fail; return (videos[query] ?? []).map(video => video.id); }),
-    videos: vi.fn(async (ids: string[]) => Object.values(videos).flat().filter(video => ids.includes(video.id))),
+    videos: vi.fn(async (ids: string[]) => ids.map(id => Object.values(videos).flat().find(video => video.id === id)).filter((video): video is FoundVideo => Boolean(video))),
   });
 
   it('ajoute en attente les codes trouvés dans les vidéos, crédités à la chaîne, et propose les outils inconnus', async () => {
@@ -77,8 +82,9 @@ describe('searchCategoryCodes', () => {
     expect(creator.name).toBe('Tuto Prod');
     const [log] = await db.select().from(schema.codeLogs);
     expect(log.note).toBe('Recherche des catégories vides : Notion');
-    // Relancer ne recrée ni le code ni la suggestion.
+    // Relancer ne recrée ni le code ni la suggestion, et change de formulation.
     const again = await searchCategoryCodes(db, youtube, { now });
+    expect(again.variants).toEqual(['code réduction', 'code réduction']);
     expect(again.found).toEqual([]);
     expect(again.suggested).toEqual([]);
     expect(await db.select().from(schema.codes)).toHaveLength(1);
@@ -91,6 +97,34 @@ describe('searchCategoryCodes', () => {
     expect(vi.mocked(youtube.search).mock.calls.map(call => call[0])).toEqual(['NordVPN code promo', 'VPN code promo']);
     const [log] = await db.select().from(schema.codeLogs);
     expect(log.note).toBe('Recherche ciblée VPN : VPN');
+  });
+
+  it('cherche un seul outil : une seule recherche, notée dans le journal et dans l’origine du code', async () => {
+    const [nord] = await db.select().from(schema.tools).where(eq(schema.tools.slug, 'nordvpn'));
+    const youtube = fake({ 'NordVPN code promo': [{ id: 'v5', title: 'VPN', description: 'NordVPN code NORD70', channelTitle: 'Geek' }] });
+    const report = await searchCategoryCodes(db, youtube, { toolId: nord.id, now });
+    expect(report).toMatchObject({ tools: 1, searches: 1, units: 101, found: [{ tool: 'NordVPN', code: 'NORD70' }] });
+    const [log] = await db.select().from(schema.codeLogs);
+    expect(log.note).toBe('Recherche ciblée NordVPN : NordVPN');
+  });
+
+  it('écarte les vidéos déjà lues, change de formulation et compte les chaînes nouvelles ou connues', async () => {
+    const [nord] = await db.select().from(schema.tools).where(eq(schema.tools.slug, 'nordvpn'));
+    const [known] = await db.insert(schema.creators).values({ slug: 'geek', name: 'Geek' }).returning();
+    await db.insert(schema.creatorAccounts).values({ creatorId: known.id, platform: 'youtube', externalId: 'UC-geek', handle: '@geek', url: 'https://youtube.com/@geek' });
+    const v1 = { id: 'v1', title: 'VPN', description: 'NordVPN code NORD70', channelTitle: 'Geek', channelId: 'UC-geek' };
+    const v2 = { id: 'v2', title: 'VPN 2', description: 'Rien', channelTitle: 'Neuf', channelId: 'UC-new' };
+    const v3 = { id: 'v3', title: 'VPN 3', description: 'NordVPN promo code NEW30', channelTitle: 'Neuf', channelId: 'UC-new' };
+    const youtube = fake({ 'NordVPN code promo': [v1, v2], 'NordVPN code réduction': [v1, v2, v3] });
+    const first = await searchCategoryCodes(db, youtube, { toolId: nord.id, now });
+    expect(first).toMatchObject({ variants: ['code promo'], videos: 2, skipped: 0, newChannels: 1, knownChannels: 1 });
+    const second = await searchCategoryCodes(db, youtube, { toolId: nord.id, now: new Date(now.getTime() + 3600_000) });
+    expect(second).toMatchObject({ variants: ['code réduction'], videos: 1, skipped: 2, newChannels: 0, knownChannels: 1, found: [{ code: 'NEW30' }] });
+    expect(vi.mocked(youtube.videos).mock.calls.at(-1)?.[0]).toEqual(['v3']);
+    const searches = await db.select().from(schema.youtubeSearches);
+    expect(searches.map(row => [row.variant, row.videos, row.newVideos, row.codes])).toEqual([['code promo', 2, 2, 1], ['code réduction', 3, 1, 1]]);
+    const seen = await db.select().from(schema.youtubeSeenVideos);
+    expect(seen.map(row => [row.videoId, row.channelId, row.codes]).sort()).toEqual([['v1', 'UC-geek', 1], ['v2', 'UC-new', 0], ['v3', 'UC-new', 1]]);
   });
 
   it('s’arrête au premier refus de YouTube (quota épuisé)', async () => {

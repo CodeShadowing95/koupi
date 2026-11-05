@@ -4,8 +4,9 @@ import type { ReactNode } from 'react';
 import { Icon, StatusDot } from '@/components/admin-card';
 import { Callout, Demo, Key, Legend, Section, Step, Steps } from '@/components/admin-guide';
 import { FLAG_MAX_SUCCESS, FLAG_MIN_VOTES, RETEST_DAYS, TARGETS } from '@/lib/admin-stats';
-import { CLEAR_SCORE, CREATOR_LEVEL_LABELS, MIN_SUBSCRIBERS, REJECT_BELOW } from '@/lib/verification';
+import { CLEAR_SCORE, CREATOR_LEVEL_LABELS, MIN_RATINGS, MIN_SUBSCRIBERS, REJECT_BELOW } from '@/lib/verification';
 import { FIRST_READ_DAYS } from '@/lib/podcast-read';
+import { ADMIN_EXPIRY_DAYS } from '@/lib/code-expiry';
 import { SITE_PAGES } from '@/lib/site-pages';
 
 /** Faux bouton : même apparence que dans l'admin, mais rien ne se passe au clic. */
@@ -54,11 +55,11 @@ function SeReperer() {
       <p>Le menu est rangé par grandes tâches, de haut en bas :</p>
       <Legend rows={[
         { term: 'Pilotage', meaning: <><b>Accueil</b> (ce qu’il y a à faire aujourd’hui), <b>Statistiques</b> (les chiffres en détail, avec <b>Consommation</b> en sous-menu : le quota YouTube et la dépense IA) et <b>Retours</b> (les avis des visiteurs).</> },
-        { term: 'Catalogue', meaning: <><b>Codes</b> (tout le catalogue), avec en sous-menus <b>Propositions</b> (les codes envoyés par les visiteurs), <b>Vérifications</b> (les dossiers préparés avec un score) et <b>Podcasts suivis</b>. Puis <b>Créateurs</b> (avec <b>Demandes</b>) et <b>Outils</b> (avec <b>Catégories</b>).</> },
+        { term: 'Catalogue', meaning: <><b>Codes</b> (tout le catalogue), avec en sous-menus <b>Propositions</b> (les codes envoyés par les visiteurs), <b>Vérifications</b> (les dossiers préparés avec un score), <b>Sources</b> (d’où viennent les codes, ce qu’elles rapportent et coûtent) et <b>Podcasts suivis</b>. Puis <b>Créateurs</b> (avec <b>Demandes</b>) et <b>Outils</b> (avec <b>Catégories</b>).</> },
         { term: 'Aide et réglages', meaning: <>Ce <b>guide</b> et l’espace <b>Administration</b>.</> },
       ]} />
       <p>Un clic sur le nom ouvre la page. La <b>flèche</b> à droite déplie ses sous-menus ; ils restent ouverts quand tu es sur l’une de leurs pages. Un nombre orange veut dire « des éléments t’attendent » ; menu replié, un <b>point orange</b> près de la flèche dit qu’un sous-menu en a. <b>Voir le site</b> et <b>Se déconnecter</b> restent toujours en bas, sans défiler.</p>
-      <p>Juste au-dessus, la jauge de <b>consommation</b> montre sur deux lignes le quota YouTube du jour et le plafond IA du mois ; elle passe à l’orange à 70 %, au rouge à 90 %, et se met à jour chaque minute. Un clic ouvre la page Consommation.</p>
+      <p>Juste au-dessus, la jauge de <b>consommation</b> montre sur deux lignes le quota YouTube du jour et le plafond IA du mois ; elle passe à l’orange à 70 %, au rouge à 90 %, et se met à jour chaque minute. Un clic ouvre l’onglet Consommation de Statistiques.</p>
       <p>En haut des listes (Propositions, Codes, Vérifications, Outils, Créateurs, Demandes, Retours), <b>Actualiser</b> relit la liste sans recharger la page ni perdre tes filtres.</p>
     </Section>
     <Section id="recherche" title="Tout trouver avec ⌘K">
@@ -218,9 +219,13 @@ function Codes() {
         { term: 'À tester', meaning: 'Codes visibles que personne n’a encore essayés. Ta file de travail principale.' },
         { term: 'À retester', meaning: `Codes vérifiés il y a plus de ${RETEST_DAYS} jours, ou jamais testés depuis l’import. Les offres expirent : on les réessaie.` },
         { term: 'En attente', meaning: 'Codes cachés à compléter.' },
+        { term: 'Expire bientôt', meaning: `Codes dont la date de fin tombe dans les ${ADMIN_EXPIRY_DAYS} jours. Cherche s’il y a un nouveau code pour le remplacer à temps.` },
+        { term: 'Expirés', meaning: 'La date de fin est passée : rejette le code, ou corrige la date si l’offre a été prolongée.' },
         { term: 'Archivés', meaning: 'Codes mis de côté. Le bouton « Restaurer » les fait revenir.' },
       ]} />
+      <p>La colonne <b>Copies</b> (et la même mention sur les cartes et dans le panneau) dit combien de fois les visiteurs ont copié le code depuis le 1er du mois. Trie dessus : les codes les plus copiés sont ceux à retester en premier, et ceux à remplacer d’abord quand ils expirent. Le panneau d’un code range ses informations en trois blocs : le code, sa source, ses tests et ses dates.</p>
       <Callout tone="tip">Pour décider vite des codes en attente et à tester, la page <Link href="/admin/verifications">Vérifications</Link> prépare chaque dossier avec un score et la preuve trouvée dans la source. Voir <Link href="/admin/guide/verifications">Vérifier avec l’aide de l’IA</Link>.</Callout>
+      <p><b>Origine</b> : chaque code dit comment Merkod l’a trouvé (saisi à la main, proposition d’un visiteur, import initial, recherche YouTube, podcast suivi). La liste « Toutes les origines » filtre la page, le panneau l’affiche dans « Trouvé par » et Vérifications le rappelle sous chaque dossier. Les codes plus anciens dont on ne sait pas d’où ils viennent sont marqués « Inconnue ».</p>
     </Section>
     <Section id="tester" title="Tester un code, pas à pas">
       <Steps>
@@ -324,11 +329,21 @@ function Podcasts() {
     </Section>
     <Section id="ajouter" title="Ajouter un podcast">
       <Steps>
-        <Step title="Cherche-le">La page a trois onglets : <b>Suivis</b> (ta liste), <b>+ Ajouter un podcast</b> et <b>Outils à ajouter</b> (voir plus bas). Dans le deuxième, tape le nom du podcast puis <b>Chercher</b>. Merkod interroge l’annuaire d’Apple Podcasts, gratuit et sans clé. Les noms sous le champ sont les podcasts conseillés pour démarrer : un clic lance la recherche.</Step>
+        <Step title="Cherche-le">La page a quatre onglets : <b>Suivis</b> (ta liste), <b>+ Ajouter un podcast</b>, <b>Candidats</b> et <b>Outils à ajouter</b> (voir plus bas). Dans le deuxième, tape le nom du podcast puis <b>Chercher</b>. Merkod interroge l’annuaire d’Apple Podcasts, gratuit et sans clé. Les noms sous le champ sont les podcasts conseillés pour démarrer : un clic lance la recherche.</Step>
         <Step title="Ou découvre-en">Sous la recherche, <b>Découvrir, classement Apple</b> propose cinq genres où les sponsors donnent souvent des codes d’outils : Entrepreneuriat, Affaires, Technologies, Investissement et Marketing. Un clic affiche les 50 podcasts les plus écoutés en France dans ce genre, avec leur rang, sans ceux que tu suis déjà.</Step>
         <Step title="Vérifie que c’est le bon">L’auteur, le genre et le nombre d’épisodes aident à éviter les homonymes. <b>Écouter</b> ouvre sa page Apple Podcasts.</Step>
         <Step title="Clique sur Suivre">Le podcast rejoint l’onglet Suivis. Merkod crée aussi son <b>créateur</b> (au nom du podcast) et y relie un compte « Podcast » : les codes trouvés seront crédités à ce créateur. Tu peux le renommer ou lui relier ses autres réseaux dans <Link href="/admin/createurs">Créateurs</Link>.</Step>
       </Steps>
+    </Section>
+    <Section id="candidats" title="Les podcasts candidats">
+      <p>Chaque lundi, Merkod parcourt la <b>base publique de Podcast Index</b>, un annuaire ouvert de plus de 4 millions de podcasts. Il prend les 10 000 plus populaires qui ont publié depuis 90 jours, en français ou en anglais, et qu’Apple connaît (pour pouvoir les suivre). Tous les genres sont lus : un podcast d’humour ou de sport a aussi des sponsors. Il lit leurs épisodes récents avec le même repérage que les podcasts suivis, sans IA : un podcast qui cite un <b>outil du catalogue près d’un code</b> devient candidat.</p>
+      <p>L’onglet <b>Candidats</b> les montre, ceux qui citent le plus d’outils en premier. Pour chacun : l’auteur, la langue, la catégorie, le nombre d’épisodes, la date du dernier, puis chaque outil cité avec le code, l’extrait des notes et le lien vers l’épisode.</p>
+      <Legend rows={[
+        { term: 'Suivre', meaning: 'Le podcast rejoint tes Suivis, comme depuis une recherche. Il est lu dès la nuit suivante et ses codes arrivent dans Vérifications.' },
+        { term: 'Écarter', meaning: 'Le candidat passe dans « Écartés » et y reste, même s’il revient au passage suivant. « Remettre » le ramène.' },
+      ]} />
+      <Callout tone="rule">Un candidat n’ajoute aucun code au catalogue : c’est une idée de podcast à suivre. Les codes ne viennent qu’après le suivi, par la lecture de nuit, et passent par Vérifications.</Callout>
+      <Callout tone="warn" title="À régler une fois">Le passage tourne sur GitHub (la base pèse plusieurs Go, trop pour Vercel). Dans le dépôt, <b>Settings › Secrets and variables › Actions</b> : ajoute le secret <b>CRON_SECRET</b> (le même que sur Vercel) et la variable <b>MERKOD_URL</b> (l’adresse du site). Sans eux, le passage s’arrête sans rien faire. Ajoute aussi les secrets <b>PODCASTINDEX_API_KEY</b> et <b>PODCASTINDEX_API_SECRET</b> (ton compte Podcast Index) : si le site refuse le téléchargement de la base, Merkod passe par l’API, avec moins de podcasts (tendances et flux récents). Le passage se lance aussi à la main depuis l’onglet Actions, « Podcast Index ».</Callout>
     </Section>
     <Section id="liste" title="La liste des suivis">
       <Legend rows={[
@@ -337,7 +352,12 @@ function Podcasts() {
       ]} />
       <p><b>Dernière lecture</b> dit quand ses épisodes ont été lus pour la dernière fois, et <b>Codes trouvés</b> combien de codes viennent de ses épisodes (un clic les ouvre dans Codes). <b>Ne plus suivre</b> le retire de la liste : son créateur, son compte et ses codes restent.</p>
       <p>Un clic sur un podcast ouvre son <b>détail</b> à droite, avec ses <b>derniers épisodes</b> : la date, un lien vers l’épisode, s’il a été <b>Lu</b> par Merkod, et les codes trouvés dans ses notes avec leur état (En attente, Vérifié…) ou l’outil à ajouter. Tu vois ainsi ce que Merkod a lu, et pas seulement le résultat. Un épisode trop ancien au moment du suivi, ou sorti depuis la dernière lecture, reste « Pas lu ».</p>
-      <p>Comme les autres listes, l’onglet Suivis se filtre (Tous, Lus chaque nuit, En pause, Jamais lus, Avec codes trouvés), se cherche par nom de podcast ou de créateur, se trie, s’affiche en cartes ou en tableau et se lit page par page.</p>
+      <p>Comme les autres listes, l’onglet Suivis se filtre (Tous, Lus chaque nuit, En pause, Jamais lus, Avec codes trouvés, Rien depuis 90 jours), se cherche par nom de podcast ou de créateur, se trie, s’affiche en cartes ou en tableau et se lit page par page.</p>
+    </Section>
+    <Section id="rendement" title="Le rendement de chaque podcast">
+      <p>Tous les podcasts ne se valent pas. Pour chacun, Merkod donne les codes <b>trouvés</b> dans ses épisodes, combien sont <b>publiés</b> sur le site (vérifiés ou à tester), combien de fois les visiteurs les ont <b>copiés ce mois-ci</b>, et la date de son <b>dernier code</b>.</p>
+      <p>La liste s’ouvre rangée par <b>rendement</b> : d’abord les podcasts dont les codes sont le plus copiés, puis ceux qui ont le plus de codes publiés, puis le plus de codes trouvés. En tableau, les colonnes Copies du mois et Dernier code se trient aussi ; la colonne État donne aussi la date de dernière lecture.</p>
+      <Callout tone="tip">L’onglet <b>Rien depuis 90 jours</b> liste les podcasts suivis depuis plus de 90 jours qui n’ont donné aucun code depuis 90 jours. Le bouton <b>Mettre en pause les actifs</b> les arrête d’un coup : ils ne sont plus lus la nuit, mais gardent leurs codes et leur historique. Tu peux les reprendre un par un.</Callout>
     </Section>
     <Section id="lecture" title="La lecture des épisodes">
       <Steps>
@@ -367,6 +387,7 @@ function Outils() {
     <Section id="quoi" title="Ce qu’est un outil">
       <p>Un outil est un produit en ligne pour lequel on collecte des codes : NordVPN, Qonto, Notion… Chaque outil a une catégorie, un site officiel, une description facultative et une <b>priorité</b>.</p>
       <Callout tone="why">Un outil apparaît sur le site dès qu’il a un code vérifié ou à tester. L’onglet <b>Sans code visible</b> liste les outils suivis mais encore invisibles : c’est ta liste de chasse.</Callout>
+      <p>Dans la liste, <b>Créateurs</b> compte les créateurs différents qui donnent un code pour l’outil, et <b>Copies</b> les copies de ses codes depuis le 1er du mois. Un outil très copié avec un seul créateur mérite qu’on lui cherche d’autres codes.</p>
     </Section>
     <Section id="ajouter" title="Ajouter un outil">
       <Steps>
@@ -381,6 +402,11 @@ function Outils() {
       <p>Quand tu crées un outil, Merkod récupère <b>tout seul</b> son logo et le garde en base : sur Logo.dev d’abord, sinon l’icône du site de la marque. Le site et l’admin l’affichent ensuite sans dépendre d’un autre service.</p>
       <p>Le bouton <b>Récupérer les logos</b> en haut de la page le fait pour les outils qui n’en ont pas encore (le nombre sur le bouton), par lots de 20. Si une marque change de logo ou de site, ouvre l’outil et clique <b>Actualiser le logo</b>.</p>
       <Callout tone="tip">Un logo introuvable n’empêche rien : l’outil garde son initiale colorée. Vérifie alors que son site officiel est le bon domaine.</Callout>
+    </Section>
+    <Section id="chercher" title="Chercher des codes pour un outil">
+      <p>Dans le panneau d’un outil, <b>Chercher des codes</b> cherche sur YouTube « <i>outil</i> code promo » parmi les vidéos de l’année, pour cet outil seul, même s’il a déjà des codes. La fois suivante, la recherche change de formulation (« code réduction », « promo code »…) et écarte les vidéos déjà lues : chaque clic ramène du neuf. C’est une recherche, soit environ 100 unités du quota du jour (sur 10 000).</p>
+      <p>Le compte rendu s’affiche dans le panneau : vidéos lues, unités utilisées, codes trouvés. Comme pour les catégories, <b>rien n’est publié</b> : les codes arrivent « En attente » dans <Link href="/admin/verifications">Vérifications</Link>, et ceux d’outils absents du catalogue vont dans <b>Podcasts › Outils à ajouter</b>. Le bouton est grisé sans clé YouTube, ou si l’outil est archivé.</p>
+      <Callout tone="tip">Utilise-le pour un outil très copié qui n’a qu’un ou deux créateurs : d’autres chaînes en parlent sûrement. Pour plusieurs outils d’un coup, passe par la page <Link href="/admin/categories">Catégories</Link>.</Callout>
     </Section>
     <Section id="priorite" title="La priorité, de 1 à 5">
       <p>La priorité dit <b>quels outils couvrir en premier</b>. Elle classe les outils dans l’admin et sur le site.</p>
@@ -410,9 +436,25 @@ function Createurs() {
         { term: 'Sans code visible', meaning: 'Tous ses codes sont en attente ou rejetés : il n’apparaît pas encore.' },
       ]} />
     </Section>
+    <Section id="trier" title="Trier, filtrer et trouver qui contacter">
+      <p>Sous les onglets, trois listes affinent la page : <b>réseau</b> (YouTube, Podcast, autre réseau, aucun compte), <b>langue</b> (français, anglais, autre, inconnue) et <b>audience</b> (moins de 10 k abonnés, 10 k à 100 k, 100 k à 1 M, plus de 1 M). Les nombres des onglets suivent ces filtres ; <b>Effacer les filtres</b> les remet à zéro.</p>
+      <p>Tu peux aussi trier par <b>abonnés</b> (son compte le plus suivi), par <b>notes</b> (son podcast le plus noté sur Apple Podcasts) et par <b>copies du mois</b> (combien de fois ses codes ont été copiés depuis le 1er). Dans le tableau, clique sur l’en-tête Audience ou Copies ; en cartes, utilise le menu de tri.</p>
+      <Steps>
+        <Step title="Ouvre l’onglet À contacter">Il garde les créateurs déjà sur le site qui ne nous connaissent pas encore : aucun compte prouvé par la bio, pas d’espace créateur, pas de revendication en attente.</Step>
+        <Step title="Commence par le haut">La liste est rangée par potentiel : d’abord ceux dont les codes sont le plus copiés, puis les plus suivis, puis les podcasts les plus notés. Filtre sur Français pour une première campagne en France.</Step>
+        <Step title="Propose-lui sa page">Écris-lui (e-mail de contact de sa chaîne) avec le lien de sa page publique : il peut la revendiquer, et il sort de la liste dès qu’il le fait.</Step>
+      </Steps>
+      <Callout tone="why">Un créateur dont les codes sont déjà copiés a une raison concrète de s’intéresser à Merkod : ses abonnés l’utilisent. C’est le meilleur premier contact pour l’espace créateur payant.</Callout>
+    </Section>
     <Section id="fiche" title="Lire la fiche d’un créateur">
-      <p>Clique sur un créateur : le panneau montre son niveau, son nombre de codes, ses <b>comptes sur les réseaux</b>, les <b>outils qu’il recommande</b> et le lien vers sa page publique. <b>Voir ses codes</b> ouvre la liste des codes filtrée sur lui.</p>
-      <p>Sa <b>photo de profil</b> s’affiche sur sa carte, dans le tableau et dans le panneau quand on l’a récupérée depuis sa chaîne YouTube (commande <code>npm run avatars</code>). Sinon, ce sont ses initiales.</p>
+      <p>Clique sur un créateur : le panneau s’ouvre en trois onglets, pour ne voir que ce dont tu as besoin.</p>
+      <Steps>
+        <Step title="Aperçu">L’essentiel : son niveau, ses codes, les copies du mois, son audience, son pays, sa page publique, sa présentation et les outils qu’il recommande. En tête, <b>À faire</b> liste ce qu’il reste à faire pour lui (relier un compte, le contrôler, suivre ses vidéos, écrire sa présentation) : clique sur une ligne pour aller au bon endroit.</Step>
+        <Step title="Comptes">Ses chaînes et profils : audience, pays et langue, <b>Suivre ses vidéos</b> pour une chaîne YouTube, et les boutons Actualiser, Pays et langue, Retirer. <b>Relier un compte</b> en ajoute un ; <b>Actualiser la photo</b> est en bas.</Step>
+        <Step title="Confiance">Tout ce qui fait monter son niveau, compte par compte : le contrôle par Merkod (case « J’ai contrôlé ce compte », badge certifié) puis la preuve par la bio.</Step>
+      </Steps>
+      <p><b>Voir ses codes</b> ouvre la liste des codes filtrée sur lui. Sa <b>photo de profil</b> s’affiche sur sa carte, dans le tableau et dans le panneau quand on l’a récupérée depuis sa chaîne YouTube ou son podcast. Sinon, ce sont ses initiales.</p>
+      <p>Sous le titre de la page, l’encadré d’entretien regroupe les boutons qui agissent sur <b>tous</b> les créateurs : <b>Comptes</b> (relier, actualiser, récupérer les photos) et <b>Vidéos YouTube</b> (suivre les chaînes, les lire). Ils ne sont pas à cliquer tous les jours : Merkod fait la plupart de ce travail chaque nuit.</p>
       <Callout tone="tip">Un créateur qui recommande déjà trois outils en a souvent d’autres. Regarde ses dernières vidéos : c’est la façon la plus rapide de trouver de nouveaux codes.</Callout>
     </Section>
     <Section id="profil" title="Écrire son profil">
@@ -422,14 +464,14 @@ function Createurs() {
         <Step title="Écris une ou deux phrases">Ce qu’il fait et pour qui, sans superlatif. Par exemple : « Teste les outils d’IA pour les indépendants, une vidéo par semaine. » 400 caractères au plus.</Step>
         <Step title="Enregistre">La page publique se met à jour tout de suite. Vide le champ pour retirer la présentation.</Step>
       </Steps>
-      <p>Sur sa page, sous la présentation, le site affiche aussi ses <b>thèmes</b> (les catégories des outils de ses codes, rien à saisir) et ses <b>comptes sur les réseaux</b> reliés ici, avec les abonnés et un lien vers chaque compte.</p>
+      <p>Sur sa page, sous la présentation, le site affiche aussi ses <b>thèmes</b> (les catégories des outils de ses codes, rien à saisir) et ses <b>comptes sur les réseaux</b> reliés ici, avec leur audience (abonnés, ou pour un podcast sa note et ses épisodes) et un lien vers chaque compte.</p>
       <Callout tone="why">Un visiteur qui arrive de Google sur la page d’un créateur doit comprendre en deux secondes qui il est. Et le jour où le créateur découvrira sa page, une présentation juste lui donnera envie de la revendiquer.</Callout>
     </Section>
     <Section id="niveaux" title="Les trois niveaux d’un créateur">
       <p>Le niveau dit à quel point Merkod est sûr que le créateur est bien celui qu’il prétend être. Il compte dans le score des <Link href="/admin/verifications">Vérifications</Link>.</p>
       <Legend rows={[
         { term: <StatusDot tone="muted">{CREATOR_LEVEL_LABELS.spotted}</StatusDot>, meaning: 'Merkod connaît son nom, mais personne n’a encore contrôlé ses comptes. C’est le niveau de départ.' },
-        { term: <StatusDot tone="ok">{CREATOR_LEVEL_LABELS.checked}</StatusDot>, meaning: `Tu as contrôlé un de ses comptes et il a au moins ${MIN_SUBSCRIBERS} abonnés, ou ce compte a le badge certifié du réseau.` },
+        { term: <StatusDot tone="ok">{CREATOR_LEVEL_LABELS.checked}</StatusDot>, meaning: `Tu as contrôlé un de ses comptes et il a au moins ${MIN_SUBSCRIBERS} abonnés (ou, pour un podcast, au moins ${MIN_RATINGS} notes sur Apple Podcasts), ou ce compte a le badge certifié du réseau.` },
         { term: <StatusDot tone="info">{CREATOR_LEVEL_LABELS.verified}</StatusDot>, meaning: 'Le créateur a prouvé lui-même qu’un compte est à lui, avec un code dans sa bio (voir plus bas).' },
       ]} />
       <p>Le filtre <b>À contrôler</b> liste les créateurs déjà sur le site mais encore repérés : commence par eux.</p>
@@ -442,9 +484,15 @@ function Createurs() {
         <Step title="Coche le badge s’il y en a un">Si la chaîne affiche la coche grise de compte certifié, coche <b>Badge certifié du réseau</b>. Ce badge suffit pour passer « Contrôlé par Merkod ».</Step>
       </Steps>
       <p>Pour YouTube et les podcasts, tu n’as souvent rien à faire : le compte se relie <b>tout seul</b>. Quand tu ajoutes un code dont la source est une vidéo YouTube, Merkod retrouve la chaîne qui l’a publiée et la relie au créateur. Pour les créateurs déjà en base, le bouton <b>Relier les comptes</b> en haut de la page le fait pour tous d’un coup : la chaîne YouTube d’après leurs vidéos, et le podcast d’après leurs épisodes Apple Podcasts. Le nombre sur le bouton compte les créateurs sans aucun compte et ceux dont un compte peut encore être retrouvé ; un podcast que tu suis a déjà son compte, il n’y est pas. La tâche de nuit rattrape ceux qui arrivent par l’import. Un compte relié ainsi n’est pas contrôlé : c’est toujours toi qui coches. Merkod liste ensuite les créateurs restés sans compte en disant d’où viennent leurs codes (Instagram, TikTok, Spotify, un site web, aucun code…) ou ce qui a bloqué (vidéos de plusieurs chaînes, deux noms pour la même chaîne) : ceux-là se font à la main.</p>
-      <p><b>Les photos</b> suivent les chaînes : dès qu’une chaîne YouTube est reliée, Merkod récupère sa photo de profil, la garde en base et l’affiche partout sur le site et dans l’admin. Le bouton <b>Récupérer les photos</b> en haut de la page le fait pour les créateurs qui ont une chaîne mais pas encore de photo (le nombre sur le bouton). Si un créateur change d’avatar, ouvre sa fiche et clique <b>Actualiser la photo</b>. Chaque lot de 50 chaînes coûte 1 unité du quota YouTube. Les visiteurs ne contactent jamais Google : c’est Merkod qui sert l’image.</p>
-      <p><b>Actualiser</b> relit les abonnés d’une chaîne YouTube (1 unité du quota YouTube, sur 10 000 par jour). <b>Retirer</b> enlève le compte, pas le créateur ni ses codes.</p>
+      <p><b>Les photos</b> suivent les comptes : dès qu’une chaîne YouTube est reliée, Merkod récupère sa photo de profil, la garde en base et l’affiche partout sur le site et dans l’admin. Un créateur qui n’a qu’un podcast prend la <b>pochette de son podcast</b> (Apple Podcasts), dès que tu suis le podcast ou que tu le relies. Le bouton <b>Récupérer les photos</b> en haut de la page le fait pour les créateurs qui ont une chaîne ou un podcast mais pas encore de photo (le nombre sur le bouton). Si un créateur change d’avatar, ouvre sa fiche et clique <b>Actualiser la photo</b>. Chaque lot de 50 chaînes coûte 1 unité du quota YouTube ; les pochettes sont gratuites. Les visiteurs ne contactent jamais Google : c’est Merkod qui sert l’image.</p>
+      <p><b>Pays et langue</b> : pour cibler ta communication (francophones, anglophones…), chaque créateur affiche un drapeau et sa langue dans la liste, et « Pays et langue » dans sa fiche. YouTube donne le pays quand le créateur l’a rempli sur sa chaîne, et souvent la langue ; un podcast donne sa langue dans son flux. Sinon, Merkod devine la langue sur la description. Le pays d’un podcast n’est jamais public : corrige-le avec <b>Pays et langue</b> sur le compte (codes à deux lettres, ex. « BE fr ») ; une correction à la main n’est plus jamais remplacée. <b>Actualiser les comptes</b> en haut de la page relit d’un coup les abonnés, l’audience, le pays et la langue de toutes les chaînes (1 unité du quota par lot de 50) et de 15 podcasts à la fois (reclique pour les suivants).</p>
+      <p><b>Actualiser</b> relit un compte à sa source. Pour une chaîne YouTube : ses abonnés, ses vues et son nombre de vidéos (1 unité du quota YouTube, sur 10 000 par jour). Pour un podcast, qui n’a pas d’abonnés publics : sa <b>note sur 5</b> et son <b>nombre de notes</b> sur Apple Podcasts, et son <b>nombre d’épisodes</b> (gratuit). Une note avec beaucoup de notes est un bon signe d’audience. Les autres réseaux se corrigent à la main avec <b>Modifier les abonnés</b>. <b>Retirer</b> enlève le compte, pas le créateur ni ses codes.</p>
       <Callout tone="warn">Un même compte ne peut être relié qu’à un seul créateur. Si Merkod refuse, il te dit à qui il est déjà relié : c’est souvent un doublon de nom à corriger.</Callout>
+    </Section>
+    <Section id="suivre" title="Suivre les vidéos d’une chaîne">
+      <p>Un créateur qui a déjà donné un code en redonnera. Coche <b>Suivre ses vidéos</b> sur son compte YouTube : chaque nuit, Merkod lit les nouvelles vidéos de la chaîne et cherche des codes dans leur description, comme pour les podcasts. Les codes trouvés arrivent « En attente » dans Vérifications, crédités à ce créateur. La case n’apparaît que pour une chaîne lue par Merkod (avec son identifiant) ; décoche-la pour mettre la chaîne en pause, elle garde sa date de lecture.</p>
+      <p><b>Suivre les chaînes</b>, en haut de la page, suit d’un coup les chaînes reliées de tous les créateurs qui ont au moins un code. Une chaîne que tu as mise en pause reste en pause. <b>Lire les chaînes suivies</b> lance la lecture tout de suite, sans attendre la nuit.</p>
+      <Callout tone="why">Lire une chaîne coûte environ 1 unité du quota YouTube, contre 100 pour une recherche : 100 chaînes suivies coûtent moins qu’une seule recherche. Les vidéos déjà lues (par une recherche ou une lecture précédente) sont écartées. La première lecture remonte 45 jours, les suivantes reprennent depuis la dernière.</Callout>
     </Section>
     <Section id="preuve" title="Faire prouver un compte par la bio">
       <p>Seul le vrai propriétaire d’un compte peut modifier sa bio. C’est la preuve la plus simple : tu donnes un code au créateur, il l’ajoute à la bio du compte, et Merkod le retrouve. Le créateur passe alors <b>Créateur vérifié</b>, et ce compte porte une coche bleue sur sa page.</p>
@@ -511,6 +559,7 @@ function Categories() {
     </Section>
     <Section id="chercher" title="Chercher des codes pour une catégorie">
       <p><b>Chercher des codes</b>, en haut de la page, prend les outils des catégories vides (priorité 1 d’abord) et cherche sur YouTube « <i>outil</i> code promo » parmi les vidéos de l’année. Dans le panneau d’une catégorie, le même bouton cherche ses outils, ceux qui ont le moins de codes d’abord, même si elle a déjà des codes, puis « <i>catégorie</i> code promo » pour repérer des outils qu’on n’a pas encore.</p>
+      <p><b>Chaque recherche fait du neuf.</b> Pour un même outil, Merkod change de formulation à chaque fois : « code promo », puis « code réduction », « promo code » et « discount code ». Une formulation déjà essayée ne ramène que les vidéos publiées depuis. Les vidéos déjà lues sont écartées sans être relues, et le compte rendu le dit : nouvelles chaînes, chaînes déjà connues (un créateur qu’on a, ou une vidéo déjà lue), vidéos écartées. Une chaîne nouvelle avec un code, c’est un créateur à ajouter et à suivre.</p>
       <p>Les descriptions des vidéos sont lues comme les notes des podcasts. <b>Rien n’est publié</b> : chaque code trouvé arrive « En attente » dans Vérifications, crédité à la chaîne qui l’a donné, et un code pour un outil absent du catalogue va dans <b>Podcasts › Outils à ajouter</b>.</p>
       <Demo caption="L’état de la recherche, sous le titre de la page.">
         <div className="gd-row"><StatusDot tone="ok">Recherche YouTube prête</StatusDot><StatusDot tone="muted">IA en attente d’activation : lecture sans IA</StatusDot></div>
@@ -519,6 +568,39 @@ function Categories() {
     </Section>
     <Section id="exporter" title="Exporter les catégories">
       <p><b>Exporter</b> donne chaque catégorie avec son nombre d’outils, ceux qui ont un code visible et sa couverture en pourcentage, en Excel ou en CSV.</p>
+    </Section>
+  </>;
+}
+
+function Sources() {
+  return <>
+    <Section id="quoi" title="D’où viennent les codes">
+      <p>Merkod trouve ses codes à plusieurs endroits : les <b>chaînes YouTube suivies</b>, les <b>podcasts suivis</b>, la <b>recherche YouTube</b> par outil ou par catégorie, les <b>propositions des visiteurs</b>, et ce que tu ajoutes à la main. La page <Link href="/admin/sources">Sources</Link> les réunit sur une seule page, une carte par source, pour voir laquelle rapporte et laquelle coûte.</p>
+    </Section>
+    <Section id="carte" title="Lire une carte">
+      <p>Chaque carte dit ce que la source lit, puis donne quatre chiffres :</p>
+      <Steps>
+        <Step title="Trouvés">Les codes que cette source a apportés, et combien ce mois-ci.</Step>
+        <Step title="Publiés">Ceux que tu as validés, avec la part des codes jugés (publiés ou rejetés) qui ont été publiés. Une source qui ramène surtout des codes rejetés te fait perdre du temps.</Step>
+        <Step title="En attente">Ceux qui attendent ta décision dans Vérifications.</Step>
+        <Step title="Copiés">Combien de fois les visiteurs ont copié ses codes ce mois-ci. C’est le vrai rendement.</Step>
+      </Steps>
+      <p>Dessous : le <b>dernier passage</b> et son état, le <b>prochain</b> (« Chaque nuit à 04:30 » pour les podcasts, puis les chaînes une demi-heure après, à l’heure de Paris ; « Quand tu le lances » pour la recherche), et ce que la source a coûté ce mois-ci en unités du quota YouTube et en IA.</p>
+      <Demo caption="Les trois états d’un passage.">
+        <div className="gd-row"><StatusDot tone="ok">Réussi</StatusDot><StatusDot tone="warn">En partie</StatusDot><StatusDot tone="bad">Échec</StatusDot></div>
+      </Demo>
+      <Callout tone="why">« En partie » veut dire qu’une partie n’a pas répondu (une chaîne, un flux de podcast) : le reste a bien été lu. « Échec » veut dire que rien n’a pu être lu, souvent une clé manquante ou le quota YouTube épuisé.</Callout>
+    </Section>
+    <Section id="lancer" title="Lancer une source à la main">
+      <p>Les chaînes et les podcasts sont lus chaque nuit tout seuls. <b>Lire maintenant</b> les lit tout de suite ; <b>Chercher pour les catégories vides</b> lance la recherche YouTube. Avant de lancer, Merkod te dit ce que ça va coûter : environ une unité par chaîne suivie, et jusqu’à 2 000 unités pour une recherche, sur 10 000 par jour.</p>
+      <Callout tone="tip">Pour chercher sur une seule catégorie ou un seul outil, passe par leur page : les liens <b>Par catégorie</b> et <b>Par outil</b> y mènent. Les codes d’outils absents du catalogue vont dans <Link href="/admin/podcasts?tab=outils">Outils à ajouter</Link>, lié depuis la page.</Callout>
+    </Section>
+    <Section id="journal" title="Le journal des passages">
+      <p>En bas de la page, chaque passage est noté, la nuit comme à la main : quand, quelle source, qui l’a lancé (<b>La nuit</b> ou <b>Toi</b>), ce qui a été lu, combien de vidéos ou d’épisodes, les codes trouvés (et ceux hors catalogue), les unités dépensées et l’état. Un passage raté affiche l’erreur : c’est là qu’on voit qu’une tâche de nuit ne tourne plus.</p>
+      <Callout tone="tip">Une fois par semaine, regarde le journal : s’il n’y a pas eu de passage de nuit depuis deux jours, ou s’il n’y a que des échecs, la clé YouTube ou la tâche de nuit est à vérifier.</Callout>
+    </Section>
+    <Section id="bientot" title="Les sources à venir">
+      <p>La carte <b>Bientôt</b> liste les sources prévues : la recherche sur le web par l’IA et Spotify. Elles auront leur carte et leurs passages au journal dès qu’elles seront branchées. Podcast Index, lui, ne trouve pas de codes mais des podcasts à suivre : ils arrivent chaque lundi dans Podcasts › Candidats.</p>
     </Section>
   </>;
 }
@@ -553,24 +635,47 @@ function Indicateurs() {
       </div>
       <Callout tone="tip" title="Le mot « médiane »">La médiane est la valeur du milieu : la moitié des propositions ont été traitées plus vite, l’autre moitié plus lentement. Elle n’est pas faussée par une seule proposition oubliée.</Callout>
     </Section>
+    <Section id="accueil" title="Le haut de l’accueil : urgent, nouveautés, conseil">
+      <p>Sous « Bonjour », la ligne <b>Depuis ta dernière visite</b> résume ce qui est arrivé depuis ta visite précédente : codes trouvés, propositions reçues, copies et avis des visiteurs. Chaque chiffre ouvre la bonne page. La date de ta dernière visite est gardée dans ce navigateur seulement : sur un autre ordinateur, la ligne repart de zéro.</p>
+      <p>Le cadre <b>Urgent</b> n’apparaît que s’il y a quelque chose qui ne peut pas attendre :</p>
+      <Legend rows={[
+        { term: 'Codes qui expirent', meaning: 'Des codes visibles dont la date de fin tombe dans les 7 jours. Cherche un nouveau code chez le même créateur avant qu’un visiteur tombe sur un code mort.' },
+        { term: 'Source en échec', meaning: <>Le dernier passage d’une source (chaînes, podcasts, recherche) n’a rien pu lire. L’erreur est dans le journal de la page <Link href="/admin/sources">Sources</Link>.</> },
+        { term: 'Quota ou plafond presque atteint', meaning: 'Le quota YouTube du jour ou le plafond IA du mois est utilisé à 80 % ou plus. Évite les recherches jusqu’à la remise à zéro.' },
+      ]} />
+      <p>Le <b>conseil du jour</b> se replie quand tu cliques sur <b>Lu, replier</b> ou sur son lien : il reste une ligne, avec <b>Relire</b> pour le rouvrir. Le lendemain, un nouveau conseil s’affiche en grand. Plus bas, l’<b>audience</b> de la semaine tient en une ligne ; le détail est dans Statistiques.</p>
+    </Section>
     <Section id="a-faire" title="La liste « À faire »">
       <p>Sur l’accueil, « À faire maintenant » est classée <b>par impact</b> : en haut, ce qui fait le plus de bien au catalogue. Fais-la de haut en bas, chaque lien ouvre la bonne liste déjà filtrée.</p>
       <p>À droite, « Le parcours des codes » montre combien de codes sont à chaque étape. Juste en dessous, la carte <b>Oubi et Lili</b> présente les deux assistants IA à venir : Oubi, l’éclaireuse (Claude Haiku 5.5), repérera les codes dans les vidéos et les podcasts, Lili, la vérificatrice (Claude Opus 5.5), vérifiera chaque preuve et te préparera la décision. Ils ne sont pas encore actifs ; tu garderas toujours le dernier mot.</p>
     </Section>
     <Section id="consommation" title="La consommation des API">
-      <p>Pour trouver et vérifier les codes, Merkod appelle des services extérieurs. La page <b>Consommation</b> dit où tu en es :</p>
+      <p>Pour trouver et vérifier les codes, Merkod appelle des services extérieurs. L’onglet <b>Consommation</b> de Statistiques dit où tu en es (l’ancienne adresse /admin/consommation y mène toujours) :</p>
       <Legend rows={[
         { term: 'YouTube', meaning: <>10 000 unités gratuites par jour. Lire une vidéo ou une chaîne coûte 1 unité, une recherche 100. Le compteur repart de zéro vers 9 h, heure de Paris. YouTube ne donne pas ce chiffre : c’est Merkod qui compte chacun de ses appels.</> },
         { term: 'IA', meaning: <>La dépense du mois face au plafond (10 € par défaut). Une fois atteint, l’IA s’arrête jusqu’au 1er du mois suivant.</> },
       ]} />
       <Callout tone="tip">Au-dessus de 70 %, évite les grosses recherches par catégorie pour la journée : la lecture des vidéos proposées par les visiteurs a besoin du reste du quota.</Callout>
     </Section>
+    <Section id="onglets" title="Les trois onglets de Statistiques">
+      <p>Statistiques se lit en trois onglets : <b>Catalogue et audience</b> (l’état des codes et ce que font les visiteurs), <b>Sources et outils</b> (d’où viennent les codes et ce que les visiteurs copient) et <b>Consommation</b> (quota YouTube et dépense IA).</p>
+    </Section>
+    <Section id="rendement" title="Le rendement par source">
+      <p>Dans <b>Sources et outils</b>, chaque source a trois barres sur les 30 derniers jours :</p>
+      <Legend rows={[
+        { term: 'Trouvés', meaning: 'Les codes que la source a ajoutés en base, quel que soit leur statut.' },
+        { term: 'Publiés', meaning: 'Parmi eux, ceux que tu as rendus visibles (vérifiés ou à tester).' },
+        { term: 'Copiés', meaning: 'Les copies des visiteurs sur tous les codes venus de cette source, même plus anciens.' },
+      ]} />
+      <p>Une source qui trouve beaucoup mais publie peu te fait trier pour rien : resserre ses réglages. Celle qui fait le plus copier est à garder en marche en priorité. En dessous, <b>Copies par outil</b> et <b>Copies par catégorie</b> montrent ce que les visiteurs veulent vraiment.</p>
+      <Callout tone="tip">Un outil en haut des copies doit toujours avoir un code vérifié : c’est là qu’un code mort déçoit le plus de monde.</Callout>
+    </Section>
     <Section id="audience" title="L’audience">
       <p>Les statistiques d’audience (codes copiés, liens ouverts, recherches sans résultat) sont comptées <b>sans pistage</b> : de simples compteurs anonymes, aucun cookie publicitaire. C’est une promesse du site.</p>
       <Legend rows={[
         { term: 'Codes copiés', meaning: 'Le geste clé : un visiteur a trouvé ce qu’il cherchait.' },
         { term: 'Liens ouverts', meaning: 'Vers le créateur ou l’outil. C’est ce que tu montreras plus tard aux marques.' },
-        { term: 'Recherches sans résultat', meaning: 'Les outils que les gens cherchent et que Merkod n’a pas. La meilleure liste des prochains outils à ajouter.' },
+        { term: 'Recherches sans résultat', meaning: <>Les outils que les gens cherchent et que Merkod n’a pas. La meilleure liste des prochains outils à ajouter : le bouton <b>Ajouter cet outil</b> ouvre la fiche d’un nouvel outil avec le nom déjà rempli.</> },
       ]} />
     </Section>
   </>;
@@ -645,6 +750,7 @@ export const chapterContent: Record<string, () => ReactNode> = {
   outils: Outils,
   createurs: Createurs,
   categories: Categories,
+  sources: Sources,
   indicateurs: Indicateurs,
   routine: Routine,
   administration: Administration,

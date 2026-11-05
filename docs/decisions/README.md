@@ -32,5 +32,12 @@ Chaque décision importante est notée ici dans un fichier numéroté. On ne sup
 | [0027](0027-images-en-base.md) | Photos des créateurs et logos des outils gardés en base | Acceptée |
 | [0028](0028-consommation-des-api.md) | Merkod compte lui-même sa consommation des API | Acceptée |
 | [0029](0029-avis-des-visiteurs.md) | Page « Ton avis » et avis des visiteurs en base | Acceptée |
+| [0030](0030-mesures-d-audience-des-comptes.md) | Mesures d'audience des comptes créateurs, quelle que soit la source | Acceptée |
+| [0031](0031-pays-et-langue-des-createurs.md) | Pays et langue des créateurs | Acceptée |
+| [0032](0032-origine-des-codes.md) | Origine de chaque code | Acceptée |
+| [0033](0033-recherche-youtube-sans-doublon.md) | Recherche YouTube sans doublon, à formulations variées | Acceptée |
+| [0034](0034-chaines-youtube-suivies.md) | Lire chaque nuit les chaînes YouTube suivies | Acceptée |
+| [0035](0035-journal-des-passages-et-page-sources.md) | Journal des passages et page Sources | Acceptée |
+| [0036](0036-podcasts-candidats-podcast-index.md) | Podcasts candidats depuis la base publique de Podcast Index | Acceptée |
 
 Modèle : copier [`template.md`](template.md).

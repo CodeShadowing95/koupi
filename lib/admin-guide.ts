@@ -51,7 +51,7 @@ export const guideChapters: GuideChapter[] = [
   {
     slug: 'codes', part: 'moderate', title: 'Tester et tenir les codes', minutes: 5,
     summary: 'Tester un code, le marquer « Marche » ou « Ne marche pas », le modifier et le retester.',
-    goals: ['Tester un code sans se tromper', 'Ajouter un code à la main', 'Garder les codes vérifiés à jour tous les 30 jours'],
+    goals: ['Tester un code sans se tromper', 'Ajouter un code à la main', 'Garder les codes vérifiés à jour tous les 30 jours', 'Voir les codes les plus copiés et ceux qui expirent', 'Savoir d’où vient chaque code'],
     practice: { href: '/admin/codes?status=to_test', label: 'Voir les codes à tester' },
   },
   {
@@ -61,33 +61,39 @@ export const guideChapters: GuideChapter[] = [
     practice: { href: '/admin/verifications', label: 'Ouvrir les vérifications' },
   },
   {
-    slug: 'podcasts', part: 'moderate', title: 'Suivre des podcasts', minutes: 5,
+    slug: 'podcasts', part: 'moderate', title: 'Suivre des podcasts', minutes: 7,
     summary: 'Choisir les podcasts que Merkod lit pour trouver des codes, lancer une lecture, les mettre en pause ou les retirer.',
-    goals: ['Trouver et suivre un podcast, ou en découvrir dans les classements', 'Savoir comment Merkod repère un code dans un épisode, avec ou sans IA', 'Savoir à quel créateur ses codes sont crédités', 'Mettre en pause sans rien perdre', 'Voir ce que Merkod a lu dans chaque épisode', 'Ajouter en un clic l’outil d’un code trouvé hors catalogue', 'Faire analyser un site par l’IA et créer une catégorie'],
+    goals: ['Trouver et suivre un podcast, ou en découvrir dans les classements', 'Suivre ou écarter les podcasts candidats trouvés chaque lundi', 'Savoir comment Merkod repère un code dans un épisode, avec ou sans IA', 'Savoir à quel créateur ses codes sont crédités', 'Mettre en pause sans rien perdre', 'Voir ce que Merkod a lu dans chaque épisode', 'Repérer les podcasts qui rapportent et mettre en pause ceux qui ne donnent plus rien', 'Ajouter en un clic l’outil d’un code trouvé hors catalogue', 'Faire analyser un site par l’IA et créer une catégorie'],
     practice: { href: '/admin/podcasts', label: 'Ouvrir les podcasts suivis' },
   },
   {
     slug: 'outils', part: 'catalog', title: 'Gérer les outils', minutes: 4,
     summary: 'Ajouter un outil, régler sa priorité, l’archiver ou le restaurer.',
-    goals: ['Ajouter un outil propre', 'Récupérer et actualiser les logos', 'Utiliser la priorité pour choisir quoi couvrir', 'Archiver sans rien perdre'],
+    goals: ['Ajouter un outil propre', 'Récupérer et actualiser les logos', 'Chercher des codes pour un outil', 'Utiliser la priorité pour choisir quoi couvrir', 'Archiver sans rien perdre'],
     practice: { href: '/admin/outils', label: 'Ouvrir les outils' },
   },
   {
-    slug: 'createurs', part: 'catalog', title: 'Suivre les créateurs', minutes: 11,
+    slug: 'createurs', part: 'catalog', title: 'Suivre les créateurs', minutes: 14,
     summary: 'Qui donne les codes, leur profil, leurs comptes, leur niveau de confiance, leurs demandes et comment garder des noms propres.',
-    goals: ['Lire la fiche d’un créateur', 'Écrire sa présentation', 'Relier et contrôler ses comptes', 'Comprendre les trois niveaux', 'Faire prouver un compte par la bio', 'Répondre aux revendications et signalements', 'Donner l’accès à l’espace créateur', 'Éviter les doublons de noms'],
+    goals: ['Trier et filtrer les créateurs', 'Trouver qui contacter', 'Lire la fiche d’un créateur', 'Écrire sa présentation', 'Relier et contrôler ses comptes', 'Suivre les vidéos de ses chaînes', 'Comprendre les trois niveaux', 'Faire prouver un compte par la bio', 'Répondre aux revendications et signalements', 'Donner l’accès à l’espace créateur', 'Éviter les doublons de noms'],
     practice: { href: '/admin/createurs', label: 'Ouvrir les créateurs' },
   },
   {
     slug: 'categories', part: 'catalog', title: 'Organiser les catégories', minutes: 6,
     summary: 'Les rayons du site : familles, création, renommage, catégories vides et recherche de codes.',
-    goals: ['Comprendre la couverture d’une catégorie', 'Ranger une catégorie dans sa famille', 'Créer ou renommer une catégorie', 'Trouver les rayons vides à remplir', 'Chercher des codes sur YouTube pour une catégorie'],
+    goals: ['Comprendre la couverture d’une catégorie', 'Ranger une catégorie dans sa famille', 'Créer ou renommer une catégorie', 'Trouver les rayons vides à remplir', 'Chercher des codes sur YouTube pour une catégorie', 'Faire ramener du neuf à chaque recherche'],
     practice: { href: '/admin/categories', label: 'Ouvrir les catégories' },
   },
   {
-    slug: 'indicateurs', part: 'steer', title: 'Lire les indicateurs', minutes: 5,
+    slug: 'sources', part: 'catalog', title: 'Sources de codes', minutes: 5,
+    summary: 'Les endroits où Merkod trouve des codes : ce que chacun rapporte, ce qu’il coûte, quand il passe et le journal des passages.',
+    goals: ['Lire le rendement d’une source', 'Savoir quand passe chaque source et ce qu’elle coûte', 'Lancer une source à la main en connaissant le coût', 'Repérer un passage raté dans le journal'],
+    practice: { href: '/admin/sources', label: 'Ouvrir les sources' },
+  },
+  {
+    slug: 'indicateurs', part: 'steer', title: 'Lire les indicateurs', minutes: 8,
     summary: 'Couverture, codes vérifiés, réussite, délai : ce qu’ils disent et quoi faire.',
-    goals: ['Lire les quatre indicateurs clés', 'Savoir quel geste fait monter chaque chiffre', 'Utiliser la liste « À faire »', 'Surveiller le quota YouTube et la dépense IA'],
+    goals: ['Lire les quatre indicateurs clés', 'Savoir quel geste fait monter chaque chiffre', 'Réagir aux alertes urgentes de l’accueil', 'Utiliser la liste « À faire »', 'Lire le rendement de chaque source et ce que les visiteurs copient', 'Ajouter un outil depuis une recherche sans résultat', 'Surveiller le quota YouTube et la dépense IA'],
     practice: { href: '/admin/stats', label: 'Ouvrir les statistiques' },
   },
   {

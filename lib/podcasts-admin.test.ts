@@ -89,6 +89,28 @@ describe('podcasts suivis', () => {
     expect(counts).toEqual({ '42': 2, '420': 0 });
   });
 
+  it('donne le rendement de chaque podcast : publiés, copiés ce mois-ci, dernier code', async () => {
+    const now = new Date('2026-11-05T12:00:00Z');
+    await followPodcast(db, feed());
+    await followPodcast(db, feed({ id: 420, title: 'Autre' }));
+    await db.insert(schema.categories).values({ slug: 'vpn', name: 'VPN' });
+    const [tool] = await db.insert(schema.tools).values({ slug: 'nordvpn', name: 'NordVPN', categorySlug: 'vpn', website: 'https://nordvpn.com' }).returning();
+    const [silicon] = await listPodcasts(db).then(list => list.filter(item => item.feedId === '42'));
+    const base = { toolId: tool.id, creatorId: silicon.creatorId!, discount: '-10 %' };
+    const [published] = await db.insert(schema.codes).values([
+      { ...base, code: 'A', sourceUrl: 'https://podcasts.apple.com/podcast/id42?i=1', status: 'verified' as const, createdAt: new Date('2026-10-01T10:00:00Z') },
+      { ...base, code: 'B', sourceUrl: 'https://podcasts.apple.com/podcast/id42?i=2', status: 'rejected' as const, createdAt: new Date('2026-11-02T10:00:00Z') },
+    ]).returning();
+    await db.insert(schema.dailyCounters).values([
+      { day: '2026-11-03', metric: 'copy', key: published.id, count: 4 },
+      { day: '2026-11-04', metric: 'copy', key: published.id, count: 1 },
+      { day: '2026-10-20', metric: 'copy', key: published.id, count: 9 },
+    ]);
+    const list = await listPodcasts(db, now);
+    expect(list.find(item => item.feedId === '42')).toMatchObject({ codesFound: 2, codesPublished: 1, copiesThisMonth: 5, lastCodeAt: '2026-11-02T10:00:00.000Z' });
+    expect(list.find(item => item.feedId === '420')).toMatchObject({ codesFound: 0, codesPublished: 0, copiesThisMonth: 0, lastCodeAt: null });
+  });
+
   it('donne le lien Apple d’un épisode', () => {
     expect(applePodcastUrl(42, 7)).toBe('https://podcasts.apple.com/podcast/id42?i=7');
   });

@@ -26,7 +26,9 @@ export function parseToolInput(body: Record<string, unknown>): Parsed<ToolInput>
   return { ok: true, data: { name, categorySlug, website, description: text(body.description, 300) || null, priority } };
 }
 
-export type AdminTool = { id: string; slug: string; name: string; categorySlug: string; category: string; website: string; description: string | null; priority: number; codes: number; visible: number; archived: boolean };
+export type AdminTool = { id: string; slug: string; name: string; categorySlug: string; category: string; website: string; description: string | null; priority: number; codes: number; visible: number; archived: boolean;
+  /** Créateurs différents qui donnent un code (non archivé) pour cet outil. */
+  creators: number };
 
 export async function listToolsAdmin(db: Db): Promise<AdminTool[]> {
   const rows = await db.select({
@@ -34,6 +36,7 @@ export async function listToolsAdmin(db: Db): Promise<AdminTool[]> {
     description: tools.description, priority: tools.priority, archivedAt: tools.archivedAt,
     codes: sql<number>`count(${codes.id}) filter (where ${codes.archivedAt} is null)::int`,
     visible: sql<number>`count(${codes.id}) filter (where ${visible})::int`,
+    creators: sql<number>`count(distinct ${codes.creatorId}) filter (where ${codes.archivedAt} is null)::int`,
   }).from(tools).innerJoin(categories, eq(tools.categorySlug, categories.slug)).leftJoin(codes, eq(codes.toolId, tools.id))
     .groupBy(tools.id, categories.name).orderBy(asc(tools.priority), asc(tools.name));
   return rows.map(({ archivedAt, ...row }) => ({ ...row, archived: Boolean(archivedAt) }));

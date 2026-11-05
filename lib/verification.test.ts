@@ -14,6 +14,9 @@ describe('creatorLevelOf', () => {
   it('demande le contrôle de l’admin et le seuil d’abonnés', () => {
     expect(MIN_SUBSCRIBERS).toBe(1000);
     expect(creatorLevelOf({ adminChecked: true, subscribers: 1000 })).toBe('checked');
+    expect(creatorLevelOf({ adminChecked: true, subscribers: null, ratingCount: 50 })).toBe('checked');
+    expect(creatorLevelOf({ adminChecked: true, subscribers: null, ratingCount: 49 })).toBe('spotted');
+    expect(creatorLevelOf({ adminChecked: false, ratingCount: 5000 })).toBe('spotted');
     expect(creatorLevelOf({ adminChecked: true, subscribers: 999 })).toBe('spotted');
     expect(creatorLevelOf({ adminChecked: false, subscribers: 50_000 })).toBe('spotted');
     expect(creatorLevelOf({})).toBe('spotted');

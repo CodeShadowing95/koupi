@@ -4,6 +4,7 @@ import { aiConfigFrom, aiStatusOf } from '@/lib/ai-extract';
 import { listCategoriesAdmin } from '@/lib/catalog-admin';
 import { toolOptions } from '@/lib/codes-admin';
 import { listPodcasts, STARTER_PODCASTS } from '@/lib/podcasts-admin';
+import { listCandidates } from '@/lib/podcast-candidates';
 import { listToolSuggestions } from '@/lib/tool-suggestions';
 import { aiSpendSince, startOfMonthUtc } from '@/lib/verification-store';
 import { PodcastsView } from './podcasts-view';
@@ -25,9 +26,9 @@ async function imagesOf(feedIds: string[]): Promise<Record<string, string>> {
 // et les outils absents du catalogue dont un code a été trouvé.
 export default async function Page({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const db = getDb();
-  const [podcasts, suggestions, categories, tools, spent, { tab }] = await Promise.all([listPodcasts(db), listToolSuggestions(db), listCategoriesAdmin(db), toolOptions(db), aiSpendSince(db, startOfMonthUtc()), searchParams]);
+  const [podcasts, suggestions, categories, tools, spent, candidates, { tab }] = await Promise.all([listPodcasts(db), listToolSuggestions(db), listCategoriesAdmin(db), toolOptions(db), aiSpendSince(db, startOfMonthUtc()), listCandidates(db), searchParams]);
   const ai = aiStatusOf(aiConfigFrom(process.env), spent);
   const images = await imagesOf(podcasts.map(podcast => podcast.feedId));
-  return <PodcastsView podcasts={podcasts} images={images} starters={[...STARTER_PODCASTS]} suggestions={suggestions}
-    categories={categories.map(category => ({ slug: category.slug, name: category.name }))} tools={tools} ai={{ active: ai.state === 'active', label: ai.label }} initialTab={tab === 'outils' ? 'tools' : undefined} />;
+  return <PodcastsView podcasts={podcasts} nowIso={new Date().toISOString()} images={images} starters={[...STARTER_PODCASTS]} suggestions={suggestions}
+    categories={categories.map(category => ({ slug: category.slug, name: category.name }))} tools={tools} ai={{ active: ai.state === 'active', label: ai.label }} initialTab={tab === 'outils' ? 'tools' : tab === 'candidats' ? 'candidates' : undefined} candidates={candidates} />;
 }

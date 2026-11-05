@@ -14,10 +14,18 @@ describe('publicAccounts', () => {
       { platform: 'youtube', handle: '@ana', url: 'https://youtube.com/@ana', subscribers: 12_400 },
     ]);
     expect(accounts.map(account => account.handle)).toEqual(['@ana', '@ana-tech', '@ana']);
-    expect(accounts[0]).toMatchObject({ label: 'YouTube', subscribers: '12 400 abonnés' });
-    expect(accounts[1].subscribers).toBeNull();
+    expect(accounts[0]).toMatchObject({ label: 'YouTube', audience: '12 400 abonnés' });
+    expect(accounts[1].audience).toBeNull();
     expect(accounts[2].label).toBe('Instagram');
     expect(accounts.every(account => !account.proven)).toBe(true);
+  });
+  it('montre la note et les épisodes d’un podcast, sans les vues YouTube', () => {
+    const [youtube, podcast] = publicAccounts([
+      { platform: 'podcast', handle: 'GDIY', url: 'https://podcasts.apple.com/fr/podcast/id1', subscribers: null, metrics: { rating: 4.7, ratingCount: 5281, ratingSource: 'Apple Podcasts', episodes: 1100 } },
+      { platform: 'youtube', handle: '@ana', url: 'https://youtube.com/@ana', subscribers: 12_400, metrics: { views: 900_000, videos: 120 } },
+    ]);
+    expect(podcast.audience).toBe('4,7\u00a0★ · 5\u00a0281\u00a0notes · 1\u00a0100\u00a0épisodes');
+    expect(youtube.audience).toBe('12 400 abonnés');
   });
   it('marque le compte prouvé par le créateur', () => {
     const [account] = publicAccounts([{ platform: 'youtube', handle: '@ana', url: 'https://youtube.com/@ana', subscribers: 1, claimStatus: 'verified' }]);
@@ -41,7 +49,7 @@ describe('loadCreatorProfile', () => {
     await db.insert(schema.creatorAccounts).values({ creatorId: ana.id, platform: 'tiktok', handle: '@ana', url: 'https://tiktok.com/@ana', subscribers: 1 });
     expect(await loadCreatorProfile(db, 'ana')).toEqual({
       bio: 'Je teste des outils IA.',
-      accounts: [{ platform: 'tiktok', label: 'TikTok', handle: '@ana', url: 'https://tiktok.com/@ana', subscribers: '1 abonné', proven: false }],
+      accounts: [{ platform: 'tiktok', label: 'TikTok', handle: '@ana', url: 'https://tiktok.com/@ana', audience: '1 abonné', proven: false }],
     });
     expect(await loadCreatorProfile(db, 'personne')).toBeNull();
   });

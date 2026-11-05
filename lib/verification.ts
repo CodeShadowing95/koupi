@@ -4,6 +4,8 @@
 
 /** Seuil d'abonnés pour qu'un créateur puisse être « Contrôlé par Merkod ». */
 export const MIN_SUBSCRIBERS = 1000;
+/** Seuil équivalent pour un podcast, qui n'a pas d'abonnés publics : nombre de notes sur sa plateforme (Apple…). */
+export const MIN_RATINGS = 50;
 
 /** En dessous de ce score, le rejet est proposé (la décision reste à l'admin). */
 export const REJECT_BELOW = 20;
@@ -28,13 +30,16 @@ export type CreatorFacts = {
   /** L'admin a contrôlé le compte (réel, actif, pas d'usurpation). */
   adminChecked?: boolean;
   subscribers?: number | null;
+  /** Nombre de notes (podcasts) : remplace le seuil d'abonnés quand ceux-ci ne sont pas publics. */
+  ratingCount?: number | null;
 };
 
-// Le badge de la plateforme suffit pour « Contrôlé par Merkod » ; sinon il faut le contrôle de l'admin et le seuil d'abonnés.
+// Le badge de la plateforme suffit pour « Contrôlé par Merkod » ; sinon il faut le contrôle de l'admin et un seuil
+// d'audience : au moins MIN_SUBSCRIBERS abonnés, ou MIN_RATINGS notes pour un podcast.
 export function creatorLevelOf(facts: CreatorFacts): CreatorLevel {
   if (facts.claimed) return 'verified';
   if (facts.platformVerified) return 'checked';
-  if (facts.adminChecked && (facts.subscribers ?? 0) >= MIN_SUBSCRIBERS) return 'checked';
+  if (facts.adminChecked && ((facts.subscribers ?? 0) >= MIN_SUBSCRIBERS || (facts.ratingCount ?? 0) >= MIN_RATINGS)) return 'checked';
   return 'spotted';
 }
 

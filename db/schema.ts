@@ -1,6 +1,8 @@
 import { sql } from 'drizzle-orm';
 import { boolean, check, date, index, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import type { ToolAnalysis } from '../lib/tool-analysis';
+import type { AccountMetrics } from '../lib/account-metrics';
+import { CODE_ORIGINS } from '../lib/code-origin';
 
 // Propositions de codes envoyées par le public, en attente de modération.
 export const submissions = pgTable('submissions', {
@@ -145,6 +147,8 @@ export const codes = pgTable('codes', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   archivedAt: timestamp('archived_at', { withTimezone: true }),
+  /** Comment Merkod a trouvé le code (lib/code-origin.ts, ADR-0032) : à la main, proposition, recherche YouTube, podcast… */
+  origin: text('origin', { enum: CODE_ORIGINS }).notNull().default('unknown'),
 }, table => [
   index('codes_tool_idx').on(table.toolId),
   index('codes_creator_idx').on(table.creatorId),
@@ -155,6 +159,7 @@ export const codes = pgTable('codes', {
   check('codes_creator_link_http', sql`${table.creatorLink} is null or ${table.creatorLink} ~* '^https?://'`),
   check('codes_status_valid', sql`${table.status} in ('pending','to_test','verified','rejected')`),
   check('codes_votes_positive', sql`${table.votesUp} >= 0 and ${table.votesDown} >= 0`),
+  check('codes_origin_valid', sql`${table.origin} in ('manual','submission','import','youtube_search','youtube_channel','podcast','ai_web','spotify','unknown')`),
 ]);
 
 export const CODE_ACTIONS = ['create', 'edit', 'verify', 'reject', 'to_test', 'pending', 'archive', 'restore', 'payment_test'] as const;
@@ -257,6 +262,9 @@ export const creatorAccounts = pgTable('creator_accounts', {
   url: text('url').notNull(),
   subscribers: integer('subscribers'),
   subscribersAt: timestamp('subscribers_at', { withTimezone: true }),
+  /** Autres mesures d'audience lues sur la source : note et nombre de notes, épisodes, vues… (lib/account-metrics.ts, ADR-0030). */
+  metrics: jsonb('metrics').$type<AccountMetrics>().notNull().default({}),
+  metricsAt: timestamp('metrics_at', { withTimezone: true }),
   /** Badge de compte certifié du réseau, coché à la main par l'admin (l'API YouTube ne le donne pas). */
   platformVerified: boolean('platform_verified').notNull().default(false),
   /** Date du contrôle par l'admin : compte réel, actif, pas une usurpation. */
@@ -281,6 +289,7 @@ export const creatorAccounts = pgTable('creator_accounts', {
   check('creator_accounts_handle_len', sql`char_length(trim(${table.handle})) between 1 and 120`),
   check('creator_accounts_external_id_len', sql`${table.externalId} is null or char_length(trim(${table.externalId})) between 1 and 200`),
   check('creator_accounts_url_http', sql`${table.url} ~* '^https?://'`),
+  check('creator_accounts_metrics_object', sql`jsonb_typeof(${table.metrics}) = 'object'`),
   check('creator_accounts_subscribers_positive', sql`${table.subscribers} is null or ${table.subscribers} >= 0`),
   check('creator_accounts_claim_code_format', sql`${table.claimCode} is null or ${table.claimCode} ~ '^(MERKOD|KOUPI)-[A-Z0-9]{6}$'`),
   check('creator_accounts_claim_code_pending', sql`${table.claimCode} is null or (${table.claimStatus} = 'pending' and ${table.claimCodeAt} is not null)`),
@@ -355,6 +364,79 @@ export const apiUsage = pgTable('api_usage', {
   primaryKey({ columns: [table.service, table.day] }),
   check('api_usage_service_format', sql`${table.service} ~ '^[a-z0-9_]{1,30}$'`),
   check('api_usage_counts_positive', sql`${table.units} >= 0 and ${table.calls} >= 0`),
+]);
+
+// Recherche de codes sur YouTube (ADR-0033) : chaque recherche lancée, avec sa formulation, pour un outil ou pour le nom d'une catégorie.
+// Elle sert à faire tourner les formulations et à ne demander que les vidéos publiées depuis la dernière recherche identique.
+export const youtubeSearches = pgTable('youtube_searches', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  toolId: uuid('tool_id').references(() => tools.id, { onDelete: 'cascade' }),
+  categorySlug: text('category_slug').references(() => categories.slug, { onDelete: 'cascade', onUpdate: 'cascade' }),
+  /** Formulation utilisée (« code promo », « promo code »…), voir lib/youtube-queries.ts. */
+  variant: text('variant').notNull(),
+  query: text('query').notNull(),
+  /** Vidéos rendues par YouTube, dont celles jamais lues avant. */
+  videos: integer('videos').notNull().default(0),
+  newVideos: integer('new_videos').notNull().default(0),
+  codes: integer('codes').notNull().default(0),
+  searchedAt: timestamp('searched_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  index('youtube_searches_tool_idx').on(table.toolId, table.searchedAt),
+  index('youtube_searches_category_idx').on(table.categorySlug, table.searchedAt),
+  check('youtube_searches_subject', sql`${table.toolId} is not null or ${table.categorySlug} is not null`),
+  check('youtube_searches_variant_len', sql`char_length(${table.variant}) between 1 and 40`),
+  check('youtube_searches_counts_positive', sql`${table.videos} >= 0 and ${table.newVideos} >= 0 and ${table.codes} >= 0`),
+]);
+
+// Vidéos YouTube déjà lues par la recherche de codes : une vidéo lue n'est plus relue (ni payée), et sa chaîne devient « connue ».
+export const youtubeSeenVideos = pgTable('youtube_seen_videos', {
+  videoId: text('video_id').primaryKey(),
+  channelId: text('channel_id'),
+  channelTitle: text('channel_title').notNull().default(''),
+  /** Outil cherché quand la vidéo a été lue (vide pour la recherche sur le nom d'une catégorie). */
+  toolId: uuid('tool_id').references(() => tools.id, { onDelete: 'set null' }),
+  query: text('query').notNull(),
+  /** Codes mis en attente depuis cette vidéo. */
+  codes: integer('codes').notNull().default(0),
+  seenAt: timestamp('seen_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  index('youtube_seen_videos_channel_idx').on(table.channelId),
+  check('youtube_seen_videos_id_format', sql`${table.videoId} ~ '^[A-Za-z0-9_-]{1,20}$'`),
+  check('youtube_seen_videos_codes_positive', sql`${table.codes} >= 0`),
+]);
+
+export const SOURCE_RUN_SOURCES = ['youtube_search', 'youtube_channel', 'podcast'] as const;
+export const SOURCE_RUN_TRIGGERS = ['manual', 'cron'] as const;
+export const SOURCE_RUN_STATUSES = ['ok', 'partial', 'failed'] as const;
+
+// Journal des passages des sources de codes (ADR-0035) : chaque recherche YouTube, lecture des chaînes suivies
+// ou des podcasts, lancée à la main ou par la tâche de nuit, avec ce qu'elle a lu, trouvé et coûté.
+export const sourceRuns = pgTable('source_runs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  source: text('source', { enum: SOURCE_RUN_SOURCES }).notNull(),
+  trigger: text('trigger', { enum: SOURCE_RUN_TRIGGERS }).notNull(),
+  /** Ce qui a été lu : « Catégories vides », « Catégorie VPN », « Outil NordVPN », « Toutes les chaînes »… */
+  scope: text('scope').notNull().default(''),
+  status: text('status', { enum: SOURCE_RUN_STATUSES }).notNull(),
+  /** Vidéos ou épisodes lus. */
+  items: integer('items').notNull().default(0),
+  codes: integer('codes').notNull().default(0),
+  /** Codes d'outils absents du catalogue, gardés en suggestion. */
+  suggested: integer('suggested').notNull().default(0),
+  /** Unités du quota YouTube (environ). */
+  units: integer('units').notNull().default(0),
+  /** Message d'erreur, ou ce qui n'a pas répondu. */
+  error: text('error'),
+  startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
+  finishedAt: timestamp('finished_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  index('source_runs_source_idx').on(table.source, table.startedAt.desc()),
+  index('source_runs_started_idx').on(table.startedAt.desc()),
+  check('source_runs_source_valid', sql`${table.source} in ('youtube_search','youtube_channel','podcast')`),
+  check('source_runs_trigger_valid', sql`${table.trigger} in ('manual','cron')`),
+  check('source_runs_status_valid', sql`${table.status} in ('ok','partial','failed')`),
+  check('source_runs_counts_positive', sql`${table.items} >= 0 and ${table.codes} >= 0 and ${table.suggested} >= 0 and ${table.units} >= 0`),
+  check('source_runs_scope_len', sql`char_length(${table.scope}) <= 200`),
 ]);
 
 export type ToolSuggestionRow = typeof toolSuggestions.$inferSelect;
@@ -505,4 +587,39 @@ export const feedback = pgTable('feedback', {
   check('feedback_message_len', sql`char_length(${table.message}) between 1 and 2000`),
   check('feedback_email_len', sql`${table.email} is null or char_length(${table.email}) between 3 and 320`),
   check('feedback_from_path', sql`${table.fromPath} is null or (${table.fromPath} ~ '^/' and char_length(${table.fromPath}) <= 300)`),
+]);
+
+export const PODCAST_CANDIDATE_STATUSES = ['new', 'dismissed'] as const;
+
+/** Un code repéré dans un épisode d'un podcast candidat (lib/podcast-index.ts). */
+export type PodcastCandidateHit = { toolId: string; code: string; evidence: string; episodeTitle: string; episodeUrl: string | null; publishedAt: string | null };
+
+// Podcasts candidats trouvés chaque semaine dans la base publique de Podcast Index (ADR-0036) : actifs, en français
+// ou en anglais, et qui citent un outil du catalogue près d'un code. L'admin les suit (Podcasts > Candidats) ou les écarte.
+export const podcastCandidates = pgTable('podcast_candidates', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  /** Identifiant Apple Podcasts : c'est par lui qu'on suit le podcast, comme pour une recherche. */
+  itunesId: text('itunes_id').notNull(),
+  podcastIndexId: integer('podcast_index_id').notNull().default(0),
+  title: text('title').notNull(),
+  author: text('author').notNull().default(''),
+  feedUrl: text('feed_url').notNull(),
+  imageUrl: text('image_url'),
+  language: text('language').notNull().default(''),
+  category: text('category').notNull().default(''),
+  episodeCount: integer('episode_count').notNull().default(0),
+  newestEpisodeAt: timestamp('newest_episode_at', { withTimezone: true }),
+  /** Les codes d'outils du catalogue repérés au dernier passage (5 au plus). */
+  hits: jsonb('hits').$type<PodcastCandidateHit[]>().notNull().default([]),
+  status: text('status', { enum: PODCAST_CANDIDATE_STATUSES }).notNull().default('new'),
+  firstSeenAt: timestamp('first_seen_at', { withTimezone: true }).notNull().defaultNow(),
+  lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  uniqueIndex('podcast_candidates_itunes_idx').on(table.itunesId),
+  index('podcast_candidates_status_idx').on(table.status, table.lastSeenAt.desc()),
+  check('podcast_candidates_status_valid', sql`${table.status} in ('new','dismissed')`),
+  check('podcast_candidates_itunes_format', sql`${table.itunesId} ~ '^[0-9]{1,15}$'`),
+  check('podcast_candidates_title_len', sql`char_length(trim(${table.title})) between 1 and 200`),
+  check('podcast_candidates_feed_url_http', sql`${table.feedUrl} ~* '^https?://'`),
+  check('podcast_candidates_counts_positive', sql`${table.episodeCount} >= 0 and ${table.podcastIndexId} >= 0`),
 ]);

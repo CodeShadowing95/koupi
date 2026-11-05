@@ -8,6 +8,8 @@ import { validUrl } from './codes-admin';
 import { accountLevelOf } from './creator-level';
 import type { AdminCreatorAccount, CreatorPlatform } from './creator-accounts-display';
 import { youtubeFetch } from './api-usage';
+import { cleanMetrics, mergeMetrics, type AccountMetrics } from './account-metrics';
+import { guessLanguage, normalizeCountry, normalizeLanguage } from './language-guess';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 const text = (value: unknown, max: number) => (typeof value === 'string' ? value.trim().slice(0, max) : '');
@@ -33,8 +35,15 @@ export function youtubeChannelRef(raw: string): ChannelRef | null {
   return null;
 }
 
-export type YoutubeChannel = { externalId: string; title: string; handle: string; url: string; subscribers: number | null };
+export type YoutubeChannel = { externalId: string; title: string; handle: string; url: string; subscribers: number | null; metrics?: AccountMetrics };
 export type ChannelReader = (ref: ChannelRef) => Promise<YoutubeChannel | null>;
+
+/** Pays et langue d'une chaîne : ceux que le créateur a remplis sur YouTube, sinon la langue devinée sur sa description. */
+export function channelLocale(snippet: { title?: string; country?: string; defaultLanguage?: string; description?: string } | undefined): { country?: string; language?: string } {
+  const country = normalizeCountry(snippet?.country) ?? undefined;
+  const language = normalizeLanguage(snippet?.defaultLanguage) ?? guessLanguage(`${snippet?.title ?? ''}. ${snippet?.description ?? ''}`) ?? undefined;
+  return { ...(country ? { country } : {}), ...(language ? { language } : {}) };
+}
 
 // Lecture d'une chaîne par l'API officielle. null : chaîne introuvable. Lève une erreur si l'API ne répond pas.
 export function youtubeChannelReader(apiKey: string | undefined, fetchFn: typeof fetch = youtubeFetch): ChannelReader | null {
@@ -44,7 +53,7 @@ export function youtubeChannelReader(apiKey: string | undefined, fetchFn: typeof
     const endpoint = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&${param}=${encodeURIComponent(ref.value)}&key=${encodeURIComponent(apiKey)}`;
     const response = await fetchFn(endpoint, { cache: 'no-store' });
     if (!response.ok) throw new Error(`YouTube API ${response.status}`);
-    const body = await response.json() as { items?: { id?: string; snippet?: { title?: string; customUrl?: string }; statistics?: { subscriberCount?: string; hiddenSubscriberCount?: boolean } }[] };
+    const body = await response.json() as { items?: { id?: string; snippet?: { title?: string; customUrl?: string; country?: string; defaultLanguage?: string; description?: string }; statistics?: { subscriberCount?: string; hiddenSubscriberCount?: boolean; viewCount?: string; videoCount?: string } }[] };
     const item = body.items?.[0];
     if (!item?.id) return null;
     const handle = item.snippet?.customUrl || (ref.by === 'handle' ? ref.value : item.id);
@@ -55,6 +64,8 @@ export function youtubeChannelReader(apiKey: string | undefined, fetchFn: typeof
       handle: handle.slice(0, 120),
       url: handle.startsWith('@') ? `https://www.youtube.com/${handle}` : `https://www.youtube.com/channel/${item.id}`,
       subscribers: item.statistics?.hiddenSubscriberCount || !Number.isFinite(count) ? null : count,
+      // Vues et vidéos viennent avec les abonnés, sans coût en plus (1 unité de quota).
+      metrics: cleanMetrics({ views: Number(item.statistics?.viewCount), videos: Number(item.statistics?.videoCount), ...channelLocale(item.snippet) }),
     };
   };
 }
@@ -65,6 +76,7 @@ function toAdmin(row: CreatorAccountRow): AdminCreatorAccount {
   return {
     id: row.id, platform: row.platform, externalId: row.externalId, handle: row.handle, url: row.url,
     subscribers: row.subscribers, subscribersAt: row.subscribersAt?.toISOString() ?? null,
+    metrics: cleanMetrics(row.metrics), metricsAt: row.metricsAt?.toISOString() ?? null,
     platformVerified: row.platformVerified, adminCheckedAt: row.adminCheckedAt?.toISOString() ?? null,
     level: accountLevelOf(row),
     claimStatus: row.claimStatus, claimCode: row.claimCode, claimCodeAt: row.claimCodeAt?.toISOString() ?? null,
@@ -112,7 +124,18 @@ async function ownerOf(db: Db, platform: CreatorPlatform, externalId: string | n
   return match?.name ?? null;
 }
 
-export type AccountDeps = { readChannel: ChannelReader | null; now?: Date };
+/**
+ * Lecteur d'audience d'une plateforme autre que YouTube (podcast : Apple ; plus tard Spotify…), branché sans toucher
+ * au reste. null : le compte n'existe plus à la source. Lève une erreur si la source ne répond pas.
+ */
+export type AudienceReader = (account: { externalId: string | null; url: string }) => Promise<AccountMetrics | null>;
+
+export type AccountDeps = { readChannel: ChannelReader | null; readAudience?: Partial<Record<CreatorPlatform, AudienceReader>>; now?: Date };
+
+/** Plateformes qu'« Actualiser » sait relire. */
+export function refreshablePlatforms(deps: Pick<AccountDeps, 'readAudience'>): CreatorPlatform[] {
+  return ['youtube', ...(Object.keys(deps.readAudience ?? {}) as CreatorPlatform[])];
+}
 
 /** Relie un compte à un créateur. YouTube : lu par l'API. Autres réseaux : saisis à la main. */
 export async function addCreatorAccount(db: Db, creatorId: string, body: Record<string, unknown>, deps: AccountDeps): Promise<Parsed<{ id: string }>> {
@@ -131,6 +154,7 @@ export async function addCreatorAccount(db: Db, creatorId: string, body: Record<
     if (!channel) return { ok: false, error: 'Aucune chaîne YouTube ne correspond à ce lien.' };
     values = {
       creatorId, platform: 'youtube', externalId: channel.externalId, handle: channel.handle, url: channel.url,
+      metrics: channel.metrics ?? {}, metricsAt: channel.metrics ? now : null,
       subscribers: channel.subscribers, subscribersAt: now,
     };
   } else {
@@ -171,17 +195,34 @@ export async function updateCreatorAccount(db: Db, id: string, body: Record<stri
     changes.subscribers = subscribers.data;
     changes.subscribersAt = subscribers.data === null ? null : now;
   }
+  if ('country' in body || 'language' in body) {
+    const country = body.country === '' || body.country === null ? null : normalizeCountry(body.country);
+    const language = body.language === '' || body.language === null ? null : normalizeLanguage(body.language);
+    if (body.country && !country) return { ok: false, error: 'Le pays doit être un code à deux lettres (FR, BE, CA…).' };
+    if (body.language && !language) return { ok: false, error: 'La langue doit être un code à deux lettres (fr, en…).' };
+    const metrics = cleanMetrics(account.metrics);
+    delete metrics.country; delete metrics.language;
+    changes.metrics = cleanMetrics({ ...metrics, country, language, localeManual: true });
+  }
   if (Object.keys(changes).length === 0) return { ok: false, error: 'Rien à changer.' };
   await db.update(creatorAccounts).set({ ...changes, updatedAt: now }).where(eq(creatorAccounts.id, id));
   return { ok: true, data: { id } };
 }
 
-/** Relit une chaîne YouTube : abonnés et pseudo à jour. */
+/** Relit un compte à sa source : abonnés, pseudo, vues et vidéos pour YouTube ; note et épisodes pour un podcast… */
 export async function refreshCreatorAccount(db: Db, id: string, deps: AccountDeps): Promise<Parsed<{ id: string }>> {
   const now = deps.now ?? new Date();
   const [account] = await db.select().from(creatorAccounts).where(eq(creatorAccounts.id, id)).limit(1);
   if (!account) return { ok: false, error: 'Compte introuvable.' };
-  if (account.platform !== 'youtube' || !account.externalId) return { ok: false, error: 'Seules les chaînes YouTube s’actualisent toutes seules.' };
+  const readAudience = account.platform === 'youtube' ? undefined : deps.readAudience?.[account.platform];
+  if (readAudience) {
+    let metrics: AccountMetrics | null;
+    try { metrics = await readAudience({ externalId: account.externalId, url: account.url }); } catch { return { ok: false, error: 'La source ne répond pas. Réessaie dans un moment.' }; }
+    if (!metrics) return { ok: false, error: 'Ce compte est introuvable à sa source.' };
+    await db.update(creatorAccounts).set({ metrics: mergeMetrics(account.metrics, metrics), metricsAt: now, lastRecheckedAt: now, updatedAt: now }).where(eq(creatorAccounts.id, id));
+    return { ok: true, data: { id } };
+  }
+  if (account.platform !== 'youtube' || !account.externalId) return { ok: false, error: 'Ce réseau ne s’actualise pas tout seul : modifie ses chiffres à la main.' };
   if (!deps.readChannel) return { ok: false, error: 'La clé YouTube (YOUTUBE_API_KEY) manque : la chaîne ne peut pas être lue.' };
   let channel: YoutubeChannel | null;
   try { channel = await deps.readChannel({ by: 'id', value: account.externalId }); } catch { return { ok: false, error: 'YouTube ne répond pas. Réessaie dans un moment.' }; }
@@ -189,6 +230,7 @@ export async function refreshCreatorAccount(db: Db, id: string, deps: AccountDep
   try {
     await db.update(creatorAccounts).set({
       handle: channel.handle, url: channel.url, subscribers: channel.subscribers, subscribersAt: now, lastRecheckedAt: now, updatedAt: now,
+      ...(channel.metrics ? { metrics: mergeMetrics(account.metrics, channel.metrics), metricsAt: now } : {}),
     }).where(eq(creatorAccounts.id, id));
   } catch (error) {
     if (isUniqueViolation(error)) return { ok: false, error: `Le pseudo ${channel.handle} est déjà relié à un autre créateur.` };

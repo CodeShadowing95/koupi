@@ -10,7 +10,7 @@ import { routes } from '@/lib/routes';
 // il se ferme au changement de page, avec Échap, au clic à côté, et bloque le défilement de la page derrière.
 
 const links = [
-  { href: routes.codes, label: 'Codes' },
+  { href: routes.codes, label: 'Codes promo' },
   { href: routes.creators(), label: 'Créateurs' },
   { href: routes.feedback, label: 'Ton avis' },
 ];

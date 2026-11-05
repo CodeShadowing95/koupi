@@ -100,6 +100,7 @@ export async function createCode(db: Db, input: CodeInput, options: { submission
   const [created] = await db.insert(codes).values({
     toolId: tool.data, creatorId, code: input.code, discount: input.discount, sourceUrl: input.sourceUrl, sourceTitle: input.sourceTitle,
     creatorLink: input.creatorLink, status: input.status, note: input.note, submissionId: options.submissionId ?? null, expiresOn: input.expiresOn ?? null,
+    origin: options.submissionId ? 'submission' : 'manual',
     lastTestedAt: testedAt(input.status, null, null),
   }).returning({ id: codes.id });
   await db.insert(codeLogs).values({ codeId: created.id, action: 'create', nextStatus: input.status });

@@ -162,6 +162,41 @@
       "when": 1793805116601,
       "tag": "0022_complete_starhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1793864421959,
+      "tag": "0023_plain_centennial",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1793883257028,
+      "tag": "0024_happy_carmella_unuscione",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1793888543723,
+      "tag": "0025_freezing_skullbuster",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1793899601314,
+      "tag": "0026_bitter_champions",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1793910458912,
+      "tag": "0027_pale_black_crow",
+      "breakpoints": true
     }
   ]
 }

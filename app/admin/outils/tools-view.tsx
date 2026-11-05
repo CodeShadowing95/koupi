@@ -15,6 +15,7 @@ import { IconButton, IconLink, StatusDot } from '@/components/admin-card';
 import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
 import { FetchLogosButton, RefreshLogoButton } from './logos-button';
+import { ToolCodeSearch } from './tool-code-search';
 import { RefreshButton } from '@/components/admin-refresh-button';
 
 type Filter = 'all' | 'published' | 'empty' | 'archived';
@@ -24,26 +25,37 @@ const filters: { value: Filter; label: string }[] = [
 const matches = (tool: AdminTool, filter: Filter) => filter === 'archived' ? tool.archived : !tool.archived && (filter === 'all' || (filter === 'published' ? tool.visible > 0 : tool.visible === 0));
 const priorityLabel: Record<number, string> = { 1: '1 · haute', 2: '2', 3: '3 · normale', 4: '4', 5: '5 · basse' };
 
-const sortFields: SortField<AdminTool>[] = [
+type Tool = AdminTool & { copies: number };
+const sortFields: SortField<Tool>[] = [
   { key: 'priority', label: 'Priorité', value: tool => tool.priority },
   { key: 'name', label: 'Nom', value: tool => tool.name, text: true },
   { key: 'category', label: 'Catégorie', value: tool => tool.category, text: true },
   { key: 'codes', label: 'Nombre de codes', value: tool => tool.codes },
+  { key: 'creators', label: 'Créateurs', value: tool => tool.creators },
+  { key: 'copies', label: 'Copies du mois', value: tool => tool.copies },
 ];
 
 type Form = { name: string; categorySlug: string; website: string; description: string; priority: number };
 
-export function ToolsView({ tools, categories, missingLogos }: { tools: AdminTool[]; categories: AdminCategory[]; missingLogos: number }) {
+export function ToolsView({ tools, categories, missingLogos, youtubeReady }: { tools: Tool[]; categories: AdminCategory[]; missingLogos: number; youtubeReady: boolean }) {
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('');
-  // Les liens des autres pages ouvrent la liste déjà filtrée (?q=…).
+  // Les liens des autres pages ouvrent la liste déjà filtrée (?q=…), ou la fiche d'un nouvel outil au nom rempli (?new=…,
+  // depuis les recherches sans résultat de Statistiques). Le paramètre est retiré de l'adresse pour ne pas rouvrir la fiche.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('q')) setQuery(params.get('q') ?? '');
     if (params.get('category')) setCategory(params.get('category') ?? '');
-  }, []);
+    const name = params.get('new');
+    if (name !== null) {
+      setForm({ name: name.trim().slice(0, 120), categorySlug: categories[0]?.slug ?? '', website: '', description: '', priority: 3 });
+      setEditing('new');
+      params.delete('new');
+      window.history.replaceState(null, '', `${window.location.pathname}${params.size ? `?${params}` : ''}`);
+    }
+  }, [categories]);
   const [view, setView] = useAdminView();
   const [editing, setEditing] = useState<AdminTool | 'new' | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -105,13 +117,15 @@ export function ToolsView({ tools, categories, missingLogos }: { tools: AdminToo
         {visible.length === 0 ? <div className="adm-empty">Aucun outil ne correspond.</div> : view === 'table' ? (
           <div className="adm-table-wrap adm-page-enter" key={`table-${current.page}`}>
             <table className="adm-table">
-              <thead><tr><SortHeader sort={sort} field="name">Outil</SortHeader><SortHeader sort={sort} field="category">Catégorie</SortHeader><SortHeader sort={sort} field="codes">Codes</SortHeader><SortHeader sort={sort} field="priority">Priorité</SortHeader><th scope="col">Statut</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
+              <thead><tr><SortHeader sort={sort} field="name">Outil</SortHeader><SortHeader sort={sort} field="category">Catégorie</SortHeader><SortHeader sort={sort} field="codes">Codes</SortHeader><SortHeader sort={sort} field="creators">Créateurs</SortHeader><SortHeader sort={sort} field="copies">Copies</SortHeader><SortHeader sort={sort} field="priority">Priorité</SortHeader><th scope="col">Statut</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
               <tbody>
                 {current.items.map(tool => (
                   <tr key={tool.id} data-open onClick={openOnClick(() => setSelectedId(tool.id))}>
                     <td className="adm-cell-nowrap"><button type="button" className="adm-open" title={`Voir le détail de ${tool.name}`} onClick={() => setSelectedId(tool.id)}><AdminToolName slug={tool.slug} name={tool.name} /></button></td>
                     <td className="adm-cell-wrap">{tool.category}</td>
                     <td className="adm-cell-nowrap">{codesLink(tool)}</td>
+                    <td className="adm-cell-muted">{tool.creators}</td>
+                    <td className="adm-cell-muted" title="Copies de ses codes ce mois-ci">{tool.copies}</td>
                     <td className="adm-cell-muted">{tool.priority}</td>
                     <td>{status(tool)}</td>
                     <td><div className="adm-cell-actions"><a href={tool.website} target="_blank" rel="noopener noreferrer">Site ↗</a><button type="button" className="adm-btn" onClick={() => open(tool)}>Modifier</button></div></td>
@@ -129,7 +143,7 @@ export function ToolsView({ tools, categories, missingLogos }: { tools: AdminToo
                   {statusDot(tool)}
                 </div>
                 <div className="adm-card-foot">
-                  <span className="adm-card-meta">{codesLink(tool)}</span>
+                  <span className="adm-card-meta">{codesLink(tool)}{tool.copies > 0 && ` · ${tool.copies} copie${tool.copies > 1 ? 's' : ''}`}</span>
                   <span className="adm-prio" title={`Priorité ${tool.priority}`}>P{tool.priority}</span>
                   <IconLink icon="external" label="Site officiel" href={tool.website} external />
                   <IconButton icon="edit" label="Modifier" onClick={() => open(tool)} />
@@ -152,10 +166,13 @@ export function ToolsView({ tools, categories, missingLogos }: { tools: AdminToo
           </>}>
           {selected && <>
             {selected.description && <p className="adm-detail-quote">{selected.description}</p>}
+            <ToolCodeSearch key={selected.id} toolId={selected.id} toolName={selected.name} archived={selected.archived} youtubeReady={youtubeReady} />
             <DetailList items={[
               { label: 'Catégorie', value: <a href={`/admin/outils?category=${encodeURIComponent(selected.categorySlug)}`}>{selected.category}</a> },
               { label: 'Site officiel', value: <a href={selected.website} target="_blank" rel="noopener noreferrer">{selected.website.replace(/^https?:\/\//, '').replace(/\/$/, '')} ↗</a> },
               { label: 'Codes', value: codesLink(selected) },
+              { label: 'Créateurs', value: `${selected.creators} créateur${selected.creators > 1 ? 's' : ''} donne${selected.creators > 1 ? 'nt' : ''} un code` },
+              { label: 'Copies ce mois-ci', value: selected.copies },
               { label: 'Priorité', value: priorityLabel[selected.priority] ?? selected.priority },
               { label: 'Page publique', value: selected.visible > 0 && !selected.archived && <a href={`/tools/${selected.slug}`} target="_blank" rel="noopener noreferrer">/tools/{selected.slug} ↗</a> },
             ]} />
