@@ -36,3 +36,14 @@ export function expiryOf(expiresOn: string | null | undefined, now = new Date())
   if (daysLeft <= EXPIRY_WARNING_DAYS) return { state: 'soon', daysLeft, label: `Expire dans ${daysLeft} jour${daysLeft > 1 ? 's' : ''}` };
   return { state: 'later', daysLeft, label: `Valable jusqu’au ${dayLabel(expiresOn)}` };
 }
+
+/** Fenêtre de l'onglet « Expire bientôt » de l'admin : plus large que l'avertissement des visiteurs, pour avoir le temps d'agir. */
+export const ADMIN_EXPIRY_DAYS = 14;
+
+/** Pour l'admin : « soon » si la date de fin tombe dans les 14 jours (aujourd'hui compris), « expired » si elle est passée. */
+export function adminExpiry(expiresOn: string | null | undefined, now = new Date()): 'soon' | 'expired' | null {
+  const expiry = expiryOf(expiresOn, now);
+  if (expiry.state === 'expired') return 'expired';
+  if (expiry.state === 'none') return null;
+  return expiry.daysLeft <= ADMIN_EXPIRY_DAYS ? 'soon' : null;
+}

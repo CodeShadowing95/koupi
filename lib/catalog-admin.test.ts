@@ -48,7 +48,7 @@ describe('catalogue dans l’admin', () => {
     expect(await createTool(db, { ...nord, name: 'nordvpn' })).toEqual({ ok: false, error: 'Un outil porte déjà ce nom.' });
     expect(await updateTool(db, created.data.id, { ...nord, name: 'NordVPN Pro', categorySlug: 'ia', priority: 2 })).toMatchObject({ ok: true });
     const [tool] = await listToolsAdmin(db);
-    expect(tool).toMatchObject({ slug: 'nordvpn', name: 'NordVPN Pro', category: 'IA', priority: 2, codes: 0, visible: 0, archived: false });
+    expect(tool).toMatchObject({ slug: 'nordvpn', name: 'NordVPN Pro', category: 'IA', priority: 2, codes: 0, visible: 0, archived: false, creators: 0 });
   });
 
   it('compte les codes et retire du site un outil archivé', async () => {

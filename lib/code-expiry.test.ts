@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { expiryOf, isValidDay, todayInParis } from './code-expiry';
+import { adminExpiry, expiryOf, isValidDay, todayInParis } from './code-expiry';
 
 const now = new Date('2026-11-02T10:00:00Z');
 
@@ -32,5 +32,16 @@ describe('expiryOf', () => {
   });
   it('signale une date passée', () => {
     expect(expiryOf('2026-11-01', now)).toMatchObject({ state: 'expired' });
+  });
+});
+
+describe('adminExpiry', () => {
+  const now = new Date('2026-11-05T10:00:00Z');
+  it('signale les codes qui expirent dans les 14 jours, ou déjà expirés', () => {
+    expect(adminExpiry('2026-11-05', now)).toBe('soon');
+    expect(adminExpiry('2026-11-19', now)).toBe('soon');
+    expect(adminExpiry('2026-11-20', now)).toBeNull();
+    expect(adminExpiry('2026-11-04', now)).toBe('expired');
+    expect(adminExpiry(null, now)).toBeNull();
   });
 });

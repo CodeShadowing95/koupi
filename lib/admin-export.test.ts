@@ -60,8 +60,8 @@ describe('export helpers', () => {
 describe('catalogue sheets', () => {
   it('exports tools with their status on the site', () => {
     const sheet = toolsSheet([
-      { id: '1', slug: 'nord', name: 'NordVPN', categorySlug: 'vpn', category: 'VPN', website: 'nordvpn.com', description: null, priority: 1, codes: 3, visible: 2, archived: false },
-      { id: '2', slug: 'old', name: 'Old', categorySlug: 'vpn', category: 'VPN', website: 'old.com', description: 'x', priority: 3, codes: 1, visible: 1, archived: true },
+      { id: '1', slug: 'nord', name: 'NordVPN', categorySlug: 'vpn', category: 'VPN', website: 'nordvpn.com', description: null, priority: 1, codes: 3, visible: 2, archived: false, creators: 0 },
+      { id: '2', slug: 'old', name: 'Old', categorySlug: 'vpn', category: 'VPN', website: 'old.com', description: 'x', priority: 3, codes: 1, visible: 1, archived: true, creators: 0 },
     ]);
     expect(sheet.rows).toEqual([
       ['NordVPN', 'VPN', 'nordvpn.com', 1, 3, 2, 'oui', 'non', ''],
