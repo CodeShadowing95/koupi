@@ -1,6 +1,7 @@
 // Types du catalogue (outils, codes, catégories) et fonctions pures pour les lire.
 // Les données viennent de la base (lib/catalog-db.ts), chargées côté serveur par getCatalog() (lib/catalog-server.ts).
 import type { CreatorLevel } from './verification';
+import type { CodeOrigin } from './code-origin';
 
 /** family : slug de la famille de la catégorie (ADR-0026), null si elle n'est pas rangée. */
 export type Category = { slug: string; name: string; family: string | null; count: number; tracked: number };
@@ -26,6 +27,8 @@ export type Code = {
   creatorLevel?: Exclude<CreatorLevel, 'spotted'>;
   /** Seulement dans l'admin : code retiré du site et des statistiques. */
   archived?: boolean;
+  /** Seulement dans l'admin : comment Merkod a trouvé le code (lib/code-origin.ts). */
+  origin?: CodeOrigin;
   /** Nom du podcast suivi d'où vient l'épisode source (« Entendu dans GDIY, épisode #574 »). */
   podcast?: string;
 };

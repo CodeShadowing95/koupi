@@ -225,6 +225,7 @@ function Codes() {
       ]} />
       <p>La colonne <b>Copies</b> (et la même mention sur les cartes et dans le panneau) dit combien de fois les visiteurs ont copié le code depuis le 1er du mois. Trie dessus : les codes les plus copiés sont ceux à retester en premier, et ceux à remplacer d’abord quand ils expirent. Le panneau d’un code range ses informations en trois blocs : le code, sa source, ses tests et ses dates.</p>
       <Callout tone="tip">Pour décider vite des codes en attente et à tester, la page <Link href="/admin/verifications">Vérifications</Link> prépare chaque dossier avec un score et la preuve trouvée dans la source. Voir <Link href="/admin/guide/verifications">Vérifier avec l’aide de l’IA</Link>.</Callout>
+      <p><b>Origine</b> : chaque code dit comment Merkod l’a trouvé (saisi à la main, proposition d’un visiteur, import initial, recherche YouTube, podcast suivi). La liste « Toutes les origines » filtre la page, le panneau l’affiche dans « Trouvé par » et Vérifications le rappelle sous chaque dossier. Les codes plus anciens dont on ne sait pas d’où ils viennent sont marqués « Inconnue ».</p>
     </Section>
     <Section id="tester" title="Tester un code, pas à pas">
       <Steps>

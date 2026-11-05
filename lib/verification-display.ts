@@ -1,5 +1,6 @@
 // Affichage de la page Vérifications, sans dépendance serveur : utilisable dans les composants client.
 import type { VerificationReason } from '@/db/schema';
+import type { CodeOrigin } from './code-origin';
 import { CLEAR_SCORE, REJECT_BELOW } from './verification';
 
 export type QueueCheck = {
@@ -21,6 +22,8 @@ export type QueueItem = {
   creator: string;
   sourceUrl: string;
   sourceTitle: string;
+  /** Comment Merkod a trouvé le code (lib/code-origin.ts). */
+  origin: CodeOrigin;
   votesUp: number;
   votesDown: number;
   createdAt: string;

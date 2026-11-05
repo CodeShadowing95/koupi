@@ -9,6 +9,7 @@ import { matchesSearch } from '@/lib/admin-search';
 import { Key } from '@/components/admin-guide';
 import { RETEST_DAYS } from '@/lib/admin-stats';
 import { RefreshButton } from '@/components/admin-refresh-button';
+import { CODE_ORIGIN_LABELS } from '@/lib/code-origin';
 import { USAGE_CHANGED } from '@/components/admin-usage-gauge';
 
 type Ai = { status: AiStatus; spentUsdMicros: number; budgetUsdMicros: number; model: string; reviewModel: string };
@@ -208,7 +209,7 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
                     </div>
                     <div className="adm-vf-id">
                       <div className="adm-vf-title"><span className="mono">{item.code}</span><span className={`adm-vf-verdict ${verdictClass[verdict]}`}>{VERDICT_LABELS[verdict]}</span></div>
-                      <p>{item.tool} · {item.discount} · par {item.creator} · <span className="adm-cell-muted">{statusLabel[item.status]}</span></p>
+                      <p>{item.tool} · {item.discount} · par {item.creator} · <span className="adm-cell-muted">{statusLabel[item.status]} · {CODE_ORIGIN_LABELS[item.origin]}</span></p>
                       <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()}>{item.sourceTitle || 'Ouvrir la source'} ↗</a>
                       {item.expiresOn && !item.expired && <span className="adm-vf-expiry">Valable jusqu’au {shortDay(item.expiresOn)}</span>}
                     </div>

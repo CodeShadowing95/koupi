@@ -11,6 +11,7 @@ import { analyzeTool, type ToolAnalysis } from './tool-analysis';
 import { aiSpendSince, startOfMonthUtc } from './verification-store';
 import { resolveCreator } from './codes-admin';
 import { addPodcastCode } from './podcast-read';
+import { suggestionOrigin } from './code-origin';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -87,7 +88,7 @@ export async function acceptToolSuggestion(db: Db, id: string, target: AcceptTar
     const creatorId = row.creatorId ?? await resolveCreator(db, podcast);
     const codeId = await addPodcastCode(db, {
       toolId, creatorId, code: row.code, discount: row.discount, sourceUrl: row.sourceUrl, sourceTitle: row.sourceTitle,
-      note: `Trouvé dans le podcast ${podcast} : « ${row.evidence} »`, podcastTitle: podcast,
+      note: `Trouvé dans le podcast ${podcast} : « ${row.evidence} »`, podcastTitle: podcast, origin: suggestionOrigin(row.sourceUrl),
     });
     if (codeId) codeIds.push(codeId);
     await db.update(toolSuggestions).set({ status: 'added', toolId, codeId, resolvedAt: now }).where(eq(toolSuggestions.id, row.id));

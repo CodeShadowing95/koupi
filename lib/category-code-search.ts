@@ -158,7 +158,7 @@ export async function searchCategoryCodes(db: Db, youtube: YoutubeSearch, option
       for (const found of scan.found) {
         const codeId = await addPendingCode(db, {
           toolId: found.toolId, creatorId, code: found.code, discount: found.discount, sourceUrl, sourceTitle: video.title,
-          note: `Trouvé par la recherche « ${query} » : « ${found.evidence} »`, expiresOn: found.expiresOn,
+          note: `Trouvé par la recherche « ${query} » : « ${found.evidence} »`, expiresOn: found.expiresOn, origin: 'youtube_search',
         }, `${origin} : ${label}`);
         if (!codeId) continue;
         report.found.push({ tool: toolName.get(found.toolId) ?? '', code: found.code, creator: video.channelTitle });
