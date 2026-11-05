@@ -51,7 +51,7 @@ export const guideChapters: GuideChapter[] = [
   {
     slug: 'codes', part: 'moderate', title: 'Tester et tenir les codes', minutes: 5,
     summary: 'Tester un code, le marquer « Marche » ou « Ne marche pas », le modifier et le retester.',
-    goals: ['Tester un code sans se tromper', 'Ajouter un code à la main', 'Garder les codes vérifiés à jour tous les 30 jours', 'Savoir d’où vient chaque code'],
+    goals: ['Tester un code sans se tromper', 'Ajouter un code à la main', 'Garder les codes vérifiés à jour tous les 30 jours', 'Voir les codes les plus copiés et ceux qui expirent', 'Savoir d’où vient chaque code'],
     practice: { href: '/admin/codes?status=to_test', label: 'Voir les codes à tester' },
   },
   {
