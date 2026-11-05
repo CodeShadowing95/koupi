@@ -432,8 +432,14 @@ function Createurs() {
       <Callout tone="why">Un créateur dont les codes sont déjà copiés a une raison concrète de s’intéresser à Merkod : ses abonnés l’utilisent. C’est le meilleur premier contact pour l’espace créateur payant.</Callout>
     </Section>
     <Section id="fiche" title="Lire la fiche d’un créateur">
-      <p>Clique sur un créateur : le panneau montre son niveau, son nombre de codes, ses <b>comptes sur les réseaux</b>, les <b>outils qu’il recommande</b> et le lien vers sa page publique. <b>Voir ses codes</b> ouvre la liste des codes filtrée sur lui.</p>
-      <p>Sa <b>photo de profil</b> s’affiche sur sa carte, dans le tableau et dans le panneau quand on l’a récupérée depuis sa chaîne YouTube (commande <code>npm run avatars</code>). Sinon, ce sont ses initiales.</p>
+      <p>Clique sur un créateur : le panneau s’ouvre en trois onglets, pour ne voir que ce dont tu as besoin.</p>
+      <Steps>
+        <Step title="Aperçu">L’essentiel : son niveau, ses codes, les copies du mois, son audience, son pays, sa page publique, sa présentation et les outils qu’il recommande. En tête, <b>À faire</b> liste ce qu’il reste à faire pour lui (relier un compte, le contrôler, suivre ses vidéos, écrire sa présentation) : clique sur une ligne pour aller au bon endroit.</Step>
+        <Step title="Comptes">Ses chaînes et profils : audience, pays et langue, <b>Suivre ses vidéos</b> pour une chaîne YouTube, et les boutons Actualiser, Pays et langue, Retirer. <b>Relier un compte</b> en ajoute un ; <b>Actualiser la photo</b> est en bas.</Step>
+        <Step title="Confiance">Tout ce qui fait monter son niveau, compte par compte : le contrôle par Merkod (case « J’ai contrôlé ce compte », badge certifié) puis la preuve par la bio.</Step>
+      </Steps>
+      <p><b>Voir ses codes</b> ouvre la liste des codes filtrée sur lui. Sa <b>photo de profil</b> s’affiche sur sa carte, dans le tableau et dans le panneau quand on l’a récupérée depuis sa chaîne YouTube ou son podcast. Sinon, ce sont ses initiales.</p>
+      <p>Sous le titre de la page, l’encadré d’entretien regroupe les boutons qui agissent sur <b>tous</b> les créateurs : <b>Comptes</b> (relier, actualiser, récupérer les photos) et <b>Vidéos YouTube</b> (suivre les chaînes, les lire). Ils ne sont pas à cliquer tous les jours : Merkod fait la plupart de ce travail chaque nuit.</p>
       <Callout tone="tip">Un créateur qui recommande déjà trois outils en a souvent d’autres. Regarde ses dernières vidéos : c’est la façon la plus rapide de trouver de nouveaux codes.</Callout>
     </Section>
     <Section id="profil" title="Écrire son profil">

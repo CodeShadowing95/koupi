@@ -14,7 +14,7 @@ import { AdminCreatorAvatar } from '@/components/admin-creator-avatar';
 import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
 import type { AdminCreatorAccount } from '@/lib/creator-accounts-display';
-import { CREATOR_LEVEL_LABELS, type CreatorLevel } from '@/lib/verification';
+import type { CreatorLevel } from '@/lib/verification';
 import { CreatorAccountsPanel, LevelDot } from './creator-accounts-panel';
 import { LinkAccountsButton } from './link-accounts';
 import { FetchAvatarsButton, RefreshAvatarButton } from './avatars-button';
@@ -22,6 +22,7 @@ import { RefreshButton } from '@/components/admin-refresh-button';
 import { RefreshAccountsButton } from './refresh-accounts-button';
 import { ChannelWatchButtons } from './channel-watch-buttons';
 import { creatorLocale, localeLabel, localeShort } from '@/lib/creator-locale';
+import { creatorTodos, type CreatorTab } from '@/lib/creator-todo';
 import {
   AUDIENCE_FILTERS, LANGUAGE_FILTERS, NO_FILTERS, PLATFORM_FILTERS, activeFilters, audienceShort, contactOrder, creatorRatings, creatorSubscribers,
   isToContact, matchesFilters, type CreatorFilters,
@@ -63,6 +64,9 @@ export function CreatorsView({ creators, toLink, missingPhotos, followed, youtub
   const [editing, setEditing] = useState<Creator | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = creators.find(creator => creator.id === selectedId) ?? null;
+  // Onglet du panneau : on revient sur l'aperçu à chaque créateur ouvert.
+  const [tab, setTab] = useState<CreatorTab>('overview');
+  useEffect(() => { setTab('overview'); }, [selectedId]);
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
   const [extra, setExtra] = useState<CreatorFilters>(NO_FILTERS);
@@ -88,8 +92,18 @@ export function CreatorsView({ creators, toLink, missingPhotos, followed, youtub
             <h1>Créateurs</h1>
             <p>Les personnes à qui appartiennent les codes. Un créateur est ajouté automatiquement avec son premier code ; ici, tu corriges son nom, tu relies ses comptes et tu le contrôles.</p>
           </div>
-          <div className="adm-head-actions"><RefreshButton /><LinkAccountsButton toLink={toLink} youtubeReady={youtubeReady} /><FetchAvatarsButton missing={missingPhotos} youtubeReady={youtubeReady} /><RefreshAccountsButton accounts={creators.reduce((sum, creator) => sum + creator.accounts.filter(account => account.platform === 'youtube' || account.platform === 'podcast').length, 0)} /><ChannelWatchButtons followed={followed} youtubeReady={youtubeReady} /><ExportMenu type="createurs" /></div>
+          <div className="adm-head-actions"><RefreshButton /><ExportMenu type="createurs" /></div>
         </div>
+        <section className="adm-maint" aria-label="Entretien des comptes">
+          <div className="adm-maint-group">
+            <span className="adm-maint-label">Comptes</span>
+            <div className="adm-maint-actions"><LinkAccountsButton toLink={toLink} youtubeReady={youtubeReady} /><RefreshAccountsButton accounts={creators.reduce((sum, creator) => sum + creator.accounts.filter(account => account.platform === 'youtube' || account.platform === 'podcast').length, 0)} /><FetchAvatarsButton missing={missingPhotos} youtubeReady={youtubeReady} /></div>
+          </div>
+          <div className="adm-maint-group">
+            <span className="adm-maint-label">Vidéos YouTube</span>
+            <div className="adm-maint-actions"><ChannelWatchButtons followed={followed} youtubeReady={youtubeReady} /></div>
+          </div>
+        </section>
         <div className="adm-tabs" role="group" aria-label="Filtre">
           {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label} <span className="adm-tab-n">{countOf(item.value)}</span></button>)}
         </div>
@@ -154,24 +168,43 @@ export function CreatorsView({ creators, toLink, missingPhotos, followed, youtub
           aside={selected && (selected.visible > 0 ? <StatusDot tone="ok">Sur le site</StatusDot> : <StatusDot tone="muted">Masqué</StatusDot>)}
           actions={selected && <>
             <a className="adm-btn" href={`/admin/codes?q=${encodeURIComponent(selected.name)}`}>Voir ses codes</a>
-            <RefreshAvatarButton creatorId={selected.id} source={selected.accounts.some(account => account.platform === 'youtube' && Boolean(account.externalId)) ? 'youtube' : selected.accounts.some(account => account.platform === 'podcast' && Boolean(account.externalId)) ? 'podcast' : null} youtubeReady={youtubeReady} />
             <span style={{ flex: 1 }} />
             <button type="button" className="adm-btn adm-btn-pri" onClick={() => open(selected)}>Modifier le profil</button>
           </>}>
           {selected && <>
-            <DetailList items={[
-              { label: 'Niveau', value: CREATOR_LEVEL_LABELS[selected.level] },
-              { label: 'Pays et langue', value: localeLabel(creatorLocale(selected.accounts)) ?? <span className="muted">Inconnus : « Actualiser les comptes », ou corrige-les sur un compte.</span> },
-              { label: 'Présentation', value: selected.bio ? <span style={{ whiteSpace: 'pre-line' }}>{selected.bio}</span> : <span className="muted">Aucune, à écrire pour sa page publique.</span> },
-              { label: 'Codes', value: codesLink(selected) },
-              { label: 'Copies ce mois-ci', value: selected.copies },
-              { label: 'Page publique', value: selected.visible > 0 && <a href={`/creators/${selected.slug}`} target="_blank" rel="noopener noreferrer">/creators/{selected.slug} ↗</a> },
-            ]} />
-            <CreatorAccountsPanel creatorId={selected.id} creatorName={selected.name} accounts={selected.accounts} youtubeReady={youtubeReady} />
-            <div>
-              <span className="eyebrow">Outils recommandés</span>
-              {selected.tools.length ? <div className="adm-chips" style={{ marginTop: 8 }}>{selected.tools.map(tool => <a key={tool} href={`/admin/outils?q=${encodeURIComponent(tool)}`}>{tool}</a>)}</div> : <p className="muted">Aucun outil pour l’instant.</p>}
+            <div className="adm-tabs adm-drawer-tabs" role="tablist" aria-label={`Fiche de ${selected.name}`}>
+              {([['overview', 'Aperçu'], ['accounts', `Comptes${selected.accounts.length ? ` (${selected.accounts.length})` : ''}`], ['trust', 'Confiance']] as const).map(([value, label]) => (
+                <button key={value} type="button" role="tab" className="adm-tab" aria-selected={tab === value} aria-pressed={tab === value} onClick={() => setTab(value)}>{label}</button>
+              ))}
             </div>
+            {tab === 'overview' && <>
+              {creatorTodos(selected).length > 0 && (
+                <div className="adm-todo-box">
+                  <span className="eyebrow">À faire</span>
+                  <ul>{creatorTodos(selected).map(todo => (
+                    <li key={todo.text}><button type="button" className="adm-link-btn" onClick={() => todo.tab === 'profile' ? open(selected) : setTab(todo.tab)}>{todo.text} →</button></li>
+                  ))}</ul>
+                </div>
+              )}
+              <DetailList items={[
+                { label: 'Niveau', value: <LevelDot level={selected.level} /> },
+                { label: 'Codes', value: codesLink(selected) },
+                { label: 'Copies ce mois-ci', value: selected.copies },
+                { label: 'Audience', value: audienceShort(selected.accounts) ?? <span className="muted">Inconnue</span> },
+                { label: 'Pays et langue', value: localeLabel(creatorLocale(selected.accounts)) ?? <span className="muted">Inconnus</span> },
+                { label: 'Page publique', value: selected.visible > 0 ? <a href={`/creators/${selected.slug}`} target="_blank" rel="noopener noreferrer">/creators/{selected.slug} ↗</a> : <span className="muted">Pas encore : aucun code visible.</span> },
+              ]} />
+              <div>
+                <span className="eyebrow">Présentation</span>
+                {selected.bio ? <p style={{ whiteSpace: 'pre-line', margin: '6px 0 0' }}>{selected.bio}</p> : <p className="muted" style={{ margin: '6px 0 0' }}>Aucune. Elle s’affiche en haut de sa page publique : « Modifier le profil ».</p>}
+              </div>
+              <div>
+                <span className="eyebrow">Outils recommandés</span>
+                {selected.tools.length ? <div className="adm-chips" style={{ marginTop: 8 }}>{selected.tools.map(tool => <a key={tool} href={`/admin/outils?q=${encodeURIComponent(tool)}`}>{tool}</a>)}</div> : <p className="muted">Aucun outil pour l’instant.</p>}
+              </div>
+            </>}
+            {tab !== 'overview' && <CreatorAccountsPanel creatorId={selected.id} creatorName={selected.name} accounts={selected.accounts} youtubeReady={youtubeReady} mode={tab}
+              extra={<div className="adm-ca-photo"><span className="muted">Photo du créateur : celle de sa chaîne YouTube, ou la pochette de son podcast.</span><RefreshAvatarButton creatorId={selected.id} source={selected.accounts.some(account => account.platform === 'youtube' && Boolean(account.externalId)) ? 'youtube' : selected.accounts.some(account => account.platform === 'podcast' && Boolean(account.externalId)) ? 'podcast' : null} youtubeReady={youtubeReady} /></div>} />}
           </>}
         </AdminDrawer>
         <FormDialog open={editing !== null} title={`Profil de ${editing?.name ?? ''}`} intro="Le nom et la présentation s’affichent en haut de sa page publique. L’adresse de sa page ne change pas."

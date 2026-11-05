@@ -1,5 +1,6 @@
 'use client';
-// Comptes d'un créateur dans son panneau : niveau, abonnés, badge certifié, contrôle par l'admin.
+// Comptes d'un créateur dans son panneau, sur deux onglets :
+// « Comptes » (relier, audience, pays, suivi des vidéos) et « Confiance » (contrôle, badge certifié, preuve par la bio).
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { StatusDot, type Tone } from '@/components/admin-card';
@@ -35,8 +36,10 @@ function nextStep(account: AdminCreatorAccount): string | null {
   return 'Contrôle le compte pour le passer « Contrôlé par Merkod ».';
 }
 
-export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtubeReady }: {
-  creatorId: string; creatorName: string; accounts: AdminCreatorAccount[]; youtubeReady: boolean;
+export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtubeReady, mode, extra }: {
+  creatorId: string; creatorName: string; accounts: AdminCreatorAccount[]; youtubeReady: boolean; mode: 'accounts' | 'trust';
+  /** Actions en plus sous la liste des comptes (photo du créateur). */
+  extra?: React.ReactNode;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
@@ -76,69 +79,88 @@ export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtube
     if (value !== null) void patch(account, { subscribers: value.trim() });
   };
 
+  const head = (account: AdminCreatorAccount) => (
+    <div className="adm-ca-row">
+      <div className="adm-ca-id">
+        <small className="adm-ca-platform"><PlatformIcon platform={account.platform} size={18} />{PLATFORM_LABELS[account.platform]}</small>
+        <a href={account.url} target="_blank" rel="noopener noreferrer"><b>{account.handle}</b> ↗</a>
+      </div>
+      <LevelDot level={account.level} />
+    </div>
+  );
+
   return (
     <div className="adm-ca">
-      <div className="adm-ca-head">
-        <span className="eyebrow">Comptes sur les réseaux</span>
-        <button type="button" className="adm-btn" onClick={openAdd}>Relier un compte</button>
-      </div>
-      {accounts.length === 0 ? (
-        <p className="muted">Aucun compte relié : le créateur reste « Repéré ». Relie sa chaîne YouTube pour lire ses abonnés et le contrôler.</p>
-      ) : (
-        <ul className="adm-ca-list">
-          {accounts.map(account => {
-            const audience = audienceLine(formatSubscribers(account.subscribers), account.metrics);
-            const readAt = [account.subscribersAt, account.metricsAt].filter((at): at is string => at !== null).sort().at(-1);
-            const hint = nextStep(account);
-            return (
-              <li key={account.id} className="adm-ca-item">
-                <div className="adm-ca-row">
-                  <div className="adm-ca-id">
-                    <small className="adm-ca-platform"><PlatformIcon platform={account.platform} size={18} />{PLATFORM_LABELS[account.platform]}</small>
-                    <a href={account.url} target="_blank" rel="noopener noreferrer"><b>{account.handle}</b> ↗</a>
+      {mode === 'accounts' ? <>
+        <div className="adm-ca-head">
+          <p className="adm-ca-intro">Ses chaînes et profils. Merkod lit l’audience de YouTube et des podcasts ; les autres réseaux se remplissent à la main.</p>
+          <button type="button" className="adm-btn" onClick={openAdd}>Relier un compte</button>
+        </div>
+        {accounts.length === 0 ? (
+          <p className="adm-ca-empty">Aucun compte relié. Relie sa chaîne YouTube pour lire ses abonnés, suivre ses vidéos et pouvoir le contrôler.</p>
+        ) : (
+          <ul className="adm-ca-list">
+            {accounts.map(account => {
+              const audience = audienceLine(formatSubscribers(account.subscribers), account.metrics);
+              const readAt = [account.subscribersAt, account.metricsAt].filter((at): at is string => at !== null).sort().at(-1);
+              return (
+                <li key={account.id} className="adm-ca-item">
+                  {head(account)}
+                  <dl className="adm-ca-facts">
+                    <div><dt>Audience</dt><dd>{audience ?? (account.platform === 'podcast' ? 'Inconnue : clique sur « Actualiser »' : 'Inconnue')}{readAt && <small> · relevée le {day(readAt)}</small>}</dd></div>
+                    <div><dt>Pays et langue</dt><dd>{localeLabel({ country: account.metrics.country ?? null, language: account.metrics.language ?? null }) ?? 'Inconnus'}{account.metrics.localeManual && <small> · corrigés à la main</small>}</dd></div>
+                  </dl>
+                  {account.platform === 'youtube' && account.externalId && (
+                    <label className="adm-ca-check adm-ca-watch">
+                      <input type="checkbox" checked={account.watch?.active ?? false} disabled={busy !== null} onChange={event => watch(account, event.target.checked)} />
+                      <span>Suivre ses vidéos chaque nuit{account.watch?.lastFetchedAt && <small> · lues le {day(account.watch.lastFetchedAt)}</small>}</span>
+                      <InfoTip id={`ca-watch-${account.id}`} label="Suivre ses vidéos">Chaque nuit, Merkod lit les nouvelles vidéos de la chaîne et cherche des codes dans leur description (environ 1 unité du quota YouTube). Les codes trouvés arrivent « En attente » dans Vérifications.</InfoTip>
+                    </label>
+                  )}
+                  <div className="adm-ca-actions">
+                    {account.platform === 'youtube' && <button type="button" className="adm-btn" disabled={busy !== null || !youtubeReady} title={youtubeReady ? 'Relit les abonnés, le pseudo, les vues et les vidéos sur YouTube' : 'La clé YouTube manque'} onClick={() => refresh(account)}>{busy === `${account.id}-refresh` ? 'Lecture…' : 'Actualiser'}</button>}
+                    {account.platform === 'podcast' && <button type="button" className="adm-btn" disabled={busy !== null} title="Relit la note et le nombre d’épisodes sur Apple Podcasts" onClick={() => refresh(account)}>{busy === `${account.id}-refresh` ? 'Lecture…' : 'Actualiser'}</button>}
+                    {account.platform !== 'youtube' && <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => editSubscribers(account)}>Modifier les abonnés</button>}
+                    <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => editLocale(account)}>Pays et langue</button>
+                    <span style={{ flex: 1 }} />
+                    <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => remove(account)}>Retirer</button>
                   </div>
-                  <LevelDot level={account.level} />
-                </div>
-                <p className="adm-ca-subs">
-                  {audience ?? (account.platform === 'podcast' ? 'Audience inconnue : clique sur « Actualiser »' : 'Abonnés inconnus')}
-                  {readAt && <span> · relevé le {day(readAt)}</span>}
-                </p>
-                <p className="adm-ca-subs">
-                  {localeLabel({ country: account.metrics.country ?? null, language: account.metrics.language ?? null }) ?? 'Pays et langue inconnus'}
-                  {account.metrics.localeManual && <span> · corrigés à la main</span>}
-                </p>
-                <label className="adm-ca-check">
-                  <input type="checkbox" checked={account.adminCheckedAt !== null} disabled={busy !== null} onChange={event => patch(account, { adminChecked: event.target.checked })} />
-                  <span>J’ai contrôlé ce compte{account.adminCheckedAt && <small> le {day(account.adminCheckedAt)}</small>}</span>
-                  <InfoTip id={`ca-check-${account.id}`} label="Que contrôler ?">Le compte est réel et actif, il publie bien sous ce nom, et ce n’est pas une copie d’un autre créateur.</InfoTip>
-                </label>
-                <label className="adm-ca-check">
-                  <input type="checkbox" checked={account.platformVerified} disabled={busy !== null} onChange={event => patch(account, { platformVerified: event.target.checked })} />
-                  <span>Badge certifié du réseau</span>
-                  <InfoTip id={`ca-badge-${account.id}`} label="Le badge certifié">Coche si la chaîne affiche la coche grise de compte certifié à côté de son nom. Le créateur passe alors « Contrôlé par Merkod », quel que soit son nombre d’abonnés.</InfoTip>
-                </label>
-                {account.platform === 'youtube' && account.externalId && (
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {extra}
+      </> : <>
+        <p className="adm-ca-intro">Trois niveaux : <b>Repéré</b> (on a ses codes), <b>Contrôlé par Merkod</b> (tu as vérifié qu’un de ses comptes est réel et assez suivi), <b>Créateur vérifié</b> (il a prouvé que le compte est à lui). Le niveau du créateur est le meilleur de ses comptes.</p>
+        {accounts.length === 0 ? (
+          <p className="adm-ca-empty">Aucun compte à contrôler : relie d’abord un compte dans l’onglet « Comptes ».</p>
+        ) : (
+          <ul className="adm-ca-list">
+            {accounts.map(account => {
+              const hint = nextStep(account);
+              return (
+                <li key={account.id} className="adm-ca-item">
+                  {head(account)}
+                  {hint && <p className="adm-ca-hint">{hint}</p>}
+                  <span className="adm-ca-step">Contrôle par Merkod</span>
                   <label className="adm-ca-check">
-                    <input type="checkbox" checked={account.watch?.active ?? false} disabled={busy !== null} onChange={event => watch(account, event.target.checked)} />
-                    <span>Suivre ses vidéos{account.watch?.lastFetchedAt && <small> · lues le {day(account.watch.lastFetchedAt)}</small>}</span>
-                    <InfoTip id={`ca-watch-${account.id}`} label="Suivre ses vidéos">Chaque nuit, Merkod lit les nouvelles vidéos de la chaîne et cherche des codes dans leur description (environ 1 unité du quota YouTube). Les codes trouvés arrivent « En attente » dans Vérifications.</InfoTip>
+                    <input type="checkbox" checked={account.adminCheckedAt !== null} disabled={busy !== null} onChange={event => patch(account, { adminChecked: event.target.checked })} />
+                    <span>J’ai contrôlé ce compte{account.adminCheckedAt && <small> le {day(account.adminCheckedAt)}</small>}</span>
+                    <InfoTip id={`ca-check-${account.id}`} label="Que contrôler ?">Le compte est réel et actif, il publie bien sous ce nom, et ce n’est pas une copie d’un autre créateur.</InfoTip>
                   </label>
-                )}
-                {hint && <p className="adm-ca-hint">{hint}</p>}
-                <div className="adm-ca-actions">
-                  {account.platform === 'youtube' && <button type="button" className="adm-btn" disabled={busy !== null || !youtubeReady} title={youtubeReady ? 'Relit les abonnés, le pseudo, les vues et les vidéos sur YouTube' : 'La clé YouTube manque'} onClick={() => refresh(account)}>{busy === `${account.id}-refresh` ? 'Lecture…' : 'Actualiser'}</button>}
-                  {account.platform === 'podcast' && <button type="button" className="adm-btn" disabled={busy !== null} title="Relit la note et le nombre d’épisodes sur Apple Podcasts" onClick={() => refresh(account)}>{busy === `${account.id}-refresh` ? 'Lecture…' : 'Actualiser'}</button>}
-                  {account.platform !== 'youtube' && <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => editSubscribers(account)}>Modifier les abonnés</button>}
-                  <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => editLocale(account)}>Pays et langue</button>
-                  <span style={{ flex: 1 }} />
-                  <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => remove(account)}>Retirer</button>
-                </div>
-                <AccountClaim account={account} disabled={busy !== null} youtubeReady={youtubeReady} />
-              </li>
-            );
-          })}
-        </ul>
-      )}
+                  <label className="adm-ca-check">
+                    <input type="checkbox" checked={account.platformVerified} disabled={busy !== null} onChange={event => patch(account, { platformVerified: event.target.checked })} />
+                    <span>Badge certifié du réseau</span>
+                    <InfoTip id={`ca-badge-${account.id}`} label="Le badge certifié">Coche si la chaîne affiche la coche grise de compte certifié à côté de son nom. Le créateur passe alors « Contrôlé par Merkod », quel que soit son nombre d’abonnés.</InfoTip>
+                  </label>
+                  <AccountClaim account={account} disabled={busy !== null} youtubeReady={youtubeReady} />
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </>}
       {error && <div className="notice notice-error" role="alert">{error}</div>}
 
       <FormDialog open={adding} title={`Relier un compte à ${creatorName}`} submitLabel={platform === 'youtube' ? 'Lire la chaîne et relier' : 'Relier'}

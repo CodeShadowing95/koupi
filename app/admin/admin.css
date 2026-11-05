@@ -1387,3 +1387,32 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 /* « Chercher des codes » dans le panneau d'un outil. */
 .adm-tool-search{display:flex;flex-direction:column;gap:10px}
 .adm-tool-search-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+/* Page Créateurs : entretien des comptes sous le titre, et panneau d'un créateur en onglets */
+.adm-head{flex-wrap:wrap}
+.adm-head>div:first-child{flex:1 1 320px}
+.adm-head-actions{flex-wrap:wrap;justify-content:flex-end}
+.adm-maint{display:flex;flex-wrap:wrap;gap:12px 28px;padding:12px 14px;margin:-4px 0 16px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.adm-maint-group{display:flex;flex-direction:column;gap:6px;min-width:0}
+.adm-maint-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.adm-maint-actions{display:flex;flex-wrap:wrap;gap:8px;position:relative}
+.adm-maint-actions .adm-btn{min-height:36px;padding:0 14px;font-size:13.5px}
+.adm-maint .adm-link-report{left:0;right:auto}
+.adm-drawer-tabs{position:sticky;top:-1px;z-index:2;background:var(--card);margin:-6px 0 4px}
+.adm-todo-box{border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:var(--blue-soft)}
+.adm-todo-box ul{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:4px}
+.adm-link-btn{border:0;background:none;padding:0;color:var(--blue);font:inherit;font-size:14px;font-weight:600;cursor:pointer;text-align:left}
+.adm-link-btn:hover{text-decoration:underline}
+
+.adm-ca-empty{margin:0;padding:12px 14px;border:1px dashed var(--line-strong);border-radius:12px;color:var(--muted);font-size:13.5px}
+.adm-ca-facts{margin:0;display:grid;gap:4px}
+.adm-ca-facts>div{display:grid;grid-template-columns:110px minmax(0,1fr);gap:8px;font-size:13px}
+.adm-ca-facts dt{color:var(--muted)}
+.adm-ca-facts dd{margin:0;color:var(--ink)}
+.adm-ca-facts small{color:var(--muted)}
+.adm-ca-watch{padding:8px 10px;border-radius:9px;background:var(--blue-soft)}
+.adm-ca-step{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.adm-ca-head .adm-btn{flex:none;white-space:nowrap}
+.adm-ca-intro{margin:0;font-size:13px;line-height:1.5;color:var(--muted)}
+.adm-ca-photo{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;padding-top:4px}
+.adm-ca-photo .adm-btn{flex:none}
