@@ -1,7 +1,7 @@
 'use client';
 // Portail de connexion admin : un « pass » Merkod au milieu d'un comptoir de codes qui défilent.
 // Animations GSAP (entrée, refus, entrée validée), toutes coupées si le système demande moins de mouvement.
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { gsap, MOTION_OK, MOTION_REDUCED, SplitText, useGSAP } from '@/lib/gsap';
 import { primeSound } from '@/lib/coupon-sound';
@@ -43,8 +43,6 @@ export function LoginPortal() {
   const [capsLock, setCapsLock] = useState(false);
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState('');
-
-  useEffect(() => { router.prefetch('/admin'); }, [router]);
 
   // Entrée en scène : le comptoir s'anime, le pass arrive, le titre se compose lettre par lettre.
   const { contextSafe } = useGSAP(() => {
@@ -120,7 +118,9 @@ export function LoginPortal() {
     setError('');
     try {
       const response = await fetch('/api/admin/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ password }) });
-      if (response.ok) { setStatus('success'); enter(); return; }
+      // L'accueil n'est préchargé qu'une fois connecté : chargé avant, il gardait en cache la redirection
+      // vers cette page, et l'animation finissait sur un écran figé (« Bienvenue dans la place »).
+      if (response.ok) { setStatus('success'); router.prefetch('/admin'); enter(); return; }
       setError(errorMessage(response.status));
     } catch {
       setError('Connexion impossible. Vérifie ta connexion.');

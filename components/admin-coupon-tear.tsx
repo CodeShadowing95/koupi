@@ -17,6 +17,8 @@ const TEAR = Array.from({ length: 25 }, (_, i) => ({ x: 50 + (i % 2 ? 0.9 : -0.7
 const LEFT = `polygon(0% 0%, ${TEAR.map(p => `${p.x}% ${p.y}%`).join(', ')}, 0% 100%)`;
 const RIGHT = `polygon(${TEAR.map(p => `${p.x}% ${p.y}%`).join(', ')}, 100% 100%, 100% 0%)`;
 const WELCOME = 'Bienvenue dans la place.';
+/** Si l'accueil n'est pas affiché après ce délai, on le charge en entier : le coupon ne reste jamais figé. */
+const FALLBACK_MS = 6_000;
 
 type Phase = 'growing' | 'covered' | 'tearing';
 /** Le coupon en cours d'animation, partagé entre les montages successifs du composant. */
@@ -70,7 +72,11 @@ export function AdminCouponTear() {
       });
       setPhase(el, 'growing');
       const text = el.querySelector('.ct-text');
-      gsap.timeline({ onComplete: () => { setPhase(el, 'covered'); router.push('/admin'); } })
+      gsap.timeline({ onComplete: () => {
+        setPhase(el, 'covered');
+        router.push('/admin');
+        window.setTimeout(() => { if (overlay === el && el.dataset.phase === 'covered') window.location.assign('/admin'); }, FALLBACK_MS);
+      } })
         .fromTo(el, { x: origin.x - w / 2, y: origin.y - h / 2, scale: (origin.r * 2) / size, rotate: -25 }, { x: 0, y: 0, scale: 1, rotate: 0, duration: 0.95, ease: 'power3.inOut' })
         .fromTo(text, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.2 }, '-=0.25')
         .to(text, { duration: 0.6, scrambleText: { text: WELCOME, chars: 'MERKOD', speed: 0.8 } }, '<');
