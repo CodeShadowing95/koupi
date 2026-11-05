@@ -36,11 +36,12 @@ describe('youtubeChannelReader', () => {
   it('rend l’ID, le pseudo et les abonnés', async () => {
     const fetchFn = vi.fn(async (url: string) => {
       expect(url).toContain('forHandle=%40ana');
-      return new Response(JSON.stringify({ items: [{ id: CHANNEL_ID, snippet: { title: 'Ana', customUrl: '@ana' }, statistics: { subscriberCount: '12400' } }] }));
+      return new Response(JSON.stringify({ items: [{ id: CHANNEL_ID, snippet: { title: 'Ana', customUrl: '@ana' }, statistics: { subscriberCount: '12400', viewCount: '2500000', videoCount: '140' } }] }));
     });
     const read = youtubeChannelReader('k', fetchFn as unknown as typeof fetch)!;
     expect(await read({ by: 'handle', value: '@ana' })).toEqual({
       externalId: CHANNEL_ID, title: 'Ana', handle: '@ana', url: 'https://www.youtube.com/@ana', subscribers: 12400,
+      metrics: { views: 2_500_000, videos: 140 },
     });
   });
   it('garde les abonnés vides quand la chaîne les masque, et null si rien ne correspond', async () => {
@@ -132,5 +133,30 @@ describe('comptes créateurs', () => {
     expect(await refreshCreatorAccount(db, added.data.id, { readChannel: async () => null })).toEqual({ ok: false, error: 'Cette chaîne n’existe plus sur YouTube.' });
     expect(await deleteCreatorAccount(db, added.data.id)).toBe(true);
     expect((await accountsByCreator(db)).get(ana)).toBeUndefined();
+  });
+
+  it('actualise un podcast par son lecteur d’audience, sans effacer une note qui ne se lit plus', async () => {
+    const [row] = await db.insert(schema.creatorAccounts).values({ creatorId: ana, platform: 'podcast', externalId: '42', handle: 'Ana parle', url: 'https://podcasts.apple.com/fr/podcast/id42' }).returning();
+    const readAudience = { podcast: vi.fn(async () => ({ rating: 4.5, ratingCount: 120, ratingSource: 'Apple Podcasts', episodes: 80 })) };
+    expect(await refreshCreatorAccount(db, row.id, { readChannel: null, readAudience, now })).toEqual({ ok: true, data: { id: row.id } });
+    expect(readAudience.podcast).toHaveBeenCalledWith({ externalId: '42', url: 'https://podcasts.apple.com/fr/podcast/id42' });
+    let [account] = (await accountsByCreator(db)).get(ana)!;
+    expect(account).toMatchObject({ metrics: { rating: 4.5, ratingCount: 120, ratingSource: 'Apple Podcasts', episodes: 80 }, metricsAt: now.toISOString() });
+
+    await refreshCreatorAccount(db, row.id, { readChannel: null, readAudience: { podcast: async () => ({ episodes: 82 }) } });
+    [account] = (await accountsByCreator(db)).get(ana)!;
+    expect(account.metrics).toEqual({ rating: 4.5, ratingCount: 120, ratingSource: 'Apple Podcasts', episodes: 82 });
+
+    expect(await refreshCreatorAccount(db, row.id, { readChannel: null, readAudience: { podcast: async () => null } })).toEqual({ ok: false, error: 'Ce compte est introuvable à sa source.' });
+    expect(await refreshCreatorAccount(db, row.id, { readChannel: null, readAudience: { podcast: async () => { throw new Error('503'); } } })).toEqual({ ok: false, error: expect.stringContaining('ne répond pas') });
+    expect(await refreshCreatorAccount(db, row.id, { readChannel: null })).toEqual({ ok: false, error: expect.stringContaining('à la main') });
+  });
+
+  it('garde les vues et vidéos d’une chaîne lue sur YouTube', async () => {
+    const withStats: ChannelReader = async () => ({ externalId: CHANNEL_ID, title: 'Ana', handle: '@ana', url: 'https://www.youtube.com/@ana', subscribers: 2000, metrics: { views: 50_000, videos: 12 } });
+    const added = await addCreatorAccount(db, ana, { platform: 'youtube', channel: '@ana' }, { readChannel: withStats, now });
+    if (!added.ok) throw new Error('setup');
+    const [account] = (await accountsByCreator(db)).get(ana)!;
+    expect(account).toMatchObject({ metrics: { views: 50_000, videos: 12 }, metricsAt: now.toISOString() });
   });
 });

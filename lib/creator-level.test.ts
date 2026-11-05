@@ -15,6 +15,8 @@ describe('niveau d’un compte', () => {
   });
   it('passe contrôlé avec le contrôle de l’admin et au moins 1000 abonnés', () => {
     expect(accountLevelOf({ ...base, adminCheckedAt: checkedAt, subscribers: 1000 })).toBe('checked');
+    expect(accountLevelOf({ ...base, adminCheckedAt: checkedAt, subscribers: null, metrics: { rating: 4.5, ratingCount: 50 } })).toBe('checked');
+    expect(accountLevelOf({ ...base, adminCheckedAt: checkedAt, subscribers: null, metrics: { rating: 4.5, ratingCount: 12 } })).toBe('spotted');
     expect(accountLevelOf({ ...base, adminCheckedAt: checkedAt, subscribers: 999 })).toBe('spotted');
   });
   it('passe contrôlé avec le badge certifié du réseau', () => {
