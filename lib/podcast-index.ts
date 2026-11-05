@@ -54,6 +54,40 @@ export function categoryOf(row: Record<string, unknown>): string {
   return '';
 }
 
+/** Un podcast à lire, qu'il vienne de la base téléchargée ou de l'API de Podcast Index. */
+export type IndexFeed = { id: number; url: string; title: string; itunesId: string; author: string; imageUrl: string | null; language: string; episodeCount: number; newestAt: string | null; category: string };
+
+const num = (value: unknown) => (Number.isFinite(Number(value)) ? Number(value) : 0);
+const unixToIso = (value: unknown) => (num(value) > 0 ? new Date(num(value) * 1000).toISOString() : null);
+
+/** Une ligne de la base téléchargée (requête candidateQuery). */
+export function dumpRowToFeed(row: Record<string, unknown>): IndexFeed {
+  return {
+    id: num(row.id), url: String(row.url ?? ''), title: String(row.title ?? '').trim() || 'Sans titre', itunesId: String(row.itunesId ?? ''),
+    author: String(row.itunesAuthor ?? ''), imageUrl: row.imageUrl ? String(row.imageUrl) : null, language: String(row.language ?? ''),
+    episodeCount: num(row.episodeCount), newestAt: unixToIso(row.newestItemPubdate), category: categoryOf(row),
+  };
+}
+
+/**
+ * Un podcast renvoyé par l'API de Podcast Index (tendances, flux récents), avec les mêmes conditions que la base :
+ * connu d'Apple, en français ou en anglais, actif depuis 90 jours. null sinon.
+ */
+export function apiFeedToFeed(feed: Record<string, unknown>, now: Date): IndexFeed | null {
+  const itunesId = num(feed.itunesId);
+  const url = String(feed.url ?? '');
+  const language = String(feed.language ?? '').toLowerCase();
+  const newest = num(feed.newestItemPublishTime ?? feed.newestItemPubdate);
+  if (itunesId <= 0 || !/^https?:\/\//i.test(url) || !/^(fr|en)/.test(language)) return null;
+  if (newest * 1000 < now.getTime() - ACTIVE_DAYS * 86_400_000) return null;
+  const categories = feed.categories && typeof feed.categories === 'object' ? Object.values(feed.categories as Record<string, unknown>).map(String) : [];
+  return {
+    id: num(feed.id), url, title: String(feed.title ?? '').trim() || 'Sans titre', itunesId: String(itunesId), author: String(feed.author ?? ''),
+    imageUrl: String(feed.artwork || feed.image || '') || null, language, episodeCount: num(feed.episodeCount), newestAt: unixToIso(newest),
+    category: categories[0] ? (CATEGORY_LABELS[categories[0]] ?? categories[0]).slice(0, 40) : '',
+  };
+}
+
 export type FeedItem = { title: string; link: string | null; text: string; publishedAt: Date | null };
 
 const tag = (xml: string, name: string): string | null => {

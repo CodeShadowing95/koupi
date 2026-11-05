@@ -1,6 +1,6 @@
 import { DatabaseSync } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
-import { candidateQuery, categoryOf, parseCandidates, parseFeedItems, scanFeed } from './podcast-index';
+import { apiFeedToFeed, candidateQuery, categoryOf, dumpRowToFeed, parseCandidates, parseFeedItems, scanFeed } from './podcast-index';
 
 const NOW = new Date('2026-11-05T12:00:00Z');
 const daysAgo = (days: number) => Math.floor(NOW.getTime() / 1000) - days * 86_400;
@@ -63,5 +63,21 @@ describe('parseCandidates', () => {
     expect(parseCandidates([{ ...good, feedUrl: 'ftp://x' }], ids)).toEqual([]);
     expect(parseCandidates([{ ...good, hits: [{ ...good.hits[0], toolId: '00000000-0000-4000-8000-00000000000f' }] }], ids)).toEqual([]);
     expect(parseCandidates('pas une liste', ids)).toEqual([]);
+  });
+});
+
+describe('podcasts de l’API', () => {
+  const base = { id: 7, url: 'https://feed.fr/rss', title: 'Mon podcast', author: 'Moi', artwork: 'https://img.fr/a.jpg', itunesId: 123, language: 'fr-FR', newestItemPublishTime: daysAgo(5), categories: { 102: 'Technology' } };
+  it('garde un podcast actif, connu d’Apple, en français ou en anglais', () => {
+    expect(apiFeedToFeed(base, NOW)).toMatchObject({ itunesId: '123', category: 'Technologie', imageUrl: 'https://img.fr/a.jpg', language: 'fr-fr' });
+  });
+  it('écarte les autres', () => {
+    expect(apiFeedToFeed({ ...base, itunesId: 0 }, NOW)).toBeNull();
+    expect(apiFeedToFeed({ ...base, language: 'de' }, NOW)).toBeNull();
+    expect(apiFeedToFeed({ ...base, newestItemPublishTime: daysAgo(200) }, NOW)).toBeNull();
+  });
+  it('lit une ligne de la base téléchargée', () => {
+    expect(dumpRowToFeed({ id: 1, url: 'https://f.fr', title: ' ', itunesId: 5, language: 'en', newestItemPubdate: 0, category1: 'Comedy' }))
+      .toMatchObject({ title: 'Sans titre', itunesId: '5', newestAt: null, category: 'Humour' });
   });
 });
