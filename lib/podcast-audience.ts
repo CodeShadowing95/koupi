@@ -4,6 +4,8 @@ import type { AccountMetrics } from './account-metrics';
 import { applePodcasts, type PodcastDirectory } from './apple-podcasts';
 import { fetchApplePodcastRating, type PodcastRating } from './apple-podcast-rating';
 import type { AudienceReader } from './creator-accounts';
+import { fetchFeedHead, type FeedHead } from './podcast-feed-head';
+import { guessLanguage } from './language-guess';
 
 /** Identifiant Apple d'un compte podcast : son externalId, sinon le …/id123 de son lien. */
 export function applePodcastId(account: { externalId: string | null; url: string }): number | null {
@@ -13,7 +15,12 @@ export function applePodcastId(account: { externalId: string | null; url: string
   return Number.isSafeInteger(fromUrl) && fromUrl > 0 ? fromUrl : null;
 }
 
-type Sources = { directory?: Pick<PodcastDirectory, 'podcast'>; readRating?: (id: number) => Promise<PodcastRating | null> };
+type Sources = {
+  directory?: Pick<PodcastDirectory, 'podcast'>;
+  readRating?: (id: number) => Promise<PodcastRating | null>;
+  /** Début du flux RSS : la langue de l'émission (<language>) et sa description. */
+  readFeedHead?: (feedUrl: string) => Promise<FeedHead | null>;
+};
 
 /**
  * Lecteur d'audience des comptes podcast. Les deux lectures sont indépendantes : si la page Apple change et que
@@ -22,6 +29,7 @@ type Sources = { directory?: Pick<PodcastDirectory, 'podcast'>; readRating?: (id
 export function podcastAudienceReader(sources: Sources = {}): AudienceReader {
   const directory = sources.directory ?? applePodcasts();
   const readRating = sources.readRating ?? (id => fetchApplePodcastRating(id));
+  const readFeedHead = sources.readFeedHead ?? (url => fetchFeedHead(url));
   return async account => {
     const id = applePodcastId(account);
     if (id === null) return null;
@@ -34,6 +42,13 @@ export function podcastAudienceReader(sources: Sources = {}): AudienceReader {
       metrics.rating = rating.value.rating;
       metrics.ratingSource = 'Apple Podcasts';
       if (rating.value.ratingCount !== null) metrics.ratingCount = rating.value.ratingCount;
+    }
+    // Langue : celle que le flux déclare, sinon devinée sur sa description et son titre.
+    const podcast = feed.status === 'fulfilled' ? feed.value : null;
+    if (podcast) {
+      const head = podcast.feedUrl ? await readFeedHead(podcast.feedUrl).catch(() => null) : null;
+      const language = head?.language ?? guessLanguage(`${podcast.title}. ${head?.description ?? ''}`);
+      if (language) metrics.language = language;
     }
     return metrics;
   };

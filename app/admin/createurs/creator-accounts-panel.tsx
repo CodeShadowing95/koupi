@@ -9,6 +9,7 @@ import { PlatformIcon } from '@/components/platform-icon';
 import { CREATOR_LEVEL_LABELS, MIN_RATINGS, MIN_SUBSCRIBERS, type CreatorLevel } from '@/lib/verification';
 import { AccountClaim } from './account-claim';
 import { audienceLine } from '@/lib/account-metrics';
+import { localeLabel } from '@/lib/creator-locale';
 import { PLATFORM_LABELS, formatSubscribers, type AdminCreatorAccount, type CreatorPlatform } from '@/lib/creator-accounts-display';
 
 const LEVEL_TONES: Record<CreatorLevel, Tone> = { spotted: 'muted', checked: 'ok', verified: 'info' };
@@ -62,6 +63,13 @@ export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtube
     void act(`${account.id}-delete`, () => sendJson(`/api/admin/creator-accounts/${account.id}`, 'DELETE', {}));
   };
   const openAdd = () => { setPlatform('youtube'); setChannel(''); setHandle(''); setUrl(''); setSubscribers(''); setAdding(true); };
+  const editLocale = (account: AdminCreatorAccount) => {
+    const current = [account.metrics.country, account.metrics.language].filter(Boolean).join(' ');
+    const value = window.prompt(`Pays et langue de ${account.handle}, en codes à deux lettres séparés par un espace (ex. « FR fr », « BE fr », « US en »). Laisse vide pour effacer.`, current);
+    if (value === null) return;
+    const [country = '', language = ''] = value.trim().split(/[\s,;/]+/);
+    void patch(account, { country, language });
+  };
   const editSubscribers = (account: AdminCreatorAccount) => {
     const value = window.prompt(`Abonnés de ${account.handle} sur ${PLATFORM_LABELS[account.platform]} (laisse vide si inconnu)`, account.subscribers?.toString() ?? '');
     if (value !== null) void patch(account, { subscribers: value.trim() });
@@ -94,6 +102,10 @@ export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtube
                   {audience ?? (account.platform === 'podcast' ? 'Audience inconnue : clique sur « Actualiser »' : 'Abonnés inconnus')}
                   {readAt && <span> · relevé le {day(readAt)}</span>}
                 </p>
+                <p className="adm-ca-subs">
+                  {localeLabel({ country: account.metrics.country ?? null, language: account.metrics.language ?? null }) ?? 'Pays et langue inconnus'}
+                  {account.metrics.localeManual && <span> · corrigés à la main</span>}
+                </p>
                 <label className="adm-ca-check">
                   <input type="checkbox" checked={account.adminCheckedAt !== null} disabled={busy !== null} onChange={event => patch(account, { adminChecked: event.target.checked })} />
                   <span>J’ai contrôlé ce compte{account.adminCheckedAt && <small> le {day(account.adminCheckedAt)}</small>}</span>
@@ -109,6 +121,7 @@ export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtube
                   {account.platform === 'youtube' && <button type="button" className="adm-btn" disabled={busy !== null || !youtubeReady} title={youtubeReady ? 'Relit les abonnés, le pseudo, les vues et les vidéos sur YouTube' : 'La clé YouTube manque'} onClick={() => refresh(account)}>{busy === `${account.id}-refresh` ? 'Lecture…' : 'Actualiser'}</button>}
                   {account.platform === 'podcast' && <button type="button" className="adm-btn" disabled={busy !== null} title="Relit la note et le nombre d’épisodes sur Apple Podcasts" onClick={() => refresh(account)}>{busy === `${account.id}-refresh` ? 'Lecture…' : 'Actualiser'}</button>}
                   {account.platform !== 'youtube' && <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => editSubscribers(account)}>Modifier les abonnés</button>}
+                  <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => editLocale(account)}>Pays et langue</button>
                   <span style={{ flex: 1 }} />
                   <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => remove(account)}>Retirer</button>
                 </div>

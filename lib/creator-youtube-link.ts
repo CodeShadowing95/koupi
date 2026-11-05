@@ -9,12 +9,14 @@ import { codes, creatorAccounts, creators } from '@/db/schema';
 import { refreshCreatorAvatars } from './stored-images';
 import { youtubeVideoId } from './verification-run';
 import { youtubeFetch } from './api-usage';
+import { cleanMetrics, type AccountMetrics } from './account-metrics';
+import { channelLocale } from './creator-accounts';
 
 const API = 'https://www.googleapis.com/youtube/v3';
 const BATCH = 50;
 
 /** thumbnail : adresse de la photo de profil de la chaîne (240 px), servie par Google. */
-export type ChannelInfo = { id: string; handle: string; url: string; subscribers: number | null; thumbnail?: string };
+export type ChannelInfo = { id: string; handle: string; url: string; subscribers: number | null; thumbnail?: string; metrics?: AccountMetrics };
 
 export type YoutubeBatch = {
   /** Chaîne de chaque vidéo (vidéo absente : supprimée ou privée). */
@@ -49,7 +51,7 @@ export function youtubeBatch(apiKey: string | undefined, fetchFn: typeof fetch =
     async channels(channelIds) {
       const found = new Map<string, ChannelInfo>();
       for (const ids of chunks([...new Set(channelIds)], BATCH)) {
-        const body = await get<{ items?: { id?: string; snippet?: { customUrl?: string; thumbnails?: Record<string, { url?: string }> }; statistics?: { subscriberCount?: string; hiddenSubscriberCount?: boolean } }[] }>('channels', { part: 'snippet,statistics', id: ids.join(','), maxResults: String(BATCH) });
+        const body = await get<{ items?: { id?: string; snippet?: { title?: string; customUrl?: string; country?: string; defaultLanguage?: string; description?: string; thumbnails?: Record<string, { url?: string }> }; statistics?: { subscriberCount?: string; hiddenSubscriberCount?: boolean; viewCount?: string; videoCount?: string } }[] }>('channels', { part: 'snippet,statistics', id: ids.join(','), maxResults: String(BATCH) });
         for (const item of body.items ?? []) {
           if (!item.id) continue;
           const handle = (item.snippet?.customUrl || item.id).slice(0, 120);
@@ -60,6 +62,7 @@ export function youtubeBatch(apiKey: string | undefined, fetchFn: typeof fetch =
             url: handle.startsWith('@') ? `https://www.youtube.com/${handle}` : `https://www.youtube.com/channel/${item.id}`,
             subscribers: item.statistics?.hiddenSubscriberCount || !Number.isFinite(count) ? null : count,
             thumbnail: item.snippet?.thumbnails?.medium?.url ?? item.snippet?.thumbnails?.default?.url,
+            metrics: cleanMetrics({ views: Number(item.statistics?.viewCount), videos: Number(item.statistics?.videoCount), ...channelLocale(item.snippet) }),
           });
         }
       }
@@ -128,6 +131,7 @@ export async function linkYoutubeChannels(db: Db, youtube: YoutubeBatch, options
     const inserted = await db.insert(creatorAccounts).values({
       creatorId, platform: 'youtube', externalId: info.id, handle: info.handle, url: info.url,
       subscribers: info.subscribers, subscribersAt: now,
+      ...(info.metrics ? { metrics: info.metrics, metricsAt: now } : {}),
     }).onConflictDoNothing().returning({ id: creatorAccounts.id });
     if (inserted.length) { report.linked.push(name); takenHandles.add(info.handle.toLowerCase()); }
     else report.skipped.push({ creator: name, reason: 'Ce compte vient d’être relié ailleurs.' });

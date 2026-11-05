@@ -19,6 +19,8 @@ import { CreatorAccountsPanel, LevelDot } from './creator-accounts-panel';
 import { LinkAccountsButton } from './link-accounts';
 import { FetchAvatarsButton, RefreshAvatarButton } from './avatars-button';
 import { RefreshButton } from '@/components/admin-refresh-button';
+import { RefreshAccountsButton } from './refresh-accounts-button';
+import { creatorLocale, localeLabel, localeShort } from '@/lib/creator-locale';
 
 type Creator = AdminCreator & { accounts: AdminCreatorAccount[]; level: CreatorLevel };
 const LEVEL_ORDER: Record<CreatorLevel, number> = { spotted: 0, checked: 1, verified: 2 };
@@ -71,7 +73,7 @@ export function CreatorsView({ creators, toLink, missingPhotos, youtubeReady }: 
             <h1>Créateurs</h1>
             <p>Les personnes à qui appartiennent les codes. Un créateur est ajouté automatiquement avec son premier code ; ici, tu corriges son nom, tu relies ses comptes et tu le contrôles.</p>
           </div>
-          <div className="adm-head-actions"><RefreshButton /><LinkAccountsButton toLink={toLink} youtubeReady={youtubeReady} /><FetchAvatarsButton missing={missingPhotos} youtubeReady={youtubeReady} /><ExportMenu type="createurs" /></div>
+          <div className="adm-head-actions"><RefreshButton /><LinkAccountsButton toLink={toLink} youtubeReady={youtubeReady} /><FetchAvatarsButton missing={missingPhotos} youtubeReady={youtubeReady} /><RefreshAccountsButton accounts={creators.reduce((sum, creator) => sum + creator.accounts.filter(account => account.platform === 'youtube' || account.platform === 'podcast').length, 0)} /><ExportMenu type="createurs" /></div>
         </div>
         <div className="adm-tabs" role="group" aria-label="Filtre">
           {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label} <span className="adm-tab-n">{countOf(item.value)}</span></button>)}
@@ -88,13 +90,14 @@ export function CreatorsView({ creators, toLink, missingPhotos, youtubeReady }: 
         {visible.length === 0 ? <div className="adm-empty">Aucun créateur ne correspond.</div> : view === 'table' ? (
           <div className="adm-table-wrap adm-page-enter" key={`table-${current.page}`}>
             <table className="adm-table">
-              <thead><tr><SortHeader sort={sort} field="name">Créateur</SortHeader><SortHeader sort={sort} field="level">Niveau</SortHeader><SortHeader sort={sort} field="codes">Codes</SortHeader><th scope="col">Outils</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
+              <thead><tr><SortHeader sort={sort} field="name">Créateur</SortHeader><SortHeader sort={sort} field="level">Niveau</SortHeader><SortHeader sort={sort} field="codes">Codes</SortHeader><th scope="col">Langue</th><th scope="col">Outils</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
               <tbody>
                 {current.items.map(creator => (
                   <tr key={creator.id} data-open onClick={openOnClick(() => setSelectedId(creator.id))}>
                     <td className="adm-cell-wrap"><span className="adm-cell-id"><AdminCreatorAvatar name={creator.name} small /><button type="button" className="adm-open adm-open-wrap" title={`Voir le détail de ${creator.name}`} onClick={() => setSelectedId(creator.id)}><b>{creator.name}</b></button></span></td>
                     <td className="adm-cell-nowrap"><LevelDot level={creator.level} /></td>
                     <td className="adm-cell-nowrap">{codesLink(creator)}</td>
+                    <td className="adm-cell-nowrap" title={localeLabel(creatorLocale(creator.accounts)) ?? 'Inconnue'}>{localeShort(creatorLocale(creator.accounts)) ?? <span className="muted">—</span>}</td>
                     <td className="adm-cell-wrap adm-cell-muted">{creator.tools.join(', ') || '—'}</td>
                     <td><div className="adm-cell-actions">{page(creator)}<button type="button" className="adm-btn" onClick={() => open(creator)}>Modifier</button></div></td>
                   </tr>
@@ -111,7 +114,7 @@ export function CreatorsView({ creators, toLink, missingPhotos, youtubeReady }: 
                   <LevelDot level={creator.level} />
                 </div>
                 <div className="adm-card-foot">
-                  <span className="adm-card-meta">{codesLink(creator)}{creator.visible === 0 && ' · masqué'}</span>
+                  <span className="adm-card-meta">{codesLink(creator)}{creator.visible === 0 && ' · masqué'}{localeShort(creatorLocale(creator.accounts)) && <span title={localeLabel(creatorLocale(creator.accounts)) ?? ''}> · {localeShort(creatorLocale(creator.accounts))}</span>}</span>
                   {creator.visible > 0 && <IconLink icon="external" label="Page publique" href={`/creators/${creator.slug}`} external />}
                   <IconButton icon="edit" label="Modifier le profil" onClick={() => open(creator)} />
                 </div>
@@ -133,6 +136,7 @@ export function CreatorsView({ creators, toLink, missingPhotos, youtubeReady }: 
           {selected && <>
             <DetailList items={[
               { label: 'Niveau', value: CREATOR_LEVEL_LABELS[selected.level] },
+              { label: 'Pays et langue', value: localeLabel(creatorLocale(selected.accounts)) ?? <span className="muted">Inconnus : « Actualiser les comptes », ou corrige-les sur un compte.</span> },
               { label: 'Présentation', value: selected.bio ? <span style={{ whiteSpace: 'pre-line' }}>{selected.bio}</span> : <span className="muted">Aucune, à écrire pour sa page publique.</span> },
               { label: 'Codes', value: codesLink(selected) },
               { label: 'Page publique', value: selected.visible > 0 && <a href={`/creators/${selected.slug}`} target="_blank" rel="noopener noreferrer">/creators/{selected.slug} ↗</a> },
