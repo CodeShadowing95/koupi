@@ -14,6 +14,7 @@ import { CopyCode, IconButton, ToolSiteLink, IconLink, StatusDot, type Tone } fr
 import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
 import { RefreshButton } from '@/components/admin-refresh-button';
+import { CODE_ORIGINS, CODE_ORIGIN_LABELS, isCodeOrigin, type CodeOrigin } from '@/lib/code-origin';
 
 const statusLabel: Record<Code['status'], { label: string; className: string }> = {
   verified: { label: 'Vérifié', className: 'adm-pill adm-pill-ok' },
@@ -80,10 +81,12 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
     if (isFilter(fromUrl)) setStatus(fromUrl);
     if (params.get('q')) setQuery(params.get('q') ?? '');
   }, []);
-  const filtered = codes.filter(code => matchesFilter(code, status, stale) && matchesSearch([code.code, code.tool, code.creator, code.discount, code.sourceTitle, code.note ?? ''], query));
+  const [origin, setOrigin] = useState<CodeOrigin | 'all'>('all');
+  const origins = CODE_ORIGINS.filter(value => codes.some(code => code.origin === value));
+  const filtered = codes.filter(code => matchesFilter(code, status, stale) && (origin === 'all' || code.origin === origin) && matchesSearch([code.code, code.tool, code.creator, code.discount, code.sourceTitle, code.note ?? ''], query));
   const sort = useAdminSort(filtered, sortFields, 'tool');
   const visible = sort.items;
-  const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${status}|${query}|${sort.resetKey}`);
+  const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${status}|${origin}|${query}|${sort.resetKey}`);
   return (
     <main className="adm-page">
       <div className="container">
@@ -102,6 +105,11 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
         <div className="adm-toolbar">
           <label htmlFor="code-search" className="sr-only">Rechercher un code</label>
           <input id="code-search" className="adm-search" type="search" placeholder="Rechercher un code, un outil, un créateur…" value={query} onChange={event => setQuery(event.target.value)} />
+          <label htmlFor="code-origin" className="sr-only">Origine</label>
+          <select id="code-origin" className="adm-filter-select" value={origin} onChange={event => setOrigin(isCodeOrigin(event.target.value) ? event.target.value : 'all')}>
+            <option value="all">Toutes les origines</option>
+            {origins.map(value => <option key={value} value={value}>{CODE_ORIGIN_LABELS[value]}</option>)}
+          </select>
           {view !== 'table' && <SortControl sort={sort} id="code-sort" />}
           <span className="adm-count" role="status">{visible.length} sur {countOf(status)}</span>
           <ViewToggle view={view} onChange={setView} />
@@ -157,6 +165,7 @@ export function CodesView({ codes, tools, categories }: { codes: Code[]; tools: 
               { label: 'Outil', value: <><ToolSiteLink name={selected.tool} website={siteOf.get(selected.toolSlug)} /> · <a href={`/admin/outils?q=${encodeURIComponent(selected.tool)}`}>fiche admin</a></> },
               { label: 'Réduction', value: selected.discount },
               { label: 'Créateur', value: <a href={`/admin/createurs?q=${encodeURIComponent(selected.creator)}`}>{selected.creator}</a> },
+              { label: 'Trouvé par', value: selected.origin && CODE_ORIGIN_LABELS[selected.origin] },
               { label: 'Source', value: <a href={selected.source} target="_blank" rel="noopener noreferrer">{selected.sourceTitle || 'Ouvrir la source'} ↗</a> },
               { label: 'Lien du créateur', value: selected.creatorLink && <a href={selected.creatorLink} target="_blank" rel="noopener noreferrer">Ouvrir ↗</a> },
               { label: 'Votes', value: selected.votes > 0 ? `${selected.votes} vote${selected.votes > 1 ? 's' : ''} · ${selected.success} % de réussite` : 'Aucun vote' },

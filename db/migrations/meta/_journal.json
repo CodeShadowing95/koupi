@@ -169,6 +169,13 @@
       "when": 1793864421959,
       "tag": "0023_plain_centennial",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1793883257028,
+      "tag": "0024_happy_carmella_unuscione",
+      "breakpoints": true
     }
   ]
 }

@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import { boolean, check, date, index, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import type { ToolAnalysis } from '../lib/tool-analysis';
 import type { AccountMetrics } from '../lib/account-metrics';
+import { CODE_ORIGINS } from '../lib/code-origin';
 
 // Propositions de codes envoyées par le public, en attente de modération.
 export const submissions = pgTable('submissions', {
@@ -146,6 +147,8 @@ export const codes = pgTable('codes', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   archivedAt: timestamp('archived_at', { withTimezone: true }),
+  /** Comment Merkod a trouvé le code (lib/code-origin.ts, ADR-0032) : à la main, proposition, recherche YouTube, podcast… */
+  origin: text('origin', { enum: CODE_ORIGINS }).notNull().default('unknown'),
 }, table => [
   index('codes_tool_idx').on(table.toolId),
   index('codes_creator_idx').on(table.creatorId),
@@ -156,6 +159,7 @@ export const codes = pgTable('codes', {
   check('codes_creator_link_http', sql`${table.creatorLink} is null or ${table.creatorLink} ~* '^https?://'`),
   check('codes_status_valid', sql`${table.status} in ('pending','to_test','verified','rejected')`),
   check('codes_votes_positive', sql`${table.votesUp} >= 0 and ${table.votesDown} >= 0`),
+  check('codes_origin_valid', sql`${table.origin} in ('manual','submission','import','youtube_search','youtube_channel','podcast','ai_web','spotify','unknown')`),
 ]);
 
 export const CODE_ACTIONS = ['create', 'edit', 'verify', 'reject', 'to_test', 'pending', 'archive', 'restore', 'payment_test'] as const;

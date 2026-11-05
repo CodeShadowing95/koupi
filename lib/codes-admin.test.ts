@@ -51,6 +51,14 @@ describe('actions de l’admin', () => {
     expect(logs.map(log => log.action)).toEqual(['create']);
   });
 
+  it('note l’origine : à la main, puis codes du site sans origine', async () => {
+    await createCode(db, base);
+    const [row] = await db.select({ origin: schema.codes.origin }).from(schema.codes);
+    expect(row.origin).toBe('manual');
+    expect((await loadCatalog(db, { includeArchived: true })).codes[0].origin).toBe('manual');
+    expect((await loadCatalog(db)).codes[0].origin).toBeUndefined();
+  });
+
   it('réutilise le créateur du même nom et crée un nouvel outil si besoin', async () => {
     await createCode(db, base);
     const result = await createCode(db, { ...base, toolSlug: undefined, newTool: { name: 'Runway', categorySlug: 'ia', website: 'https://runwayml.com' }, creatorName: 'tutorial stack', code: 'RUN' });
