@@ -2,6 +2,13 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.4.1](https://github.com/CodeShadowing95/koupi/compare/v0.4.0...v0.4.1) (2026-11-05)
+
+### Corrections
+
+- **admin:** Keep the chosen theme across pages and bring back the usage gauge ([dfa695f](https://github.com/CodeShadowing95/koupi/commit/dfa695f1b87599655c3a69d93c753787a2cb8e68))
+- **admin:** Stop the login animation from freezing on the welcome screen ([0d18181](https://github.com/CodeShadowing95/koupi/commit/0d1818154f60f6ea23183c0bf983894fe64d8e38))
+
 ## [0.4.0](https://github.com/CodeShadowing95/koupi/compare/v0.3.0...v0.4.0) (2026-11-04)
 
 ### Nouveautés
