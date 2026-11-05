@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import {
-  accountsByCreator, addCreatorAccount, deleteCreatorAccount, refreshCreatorAccount, updateCreatorAccount,
+  accountsByCreator, addCreatorAccount, channelLocale, deleteCreatorAccount, refreshCreatorAccount, updateCreatorAccount,
   youtubeChannelReader, youtubeChannelRef, type ChannelReader,
 } from './creator-accounts';
 import { formatSubscribers } from './creator-accounts-display';
@@ -150,6 +150,23 @@ describe('comptes créateurs', () => {
     expect(await refreshCreatorAccount(db, row.id, { readChannel: null, readAudience: { podcast: async () => null } })).toEqual({ ok: false, error: 'Ce compte est introuvable à sa source.' });
     expect(await refreshCreatorAccount(db, row.id, { readChannel: null, readAudience: { podcast: async () => { throw new Error('503'); } } })).toEqual({ ok: false, error: expect.stringContaining('ne répond pas') });
     expect(await refreshCreatorAccount(db, row.id, { readChannel: null })).toEqual({ ok: false, error: expect.stringContaining('à la main') });
+  });
+
+  it('corrige le pays et la langue à la main', async () => {
+    const [row] = await db.insert(schema.creatorAccounts).values({ creatorId: ana, platform: 'podcast', externalId: '42', handle: 'Ana parle', url: 'https://podcasts.apple.com/fr/podcast/id42', metrics: { episodes: 5, language: 'en' } }).returning();
+    expect(await updateCreatorAccount(db, row.id, { country: 'be', language: 'fr' })).toEqual({ ok: true, data: { id: row.id } });
+    let [account] = (await accountsByCreator(db)).get(ana)!;
+    expect(account.metrics).toEqual({ episodes: 5, country: 'BE', language: 'fr', localeManual: true });
+    expect(await updateCreatorAccount(db, row.id, { country: 'Belgique' })).toEqual({ ok: false, error: expect.stringContaining('deux lettres') });
+    await updateCreatorAccount(db, row.id, { country: '', language: '' });
+    [account] = (await accountsByCreator(db)).get(ana)!;
+    expect(account.metrics).toEqual({ episodes: 5, localeManual: true });
+  });
+
+  it('lit le pays et la langue d’une chaîne, ou devine la langue sur sa description', () => {
+    expect(channelLocale({ country: 'ca', defaultLanguage: 'fr-CA' })).toEqual({ country: 'CA', language: 'fr' });
+    expect(channelLocale({ title: 'Ana', description: 'The channel where we build things and talk about how to grow your business every week.' })).toEqual({ language: 'en' });
+    expect(channelLocale(undefined)).toEqual({});
   });
 
   it('garde les vues et vidéos d’une chaîne lue sur YouTube', async () => {

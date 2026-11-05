@@ -1,6 +1,8 @@
 // Mesures d'audience d'un compte créateur, quelle que soit la source (ADR-0030) : note et nombre de notes
 // (Apple Podcasts, plus tard Spotify…), épisodes, vues et vidéos YouTube. Gardées dans creator_accounts.metrics (JSON).
 // Une nouvelle source ajoute ses mesures ici, sans migration. Sans base ni réseau : importable par les composants client.
+// Elles portent aussi le pays et la langue du compte (ADR-0031).
+import { normalizeCountry, normalizeLanguage } from './language-guess';
 
 export type AccountMetrics = {
   /** Note moyenne sur 5. */
@@ -15,6 +17,12 @@ export type AccountMetrics = {
   views?: number;
   /** Vidéos publiées (YouTube). */
   videos?: number;
+  /** Pays du compte, code ISO à deux lettres (FR, BE, CA…) : indiqué par YouTube si le créateur l'a rempli, sinon saisi. */
+  country?: string;
+  /** Langue du compte, code ISO 639-1 (fr, en…) : donnée par la source, sinon devinée sur sa description. */
+  language?: string;
+  /** Pays et langue corrigés par l'admin : une actualisation ne les remplace plus. */
+  localeManual?: boolean;
 };
 
 const COUNTS = ['ratingCount', 'episodes', 'views', 'videos'] as const;
@@ -32,12 +40,20 @@ export function cleanMetrics(value: unknown): AccountMetrics {
   }
   if (typeof raw.ratingSource === 'string' && raw.ratingSource.trim()) metrics.ratingSource = raw.ratingSource.trim().slice(0, 40);
   if (metrics.rating === undefined) { delete metrics.ratingCount; delete metrics.ratingSource; }
+  const country = normalizeCountry(raw.country);
+  if (country) metrics.country = country;
+  const language = normalizeLanguage(raw.language);
+  if (language) metrics.language = language;
+  if (raw.localeManual === true) metrics.localeManual = true;
   return metrics;
 }
 
 /** Ancienne et nouvelle mesures réunies : une lecture qui échoue sur une mesure ne l'efface pas. */
 export function mergeMetrics(previous: unknown, next: AccountMetrics): AccountMetrics {
-  return cleanMetrics({ ...cleanMetrics(previous), ...cleanMetrics(next) });
+  const before = cleanMetrics(previous);
+  const after = cleanMetrics(next);
+  if (before.localeManual && !after.localeManual) { delete after.country; delete after.language; }
+  return cleanMetrics({ ...before, ...after });
 }
 
 const number = (value: number) => new Intl.NumberFormat('fr-FR').format(value).replace(/ | /g, ' ');
