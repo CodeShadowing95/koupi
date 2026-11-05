@@ -1,7 +1,7 @@
 # ADR-0030 : Mesures d'audience des comptes créateurs, quelle que soit la source
 
 ## Statut
-Proposée
+Acceptée (choix de l’éditeur, 2026-11-05)
 
 ## Date
 2026-11-05
