@@ -1,7 +1,7 @@
 'use client';
 // Créateurs crédités : leurs codes, les outils qu'ils recommandent, et leurs comptes sur les réseaux
 // (YouTube, TikTok, Instagram…) qui donnent leur niveau : Repéré, Contrôlé par Merkod, Créateur vérifié.
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ChangeEvent } from 'react';
 import type { AdminCreator } from '@/lib/catalog-admin';
 import { CREATOR_BIO_MAX } from '@/lib/creator-bio';
 import { matchesSearch } from '@/lib/admin-search';
@@ -21,19 +21,25 @@ import { FetchAvatarsButton, RefreshAvatarButton } from './avatars-button';
 import { RefreshButton } from '@/components/admin-refresh-button';
 import { RefreshAccountsButton } from './refresh-accounts-button';
 import { creatorLocale, localeLabel, localeShort } from '@/lib/creator-locale';
+import {
+  AUDIENCE_FILTERS, LANGUAGE_FILTERS, NO_FILTERS, PLATFORM_FILTERS, activeFilters, audienceShort, contactOrder, creatorRatings, creatorSubscribers,
+  isToContact, matchesFilters, type CreatorFilters,
+} from '@/lib/creator-admin-filter';
 
-type Creator = AdminCreator & { accounts: AdminCreatorAccount[]; level: CreatorLevel };
+type Creator = AdminCreator & { accounts: AdminCreatorAccount[]; level: CreatorLevel; copies: number; inTouch: boolean };
 const LEVEL_ORDER: Record<CreatorLevel, number> = { spotted: 0, checked: 1, verified: 2 };
 
-type Filter = 'all' | 'visible' | 'hidden' | 'tocheck';
+type Filter = 'all' | 'visible' | 'hidden' | 'tocheck' | 'tocontact';
 const filters: { value: Filter; label: string }[] = [
-  { value: 'all', label: 'Tous' }, { value: 'visible', label: 'Sur le site' }, { value: 'hidden', label: 'Sans code visible' }, { value: 'tocheck', label: 'À contrôler' },
+  { value: 'all', label: 'Tous' }, { value: 'visible', label: 'Sur le site' }, { value: 'hidden', label: 'Sans code visible' }, { value: 'tocheck', label: 'À contrôler' }, { value: 'tocontact', label: 'À contacter' },
 ];
 function matches(creator: Creator, filter: Filter): boolean {
   if (filter === 'visible') return creator.visible > 0;
   if (filter === 'hidden') return creator.visible === 0;
   // Sur le site, mais encore « repéré » : c'est eux qu'il faut contrôler en premier.
   if (filter === 'tocheck') return creator.visible > 0 && creator.level === 'spotted';
+  // Sur le site sans nous connaître encore : à qui proposer de revendiquer sa page.
+  if (filter === 'tocontact') return isToContact(creator);
   return true;
 }
 
@@ -42,6 +48,9 @@ const sortFields: SortField<Creator>[] = [
   { key: 'level', label: 'Niveau', value: creator => LEVEL_ORDER[creator.level] },
   { key: 'codes', label: 'Nombre de codes', value: creator => creator.codes },
   { key: 'visible', label: 'Codes visibles', value: creator => creator.visible },
+  { key: 'audience', label: 'Abonnés', value: creator => creatorSubscribers(creator.accounts) ?? -1 },
+  { key: 'ratings', label: 'Notes (podcast)', value: creator => creatorRatings(creator.accounts) ?? -1 },
+  { key: 'copies', label: 'Copies du mois', value: creator => creator.copies },
 ];
 
 export function CreatorsView({ creators, toLink, missingPhotos, youtubeReady }: { creators: Creator[]; toLink: number; missingPhotos: number; youtubeReady: boolean }) {
@@ -55,11 +64,16 @@ export function CreatorsView({ creators, toLink, missingPhotos, youtubeReady }: 
   const selected = creators.find(creator => creator.id === selectedId) ?? null;
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
-  const filtered = creators.filter(creator => matches(creator, filter) && matchesSearch([creator.name, ...creator.tools], query));
+  const [extra, setExtra] = useState<CreatorFilters>(NO_FILTERS);
+  const setOne = (key: keyof CreatorFilters) => (event: ChangeEvent<HTMLSelectElement>) => setExtra(current => ({ ...current, [key]: event.target.value }));
+  const filtered = creators.filter(creator => matches(creator, filter) && matchesFilters(creator, extra) && matchesSearch([creator.name, ...creator.tools], query));
+  // « À contacter » s'ouvre rangé par potentiel ; un tri choisi passe devant.
+  if (filter === 'tocontact') filtered.sort(contactOrder);
   const sort = useAdminSort(filtered, sortFields, 'name');
+  const extraKey = Object.values(extra).join(',');
   const visible = sort.items;
-  const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${filter}|${query}|${sort.resetKey}`);
-  const countOf = (value: Filter) => creators.filter(creator => matches(creator, value)).length;
+  const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${filter}|${extraKey}|${query}|${sort.resetKey}`);
+  const countOf = (value: Filter) => creators.filter(creator => matches(creator, value) && matchesFilters(creator, extra)).length;
   const open = (creator: Creator) => { setName(creator.name); setBio(creator.bio ?? ''); setEditing(creator); };
   const codesLink = (creator: Creator) => <a href={`/admin/codes?q=${encodeURIComponent(creator.name)}`}>{creator.visible} visible{creator.visible > 1 ? 's' : ''} / {creator.codes}</a>;
   const page = (creator: Creator) => creator.visible > 0 ? <a href={`/creators/${creator.slug}`} target="_blank" rel="noopener noreferrer">Page ↗</a> : null;
@@ -81,22 +95,32 @@ export function CreatorsView({ creators, toLink, missingPhotos, youtubeReady }: 
         <div className="adm-toolbar">
           <label htmlFor="creator-search" className="sr-only">Rechercher un créateur</label>
           <input id="creator-search" className="adm-search" type="search" placeholder="Rechercher un créateur, un outil…" value={query} onChange={event => setQuery(event.target.value)} />
+          <label htmlFor="creator-platform" className="sr-only">Réseau</label>
+          <select id="creator-platform" className="adm-filter-select" value={extra.platform} onChange={setOne('platform')}>{PLATFORM_FILTERS.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
+          <label htmlFor="creator-language" className="sr-only">Langue</label>
+          <select id="creator-language" className="adm-filter-select" value={extra.language} onChange={setOne('language')}>{LANGUAGE_FILTERS.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
+          <label htmlFor="creator-audience" className="sr-only">Audience</label>
+          <select id="creator-audience" className="adm-filter-select" value={extra.audience} onChange={setOne('audience')}>{AUDIENCE_FILTERS.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
+          {activeFilters(extra) > 0 && <button type="button" className="adm-btn" onClick={() => setExtra(NO_FILTERS)}>Effacer les filtres</button>}
           {view !== 'table' && <SortControl sort={sort} id="creator-sort" />}
           <span className="adm-count" role="status">{visible.length} sur {countOf(filter)}</span>
           <ViewToggle view={view} onChange={setView} />
         </div>
+        {filter === 'tocontact' && <p className="adm-hint">Sur le site, sans compte prouvé, sans espace créateur ni revendication en cours. Les plus copiés et les plus suivis d’abord : propose-leur de revendiquer leur page.</p>}
         <LetterBar sort={sort} />
         <div ref={topRef} className="adm-list-top" />
         {visible.length === 0 ? <div className="adm-empty">Aucun créateur ne correspond.</div> : view === 'table' ? (
           <div className="adm-table-wrap adm-page-enter" key={`table-${current.page}`}>
             <table className="adm-table">
-              <thead><tr><SortHeader sort={sort} field="name">Créateur</SortHeader><SortHeader sort={sort} field="level">Niveau</SortHeader><SortHeader sort={sort} field="codes">Codes</SortHeader><th scope="col">Langue</th><th scope="col">Outils</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
+              <thead><tr><SortHeader sort={sort} field="name">Créateur</SortHeader><SortHeader sort={sort} field="level">Niveau</SortHeader><SortHeader sort={sort} field="codes">Codes</SortHeader><SortHeader sort={sort} field="audience">Audience</SortHeader><SortHeader sort={sort} field="copies">Copies</SortHeader><th scope="col">Langue</th><th scope="col">Outils</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
               <tbody>
                 {current.items.map(creator => (
                   <tr key={creator.id} data-open onClick={openOnClick(() => setSelectedId(creator.id))}>
                     <td className="adm-cell-wrap"><span className="adm-cell-id"><AdminCreatorAvatar name={creator.name} small /><button type="button" className="adm-open adm-open-wrap" title={`Voir le détail de ${creator.name}`} onClick={() => setSelectedId(creator.id)}><b>{creator.name}</b></button></span></td>
                     <td className="adm-cell-nowrap"><LevelDot level={creator.level} /></td>
                     <td className="adm-cell-nowrap">{codesLink(creator)}</td>
+                    <td className="adm-cell-nowrap">{audienceShort(creator.accounts) ?? <span className="muted">—</span>}</td>
+                    <td className="adm-cell-nowrap" title="Copies de ses codes ce mois-ci">{creator.copies}</td>
                     <td className="adm-cell-nowrap" title={localeLabel(creatorLocale(creator.accounts)) ?? 'Inconnue'}>{localeShort(creatorLocale(creator.accounts)) ?? <span className="muted">—</span>}</td>
                     <td className="adm-cell-wrap adm-cell-muted">{creator.tools.join(', ') || '—'}</td>
                     <td><div className="adm-cell-actions">{page(creator)}<button type="button" className="adm-btn" onClick={() => open(creator)}>Modifier</button></div></td>
@@ -114,7 +138,7 @@ export function CreatorsView({ creators, toLink, missingPhotos, youtubeReady }: 
                   <LevelDot level={creator.level} />
                 </div>
                 <div className="adm-card-foot">
-                  <span className="adm-card-meta">{codesLink(creator)}{creator.visible === 0 && ' · masqué'}{localeShort(creatorLocale(creator.accounts)) && <span title={localeLabel(creatorLocale(creator.accounts)) ?? ''}> · {localeShort(creatorLocale(creator.accounts))}</span>}</span>
+                  <span className="adm-card-meta">{codesLink(creator)}{creator.visible === 0 && ' · masqué'}{audienceShort(creator.accounts) && ` · ${audienceShort(creator.accounts)}`}{creator.copies > 0 && ` · ${creator.copies} copie${creator.copies > 1 ? 's' : ''}`}{localeShort(creatorLocale(creator.accounts)) && <span title={localeLabel(creatorLocale(creator.accounts)) ?? ''}> · {localeShort(creatorLocale(creator.accounts))}</span>}</span>
                   {creator.visible > 0 && <IconLink icon="external" label="Page publique" href={`/creators/${creator.slug}`} external />}
                   <IconButton icon="edit" label="Modifier le profil" onClick={() => open(creator)} />
                 </div>
@@ -139,6 +163,7 @@ export function CreatorsView({ creators, toLink, missingPhotos, youtubeReady }: 
               { label: 'Pays et langue', value: localeLabel(creatorLocale(selected.accounts)) ?? <span className="muted">Inconnus : « Actualiser les comptes », ou corrige-les sur un compte.</span> },
               { label: 'Présentation', value: selected.bio ? <span style={{ whiteSpace: 'pre-line' }}>{selected.bio}</span> : <span className="muted">Aucune, à écrire pour sa page publique.</span> },
               { label: 'Codes', value: codesLink(selected) },
+              { label: 'Copies ce mois-ci', value: selected.copies },
               { label: 'Page publique', value: selected.visible > 0 && <a href={`/creators/${selected.slug}`} target="_blank" rel="noopener noreferrer">/creators/{selected.slug} ↗</a> },
             ]} />
             <CreatorAccountsPanel creatorId={selected.id} creatorName={selected.name} accounts={selected.accounts} youtubeReady={youtubeReady} />

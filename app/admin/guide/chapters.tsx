@@ -410,6 +410,16 @@ function Createurs() {
         { term: 'Sans code visible', meaning: 'Tous ses codes sont en attente ou rejetés : il n’apparaît pas encore.' },
       ]} />
     </Section>
+    <Section id="trier" title="Trier, filtrer et trouver qui contacter">
+      <p>Sous les onglets, trois listes affinent la page : <b>réseau</b> (YouTube, Podcast, autre réseau, aucun compte), <b>langue</b> (français, anglais, autre, inconnue) et <b>audience</b> (moins de 10 k abonnés, 10 k à 100 k, 100 k à 1 M, plus de 1 M). Les nombres des onglets suivent ces filtres ; <b>Effacer les filtres</b> les remet à zéro.</p>
+      <p>Tu peux aussi trier par <b>abonnés</b> (son compte le plus suivi), par <b>notes</b> (son podcast le plus noté sur Apple Podcasts) et par <b>copies du mois</b> (combien de fois ses codes ont été copiés depuis le 1er). Dans le tableau, clique sur l’en-tête Audience ou Copies ; en cartes, utilise le menu de tri.</p>
+      <Steps>
+        <Step title="Ouvre l’onglet À contacter">Il garde les créateurs déjà sur le site qui ne nous connaissent pas encore : aucun compte prouvé par la bio, pas d’espace créateur, pas de revendication en attente.</Step>
+        <Step title="Commence par le haut">La liste est rangée par potentiel : d’abord ceux dont les codes sont le plus copiés, puis les plus suivis, puis les podcasts les plus notés. Filtre sur Français pour une première campagne en France.</Step>
+        <Step title="Propose-lui sa page">Écris-lui (e-mail de contact de sa chaîne) avec le lien de sa page publique : il peut la revendiquer, et il sort de la liste dès qu’il le fait.</Step>
+      </Steps>
+      <Callout tone="why">Un créateur dont les codes sont déjà copiés a une raison concrète de s’intéresser à Merkod : ses abonnés l’utilisent. C’est le meilleur premier contact pour l’espace créateur payant.</Callout>
+    </Section>
     <Section id="fiche" title="Lire la fiche d’un créateur">
       <p>Clique sur un créateur : le panneau montre son niveau, son nombre de codes, ses <b>comptes sur les réseaux</b>, les <b>outils qu’il recommande</b> et le lien vers sa page publique. <b>Voir ses codes</b> ouvre la liste des codes filtrée sur lui.</p>
       <p>Sa <b>photo de profil</b> s’affiche sur sa carte, dans le tableau et dans le panneau quand on l’a récupérée depuis sa chaîne YouTube (commande <code>npm run avatars</code>). Sinon, ce sont ses initiales.</p>
