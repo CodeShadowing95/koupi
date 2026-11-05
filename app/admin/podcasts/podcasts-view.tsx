@@ -16,6 +16,8 @@ import { TOP_GENRES, type PodcastFeed } from '@/lib/apple-podcasts';
 import type { PodcastReadReport } from '@/lib/podcast-read';
 import type { AdminToolSuggestion } from '@/lib/tool-suggestions';
 import { openOnClick } from '@/components/admin-drawer';
+import type { AdminCandidate } from '@/lib/podcast-candidates';
+import { CandidatesPanel } from './candidates-panel';
 import { PodcastDrawer } from './podcast-drawer';
 import { ToolSuggestionsPanel, type AiAvailability, type CatalogToolOption, type CategoryOption } from './tool-suggestions-panel';
 
@@ -40,10 +42,10 @@ const sortFields: SortField<AdminPodcast>[] = [
 const dayFormat = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Paris' });
 const day = (iso: string) => dayFormat.format(new Date(iso));
 
-type Panel = 'list' | 'add' | 'tools';
+type Panel = 'list' | 'add' | 'candidates' | 'tools';
 
-export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, suggestions, categories, tools, ai, initialTab }: {
-  podcasts: AdminPodcast[]; nowIso: string; images: Record<string, string>; starters: string[];
+export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, suggestions, categories, tools, ai, initialTab, candidates }: {
+  podcasts: AdminPodcast[]; nowIso: string; images: Record<string, string>; starters: string[]; candidates: AdminCandidate[];
   suggestions: AdminToolSuggestion[]; categories: CategoryOption[]; tools: CatalogToolOption[]; ai: AiAvailability; initialTab?: Panel;
 }) {
   const router = useRouter();
@@ -199,12 +201,13 @@ export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, sug
         <div className="adm-pod-panels" role="tablist" aria-label="Podcasts">
           <button type="button" role="tab" id="pod-tab-list" aria-controls="pod-panel-list" aria-selected={panel === 'list'} className="adm-pod-panel-tab" onClick={() => setPanel('list')}>Suivis <span className="adm-tab-n">{podcasts.length}</span></button>
           <button type="button" role="tab" id="pod-tab-add" aria-controls="pod-panel-add" aria-selected={panel === 'add'} className="adm-pod-panel-tab" onClick={() => setPanel('add')}>+ Ajouter un podcast</button>
+          <button type="button" role="tab" id="pod-tab-candidates" aria-controls="pod-panel-candidates" aria-selected={panel === 'candidates'} className="adm-pod-panel-tab" onClick={() => setPanel('candidates')}>Candidats {candidates.some(item => item.status === 'new') && <span className="adm-tab-n">{candidates.filter(item => item.status === 'new').length}</span>}</button>
           <button type="button" role="tab" id="pod-tab-tools" aria-controls="pod-panel-tools" aria-selected={panel === 'tools'} className="adm-pod-panel-tab" onClick={() => setPanel('tools')}>Outils à ajouter {suggestions.length > 0 && <span className="adm-tab-n">{suggestions.length}</span>}</button>
         </div>
 
         {error && <div className="notice notice-error" role="alert">{error}</div>}
 
-        {panel === 'tools' ? <ToolSuggestionsPanel suggestions={suggestions} categories={categories} tools={tools} ai={ai} /> : panel === 'add' ? (
+        {panel === 'tools' ? <ToolSuggestionsPanel suggestions={suggestions} categories={categories} tools={tools} ai={ai} /> : panel === 'candidates' ? <CandidatesPanel candidates={candidates} /> : panel === 'add' ? (
           <section className="adm-pod-search" id="pod-panel-add" role="tabpanel" aria-labelledby="pod-tab-add">
             <p className="muted">Cherche un podcast dans l’annuaire Apple Podcasts, ou parcours un classement, puis clique sur <b>Suivre</b>. Il rejoint l’onglet Suivis.</p>
             <form className="adm-toolbar" onSubmit={event => { event.preventDefault(); void search(query); }}>

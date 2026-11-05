@@ -1479,3 +1479,15 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-tab[aria-current="page"]{border-bottom-color:var(--blue);color:var(--blue)}
 .adm-tab-intro{margin:0 0 16px;color:var(--ink-soft);font-size:14px;max-width:72ch}
 .adm-stat-tile .adm-stat-name{font-size:20px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Podcasts > Candidats (Podcast Index, ADR-0036) */
+.adm-pod-cand-intro{margin:0 0 14px;max-width:80ch}
+.adm-pod-cand{align-items:flex-start;padding:12px}
+.adm-pod-cand .adm-pod-info small{white-space:normal}
+.adm-pod-hits{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.adm-pod-hits li{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:13px;min-width:0}
+.adm-pod-hits q{color:var(--ink-soft);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:min(520px,100%)}
+.adm-pod-hit{display:inline-flex;align-items:center;gap:4px;height:26px;cursor:default}
+.adm-pod-hit .mono{color:var(--blue);font-weight:700}
+.adm-pod-cand-actions{display:flex;flex-direction:column;gap:6px;flex:none}
+@media (max-width:640px){.adm-pod-cand-actions{flex-direction:row;flex-basis:100%;justify-content:flex-end}}

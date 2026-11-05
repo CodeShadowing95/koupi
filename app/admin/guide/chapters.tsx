@@ -329,11 +329,21 @@ function Podcasts() {
     </Section>
     <Section id="ajouter" title="Ajouter un podcast">
       <Steps>
-        <Step title="Cherche-le">La page a trois onglets : <b>Suivis</b> (ta liste), <b>+ Ajouter un podcast</b> et <b>Outils à ajouter</b> (voir plus bas). Dans le deuxième, tape le nom du podcast puis <b>Chercher</b>. Merkod interroge l’annuaire d’Apple Podcasts, gratuit et sans clé. Les noms sous le champ sont les podcasts conseillés pour démarrer : un clic lance la recherche.</Step>
+        <Step title="Cherche-le">La page a quatre onglets : <b>Suivis</b> (ta liste), <b>+ Ajouter un podcast</b>, <b>Candidats</b> et <b>Outils à ajouter</b> (voir plus bas). Dans le deuxième, tape le nom du podcast puis <b>Chercher</b>. Merkod interroge l’annuaire d’Apple Podcasts, gratuit et sans clé. Les noms sous le champ sont les podcasts conseillés pour démarrer : un clic lance la recherche.</Step>
         <Step title="Ou découvre-en">Sous la recherche, <b>Découvrir, classement Apple</b> propose cinq genres où les sponsors donnent souvent des codes d’outils : Entrepreneuriat, Affaires, Technologies, Investissement et Marketing. Un clic affiche les 50 podcasts les plus écoutés en France dans ce genre, avec leur rang, sans ceux que tu suis déjà.</Step>
         <Step title="Vérifie que c’est le bon">L’auteur, le genre et le nombre d’épisodes aident à éviter les homonymes. <b>Écouter</b> ouvre sa page Apple Podcasts.</Step>
         <Step title="Clique sur Suivre">Le podcast rejoint l’onglet Suivis. Merkod crée aussi son <b>créateur</b> (au nom du podcast) et y relie un compte « Podcast » : les codes trouvés seront crédités à ce créateur. Tu peux le renommer ou lui relier ses autres réseaux dans <Link href="/admin/createurs">Créateurs</Link>.</Step>
       </Steps>
+    </Section>
+    <Section id="candidats" title="Les podcasts candidats">
+      <p>Chaque lundi, Merkod parcourt la <b>base publique de Podcast Index</b>, un annuaire ouvert de plus de 4 millions de podcasts. Il prend les 10 000 plus populaires qui ont publié depuis 90 jours, en français ou en anglais, et qu’Apple connaît (pour pouvoir les suivre). Tous les genres sont lus : un podcast d’humour ou de sport a aussi des sponsors. Il lit leurs épisodes récents avec le même repérage que les podcasts suivis, sans IA : un podcast qui cite un <b>outil du catalogue près d’un code</b> devient candidat.</p>
+      <p>L’onglet <b>Candidats</b> les montre, ceux qui citent le plus d’outils en premier. Pour chacun : l’auteur, la langue, la catégorie, le nombre d’épisodes, la date du dernier, puis chaque outil cité avec le code, l’extrait des notes et le lien vers l’épisode.</p>
+      <Legend rows={[
+        { term: 'Suivre', meaning: 'Le podcast rejoint tes Suivis, comme depuis une recherche. Il est lu dès la nuit suivante et ses codes arrivent dans Vérifications.' },
+        { term: 'Écarter', meaning: 'Le candidat passe dans « Écartés » et y reste, même s’il revient au passage suivant. « Remettre » le ramène.' },
+      ]} />
+      <Callout tone="rule">Un candidat n’ajoute aucun code au catalogue : c’est une idée de podcast à suivre. Les codes ne viennent qu’après le suivi, par la lecture de nuit, et passent par Vérifications.</Callout>
+      <Callout tone="warn" title="À régler une fois">Le passage tourne sur GitHub (la base pèse plusieurs Go, trop pour Vercel). Dans le dépôt, <b>Settings › Secrets and variables › Actions</b> : ajoute le secret <b>CRON_SECRET</b> (le même que sur Vercel) et la variable <b>MERKOD_URL</b> (l’adresse du site). Sans eux, le passage s’arrête sans rien faire. Il se lance aussi à la main depuis l’onglet Actions, « Podcast Index ».</Callout>
     </Section>
     <Section id="liste" title="La liste des suivis">
       <Legend rows={[
@@ -590,7 +600,7 @@ function Sources() {
       <Callout tone="tip">Une fois par semaine, regarde le journal : s’il n’y a pas eu de passage de nuit depuis deux jours, ou s’il n’y a que des échecs, la clé YouTube ou la tâche de nuit est à vérifier.</Callout>
     </Section>
     <Section id="bientot" title="Les sources à venir">
-      <p>La carte <b>Bientôt</b> liste les sources prévues : la recherche sur le web par l’IA, Spotify et Podcast Index. Elles auront leur carte et leurs passages au journal dès qu’elles seront branchées.</p>
+      <p>La carte <b>Bientôt</b> liste les sources prévues : la recherche sur le web par l’IA et Spotify. Elles auront leur carte et leurs passages au journal dès qu’elles seront branchées. Podcast Index, lui, ne trouve pas de codes mais des podcasts à suivre : ils arrivent chaque lundi dans Podcasts › Candidats.</p>
     </Section>
   </>;
 }

@@ -1,0 +1,61 @@
+name: Podcast Index
+
+# Chaque lundi, cherche des podcasts candidats dans la base publique de Podcast Index (ADR-0036)
+# et les envoie à Merkod (Podcasts > Candidats). Lancement à la main possible depuis l'onglet Actions.
+# Il faut, dans Settings > Secrets and variables > Actions : le secret CRON_SECRET (le même que sur Vercel)
+# et la variable MERKOD_URL (adresse du site en production). Sans eux, le passage s'arrête sans erreur.
+
+on:
+  schedule:
+    - cron: '0 2 * * 1'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Afficher les candidats sans les envoyer'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: podcast-index
+  cancel-in-progress: false
+
+jobs:
+  candidates:
+    name: Find candidate podcasts
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      MERKOD_URL: ${{ vars.MERKOD_URL }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+    steps:
+      - name: Check configuration
+        id: config
+        run: |
+          if [ -z "$MERKOD_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "::notice::MERKOD_URL ou CRON_SECRET manquant : passage ignoré."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.config.outputs.ready == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.config.outputs.ready == 'true'
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+        if: steps.config.outputs.ready == 'true'
+      - name: Download the Podcast Index database
+        if: steps.config.outputs.ready == 'true'
+        run: |
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/feeds.tgz" https://public.podcastindex.org/podcastindex_feeds.db.tgz
+          tar -xzf "$RUNNER_TEMP/feeds.tgz" -C "$RUNNER_TEMP"
+          rm "$RUNNER_TEMP/feeds.tgz"
+          ls -lh "$RUNNER_TEMP"
+      - name: Find and send candidates
+        if: steps.config.outputs.ready == 'true'
+        run: npx tsx scripts/podcast-index-candidates.ts "$(find "$RUNNER_TEMP" -name 'podcastindex_feeds.db' | head -n 1)" ${{ inputs.dry_run && '--dry-run' || '' }}
