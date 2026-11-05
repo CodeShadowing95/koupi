@@ -46,6 +46,9 @@ export function PodcastDrawer({ podcast, image, onClose, onShowTools, state, act
           { label: 'Suivi depuis', value: day(podcast.createdAt) },
           { label: 'Dernière lecture', value: podcast.lastFetchedAt ? day(podcast.lastFetchedAt) : 'Pas encore lu' },
           { label: 'Codes trouvés', value: podcast.codesFound ? <Link href={`/admin/codes?q=${encodeURIComponent(podcast.creatorName ?? podcast.title)}`}>{podcast.codesFound} code{podcast.codesFound > 1 ? 's' : ''}</Link> : 'Aucun' },
+          { label: 'Publiés', value: podcast.codesFound ? `${podcast.codesPublished} sur ${podcast.codesFound}` : '—' },
+          { label: 'Copies ce mois-ci', value: String(podcast.copiesThisMonth) },
+          { label: 'Dernier code', value: podcast.lastCodeAt ? day(podcast.lastCodeAt) : 'Aucun' },
           { label: 'Apple Podcasts', value: <a href={`https://podcasts.apple.com/podcast/id${podcast.feedId}`} target="_blank" rel="noopener noreferrer">Écouter ↗</a> },
         ]} />
         <section className="adm-pod-history" aria-label="Derniers épisodes">
