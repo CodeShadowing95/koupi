@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { Icon, StatusDot } from '@/components/admin-card';
 import { Callout, Demo, Key, Legend, Section, Step, Steps } from '@/components/admin-guide';
 import { FLAG_MAX_SUCCESS, FLAG_MIN_VOTES, RETEST_DAYS, TARGETS } from '@/lib/admin-stats';
-import { CLEAR_SCORE, CREATOR_LEVEL_LABELS, MIN_SUBSCRIBERS, REJECT_BELOW } from '@/lib/verification';
+import { CLEAR_SCORE, CREATOR_LEVEL_LABELS, MIN_RATINGS, MIN_SUBSCRIBERS, REJECT_BELOW } from '@/lib/verification';
 import { FIRST_READ_DAYS } from '@/lib/podcast-read';
 import { SITE_PAGES } from '@/lib/site-pages';
 
@@ -422,14 +422,14 @@ function Createurs() {
         <Step title="Écris une ou deux phrases">Ce qu’il fait et pour qui, sans superlatif. Par exemple : « Teste les outils d’IA pour les indépendants, une vidéo par semaine. » 400 caractères au plus.</Step>
         <Step title="Enregistre">La page publique se met à jour tout de suite. Vide le champ pour retirer la présentation.</Step>
       </Steps>
-      <p>Sur sa page, sous la présentation, le site affiche aussi ses <b>thèmes</b> (les catégories des outils de ses codes, rien à saisir) et ses <b>comptes sur les réseaux</b> reliés ici, avec les abonnés et un lien vers chaque compte.</p>
+      <p>Sur sa page, sous la présentation, le site affiche aussi ses <b>thèmes</b> (les catégories des outils de ses codes, rien à saisir) et ses <b>comptes sur les réseaux</b> reliés ici, avec leur audience (abonnés, ou pour un podcast sa note et ses épisodes) et un lien vers chaque compte.</p>
       <Callout tone="why">Un visiteur qui arrive de Google sur la page d’un créateur doit comprendre en deux secondes qui il est. Et le jour où le créateur découvrira sa page, une présentation juste lui donnera envie de la revendiquer.</Callout>
     </Section>
     <Section id="niveaux" title="Les trois niveaux d’un créateur">
       <p>Le niveau dit à quel point Merkod est sûr que le créateur est bien celui qu’il prétend être. Il compte dans le score des <Link href="/admin/verifications">Vérifications</Link>.</p>
       <Legend rows={[
         { term: <StatusDot tone="muted">{CREATOR_LEVEL_LABELS.spotted}</StatusDot>, meaning: 'Merkod connaît son nom, mais personne n’a encore contrôlé ses comptes. C’est le niveau de départ.' },
-        { term: <StatusDot tone="ok">{CREATOR_LEVEL_LABELS.checked}</StatusDot>, meaning: `Tu as contrôlé un de ses comptes et il a au moins ${MIN_SUBSCRIBERS} abonnés, ou ce compte a le badge certifié du réseau.` },
+        { term: <StatusDot tone="ok">{CREATOR_LEVEL_LABELS.checked}</StatusDot>, meaning: `Tu as contrôlé un de ses comptes et il a au moins ${MIN_SUBSCRIBERS} abonnés (ou, pour un podcast, au moins ${MIN_RATINGS} notes sur Apple Podcasts), ou ce compte a le badge certifié du réseau.` },
         { term: <StatusDot tone="info">{CREATOR_LEVEL_LABELS.verified}</StatusDot>, meaning: 'Le créateur a prouvé lui-même qu’un compte est à lui, avec un code dans sa bio (voir plus bas).' },
       ]} />
       <p>Le filtre <b>À contrôler</b> liste les créateurs déjà sur le site mais encore repérés : commence par eux.</p>
@@ -443,7 +443,7 @@ function Createurs() {
       </Steps>
       <p>Pour YouTube et les podcasts, tu n’as souvent rien à faire : le compte se relie <b>tout seul</b>. Quand tu ajoutes un code dont la source est une vidéo YouTube, Merkod retrouve la chaîne qui l’a publiée et la relie au créateur. Pour les créateurs déjà en base, le bouton <b>Relier les comptes</b> en haut de la page le fait pour tous d’un coup : la chaîne YouTube d’après leurs vidéos, et le podcast d’après leurs épisodes Apple Podcasts. Le nombre sur le bouton compte les créateurs sans aucun compte et ceux dont un compte peut encore être retrouvé ; un podcast que tu suis a déjà son compte, il n’y est pas. La tâche de nuit rattrape ceux qui arrivent par l’import. Un compte relié ainsi n’est pas contrôlé : c’est toujours toi qui coches. Merkod liste ensuite les créateurs restés sans compte en disant d’où viennent leurs codes (Instagram, TikTok, Spotify, un site web, aucun code…) ou ce qui a bloqué (vidéos de plusieurs chaînes, deux noms pour la même chaîne) : ceux-là se font à la main.</p>
       <p><b>Les photos</b> suivent les comptes : dès qu’une chaîne YouTube est reliée, Merkod récupère sa photo de profil, la garde en base et l’affiche partout sur le site et dans l’admin. Un créateur qui n’a qu’un podcast prend la <b>pochette de son podcast</b> (Apple Podcasts), dès que tu suis le podcast ou que tu le relies. Le bouton <b>Récupérer les photos</b> en haut de la page le fait pour les créateurs qui ont une chaîne ou un podcast mais pas encore de photo (le nombre sur le bouton). Si un créateur change d’avatar, ouvre sa fiche et clique <b>Actualiser la photo</b>. Chaque lot de 50 chaînes coûte 1 unité du quota YouTube ; les pochettes sont gratuites. Les visiteurs ne contactent jamais Google : c’est Merkod qui sert l’image.</p>
-      <p><b>Actualiser</b> relit les abonnés d’une chaîne YouTube (1 unité du quota YouTube, sur 10 000 par jour). <b>Retirer</b> enlève le compte, pas le créateur ni ses codes.</p>
+      <p><b>Actualiser</b> relit un compte à sa source. Pour une chaîne YouTube : ses abonnés, ses vues et son nombre de vidéos (1 unité du quota YouTube, sur 10 000 par jour). Pour un podcast, qui n’a pas d’abonnés publics : sa <b>note sur 5</b> et son <b>nombre de notes</b> sur Apple Podcasts, et son <b>nombre d’épisodes</b> (gratuit). Une note avec beaucoup de notes est un bon signe d’audience. Les autres réseaux se corrigent à la main avec <b>Modifier les abonnés</b>. <b>Retirer</b> enlève le compte, pas le créateur ni ses codes.</p>
       <Callout tone="warn">Un même compte ne peut être relié qu’à un seul créateur. Si Merkod refuse, il te dit à qui il est déjà relié : c’est souvent un doublon de nom à corriger.</Callout>
     </Section>
     <Section id="preuve" title="Faire prouver un compte par la bio">

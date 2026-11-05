@@ -5,25 +5,32 @@ import type { Db } from '@/db';
 import { creatorAccounts, creators } from '@/db/schema';
 import { PLATFORM_LABELS, formatSubscribers, type CreatorPlatform } from './creator-accounts-display';
 import type { Code, Tool } from './data';
+import { audienceLine, cleanMetrics } from './account-metrics';
 
-export type PublicCreatorAccount = { platform: CreatorPlatform; label: string; handle: string; url: string; subscribers: string | null; proven: boolean };
+export type PublicCreatorAccount = { platform: CreatorPlatform; label: string; handle: string; url: string; /** « 12 400 abonnés » ou « 4,7 ★ · 5 281 notes · 1 100 épisodes » ; null si inconnue. */ audience: string | null; proven: boolean };
 export type CreatorProfile = { bio: string | null; accounts: PublicCreatorAccount[] };
 
 const PLATFORM_ORDER: CreatorPlatform[] = ['youtube', 'tiktok', 'instagram', 'snapchat', 'twitch', 'x', 'podcast', 'other'];
 
 /** Comptes rangés pour l'affichage : par réseau (YouTube d'abord), puis le plus suivi en premier. */
 /** proven : le créateur a prouvé que ce compte est le sien (preuve par la bio, ADR-0020). */
-export function publicAccounts(rows: { platform: CreatorPlatform; handle: string; url: string; subscribers: number | null; claimStatus?: string }[]): PublicCreatorAccount[] {
+export function publicAccounts(rows: { platform: CreatorPlatform; handle: string; url: string; subscribers: number | null; metrics?: unknown; claimStatus?: string }[]): PublicCreatorAccount[] {
   return [...rows]
     .sort((a, b) => PLATFORM_ORDER.indexOf(a.platform) - PLATFORM_ORDER.indexOf(b.platform) || (b.subscribers ?? -1) - (a.subscribers ?? -1))
-    .map(row => ({ platform: row.platform, label: PLATFORM_LABELS[row.platform], handle: row.handle, url: row.url, subscribers: formatSubscribers(row.subscribers), proven: row.claimStatus === 'verified' }));
+    .map(row => ({ platform: row.platform, label: PLATFORM_LABELS[row.platform], handle: row.handle, url: row.url, audience: publicAudience(row), proven: row.claimStatus === 'verified' }));
+}
+
+// Sur le site : abonnés, note et épisodes. Les vues et vidéos YouTube restent dans l'admin.
+function publicAudience(row: { subscribers: number | null; metrics?: unknown }): string | null {
+  const { rating, ratingCount, episodes } = cleanMetrics(row.metrics);
+  return audienceLine(formatSubscribers(row.subscribers), cleanMetrics({ rating, ratingCount, episodes }));
 }
 
 /** null si aucun créateur n'a cette adresse. */
 export async function loadCreatorProfile(db: Db, slug: string): Promise<CreatorProfile | null> {
   const [creator] = await db.select({ id: creators.id, bio: creators.bio }).from(creators).where(eq(creators.slug, slug)).limit(1);
   if (!creator) return null;
-  const rows = await db.select({ platform: creatorAccounts.platform, handle: creatorAccounts.handle, url: creatorAccounts.url, subscribers: creatorAccounts.subscribers, claimStatus: creatorAccounts.claimStatus })
+  const rows = await db.select({ platform: creatorAccounts.platform, handle: creatorAccounts.handle, url: creatorAccounts.url, subscribers: creatorAccounts.subscribers, metrics: creatorAccounts.metrics, claimStatus: creatorAccounts.claimStatus })
     .from(creatorAccounts).where(eq(creatorAccounts.creatorId, creator.id)).orderBy(asc(creatorAccounts.createdAt));
   return { bio: creator.bio, accounts: publicAccounts(rows) };
 }

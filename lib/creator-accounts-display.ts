@@ -1,5 +1,6 @@
 // Affichage des comptes créateurs dans l'admin. Sans base ni réseau : importable par les composants client.
 import type { CreatorLevel } from './verification';
+import type { AccountMetrics } from './account-metrics';
 
 export type CreatorPlatform = 'youtube' | 'tiktok' | 'instagram' | 'snapchat' | 'twitch' | 'x' | 'podcast' | 'other';
 
@@ -15,6 +16,9 @@ export type AdminCreatorAccount = {
   url: string;
   subscribers: number | null;
   subscribersAt: string | null;
+  /** Note, épisodes, vues… lus à la source (lib/account-metrics.ts). */
+  metrics: AccountMetrics;
+  metricsAt: string | null;
   platformVerified: boolean;
   adminCheckedAt: string | null;
   level: CreatorLevel;
