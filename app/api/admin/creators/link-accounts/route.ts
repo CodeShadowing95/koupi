@@ -17,9 +17,9 @@ export async function POST(request: NextRequest) {
     const db = getDb();
     const youtube = youtubeBatch(process.env.YOUTUBE_API_KEY);
     const report = await linkCreatorAccounts(db, { youtube, podcasts: applePodcasts() });
-    // Les chaînes tout juste reliées apportent leur photo. Un échec ici ne gâche pas la liaison.
-    if (youtube && report.linked.some(item => item.platform === 'youtube')) {
-      await refreshCreatorAvatars(db, youtube, { missingOnly: true }).catch(error => console.error('creator avatars after link failed', error));
+    // Les chaînes et podcasts tout juste reliés apportent leur photo. Un échec ici ne gâche pas la liaison.
+    if (report.linked.length) {
+      await refreshCreatorAvatars(db, { youtube, podcasts: applePodcasts() }, { missingOnly: true }).catch(error => console.error('creator avatars after link failed', error));
     }
     if (report.linked.length) revalidateCatalog();
     return NextResponse.json({ ok: true, ...report });

@@ -47,7 +47,7 @@ describe('photos des créateurs en base', () => {
 
   it('récupère la photo de la chaîne reliée, la sert et la liste par nom', async () => {
     expect(await creatorsWithoutImage(db)).toBe(1);
-    const report = await refreshCreatorAvatars(db, youtube, { missingOnly: true, fetchFn: vi.fn().mockResolvedValue(jpeg()), now: new Date('2026-11-04T08:00:00Z') });
+    const report = await refreshCreatorAvatars(db, { youtube }, { missingOnly: true, fetchFn: vi.fn().mockResolvedValue(jpeg()), now: new Date('2026-11-04T08:00:00Z') });
     expect(report).toEqual({ updated: ['Ana'], failed: [] });
     expect(await creatorsWithoutImage(db)).toBe(0);
     const image = await loadCreatorImage(db, 'ana');
@@ -57,8 +57,8 @@ describe('photos des créateurs en base', () => {
     const map = await loadAvatarMap(db);
     expect(map.ana).toMatch(/^\/media\/avatars\/ana\.jpg\?v=/);
     // Déjà là : « missingOnly » ne la reprend pas, l'actualisation d'un créateur la remplace.
-    expect((await refreshCreatorAvatars(db, youtube, { missingOnly: true, fetchFn: vi.fn() })).updated).toEqual([]);
-    const again = await refreshCreatorAvatars(db, youtube, { onlyCreatorId: ana, fetchFn: vi.fn().mockResolvedValue(jpeg(30)), now: new Date('2026-11-05T08:00:00Z') });
+    expect((await refreshCreatorAvatars(db, { youtube }, { missingOnly: true, fetchFn: vi.fn() })).updated).toEqual([]);
+    const again = await refreshCreatorAvatars(db, { youtube }, { onlyCreatorId: ana, fetchFn: vi.fn().mockResolvedValue(jpeg(30)), now: new Date('2026-11-05T08:00:00Z') });
     expect(again.updated).toEqual(['Ana']);
     expect((await loadCreatorImage(db, 'ana'))?.body.length).toBe(30);
     expect((await loadAvatarMap(db)).ana).not.toBe(map.ana);
@@ -66,7 +66,29 @@ describe('photos des créateurs en base', () => {
 
   it('signale une chaîne sans photo lisible', async () => {
     const noPhoto = { channels: vi.fn(async () => new Map()) };
-    expect((await refreshCreatorAvatars(db, noPhoto)).failed).toEqual([{ creator: 'Ana', reason: 'Sa chaîne n’a pas de photo lisible.' }]);
+    expect((await refreshCreatorAvatars(db, { youtube: noPhoto })).failed).toEqual([{ creator: 'Ana', reason: 'Sa chaîne n’a pas de photo lisible.' }]);
+  });
+
+  it('prend la pochette du podcast pour un créateur sans chaîne, en petite taille', async () => {
+    const [bob] = await db.select().from(schema.creators).where(eq(schema.creators.slug, 'bob'));
+    await db.insert(schema.creatorAccounts).values({ creatorId: bob.id, platform: 'podcast', externalId: '42', handle: 'Bob parle', url: 'https://podcasts.apple.com/fr/podcast/id42' });
+    expect(await creatorsWithoutImage(db)).toBe(2);
+    const art = 'https://is1-ssl.mzstatic.com/image/thumb/Podcasts/v4/aa/bob.jpg/600x600bb.jpg';
+    const podcasts = { podcasts: vi.fn(async (ids: number[]) => ids.map(id => ({ id, title: 'Bob parle', author: '', feedUrl: '', link: '', image: art, episodeCount: 3, genre: '' }))) };
+    const fetchFn = vi.fn().mockResolvedValue(jpeg(25));
+    const report = await refreshCreatorAvatars(db, { podcasts }, { missingOnly: true, fetchFn });
+    expect(report).toEqual({ updated: ['Bob'], failed: [{ creator: 'Ana', reason: 'La clé YouTube manque : sa chaîne ne peut pas être lue.' }] });
+    expect(podcasts.podcasts).toHaveBeenCalledWith([42]);
+    expect(fetchFn.mock.calls[0][0]).toBe('https://is1-ssl.mzstatic.com/image/thumb/Podcasts/v4/aa/bob.jpg/240x240bb.jpg');
+    expect((await loadCreatorImage(db, 'bob'))?.body.length).toBe(25);
+  });
+
+  it('préfère la chaîne YouTube au podcast quand le créateur a les deux', async () => {
+    await db.insert(schema.creatorAccounts).values({ creatorId: ana, platform: 'podcast', externalId: '7', handle: 'Ana parle', url: 'https://podcasts.apple.com/fr/podcast/id7' });
+    const podcasts = { podcasts: vi.fn(async () => []) };
+    const report = await refreshCreatorAvatars(db, { youtube, podcasts }, { onlyCreatorId: ana, fetchFn: vi.fn().mockResolvedValue(jpeg()) });
+    expect(report.updated).toEqual(['Ana']);
+    expect(podcasts.podcasts).not.toHaveBeenCalled();
   });
 });
 
