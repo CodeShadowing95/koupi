@@ -27,6 +27,25 @@ export async function copiesThisMonth(db: Db, now = new Date()): Promise<Map<str
   return new Map(rows.map(row => [row.creatorId, row.copies]));
 }
 
+/** Copies de chaque code depuis le début du mois (clé : id du code). Un code sans copie n'apparaît pas. */
+export async function copiesByCodeThisMonth(db: Db, now = new Date()): Promise<Map<string, number>> {
+  const rows = await db.select({ key: dailyCounters.key, copies: sql<number>`sum(${dailyCounters.count})::int` })
+    .from(dailyCounters)
+    .where(and(eq(dailyCounters.metric, 'copy'), gte(dailyCounters.day, monthStart(now))))
+    .groupBy(dailyCounters.key);
+  return new Map(rows.map(row => [row.key, row.copies]));
+}
+
+/** Copies des codes de chaque outil depuis le début du mois (clé : id de l'outil). */
+export async function copiesByToolThisMonth(db: Db, now = new Date()): Promise<Map<string, number>> {
+  const rows = await db.select({ toolId: codes.toolId, copies: sql<number>`sum(${dailyCounters.count})::int` })
+    .from(dailyCounters)
+    .innerJoin(codes, sql`${dailyCounters.key} = ${codes.id}::text`)
+    .where(and(eq(dailyCounters.metric, 'copy'), gte(dailyCounters.day, monthStart(now))))
+    .groupBy(codes.toolId);
+  return new Map(rows.map(row => [row.toolId, row.copies]));
+}
+
 export type CreatorFacts = { slug: string; bio: string | null; platforms: CreatorPlatform[]; copies: number };
 
 /** Ce que la base sait de chaque créateur en plus du catalogue : présentation, réseaux, copies du mois. Clé : slug. */

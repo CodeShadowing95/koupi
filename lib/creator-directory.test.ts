@@ -7,7 +7,7 @@ import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import { createTool } from './catalog-admin';
 import { createCode } from './codes-admin';
-import { buildDirectory, copiesThisMonth, directoryPodium, offerScore, directoryCounts, directoryOptions, directoryParams, filterDirectory, parseDirectoryFilter, loadCreatorFacts, monthStart } from './creator-directory';
+import { buildDirectory, copiesByCodeThisMonth, copiesByToolThisMonth, copiesThisMonth, directoryPodium, offerScore, directoryCounts, directoryOptions, directoryParams, filterDirectory, parseDirectoryFilter, loadCreatorFacts, monthStart } from './creator-directory';
 import { searchCreators, type Code, type Tool } from './data';
 
 const base: Code = {
@@ -122,6 +122,9 @@ describe('copies du mois en base', () => {
     const now = new Date('2026-11-03T08:00:00Z');
     const [ana] = await db.select().from(schema.creators).where(eq(schema.creators.slug, 'ana'));
     expect(await copiesThisMonth(db, now)).toEqual(new Map([[ana.id, 5]]));
+    expect(await copiesByCodeThisMonth(db, now)).toEqual(new Map([[a.data.id, 4], [b.data.id, 1]]));
+    const [nord] = await db.select().from(schema.tools).where(eq(schema.tools.slug, 'nordvpn'));
+    expect(await copiesByToolThisMonth(db, now)).toEqual(new Map([[nord.id, 5]]));
     const facts = await loadCreatorFacts(db, now);
     expect(facts.ana).toMatchObject({ copies: 5, platforms: [], bio: null });
     expect(facts.bob.copies).toBe(0);
