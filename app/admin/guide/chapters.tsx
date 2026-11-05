@@ -468,6 +468,11 @@ function Createurs() {
       <p><b>Actualiser</b> relit un compte à sa source. Pour une chaîne YouTube : ses abonnés, ses vues et son nombre de vidéos (1 unité du quota YouTube, sur 10 000 par jour). Pour un podcast, qui n’a pas d’abonnés publics : sa <b>note sur 5</b> et son <b>nombre de notes</b> sur Apple Podcasts, et son <b>nombre d’épisodes</b> (gratuit). Une note avec beaucoup de notes est un bon signe d’audience. Les autres réseaux se corrigent à la main avec <b>Modifier les abonnés</b>. <b>Retirer</b> enlève le compte, pas le créateur ni ses codes.</p>
       <Callout tone="warn">Un même compte ne peut être relié qu’à un seul créateur. Si Merkod refuse, il te dit à qui il est déjà relié : c’est souvent un doublon de nom à corriger.</Callout>
     </Section>
+    <Section id="suivre" title="Suivre les vidéos d’une chaîne">
+      <p>Un créateur qui a déjà donné un code en redonnera. Coche <b>Suivre ses vidéos</b> sur son compte YouTube : chaque nuit, Merkod lit les nouvelles vidéos de la chaîne et cherche des codes dans leur description, comme pour les podcasts. Les codes trouvés arrivent « En attente » dans Vérifications, crédités à ce créateur. La case n’apparaît que pour une chaîne lue par Merkod (avec son identifiant) ; décoche-la pour mettre la chaîne en pause, elle garde sa date de lecture.</p>
+      <p><b>Suivre les chaînes</b>, en haut de la page, suit d’un coup les chaînes reliées de tous les créateurs qui ont au moins un code. Une chaîne que tu as mise en pause reste en pause. <b>Lire les chaînes suivies</b> lance la lecture tout de suite, sans attendre la nuit.</p>
+      <Callout tone="why">Lire une chaîne coûte environ 1 unité du quota YouTube, contre 100 pour une recherche : 100 chaînes suivies coûtent moins qu’une seule recherche. Les vidéos déjà lues (par une recherche ou une lecture précédente) sont écartées. La première lecture remonte 45 jours, les suivantes reprennent depuis la dernière.</Callout>
+    </Section>
     <Section id="preuve" title="Faire prouver un compte par la bio">
       <p>Seul le vrai propriétaire d’un compte peut modifier sa bio. C’est la preuve la plus simple : tu donnes un code au créateur, il l’ajoute à la bio du compte, et Merkod le retrouve. Le créateur passe alors <b>Créateur vérifié</b>, et ce compte porte une coche bleue sur sa page.</p>
       <Steps>

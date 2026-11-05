@@ -36,5 +36,6 @@ Chaque décision importante est notée ici dans un fichier numéroté. On ne sup
 | [0031](0031-pays-et-langue-des-createurs.md) | Pays et langue des créateurs | Acceptée |
 | [0032](0032-origine-des-codes.md) | Origine de chaque code | Acceptée |
 | [0033](0033-recherche-youtube-sans-doublon.md) | Recherche YouTube sans doublon, à formulations variées | Acceptée |
+| [0034](0034-chaines-youtube-suivies.md) | Lire chaque nuit les chaînes YouTube suivies | Acceptée |
 
 Modèle : copier [`template.md`](template.md).

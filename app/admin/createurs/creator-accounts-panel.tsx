@@ -57,6 +57,7 @@ export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtube
     else router.refresh();
   }
   const patch = (account: AdminCreatorAccount, body: Record<string, unknown>) => act(`${account.id}-patch`, () => sendJson(`/api/admin/creator-accounts/${account.id}`, 'PATCH', body));
+  const watch = (account: AdminCreatorAccount, follow: boolean) => act(`${account.id}-watch`, () => sendJson(`/api/admin/creator-accounts/${account.id}/watch`, 'POST', { follow }));
   const refresh = (account: AdminCreatorAccount) => act(`${account.id}-refresh`, () => sendJson(`/api/admin/creator-accounts/${account.id}/refresh`, 'POST', {}));
   const remove = (account: AdminCreatorAccount) => {
     if (!window.confirm(`Retirer le compte ${account.handle} de ${creatorName} ? Le créateur et ses codes restent.`)) return;
@@ -116,6 +117,13 @@ export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtube
                   <span>Badge certifié du réseau</span>
                   <InfoTip id={`ca-badge-${account.id}`} label="Le badge certifié">Coche si la chaîne affiche la coche grise de compte certifié à côté de son nom. Le créateur passe alors « Contrôlé par Merkod », quel que soit son nombre d’abonnés.</InfoTip>
                 </label>
+                {account.platform === 'youtube' && account.externalId && (
+                  <label className="adm-ca-check">
+                    <input type="checkbox" checked={account.watch?.active ?? false} disabled={busy !== null} onChange={event => watch(account, event.target.checked)} />
+                    <span>Suivre ses vidéos{account.watch?.lastFetchedAt && <small> · lues le {day(account.watch.lastFetchedAt)}</small>}</span>
+                    <InfoTip id={`ca-watch-${account.id}`} label="Suivre ses vidéos">Chaque nuit, Merkod lit les nouvelles vidéos de la chaîne et cherche des codes dans leur description (environ 1 unité du quota YouTube). Les codes trouvés arrivent « En attente » dans Vérifications.</InfoTip>
+                  </label>
+                )}
                 {hint && <p className="adm-ca-hint">{hint}</p>}
                 <div className="adm-ca-actions">
                   {account.platform === 'youtube' && <button type="button" className="adm-btn" disabled={busy !== null || !youtubeReady} title={youtubeReady ? 'Relit les abonnés, le pseudo, les vues et les vidéos sur YouTube' : 'La clé YouTube manque'} onClick={() => refresh(account)}>{busy === `${account.id}-refresh` ? 'Lecture…' : 'Actualiser'}</button>}

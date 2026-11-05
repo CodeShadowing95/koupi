@@ -20,6 +20,7 @@ import { LinkAccountsButton } from './link-accounts';
 import { FetchAvatarsButton, RefreshAvatarButton } from './avatars-button';
 import { RefreshButton } from '@/components/admin-refresh-button';
 import { RefreshAccountsButton } from './refresh-accounts-button';
+import { ChannelWatchButtons } from './channel-watch-buttons';
 import { creatorLocale, localeLabel, localeShort } from '@/lib/creator-locale';
 import {
   AUDIENCE_FILTERS, LANGUAGE_FILTERS, NO_FILTERS, PLATFORM_FILTERS, activeFilters, audienceShort, contactOrder, creatorRatings, creatorSubscribers,
@@ -53,7 +54,7 @@ const sortFields: SortField<Creator>[] = [
   { key: 'copies', label: 'Copies du mois', value: creator => creator.copies },
 ];
 
-export function CreatorsView({ creators, toLink, missingPhotos, youtubeReady }: { creators: Creator[]; toLink: number; missingPhotos: number; youtubeReady: boolean }) {
+export function CreatorsView({ creators, toLink, missingPhotos, followed, youtubeReady }: { creators: Creator[]; toLink: number; missingPhotos: number; followed: number; youtubeReady: boolean }) {
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
   // Les liens des autres pages ouvrent la liste déjà filtrée (?q=…).
@@ -87,7 +88,7 @@ export function CreatorsView({ creators, toLink, missingPhotos, youtubeReady }: 
             <h1>Créateurs</h1>
             <p>Les personnes à qui appartiennent les codes. Un créateur est ajouté automatiquement avec son premier code ; ici, tu corriges son nom, tu relies ses comptes et tu le contrôles.</p>
           </div>
-          <div className="adm-head-actions"><RefreshButton /><LinkAccountsButton toLink={toLink} youtubeReady={youtubeReady} /><FetchAvatarsButton missing={missingPhotos} youtubeReady={youtubeReady} /><RefreshAccountsButton accounts={creators.reduce((sum, creator) => sum + creator.accounts.filter(account => account.platform === 'youtube' || account.platform === 'podcast').length, 0)} /><ExportMenu type="createurs" /></div>
+          <div className="adm-head-actions"><RefreshButton /><LinkAccountsButton toLink={toLink} youtubeReady={youtubeReady} /><FetchAvatarsButton missing={missingPhotos} youtubeReady={youtubeReady} /><RefreshAccountsButton accounts={creators.reduce((sum, creator) => sum + creator.accounts.filter(account => account.platform === 'youtube' || account.platform === 'podcast').length, 0)} /><ChannelWatchButtons followed={followed} youtubeReady={youtubeReady} /><ExportMenu type="createurs" /></div>
         </div>
         <div className="adm-tabs" role="group" aria-label="Filtre">
           {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label} <span className="adm-tab-n">{countOf(item.value)}</span></button>)}

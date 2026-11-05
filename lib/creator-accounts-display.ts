@@ -27,6 +27,8 @@ export type AdminCreatorAccount = {
   claimCode: string | null;
   claimCodeAt: string | null;
   claimedAt: string | null;
+  /** Chaîne YouTube suivie chaque nuit (active) ou en pause ; absent si elle n'a jamais été suivie. */
+  watch?: { active: boolean; lastFetchedAt: string | null };
 };
 
 export type ClaimStatus = 'none' | 'pending' | 'verified' | 'revoked';
