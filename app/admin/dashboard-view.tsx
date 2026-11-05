@@ -2,7 +2,7 @@
 // Accueil du back-office : ce qu'il faut faire aujourd'hui, le parcours des codes et les indicateurs clés,
 // chacun avec son objectif et une phrase qui explique pourquoi il compte.
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Catalog } from '@/lib/data';
 import { coverageByCategory, overview, TARGETS, todos } from '@/lib/admin-stats';
 import type { Insights } from '@/lib/admin-insights';
@@ -10,6 +10,8 @@ import type { Audience } from '@/lib/audience';
 import { SUBMISSIONS_CHANGED } from './pending-count';
 import { tipOfDay } from '@/lib/admin-tips';
 import { AdminAiTeaser } from '@/components/admin-ai-teaser';
+import { urgentAlerts, type FailedSource, type Gauge } from '@/lib/admin-urgent';
+import type { SinceVisit } from '@/lib/admin-since';
 
 
 const actionLabel: Record<string, string> = { approved: 'validée', rejected: 'refusée', duplicate: 'marquée en doublon', new: 'remise à traiter' };
@@ -43,6 +45,67 @@ function useAudience() {
   return { audience, audienceFailed: failed };
 }
 
+const VISIT_KEY = 'koupi-admin-last-visit';
+const SESSION_KEY = 'koupi-admin-visit-since';
+const TIP_KEY = 'koupi-admin-tip-read';
+
+// Dernière visite : gardée dans ce navigateur. Pendant une même session (onglet ouvert), on garde la même date de
+// référence, pour qu'un rechargement ne remette pas tout à zéro.
+function useSinceLastVisit() {
+  const [state, setState] = useState<{ since: string; data: SinceVisit } | null>(null);
+  useEffect(() => {
+    let since: string | null = null;
+    try {
+      since = sessionStorage.getItem(SESSION_KEY);
+      if (!since) {
+        since = localStorage.getItem(VISIT_KEY);
+        if (since) sessionStorage.setItem(SESSION_KEY, since);
+      }
+      localStorage.setItem(VISIT_KEY, new Date().toISOString());
+    } catch { /* stockage indisponible : pas de ligne */ }
+    if (!since) return;
+    fetch(`/api/admin/since?at=${encodeURIComponent(since)}`, { cache: 'no-store' })
+      .then(response => (response.ok ? response.json() : Promise.reject(new Error(String(response.status)))))
+      .then((body: SinceVisit & { since: string }) => setState({ since: body.since, data: body }))
+      .catch(() => setState(null));
+  }, []);
+  return state;
+}
+
+// Le conseil du jour se replie une fois lu, jusqu'au conseil du lendemain.
+function useTipRead(title: string) {
+  const [read, setRead] = useState(false);
+  useEffect(() => {
+    try { setRead(localStorage.getItem(TIP_KEY) === title); } catch { /* rien */ }
+  }, [title]);
+  const mark = (value: boolean) => {
+    setRead(value);
+    try { if (value) localStorage.setItem(TIP_KEY, title); else localStorage.removeItem(TIP_KEY); } catch { /* rien */ }
+  };
+  return [read, mark] as const;
+}
+
+const visitFormat = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' });
+const plural = (n: number, one: string, many: string) => `${n} ${n > 1 ? many : one}`;
+
+function SinceLine() {
+  const since = useSinceLastVisit();
+  if (!since) return null;
+  const { data } = since;
+  const items = [
+    data.codes > 0 && <Link key="codes" href="/admin/verifications">{plural(data.codes, 'code trouvé', 'codes trouvés')}</Link>,
+    data.submissions > 0 && <Link key="subs" href="/admin/propositions">{plural(data.submissions, 'proposition', 'propositions')}</Link>,
+    data.copies > 0 && <Link key="copies" href="/admin/stats#audience">{plural(data.copies, 'copie', 'copies')}</Link>,
+    data.feedback > 0 && <Link key="feedback" href="/admin/retours">{plural(data.feedback, 'avis', 'avis')}</Link>,
+  ].filter(Boolean);
+  return (
+    <p className="adm-since" role="status">
+      <span>Depuis ta dernière visite <span className="muted">({visitFormat.format(new Date(since.since))})</span> :</span>{' '}
+      {items.length === 0 ? <span className="muted">rien de nouveau.</span> : items.flatMap((item, index) => (index === 0 ? [item] : [<span key={`sep-${index}`} aria-hidden="true"> · </span>, item]))}
+    </p>
+  );
+}
+
 function Kpi({ label, value, detail, rate, target, targetLabel, tone, note, children }: {
   label: string; value: string; detail: string; rate: number | null; target: number | null; targetLabel: string; tone: 'ok' | 'bad' | 'neutral'; note?: string; children: React.ReactNode;
 }) {
@@ -60,13 +123,15 @@ function Kpi({ label, value, detail, rate, target, targetLabel, tone, note, chil
   );
 }
 
-export function DashboardView({ catalog }: { catalog: Catalog }) {
+export function DashboardView({ catalog, urgent, nowIso }: { catalog: Catalog; urgent: { failedSources: FailedSource[]; gauges: Gauge[] }; nowIso: string }) {
   const stats = overview(catalog);
+  const alerts = useMemo(() => urgentAlerts({ codes: catalog.codes, failedSources: urgent.failedSources, gauges: urgent.gauges, now: new Date(nowIso) }), [catalog.codes, urgent, nowIso]);
   const { audience, audienceFailed } = useAudience();
   const coverage = coverageByCategory(catalog.categories);
   const { insights, failed } = useInsights();
   const list = todos(catalog, insights?.pending ?? null, new Date(), insights?.creatorRequests ?? null);
   const [tip] = useState(() => tipOfDay());
+  const [tipRead, setTipRead] = useTipRead(tip.title);
   const delay = insights?.medianDelayHours ?? null;
   const verifiedOk = (stats.verifiedRate ?? 0) >= TARGETS.verified;
   const coverageOk = (stats.coverage ?? 0) >= TARGETS.coverage;
@@ -84,18 +149,44 @@ export function DashboardView({ catalog }: { catalog: Catalog }) {
           <div>
             <h1>Bonjour</h1>
             <p>{list.length === 0 ? 'Rien d’urgent aujourd’hui. Profite-en pour chercher de nouveaux créateurs.' : <>Aujourd’hui : <b>{list.length} action{list.length > 1 ? 's' : ''}</b> pour rendre le catalogue plus fiable. Commence par la première, elle a le plus d’impact.</>}</p>
+            <SinceLine />
           </div>
         </div>
 
-        {/* Conseil du jour : en haut, pour l'appliquer aux tâches qui suivent. */}
-        <aside className="adm-tip adm-tip-band" aria-labelledby="tip-title">
-          <div>
-            <span>Le conseil du jour</span>
-            <h2 id="tip-title">{tip.title}</h2>
-            <p>{tip.text}</p>
+        {/* Ce qui ne peut pas attendre : seulement quand il y en a. */}
+        {alerts.length > 0 && (
+          <section className="adm-urgent" aria-labelledby="urgent-title">
+            <h2 id="urgent-title">Urgent <span className="adm-tab-n">{alerts.length}</span></h2>
+            <ul>
+              {alerts.map(alert => (
+                <li key={alert.id} data-tone={alert.tone}>
+                  <div><b>{alert.title}</b><p>{alert.detail}</p></div>
+                  <Link className="adm-btn" href={alert.href}>{alert.cta}</Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Conseil du jour : en haut, pour l'appliquer aux tâches qui suivent. Replié une fois lu. */}
+        {tipRead ? (
+          <div className="adm-tip-mini">
+            <span>Conseil du jour</span><b>{tip.title}</b>
+            <button type="button" className="adm-link-btn" onClick={() => setTipRead(false)}>Relire</button>
           </div>
-          <Link href={tip.href}>{tip.cta}</Link>
-        </aside>
+        ) : (
+          <aside className="adm-tip adm-tip-band" aria-labelledby="tip-title">
+            <div>
+              <span>Le conseil du jour</span>
+              <h2 id="tip-title">{tip.title}</h2>
+              <p>{tip.text}</p>
+            </div>
+            <div className="adm-tip-actions">
+              <Link href={tip.href} onClick={() => setTipRead(true)}>{tip.cta}</Link>
+              <button type="button" onClick={() => setTipRead(true)}>Lu, replier</button>
+            </div>
+          </aside>
+        )}
 
         <div className="adm-row">
           <section className="adm-panel adm-span-2" aria-labelledby="todo-title" style={{ gap: 0 }}>
@@ -160,7 +251,17 @@ export function DashboardView({ catalog }: { catalog: Catalog }) {
           </div>
         </section>
 
-        <div className="adm-row adm-row-2">
+        <p className="adm-audience-line" aria-labelledby="audience-title">
+          <b id="audience-title">Audience, 7 jours</b>
+          {audience ? <>
+            <span>{plural(audience.totals.copies, 'code copié', 'codes copiés')}</span>
+            <span>{plural(audience.totals.opens, 'lien ouvert', 'liens ouverts')}</span>
+            <span>{plural(audience.totals.emptySearches, 'recherche sans résultat', 'recherches sans résultat')}{audience.emptySearches[0] ? ` (« ${audience.emptySearches[0].query} »)` : ''}</span>
+          </> : <span className="muted">{audienceFailed ? 'L’audience n’a pas pu être chargée.' : 'Chargement…'}</span>}
+          <Link href="/admin/stats#audience">Voir dans Statistiques →</Link>
+        </p>
+
+        <div className="adm-row adm-row-1">
           <section className="adm-panel" aria-labelledby="categories-title">
             <div className="adm-panel-head"><h2 id="categories-title">Outils avec un code, par catégorie</h2><span className="adm-panel-sub">{stats.emptyCategories.length} catégorie{stats.emptyCategories.length > 1 ? 's' : ''} vide{stats.emptyCategories.length > 1 ? 's' : ''}</span></div>
             <div className="adm-cat-grid">
@@ -175,21 +276,6 @@ export function DashboardView({ catalog }: { catalog: Catalog }) {
             <Link href="/admin/stats" style={{ fontSize: 13, fontWeight: 600 }}>Voir toutes les statistiques →</Link>
           </section>
 
-          <section className="adm-panel" aria-labelledby="audience-title">
-            <div className="adm-panel-head"><h2 id="audience-title">Audience</h2><span className="adm-panel-sub">7 derniers jours · anonyme</span></div>
-            {audience ? (
-              <>
-                <div className="adm-mini-grid">
-                  <div className="adm-mini"><b className="adm-mini-n">{audience.totals.copies}</b><b>Codes copiés</b><span>Le geste clé : un visiteur a trouvé ce qu’il cherchait.</span></div>
-                  <div className="adm-mini"><b className="adm-mini-n">{audience.totals.opens}</b><b>Liens ouverts</b><span>Vers le créateur ou l’outil : ce que tu montreras aux marques.</span></div>
-                  <div className="adm-mini"><b className="adm-mini-n">{audience.totals.emptySearches}</b><b>Recherches sans résultat</b><span>{audience.emptySearches[0] ? <>La plus demandée : « {audience.emptySearches[0].query} ».</> : 'Les outils que les gens veulent et que tu n’as pas.'}</span></div>
-                  <div className="adm-mini"><b className="adm-mini-n">{audience.topCodes[0]?.code ?? '–'}</b><b>Code le plus copié</b><span>{audience.topCodes[0] ? `${audience.topCodes[0].tool}, ${audience.topCodes[0].copies} copie${audience.topCodes[0].copies > 1 ? 's' : ''}.` : 'Pas encore de copie cette semaine.'}</span></div>
-                </div>
-                <p style={{ fontSize: 12, color: 'var(--muted)' }}>Des totaux par jour, sans cookie ni service tiers : on ne compte pas les visiteurs, pour tenir la promesse « zéro pistage ».</p>
-              </>
-            ) : <p className="adm-panel-sub">{audienceFailed ? 'L’audience n’a pas pu être chargée.' : 'Chargement…'}</p>}
-            <Link href="/admin/stats#audience" style={{ fontSize: 13, fontWeight: 600 }}>Voir l’audience en détail →</Link>
-          </section>
         </div>
 
         <div className="adm-row adm-row-1">
