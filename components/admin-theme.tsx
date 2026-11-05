@@ -1,13 +1,27 @@
 'use client';
 // Thème clair / sombre du back-office. Sans choix enregistré, on suit le réglage du système.
 // Le choix est posé sur .admin-root (data-theme) et gardé dans le navigateur.
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 
 import { ADMIN_THEME_KEY } from '@/lib/admin-theme';
 
 export type AdminTheme = 'light' | 'dark';
 
 function rootOf(): HTMLElement | null { return document.querySelector('.admin-root'); }
+
+/**
+ * Remet le choix enregistré sur .admin-root. Le script de démarrage le pose avant l'affichage, mais si React doit
+ * reconstruire la page dans le navigateur (texte différent entre serveur et navigateur), .admin-root est recréé
+ * sans data-theme et la page suivait le système : un admin en clair passait en sombre en ouvrant une page.
+ */
+export function useStoredTheme() {
+  useLayoutEffect(() => {
+    let saved: string | null = null;
+    try { saved = window.localStorage.getItem(ADMIN_THEME_KEY); } catch { /* stockage indisponible */ }
+    const root = rootOf();
+    if (root && (saved === 'light' || saved === 'dark') && root.getAttribute('data-theme') !== saved) root.setAttribute('data-theme', saved);
+  });
+}
 
 /** Thème réellement affiché : le choix enregistré, sinon celui du système. */
 export function currentTheme(): AdminTheme {

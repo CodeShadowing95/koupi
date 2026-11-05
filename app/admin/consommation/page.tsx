@@ -40,7 +40,7 @@ export default async function Page() {
           <div>
             <span className="eyebrow">Pilotage</span>
             <h1>Consommation</h1>
-            <p>Ce que Merkod dépense chez les services qu’il appelle pour trouver et vérifier les codes. Les barres passent à l’orange à 70 % et au rouge à 90 %.</p>
+            <p>Ce que Merkod dépense chez les services qu’il appelle pour trouver et vérifier les codes. La jauge en bas du menu en donne l’essentiel ; les barres passent à l’orange à 70 % et au rouge à 90 %.</p>
           </div>
           <div className="adm-head-actions"><RefreshButton /></div>
         </div>
