@@ -2,6 +2,34 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.5.0](https://github.com/CodeShadowing95/koupi/compare/v0.4.1...v0.5.0) (2026-11-05)
+
+### Nouveautés
+
+- **podcasts:** Read Podcast Index podcasts of every category ([73d50d4](https://github.com/CodeShadowing95/koupi/commit/73d50d4a334a09c29512bb0bfd67337b98b2b5f5))
+- **podcasts:** Find candidate podcasts in the Podcast Index database ([a0d1202](https://github.com/CodeShadowing95/koupi/commit/a0d1202baa43f26692d484cf56b8fa179d991850))
+- **stats:** Show yield per source and copies per tool ([e647849](https://github.com/CodeShadowing95/koupi/commit/e647849ca171285aad17f46fc18f212cea46669a))
+- **admin:** Put urgent items first on the admin home ([f30bc4b](https://github.com/CodeShadowing95/koupi/commit/f30bc4b2a8046b101b00f958a26d89607abb160d))
+- **podcasts:** Show the yield of each followed podcast ([f8d8ab3](https://github.com/CodeShadowing95/koupi/commit/f8d8ab3acf3da4060424da41ac5bbde745e66635))
+- **site:** Rename the navbar Codes link to Codes promo ([83decbf](https://github.com/CodeShadowing95/koupi/commit/83decbf2c3fa59a31b518bb98c55ca97f9b56406))
+- **admin:** Add a Sources page to manage every code source ([47ae6ec](https://github.com/CodeShadowing95/koupi/commit/47ae6ec1073d76fd37e24d3ed913d58160470636))
+- **admin:** Split the creator panel into tabs and tidy the page header ([b3a64cc](https://github.com/CodeShadowing95/koupi/commit/b3a64ccea84cfb90c2183357b95fec55e37a84f1))
+- **youtube:** Read new videos of followed channels every night ([7a0c35c](https://github.com/CodeShadowing95/koupi/commit/7a0c35c49d2e03a6b9cfb4550ca85dff50f2b055))
+- **youtube:** Remember seen videos and vary search queries ([1a6ab92](https://github.com/CodeShadowing95/koupi/commit/1a6ab92ed5bd5ba272434117f61d49cbf29c01d2))
+- **tools:** Search codes for one tool from its panel ([bd8dd36](https://github.com/CodeShadowing95/koupi/commit/bd8dd36b71e500cf297aa114caa99455567e8695))
+- **codes:** Record where each code was found ([0dbc094](https://github.com/CodeShadowing95/koupi/commit/0dbc09486a8a0d9d44883e8aa1f5c3455d53cfc3))
+- **codes:** Show monthly copies and expiring codes in the admin lists ([071f07d](https://github.com/CodeShadowing95/koupi/commit/071f07dbbbc527d300cbed5ee797425344a92cbe))
+- **creators:** Add filters, audience sorts and a To contact view ([cf5e4bf](https://github.com/CodeShadowing95/koupi/commit/cf5e4bfafbf9e3e342b145ae5d39aceb13c9afeb))
+- **creators:** Show each creator's country and language ([90920e6](https://github.com/CodeShadowing95/koupi/commit/90920e61b1cff92a250319b7025c580c132d7f7f))
+- **creators:** Use the podcast artwork as the photo of podcast-only creators ([5ef16eb](https://github.com/CodeShadowing95/koupi/commit/5ef16eb9135873a85b0aec44c158ecd8dd3308b6))
+- **creators:** Let podcasts with 50 ratings reach the checked level ([6e41333](https://github.com/CodeShadowing95/koupi/commit/6e41333afa30b6d11ebb58fb9b974994fc575db4))
+- **creators:** Show podcast ratings and episodes instead of unknown subscribers ([854118c](https://github.com/CodeShadowing95/koupi/commit/854118c7afc0912c0b1bbc1b7d9e0481372e8472))
+
+### Corrections
+
+- **podcasts:** Accept MERKOD_URL without https and explain which value is wrong ([d18ac2b](https://github.com/CodeShadowing95/koupi/commit/d18ac2b8572c7fa7df93c05576a347f693e6f6b6))
+- **podcasts:** Fall back to the Podcast Index API when the download is refused ([a0c80cb](https://github.com/CodeShadowing95/koupi/commit/a0c80cb32f7f87136a67a04eee1c52469eca06da))
+
 ## [0.4.1](https://github.com/CodeShadowing95/koupi/compare/v0.4.0...v0.4.1) (2026-11-05)
 
 ### Corrections
