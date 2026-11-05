@@ -1470,3 +1470,12 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-audience-line{margin:24px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding:12px 16px;border:1px solid var(--line);border-radius:12px;background:var(--card);font-size:14px}
 .adm-audience-line a{margin-left:auto;font-weight:600;font-size:13px}
 @media(max-width:560px){.adm-todo-body{flex:1 1 calc(100% - 50px)}.adm-todo .adm-cta{margin-left:50px}}
+
+/* Statistiques en onglets (liens ?tab=) */
+.adm-stats-tabs{margin:0 0 18px}
+.adm-stats-tabs a.adm-tab{text-decoration:none;color:var(--ink-soft)}
+.adm-stats-tabs a.adm-tab:hover{color:var(--ink)}
+.adm-stats-tabs a.adm-tab[aria-current="page"]{color:var(--blue)}
+.adm-tab[aria-current="page"]{border-bottom-color:var(--blue);color:var(--blue)}
+.adm-tab-intro{margin:0 0 16px;color:var(--ink-soft);font-size:14px;max-width:72ch}
+.adm-stat-tile .adm-stat-name{font-size:20px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

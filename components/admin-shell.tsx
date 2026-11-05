@@ -42,9 +42,7 @@ function navGroups(counts: { toTest?: number; pending?: number; newFeedback?: nu
   return [
   { label: 'Pilotage', items: [
     { href: '/admin', label: 'Accueil', icon: icons.home },
-    { href: '/admin/stats', label: 'Statistiques', icon: icons.stats, children: [
-      { href: '/admin/consommation', label: 'Consommation', icon: icons.gauge },
-    ] },
+    { href: '/admin/stats', label: 'Statistiques', icon: icons.stats },
     { href: '/admin/retours', label: 'Retours', icon: icons.chat, count: counts.newFeedback, countLabel: 'nouveaux avis' },
   ] },
   { label: 'Catalogue', items: [

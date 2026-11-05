@@ -86,12 +86,12 @@ function AudienceSection() {
           {audience && audience.emptySearches.length > 0 ? (
             <div className="adm-table-wrap">
               <table className="adm-table">
-                <thead><tr><th scope="col">Recherche</th><th scope="col">Fois</th></tr></thead>
-                <tbody>{audience.emptySearches.map(item => <tr key={item.query}><td>{item.query}</td><td>{item.count}</td></tr>)}</tbody>
+                <thead><tr><th scope="col">Recherche</th><th scope="col">Fois</th><th scope="col"><span className="sr-only">Action</span></th></tr></thead>
+                <tbody>{audience.emptySearches.map(item => <tr key={item.query}><td>{item.query}</td><td>{item.count}</td><td className="adm-cell-actions"><Link className="adm-btn" href={`/admin/outils?new=${encodeURIComponent(item.query)}`}>Ajouter cet outil</Link></td></tr>)}</tbody>
               </table>
             </div>
           ) : empty('Aucune recherche sans résultat : les visiteurs trouvent ce qu’ils cherchent.')}
-          <p className="adm-learn"><b>Ce que ça t’apprend :</b> chaque recherche vide est un outil que les gens veulent. Le plus demandé est ton prochain outil à suivre.</p>
+          <p className="adm-learn"><b>Ce que ça t’apprend :</b> chaque recherche vide est un outil que les gens veulent. Le plus demandé est ton prochain outil à suivre : « Ajouter cet outil » ouvre sa fiche, le nom déjà rempli.</p>
         </section>
       </div>
     </>
@@ -138,16 +138,7 @@ export function StatsView({ catalog }: { catalog: Catalog }) {
   const weeklyTotal = weekly.reduce((sum, week) => sum + week.approved + week.closed + week.pending, 0);
 
   return (
-    <main className="adm-page">
-      <div className="container">
-        <div className="adm-head">
-          <div>
-            <span className="eyebrow">Pilotage</span>
-            <h1>Statistiques</h1>
-            <p>Comment le catalogue évolue et où concentrer tes efforts. Chaque graphique se termine par ce qu’il t’apprend.</p>
-          </div>
-        </div>
-
+    <>
         <div className="adm-row adm-row-4" style={{ marginTop: 0 }}>
           <div className="adm-stat-tile"><span>Codes visibles</span><strong>{stats.visible}</strong><span>{stats.counts.verified} vérifiés, {stats.counts.to_test} à tester</span></div>
           <div className="adm-stat-tile"><span>Outils couverts</span><strong>{stats.coveredTools} <small>/ {stats.tracked}</small></strong><span>au moins un code visible</span></div>
@@ -203,7 +194,6 @@ export function StatsView({ catalog }: { catalog: Catalog }) {
         </div>
 
         <AudienceSection />
-      </div>
-    </main>
+    </>
   );
 }
