@@ -1445,3 +1445,28 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-src-journal-head h2{margin:0;font-size:20px;font-weight:800;letter-spacing:-.02em}
 .adm-src-error{display:block;color:var(--muted);font-size:12px;margin-top:2px}
 @media(max-width:560px){.adm-src-grid{grid-template-columns:1fr}}
+
+/* Accueil : alertes urgentes, depuis ta dernière visite, conseil replié, audience en une ligne */
+.adm-since{margin:8px 0 0;font-size:14px;color:var(--ink-soft)}
+.adm-since a{font-weight:600}
+.adm-urgent{margin-top:20px;padding:14px 16px;border:1px solid var(--bad);border-radius:14px;background:var(--card)}
+.adm-urgent h2{margin:0 0 8px;font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px;color:var(--bad)}
+.adm-urgent ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.adm-urgent li{display:flex;align-items:center;gap:14px;padding:10px 12px;border-radius:10px;background:var(--warn-bg);border-left:4px solid var(--warn)}
+.adm-urgent li[data-tone="bad"]{background:var(--bad-bg);border-left-color:var(--bad)}
+.adm-urgent li>div{flex:1 1 auto;min-width:0}
+.adm-urgent li b{font-size:14px}
+.adm-urgent li p{margin:2px 0 0;font-size:13px;color:var(--ink-soft)}
+.adm-urgent li .adm-btn{flex:none}
+@media(max-width:640px){.adm-urgent li{flex-direction:column;align-items:flex-start}}
+.adm-tip-band>.adm-tip-actions{margin-left:auto;flex-direction:row;align-items:center;gap:10px;flex:none}
+.admin-root .adm-tip-band .adm-tip-actions a{margin-left:0}
+.adm-tip-actions button{background:none;border:0;color:#C9CCFF;font:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:8px 4px}
+.adm-tip-actions button:hover{color:#fff;text-decoration:underline}
+@media(max-width:760px){.adm-tip-band>.adm-tip-actions{margin-left:0;flex-wrap:wrap}}
+.adm-tip-mini{margin-top:20px;display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);font-size:13.5px}
+.adm-tip-mini>span{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.adm-tip-mini .adm-link-btn{margin-left:auto}
+.adm-audience-line{margin:24px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding:12px 16px;border:1px solid var(--line);border-radius:12px;background:var(--card);font-size:14px}
+.adm-audience-line a{margin-left:auto;font-weight:600;font-size:13px}
+@media(max-width:560px){.adm-todo-body{flex:1 1 calc(100% - 50px)}.adm-todo .adm-cta{margin-left:50px}}

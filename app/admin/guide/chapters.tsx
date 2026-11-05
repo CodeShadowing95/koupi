@@ -625,6 +625,16 @@ function Indicateurs() {
       </div>
       <Callout tone="tip" title="Le mot « médiane »">La médiane est la valeur du milieu : la moitié des propositions ont été traitées plus vite, l’autre moitié plus lentement. Elle n’est pas faussée par une seule proposition oubliée.</Callout>
     </Section>
+    <Section id="accueil" title="Le haut de l’accueil : urgent, nouveautés, conseil">
+      <p>Sous « Bonjour », la ligne <b>Depuis ta dernière visite</b> résume ce qui est arrivé depuis ta visite précédente : codes trouvés, propositions reçues, copies et avis des visiteurs. Chaque chiffre ouvre la bonne page. La date de ta dernière visite est gardée dans ce navigateur seulement : sur un autre ordinateur, la ligne repart de zéro.</p>
+      <p>Le cadre <b>Urgent</b> n’apparaît que s’il y a quelque chose qui ne peut pas attendre :</p>
+      <Legend rows={[
+        { term: 'Codes qui expirent', meaning: 'Des codes visibles dont la date de fin tombe dans les 7 jours. Cherche un nouveau code chez le même créateur avant qu’un visiteur tombe sur un code mort.' },
+        { term: 'Source en échec', meaning: <>Le dernier passage d’une source (chaînes, podcasts, recherche) n’a rien pu lire. L’erreur est dans le journal de la page <Link href="/admin/sources">Sources</Link>.</> },
+        { term: 'Quota ou plafond presque atteint', meaning: 'Le quota YouTube du jour ou le plafond IA du mois est utilisé à 80 % ou plus. Évite les recherches jusqu’à la remise à zéro.' },
+      ]} />
+      <p>Le <b>conseil du jour</b> se replie quand tu cliques sur <b>Lu, replier</b> ou sur son lien : il reste une ligne, avec <b>Relire</b> pour le rouvrir. Le lendemain, un nouveau conseil s’affiche en grand. Plus bas, l’<b>audience</b> de la semaine tient en une ligne ; le détail est dans Statistiques.</p>
+    </Section>
     <Section id="a-faire" title="La liste « À faire »">
       <p>Sur l’accueil, « À faire maintenant » est classée <b>par impact</b> : en haut, ce qui fait le plus de bien au catalogue. Fais-la de haut en bas, chaque lien ouvre la bonne liste déjà filtrée.</p>
       <p>À droite, « Le parcours des codes » montre combien de codes sont à chaque étape. Juste en dessous, la carte <b>Oubi et Lili</b> présente les deux assistants IA à venir : Oubi, l’éclaireuse (Claude Haiku 5.5), repérera les codes dans les vidéos et les podcasts, Lili, la vérificatrice (Claude Opus 5.5), vérifiera chaque preuve et te préparera la décision. Ils ne sont pas encore actifs ; tu garderas toujours le dernier mot.</p>
