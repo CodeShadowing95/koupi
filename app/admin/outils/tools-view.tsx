@@ -42,12 +42,20 @@ export function ToolsView({ tools, categories, missingLogos, youtubeReady }: { t
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('');
-  // Les liens des autres pages ouvrent la liste déjà filtrée (?q=…).
+  // Les liens des autres pages ouvrent la liste déjà filtrée (?q=…), ou la fiche d'un nouvel outil au nom rempli (?new=…,
+  // depuis les recherches sans résultat de Statistiques). Le paramètre est retiré de l'adresse pour ne pas rouvrir la fiche.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('q')) setQuery(params.get('q') ?? '');
     if (params.get('category')) setCategory(params.get('category') ?? '');
-  }, []);
+    const name = params.get('new');
+    if (name !== null) {
+      setForm({ name: name.trim().slice(0, 120), categorySlug: categories[0]?.slug ?? '', website: '', description: '', priority: 3 });
+      setEditing('new');
+      params.delete('new');
+      window.history.replaceState(null, '', `${window.location.pathname}${params.size ? `?${params}` : ''}`);
+    }
+  }, [categories]);
   const [view, setView] = useAdminView();
   const [editing, setEditing] = useState<AdminTool | 'new' | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);

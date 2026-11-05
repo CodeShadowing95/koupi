@@ -59,7 +59,7 @@ function SeReperer() {
         { term: 'Aide et réglages', meaning: <>Ce <b>guide</b> et l’espace <b>Administration</b>.</> },
       ]} />
       <p>Un clic sur le nom ouvre la page. La <b>flèche</b> à droite déplie ses sous-menus ; ils restent ouverts quand tu es sur l’une de leurs pages. Un nombre orange veut dire « des éléments t’attendent » ; menu replié, un <b>point orange</b> près de la flèche dit qu’un sous-menu en a. <b>Voir le site</b> et <b>Se déconnecter</b> restent toujours en bas, sans défiler.</p>
-      <p>Juste au-dessus, la jauge de <b>consommation</b> montre sur deux lignes le quota YouTube du jour et le plafond IA du mois ; elle passe à l’orange à 70 %, au rouge à 90 %, et se met à jour chaque minute. Un clic ouvre la page Consommation.</p>
+      <p>Juste au-dessus, la jauge de <b>consommation</b> montre sur deux lignes le quota YouTube du jour et le plafond IA du mois ; elle passe à l’orange à 70 %, au rouge à 90 %, et se met à jour chaque minute. Un clic ouvre l’onglet Consommation de Statistiques.</p>
       <p>En haut des listes (Propositions, Codes, Vérifications, Outils, Créateurs, Demandes, Retours), <b>Actualiser</b> relit la liste sans recharger la page ni perdre tes filtres.</p>
     </Section>
     <Section id="recherche" title="Tout trouver avec ⌘K">
@@ -640,19 +640,32 @@ function Indicateurs() {
       <p>À droite, « Le parcours des codes » montre combien de codes sont à chaque étape. Juste en dessous, la carte <b>Oubi et Lili</b> présente les deux assistants IA à venir : Oubi, l’éclaireuse (Claude Haiku 5.5), repérera les codes dans les vidéos et les podcasts, Lili, la vérificatrice (Claude Opus 5.5), vérifiera chaque preuve et te préparera la décision. Ils ne sont pas encore actifs ; tu garderas toujours le dernier mot.</p>
     </Section>
     <Section id="consommation" title="La consommation des API">
-      <p>Pour trouver et vérifier les codes, Merkod appelle des services extérieurs. La page <b>Consommation</b> dit où tu en es :</p>
+      <p>Pour trouver et vérifier les codes, Merkod appelle des services extérieurs. L’onglet <b>Consommation</b> de Statistiques dit où tu en es (l’ancienne adresse /admin/consommation y mène toujours) :</p>
       <Legend rows={[
         { term: 'YouTube', meaning: <>10 000 unités gratuites par jour. Lire une vidéo ou une chaîne coûte 1 unité, une recherche 100. Le compteur repart de zéro vers 9 h, heure de Paris. YouTube ne donne pas ce chiffre : c’est Merkod qui compte chacun de ses appels.</> },
         { term: 'IA', meaning: <>La dépense du mois face au plafond (10 € par défaut). Une fois atteint, l’IA s’arrête jusqu’au 1er du mois suivant.</> },
       ]} />
       <Callout tone="tip">Au-dessus de 70 %, évite les grosses recherches par catégorie pour la journée : la lecture des vidéos proposées par les visiteurs a besoin du reste du quota.</Callout>
     </Section>
+    <Section id="onglets" title="Les trois onglets de Statistiques">
+      <p>Statistiques se lit en trois onglets : <b>Catalogue et audience</b> (l’état des codes et ce que font les visiteurs), <b>Sources et outils</b> (d’où viennent les codes et ce que les visiteurs copient) et <b>Consommation</b> (quota YouTube et dépense IA).</p>
+    </Section>
+    <Section id="rendement" title="Le rendement par source">
+      <p>Dans <b>Sources et outils</b>, chaque source a trois barres sur les 30 derniers jours :</p>
+      <Legend rows={[
+        { term: 'Trouvés', meaning: 'Les codes que la source a ajoutés en base, quel que soit leur statut.' },
+        { term: 'Publiés', meaning: 'Parmi eux, ceux que tu as rendus visibles (vérifiés ou à tester).' },
+        { term: 'Copiés', meaning: 'Les copies des visiteurs sur tous les codes venus de cette source, même plus anciens.' },
+      ]} />
+      <p>Une source qui trouve beaucoup mais publie peu te fait trier pour rien : resserre ses réglages. Celle qui fait le plus copier est à garder en marche en priorité. En dessous, <b>Copies par outil</b> et <b>Copies par catégorie</b> montrent ce que les visiteurs veulent vraiment.</p>
+      <Callout tone="tip">Un outil en haut des copies doit toujours avoir un code vérifié : c’est là qu’un code mort déçoit le plus de monde.</Callout>
+    </Section>
     <Section id="audience" title="L’audience">
       <p>Les statistiques d’audience (codes copiés, liens ouverts, recherches sans résultat) sont comptées <b>sans pistage</b> : de simples compteurs anonymes, aucun cookie publicitaire. C’est une promesse du site.</p>
       <Legend rows={[
         { term: 'Codes copiés', meaning: 'Le geste clé : un visiteur a trouvé ce qu’il cherchait.' },
         { term: 'Liens ouverts', meaning: 'Vers le créateur ou l’outil. C’est ce que tu montreras plus tard aux marques.' },
-        { term: 'Recherches sans résultat', meaning: 'Les outils que les gens cherchent et que Merkod n’a pas. La meilleure liste des prochains outils à ajouter.' },
+        { term: 'Recherches sans résultat', meaning: <>Les outils que les gens cherchent et que Merkod n’a pas. La meilleure liste des prochains outils à ajouter : le bouton <b>Ajouter cet outil</b> ouvre la fiche d’un nouvel outil avec le nom déjà rempli.</> },
       ]} />
     </Section>
   </>;

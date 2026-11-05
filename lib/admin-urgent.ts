@@ -51,7 +51,7 @@ export function urgentAlerts({ codes, failedSources, gauges, now }: {
       id: `gauge-${gauge.key}`, tone: gauge.ratio >= 0.95 ? 'bad' : 'warn',
       title: ai ? `Plafond IA presque atteint : ${percent(gauge.ratio)}` : `Quota ${gauge.label} presque atteint : ${percent(gauge.ratio)}`,
       detail: ai ? `${gauge.detail}. Au plafond, la lecture continue sans IA jusqu’au mois prochain.` : `${gauge.detail}. Évite de lancer une recherche avant la remise à zéro, vers 9 h.`,
-      href: '/admin/consommation', cta: 'Voir la consommation',
+      href: '/admin/stats?tab=consommation', cta: 'Voir la consommation',
     });
   }
 

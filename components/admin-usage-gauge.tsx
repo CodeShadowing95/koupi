@@ -28,7 +28,7 @@ export function UsageGauge() {
   }, []);
   if (!gauges) return null;
   return (
-    <Link href="/admin/consommation" className="adm-usage" aria-label="Consommation des API : voir le détail">
+    <Link href="/admin/stats?tab=consommation" className="adm-usage" aria-label="Consommation des API : voir le détail">
       {gauges.map(gauge => (
         <span key={gauge.key} className="adm-usage-row" title={gauge.detail}>
           <span className="adm-usage-name">{gauge.label}</span>

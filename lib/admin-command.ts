@@ -21,7 +21,8 @@ export const COMMAND_FILTERS: CommandFilter[] = ['all', ...COMMAND_ORDER];
 export const ADMIN_PAGES: CommandItem[] = [
   { kind: 'page', label: 'Accueil', detail: 'Tableau de bord, à faire', href: '/admin', keywords: 'dashboard kpi' },
   { kind: 'page', label: 'Statistiques', detail: 'Audience, codes, propositions', href: '/admin/stats', keywords: 'stats graphiques audience' },
-  { kind: 'page', label: 'Consommation', detail: 'Quota YouTube, dépense IA', href: '/admin/consommation', keywords: 'quota api youtube ia credits tokens budget plafond' },
+  { kind: 'page', label: 'Rendement des sources', detail: 'Statistiques : trouvés, publiés, copiés ; copies par outil', href: '/admin/stats?tab=sources', keywords: 'rendement sources copies outils categories demande' },
+  { kind: 'page', label: 'Consommation', detail: 'Statistiques : quota YouTube, dépense IA', href: '/admin/stats?tab=consommation', keywords: 'quota api youtube ia credits tokens budget plafond' },
   { kind: 'page', label: 'Propositions', detail: 'File de modération', href: '/admin/propositions', keywords: 'moderation soumissions' },
   { kind: 'page', label: 'Codes', detail: 'Tous les codes', href: '/admin/codes' },
   { kind: 'page', label: 'Codes à tester', detail: 'Visibles, pas encore essayés', href: '/admin/codes?status=to_test' },
