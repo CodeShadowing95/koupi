@@ -5,10 +5,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { usePendingSubmissions } from '@/app/admin/pending-count';
-import { ThemeToggle } from '@/components/admin-theme';
+import { ThemeToggle, useStoredTheme } from '@/components/admin-theme';
 import { CommandPalette } from '@/components/admin-command';
 import { AdminNotifications } from '@/components/admin-notifications';
 import { AdminCouponTear } from '@/components/admin-coupon-tear';
+import { UsageGauge } from '@/components/admin-usage-gauge';
 import { AdminIcon } from '@/components/admin-icons';
 
 /** count : nombre à traiter (pastille). children : sous-menus, dépliés par la flèche à droite de l'item. */
@@ -127,6 +128,7 @@ function SideItem({ item, current, pathname }: { item: Item; current?: string; p
 /** toTest : codes à tester (badge de Codes) ; newFeedback : avis pas encore lus (badge de Retours). Lus en base par le layout. */
 export function AdminShell({ children, toTest = 0, newFeedback = 0 }: { children: React.ReactNode; toTest?: number; newFeedback?: number }) {
   const pathname = usePathname();
+  useStoredTheme();
   const pending = usePendingSubmissions() ?? 0;
   const groups = navGroups({ toTest, pending, newFeedback });
   // Mobile : le menu latéral devient un tiroir ouvert par le bouton ☰ de la barre du haut.
@@ -180,6 +182,7 @@ export function AdminShell({ children, toTest = 0, newFeedback = 0 }: { children
           ))}
         </div>
         <div className="adm-side-group adm-side-foot">
+          <UsageGauge />
           <Link className="adm-side-link" href="/" target="_blank" rel="noopener noreferrer">{icons.external}<span className="adm-side-text">Voir le site</span></Link>
           <form method="post" action="/api/admin/logout"><button className="adm-side-link" type="submit">{icons.logout}<span className="adm-side-text">Se déconnecter</span></button></form>
         </div>

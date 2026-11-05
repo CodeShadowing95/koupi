@@ -1,7 +1,7 @@
-// Ce que montre la page Consommation : le quota YouTube du jour et la dépense IA du mois.
+// Ce que montrent la page Consommation et la jauge du menu : le quota YouTube du jour et la dépense IA du mois.
 import type { Db } from '@/db';
 import { aiConfigFrom, aiStatusOf } from './ai-extract';
-import { aiSpendByDay, serviceUsage, type ServiceUsage } from './api-usage';
+import { aiSpendByDay, serviceUsage, usageLevel, usageRatio, type ServiceUsage } from './api-usage';
 import { startOfMonthUtc } from './verification-store';
 
 export type AiUsageSummary = {
@@ -10,6 +10,8 @@ export type AiUsageSummary = {
   days: { day: string; usdMicros: number }[];
 };
 export type UsageSummary = { services: ServiceUsage[]; ai: AiUsageSummary };
+/** Version courte pour la jauge du menu. */
+export type UsageGauge = { key: string; label: string; ratio: number; level: 'ok' | 'warn' | 'bad'; detail: string };
 
 export async function usageSummary(db: Db, env: Record<string, string | undefined> = process.env, now = new Date()): Promise<UsageSummary> {
   const config = aiConfigFrom(env);
@@ -26,4 +28,16 @@ export async function usageSummary(db: Db, env: Record<string, string | undefine
     services,
     ai: { active: aiStatusOf(config, spent).state !== 'inactive', spentUsdMicros: spent, budgetUsdMicros: config.monthlyBudgetUsdMicros, days },
   };
+}
+
+const percent = (ratio: number) => `${Math.round(ratio * 100)} %`;
+
+export function usageGauges(summary: UsageSummary): UsageGauge[] {
+  const services = summary.services.map(service => {
+    const ratio = usageRatio(service.today, service.dailyLimit);
+    return { key: service.service, label: service.service === 'youtube' ? 'YouTube' : service.label, ratio, level: usageLevel(ratio), detail: `${service.today.toLocaleString('fr-FR')} / ${service.dailyLimit.toLocaleString('fr-FR')} unités aujourd’hui (${percent(ratio)})` };
+  });
+  const ratio = usageRatio(summary.ai.spentUsdMicros, summary.ai.budgetUsdMicros);
+  const ai = { key: 'ai', label: 'IA', ratio, level: usageLevel(ratio), detail: summary.ai.active ? `${percent(ratio)} du plafond du mois` : 'IA en attente d’activation' };
+  return [...services, ai];
 }

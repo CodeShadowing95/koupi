@@ -1,5 +1,6 @@
 'use client';
 // Catégories d'outils, avec leur couverture : combien de leurs outils ont un code visible.
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import type { AdminCategory, CategoryFamily } from '@/lib/catalog-admin';
 import { AdminSelect } from '@/components/admin-select';
@@ -113,7 +114,7 @@ export function CategoriesView({ categories: all, families, search }: { categori
             {result.remaining > 0 && <p>{plural(result.remaining, 'outil')} pas encore cherché{result.remaining > 1 ? 's' : ''} : relance demain pour garder du quota.</p>}
             {result.failed.length > 0 && <p>YouTube n’a pas répondu pour : {result.failed.join(', ')}.</p>}
             <div className="adm-pod-report-actions">
-              {result.found.length > 0 && <a href="/admin/verifications" className="adm-btn adm-btn-pri">Ouvrir les vérifications</a>}
+              {result.found.length > 0 && <Link href="/admin/verifications" className="adm-btn adm-btn-pri">Ouvrir les vérifications</Link>}
               <button type="button" className="adm-btn" onClick={() => setResult(null)}>Fermer</button>
             </div>
           </div>
