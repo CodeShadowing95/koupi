@@ -342,7 +342,12 @@ function Podcasts() {
       ]} />
       <p><b>Dernière lecture</b> dit quand ses épisodes ont été lus pour la dernière fois, et <b>Codes trouvés</b> combien de codes viennent de ses épisodes (un clic les ouvre dans Codes). <b>Ne plus suivre</b> le retire de la liste : son créateur, son compte et ses codes restent.</p>
       <p>Un clic sur un podcast ouvre son <b>détail</b> à droite, avec ses <b>derniers épisodes</b> : la date, un lien vers l’épisode, s’il a été <b>Lu</b> par Merkod, et les codes trouvés dans ses notes avec leur état (En attente, Vérifié…) ou l’outil à ajouter. Tu vois ainsi ce que Merkod a lu, et pas seulement le résultat. Un épisode trop ancien au moment du suivi, ou sorti depuis la dernière lecture, reste « Pas lu ».</p>
-      <p>Comme les autres listes, l’onglet Suivis se filtre (Tous, Lus chaque nuit, En pause, Jamais lus, Avec codes trouvés), se cherche par nom de podcast ou de créateur, se trie, s’affiche en cartes ou en tableau et se lit page par page.</p>
+      <p>Comme les autres listes, l’onglet Suivis se filtre (Tous, Lus chaque nuit, En pause, Jamais lus, Avec codes trouvés, Rien depuis 90 jours), se cherche par nom de podcast ou de créateur, se trie, s’affiche en cartes ou en tableau et se lit page par page.</p>
+    </Section>
+    <Section id="rendement" title="Le rendement de chaque podcast">
+      <p>Tous les podcasts ne se valent pas. Pour chacun, Merkod donne les codes <b>trouvés</b> dans ses épisodes, combien sont <b>publiés</b> sur le site (vérifiés ou à tester), combien de fois les visiteurs les ont <b>copiés ce mois-ci</b>, et la date de son <b>dernier code</b>.</p>
+      <p>La liste s’ouvre rangée par <b>rendement</b> : d’abord les podcasts dont les codes sont le plus copiés, puis ceux qui ont le plus de codes publiés, puis le plus de codes trouvés. En tableau, les colonnes Copies du mois et Dernier code se trient aussi ; la colonne État donne aussi la date de dernière lecture.</p>
+      <Callout tone="tip">L’onglet <b>Rien depuis 90 jours</b> liste les podcasts suivis depuis plus de 90 jours qui n’ont donné aucun code depuis 90 jours. Le bouton <b>Mettre en pause les actifs</b> les arrête d’un coup : ils ne sont plus lus la nuit, mais gardent leurs codes et leur historique. Tu peux les reprendre un par un.</Callout>
     </Section>
     <Section id="lecture" title="La lecture des épisodes">
       <Steps>

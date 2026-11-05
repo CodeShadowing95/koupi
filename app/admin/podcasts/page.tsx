@@ -28,6 +28,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ t
   const [podcasts, suggestions, categories, tools, spent, { tab }] = await Promise.all([listPodcasts(db), listToolSuggestions(db), listCategoriesAdmin(db), toolOptions(db), aiSpendSince(db, startOfMonthUtc()), searchParams]);
   const ai = aiStatusOf(aiConfigFrom(process.env), spent);
   const images = await imagesOf(podcasts.map(podcast => podcast.feedId));
-  return <PodcastsView podcasts={podcasts} images={images} starters={[...STARTER_PODCASTS]} suggestions={suggestions}
+  return <PodcastsView podcasts={podcasts} nowIso={new Date().toISOString()} images={images} starters={[...STARTER_PODCASTS]} suggestions={suggestions}
     categories={categories.map(category => ({ slug: category.slug, name: category.name }))} tools={tools} ai={{ active: ai.state === 'active', label: ai.label }} initialTab={tab === 'outils' ? 'tools' : undefined} />;
 }

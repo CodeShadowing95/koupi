@@ -1,8 +1,9 @@
 // Podcasts suivis (table watched_sources, plateforme « podcast ») : l'admin les choisit dans l'annuaire Apple Podcasts.
 // Suivre un podcast crée aussi son créateur (au nom du podcast) et relie le compte « podcast » à ce créateur.
-import { and, asc, eq, sql } from 'drizzle-orm';
+import { and, asc, eq, gte, isNull, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
-import { codes, creatorAccounts, creators, watchedSources } from '@/db/schema';
+import { codes, creatorAccounts, creators, dailyCounters, watchedSources } from '@/db/schema';
+import { monthStart } from './creator-directory';
 import { resolveCreator } from './codes-admin';
 import type { PodcastFeed } from './apple-podcasts';
 
@@ -13,6 +14,12 @@ export type AdminPodcast = {
   lastFetchedAt: string | null; createdAt: string; creatorId: string | null; creatorName: string | null; creatorSlug: string | null;
   /** Codes dont la source est un épisode de ce podcast (tous statuts, hors archivés). */
   codesFound: number;
+  /** Parmi eux, ceux publiés sur le site (vérifiés ou à tester). */
+  codesPublished: number;
+  /** Copies de ces codes par les visiteurs depuis le début du mois. */
+  copiesThisMonth: number;
+  /** Date d'ajout du code le plus récent, null sans code. */
+  lastCodeAt: string | null;
 };
 
 /** Page publique d'un podcast sur Apple Podcasts : sert de lien quand l'annuaire n'en donne pas. */
@@ -20,17 +27,39 @@ export function applePodcastUrl(podcastId: number | string, episodeId?: number):
   return `https://podcasts.apple.com/podcast/id${podcastId}${episodeId ? `?i=${episodeId}` : ''}`;
 }
 
-export async function listPodcasts(db: Db): Promise<AdminPodcast[]> {
-  const found = sql<number>`(select count(*) from ${codes} where ${codes.archivedAt} is null and ${codes.sourceUrl} ~ ('^https://podcasts\\.apple\\.com/.*/id' || ${watchedSources.externalId} || '\\?'))`.mapWith(Number);
-  const rows = await db.select({ source: watchedSources, creator: { name: creators.name, slug: creators.slug }, found })
-    .from(watchedSources).leftJoin(creators, eq(creators.id, watchedSources.creatorId))
-    .where(eq(watchedSources.platform, 'podcast'))
-    .orderBy(asc(watchedSources.title));
-  return rows.map(({ source, creator, found }) => ({
-    id: source.id, feedId: source.externalId, title: source.title, feedUrl: source.feedUrl, active: source.active,
-    lastFetchedAt: source.lastFetchedAt?.toISOString() ?? null, createdAt: source.createdAt.toISOString(),
-    creatorId: source.creatorId, creatorName: creator?.name ?? null, creatorSlug: creator?.slug ?? null, codesFound: found,
-  }));
+export async function listPodcasts(db: Db, now = new Date()): Promise<AdminPodcast[]> {
+  // Un code vient d'un podcast quand sa source est un épisode Apple Podcasts de ce podcast.
+  const fromPodcast = sql`${codes.sourceUrl} ~ ('^https://podcasts\\.apple\\.com/.*/id' || ${watchedSources.externalId} || '\\?')`;
+  const copies = db.select({ key: dailyCounters.key, n: sql<number>`sum(${dailyCounters.count})`.as('n') }).from(dailyCounters)
+    .where(and(eq(dailyCounters.metric, 'copy'), gte(dailyCounters.day, monthStart(now)))).groupBy(dailyCounters.key).as('copies');
+  const [rows, stats] = await Promise.all([
+    db.select({ source: watchedSources, creator: { name: creators.name, slug: creators.slug } })
+      .from(watchedSources).leftJoin(creators, eq(creators.id, watchedSources.creatorId))
+      .where(eq(watchedSources.platform, 'podcast'))
+      .orderBy(asc(watchedSources.title)),
+    db.select({
+      id: watchedSources.id,
+      found: sql<number>`count(${codes.id})`.mapWith(Number),
+      published: sql<number>`count(*) filter (where ${codes.status} in ('verified', 'to_test'))`.mapWith(Number),
+      copies: sql<number>`coalesce(sum(${copies.n}), 0)`.mapWith(Number),
+      lastCodeAt: sql<string | null>`max(${codes.createdAt})`,
+    }).from(watchedSources)
+      .innerJoin(codes, and(isNull(codes.archivedAt), fromPodcast))
+      .leftJoin(copies, sql`${copies.key} = ${codes.id}::text`)
+      .where(eq(watchedSources.platform, 'podcast'))
+      .groupBy(watchedSources.id),
+  ]);
+  const byId = new Map(stats.map(row => [row.id, row]));
+  return rows.map(({ source, creator }) => {
+    const stat = byId.get(source.id);
+    return {
+      id: source.id, feedId: source.externalId, title: source.title, feedUrl: source.feedUrl, active: source.active,
+      lastFetchedAt: source.lastFetchedAt?.toISOString() ?? null, createdAt: source.createdAt.toISOString(),
+      creatorId: source.creatorId, creatorName: creator?.name ?? null, creatorSlug: creator?.slug ?? null,
+      codesFound: stat?.found ?? 0, codesPublished: stat?.published ?? 0, copiesThisMonth: stat?.copies ?? 0,
+      lastCodeAt: stat?.lastCodeAt ? new Date(stat.lastCodeAt).toISOString() : null,
+    };
+  });
 }
 
 /** Suit un podcast trouvé dans l'annuaire. Le refuse s'il est déjà suivi. */

@@ -1208,6 +1208,8 @@ html:has(> body > .ct){overflow:hidden}
 .adm-pod-done{font-size:13px;font-weight:600;color:var(--ok);white-space:nowrap}
 @media (max-width:640px){.adm-pod-result{flex-wrap:wrap}.adm-pod-info{flex-basis:calc(100% - 68px)}}
 .adm-pod-report{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;font-size:14px}
+.adm-pod-quiet{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;font-size:14px}
+.adm-pod-quiet p{margin:0;flex:1 1 360px}
 .adm-pod-report p,.adm-pod-report ul{margin:0}
 .adm-pod-report ul{padding-left:18px}
 .adm-pod-report-actions{display:flex;gap:8px;flex-wrap:wrap}
