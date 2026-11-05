@@ -12,7 +12,7 @@ const now = new Date('2026-11-04T05:00:00Z');
 
 const tool = (name: string, categorySlug: string, extra: Partial<AdminTool> = {}): AdminTool => ({
   id: name, slug: name.toLowerCase(), name, categorySlug, category: categorySlug, website: `https://${name.toLowerCase()}.com`,
-  description: null, priority: 3, codes: 0, visible: 0, archived: false, ...extra,
+  description: null, priority: 3, codes: 0, visible: 0, archived: false, creators: 0, ...extra,
 });
 
 describe('toolsToSearch', () => {

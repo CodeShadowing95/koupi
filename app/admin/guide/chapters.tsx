@@ -6,6 +6,7 @@ import { Callout, Demo, Key, Legend, Section, Step, Steps } from '@/components/a
 import { FLAG_MAX_SUCCESS, FLAG_MIN_VOTES, RETEST_DAYS, TARGETS } from '@/lib/admin-stats';
 import { CLEAR_SCORE, CREATOR_LEVEL_LABELS, MIN_RATINGS, MIN_SUBSCRIBERS, REJECT_BELOW } from '@/lib/verification';
 import { FIRST_READ_DAYS } from '@/lib/podcast-read';
+import { ADMIN_EXPIRY_DAYS } from '@/lib/code-expiry';
 import { SITE_PAGES } from '@/lib/site-pages';
 
 /** Faux bouton : même apparence que dans l'admin, mais rien ne se passe au clic. */
@@ -218,8 +219,11 @@ function Codes() {
         { term: 'À tester', meaning: 'Codes visibles que personne n’a encore essayés. Ta file de travail principale.' },
         { term: 'À retester', meaning: `Codes vérifiés il y a plus de ${RETEST_DAYS} jours, ou jamais testés depuis l’import. Les offres expirent : on les réessaie.` },
         { term: 'En attente', meaning: 'Codes cachés à compléter.' },
+        { term: 'Expire bientôt', meaning: `Codes dont la date de fin tombe dans les ${ADMIN_EXPIRY_DAYS} jours. Cherche s’il y a un nouveau code pour le remplacer à temps.` },
+        { term: 'Expirés', meaning: 'La date de fin est passée : rejette le code, ou corrige la date si l’offre a été prolongée.' },
         { term: 'Archivés', meaning: 'Codes mis de côté. Le bouton « Restaurer » les fait revenir.' },
       ]} />
+      <p>La colonne <b>Copies</b> (et la même mention sur les cartes et dans le panneau) dit combien de fois les visiteurs ont copié le code depuis le 1er du mois. Trie dessus : les codes les plus copiés sont ceux à retester en premier, et ceux à remplacer d’abord quand ils expirent. Le panneau d’un code range ses informations en trois blocs : le code, sa source, ses tests et ses dates.</p>
       <Callout tone="tip">Pour décider vite des codes en attente et à tester, la page <Link href="/admin/verifications">Vérifications</Link> prépare chaque dossier avec un score et la preuve trouvée dans la source. Voir <Link href="/admin/guide/verifications">Vérifier avec l’aide de l’IA</Link>.</Callout>
     </Section>
     <Section id="tester" title="Tester un code, pas à pas">
@@ -367,6 +371,7 @@ function Outils() {
     <Section id="quoi" title="Ce qu’est un outil">
       <p>Un outil est un produit en ligne pour lequel on collecte des codes : NordVPN, Qonto, Notion… Chaque outil a une catégorie, un site officiel, une description facultative et une <b>priorité</b>.</p>
       <Callout tone="why">Un outil apparaît sur le site dès qu’il a un code vérifié ou à tester. L’onglet <b>Sans code visible</b> liste les outils suivis mais encore invisibles : c’est ta liste de chasse.</Callout>
+      <p>Dans la liste, <b>Créateurs</b> compte les créateurs différents qui donnent un code pour l’outil, et <b>Copies</b> les copies de ses codes depuis le 1er du mois. Un outil très copié avec un seul créateur mérite qu’on lui cherche d’autres codes.</p>
     </Section>
     <Section id="ajouter" title="Ajouter un outil">
       <Steps>
