@@ -366,6 +366,45 @@ export const apiUsage = pgTable('api_usage', {
   check('api_usage_counts_positive', sql`${table.units} >= 0 and ${table.calls} >= 0`),
 ]);
 
+// Recherche de codes sur YouTube (ADR-0033) : chaque recherche lancée, avec sa formulation, pour un outil ou pour le nom d'une catégorie.
+// Elle sert à faire tourner les formulations et à ne demander que les vidéos publiées depuis la dernière recherche identique.
+export const youtubeSearches = pgTable('youtube_searches', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  toolId: uuid('tool_id').references(() => tools.id, { onDelete: 'cascade' }),
+  categorySlug: text('category_slug').references(() => categories.slug, { onDelete: 'cascade', onUpdate: 'cascade' }),
+  /** Formulation utilisée (« code promo », « promo code »…), voir lib/youtube-queries.ts. */
+  variant: text('variant').notNull(),
+  query: text('query').notNull(),
+  /** Vidéos rendues par YouTube, dont celles jamais lues avant. */
+  videos: integer('videos').notNull().default(0),
+  newVideos: integer('new_videos').notNull().default(0),
+  codes: integer('codes').notNull().default(0),
+  searchedAt: timestamp('searched_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  index('youtube_searches_tool_idx').on(table.toolId, table.searchedAt),
+  index('youtube_searches_category_idx').on(table.categorySlug, table.searchedAt),
+  check('youtube_searches_subject', sql`${table.toolId} is not null or ${table.categorySlug} is not null`),
+  check('youtube_searches_variant_len', sql`char_length(${table.variant}) between 1 and 40`),
+  check('youtube_searches_counts_positive', sql`${table.videos} >= 0 and ${table.newVideos} >= 0 and ${table.codes} >= 0`),
+]);
+
+// Vidéos YouTube déjà lues par la recherche de codes : une vidéo lue n'est plus relue (ni payée), et sa chaîne devient « connue ».
+export const youtubeSeenVideos = pgTable('youtube_seen_videos', {
+  videoId: text('video_id').primaryKey(),
+  channelId: text('channel_id'),
+  channelTitle: text('channel_title').notNull().default(''),
+  /** Outil cherché quand la vidéo a été lue (vide pour la recherche sur le nom d'une catégorie). */
+  toolId: uuid('tool_id').references(() => tools.id, { onDelete: 'set null' }),
+  query: text('query').notNull(),
+  /** Codes mis en attente depuis cette vidéo. */
+  codes: integer('codes').notNull().default(0),
+  seenAt: timestamp('seen_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  index('youtube_seen_videos_channel_idx').on(table.channelId),
+  check('youtube_seen_videos_id_format', sql`${table.videoId} ~ '^[A-Za-z0-9_-]{1,20}$'`),
+  check('youtube_seen_videos_codes_positive', sql`${table.codes} >= 0`),
+]);
+
 export type ToolSuggestionRow = typeof toolSuggestions.$inferSelect;
 
 export type Submission = typeof submissions.$inferSelect;

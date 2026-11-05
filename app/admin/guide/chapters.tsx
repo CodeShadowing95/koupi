@@ -389,7 +389,7 @@ function Outils() {
       <Callout tone="tip">Un logo introuvable n’empêche rien : l’outil garde son initiale colorée. Vérifie alors que son site officiel est le bon domaine.</Callout>
     </Section>
     <Section id="chercher" title="Chercher des codes pour un outil">
-      <p>Dans le panneau d’un outil, <b>Chercher des codes</b> cherche sur YouTube « <i>outil</i> code promo » parmi les vidéos de l’année, pour cet outil seul, même s’il a déjà des codes. C’est une recherche, soit environ 100 unités du quota du jour (sur 10 000).</p>
+      <p>Dans le panneau d’un outil, <b>Chercher des codes</b> cherche sur YouTube « <i>outil</i> code promo » parmi les vidéos de l’année, pour cet outil seul, même s’il a déjà des codes. La fois suivante, la recherche change de formulation (« code réduction », « promo code »…) et écarte les vidéos déjà lues : chaque clic ramène du neuf. C’est une recherche, soit environ 100 unités du quota du jour (sur 10 000).</p>
       <p>Le compte rendu s’affiche dans le panneau : vidéos lues, unités utilisées, codes trouvés. Comme pour les catégories, <b>rien n’est publié</b> : les codes arrivent « En attente » dans <Link href="/admin/verifications">Vérifications</Link>, et ceux d’outils absents du catalogue vont dans <b>Podcasts › Outils à ajouter</b>. Le bouton est grisé sans clé YouTube, ou si l’outil est archivé.</p>
       <Callout tone="tip">Utilise-le pour un outil très copié qui n’a qu’un ou deux créateurs : d’autres chaînes en parlent sûrement. Pour plusieurs outils d’un coup, passe par la page <Link href="/admin/categories">Catégories</Link>.</Callout>
     </Section>
@@ -533,6 +533,7 @@ function Categories() {
     </Section>
     <Section id="chercher" title="Chercher des codes pour une catégorie">
       <p><b>Chercher des codes</b>, en haut de la page, prend les outils des catégories vides (priorité 1 d’abord) et cherche sur YouTube « <i>outil</i> code promo » parmi les vidéos de l’année. Dans le panneau d’une catégorie, le même bouton cherche ses outils, ceux qui ont le moins de codes d’abord, même si elle a déjà des codes, puis « <i>catégorie</i> code promo » pour repérer des outils qu’on n’a pas encore.</p>
+      <p><b>Chaque recherche fait du neuf.</b> Pour un même outil, Merkod change de formulation à chaque fois : « code promo », puis « code réduction », « promo code » et « discount code ». Une formulation déjà essayée ne ramène que les vidéos publiées depuis. Les vidéos déjà lues sont écartées sans être relues, et le compte rendu le dit : nouvelles chaînes, chaînes déjà connues (un créateur qu’on a, ou une vidéo déjà lue), vidéos écartées. Une chaîne nouvelle avec un code, c’est un créateur à ajouter et à suivre.</p>
       <p>Les descriptions des vidéos sont lues comme les notes des podcasts. <b>Rien n’est publié</b> : chaque code trouvé arrive « En attente » dans Vérifications, crédité à la chaîne qui l’a donné, et un code pour un outil absent du catalogue va dans <b>Podcasts › Outils à ajouter</b>.</p>
       <Demo caption="L’état de la recherche, sous le titre de la page.">
         <div className="gd-row"><StatusDot tone="ok">Recherche YouTube prête</StatusDot><StatusDot tone="muted">IA en attente d’activation : lecture sans IA</StatusDot></div>

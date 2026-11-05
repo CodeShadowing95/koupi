@@ -22,10 +22,24 @@ export async function runCodeSearch(url: string, body: object, scope: string): P
   }
 }
 
+/** Formulations employées (« code promo », « promo code »…), sans doublon. */
+function variantsLabel(variants: string[] | undefined) {
+  const unique = [...new Set(variants ?? [])];
+  return unique.length ? ` (${unique.map(variant => `« ${variant} »`).join(', ')})` : '';
+}
+
+/** « 5 nouvelles chaînes, 12 déjà connues, 3 vidéos déjà lues écartées. » */
+export function newsLabel(result: Pick<CategorySearchReport, 'newChannels' | 'knownChannels' | 'skipped'>) {
+  const parts = [plural(result.newChannels ?? 0, 'nouvelle chaîne', 'nouvelles chaînes'), `${result.knownChannels ?? 0} déjà connue${(result.knownChannels ?? 0) > 1 ? 's' : ''}`];
+  if (result.skipped > 0) parts.push(`${plural(result.skipped, 'vidéo déjà lue écartée', 'vidéos déjà lues écartées')}`);
+  return `${parts.join(', ')}.`;
+}
+
 export function CodeSearchReport({ result, onClose }: { result: CodeSearchResult; onClose: () => void }) {
   return (
     <div className={`notice adm-pod-report${result.searches === 0 && result.failed.length > 0 ? ' notice-error' : ''}`} role="status">
-      <p>Recherche pour {result.scope} : {plural(result.searches, 'recherche')} YouTube, {plural(result.videos, 'vidéo lue', 'vidéos lues')}{result.aiRead > 0 ? `, dont ${result.aiRead} relue${result.aiRead > 1 ? 's' : ''} par l’IA` : ''}, environ {result.units} unités du quota du jour (10 000). {result.found.length === 0 ? 'Aucun nouveau code trouvé.' : `${plural(result.found.length, 'nouveau code', 'nouveaux codes')} en attente :`}</p>
+      <p>Recherche pour {result.scope} : {plural(result.searches, 'recherche')} YouTube{variantsLabel(result.variants)}, {plural(result.videos, 'nouvelle vidéo lue', 'nouvelles vidéos lues')}{result.aiRead > 0 ? `, dont ${result.aiRead} relue${result.aiRead > 1 ? 's' : ''} par l’IA` : ''}, environ {result.units} unités du quota du jour (10 000).</p>
+      <p>{newsLabel(result)} {result.found.length === 0 ? 'Aucun nouveau code trouvé.' : `${plural(result.found.length, 'nouveau code', 'nouveaux codes')} en attente :`}</p>
       {result.found.length > 0 && <ul>{result.found.map(item => <li key={`${item.tool}-${item.code}`}><b className="mono">{item.code}</b> pour {item.tool} <span className="muted">({item.creator})</span></li>)}</ul>}
       {result.suggested.length > 0 && <p>{plural(result.suggested.length, 'code')} pour des outils absents du catalogue : {result.suggested.map(item => `${item.code} (${item.tool})`).join(', ')}. <a href="/admin/podcasts?tab=outils">Voir les outils à ajouter</a></p>}
       {result.remaining > 0 && <p>{plural(result.remaining, 'outil')} pas encore cherché{result.remaining > 1 ? 's' : ''} : relance demain pour garder du quota.</p>}

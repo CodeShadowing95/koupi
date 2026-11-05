@@ -7,7 +7,7 @@ import { verificationDeps } from '@/lib/verification-deps';
 // Une recherche YouTube, puis l'analyse de chaque code trouvé.
 export const maxDuration = 120;
 
-// Cherche sur YouTube des codes pour un seul outil (« <outil> code promo »). Rien n'est publié : les codes vont dans Vérifications.
+// Cherche sur YouTube des codes pour un seul outil (« <outil> code promo », puis d'autres formulations). Rien n'est publié : les codes vont dans Vérifications.
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!(await isAdminRequest(request))) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   const { id } = await params;
