@@ -343,7 +343,7 @@ function Podcasts() {
         { term: 'Écarter', meaning: 'Le candidat passe dans « Écartés » et y reste, même s’il revient au passage suivant. « Remettre » le ramène.' },
       ]} />
       <Callout tone="rule">Un candidat n’ajoute aucun code au catalogue : c’est une idée de podcast à suivre. Les codes ne viennent qu’après le suivi, par la lecture de nuit, et passent par Vérifications.</Callout>
-      <Callout tone="warn" title="À régler une fois">Le passage tourne sur GitHub (la base pèse plusieurs Go, trop pour Vercel). Dans le dépôt, <b>Settings › Secrets and variables › Actions</b> : ajoute le secret <b>CRON_SECRET</b> (le même que sur Vercel) et la variable <b>MERKOD_URL</b> (l’adresse du site). Sans eux, le passage s’arrête sans rien faire. Il se lance aussi à la main depuis l’onglet Actions, « Podcast Index ».</Callout>
+      <Callout tone="warn" title="À régler une fois">Le passage tourne sur GitHub (la base pèse plusieurs Go, trop pour Vercel). Dans le dépôt, <b>Settings › Secrets and variables › Actions</b> : ajoute le secret <b>CRON_SECRET</b> (le même que sur Vercel) et la variable <b>MERKOD_URL</b> (l’adresse du site). Sans eux, le passage s’arrête sans rien faire. Ajoute aussi les secrets <b>PODCASTINDEX_API_KEY</b> et <b>PODCASTINDEX_API_SECRET</b> (ton compte Podcast Index) : si le site refuse le téléchargement de la base, Merkod passe par l’API, avec moins de podcasts (tendances et flux récents). Le passage se lance aussi à la main depuis l’onglet Actions, « Podcast Index ».</Callout>
     </Section>
     <Section id="liste" title="La liste des suivis">
       <Legend rows={[

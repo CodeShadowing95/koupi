@@ -1,17 +1,21 @@
 // Podcasts candidats depuis la base publique de Podcast Index (ADR-0036). Lancé chaque semaine par la GitHub Action
 // .github/workflows/podcast-index.yml, qui télécharge la base (plusieurs Go : trop gros pour Vercel).
 //
-//   npx tsx scripts/podcast-index-candidates.ts <podcastindex_feeds.db> [--dry-run] [--limit 10000]
+//   npx tsx scripts/podcast-index-candidates.ts [podcastindex_feeds.db] [--dry-run] [--limit 10000]
 //
 // Variables : MERKOD_URL (adresse du site, ex. https://merkod.vercel.app) et CRON_SECRET (le même que sur Vercel).
+// Sans base téléchargée (le site de Podcast Index peut refuser le téléchargement), le script passe par l'API officielle
+// avec PODCASTINDEX_API_KEY et PODCASTINDEX_API_SECRET : moins de podcasts (tendances et flux récents), mêmes conditions.
 // 1. Merkod donne les outils du catalogue et les podcasts déjà suivis.
-// 2. La base donne les podcasts actifs, en français ou en anglais, toutes catégories, les plus populaires d'abord.
+// 2. La base (ou l'API) donne les podcasts actifs, en français ou en anglais, toutes catégories, les plus populaires d'abord.
 // 3. Leurs flux RSS sont lus ; un podcast qui cite un outil du catalogue près d'un code devient candidat.
 // 4. Les candidats sont envoyés à Merkod (sauf avec --dry-run, qui les affiche).
 // La base est lue avec le module SQLite intégré à Node (node:sqlite) : aucune dépendance ajoutée.
+import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import type { CatalogTool } from '../lib/podcast-codes';
-import { candidateQuery, categoryOf, MAX_CANDIDATES, MAX_FEEDS, parseFeedItems, scanFeed, type CandidateInput } from '../lib/podcast-index';
+import { apiFeedToFeed, candidateQuery, dumpRowToFeed, MAX_CANDIDATES, MAX_FEEDS, parseFeedItems, scanFeed, type CandidateInput, type IndexFeed } from '../lib/podcast-index';
 
 const CONCURRENCY = 24;
 const FEED_TIMEOUT_MS = 15_000;
@@ -30,7 +34,10 @@ function fail(message: string): never {
   process.exit(1);
 }
 
-if (!dbPath) fail('Usage : tsx scripts/podcast-index-candidates.ts <podcastindex_feeds.db> [--dry-run] [--limit N]');
+const apiKey = process.env.PODCASTINDEX_API_KEY ?? '';
+const apiSecret = process.env.PODCASTINDEX_API_SECRET ?? '';
+const useDump = Boolean(dbPath && existsSync(dbPath));
+if (!useDump && !(apiKey && apiSecret)) fail('Ni base téléchargée ni clés de l’API (PODCASTINDEX_API_KEY, PODCASTINDEX_API_SECRET) : rien à lire.');
 if (!/^(https:\/\/|http:\/\/localhost[:/])/.test(base) || !secret) fail('MERKOD_URL (https://…) et CRON_SECRET sont nécessaires.');
 if (!Number.isSafeInteger(limit) || limit < 1) fail('--limit doit être un nombre positif.');
 
@@ -57,6 +64,40 @@ async function fetchFeed(url: string): Promise<string | null> {
   }
 }
 
+/** Podcasts de la base téléchargée. */
+function feedsFromDump(now: Date): IndexFeed[] {
+  const db = new DatabaseSync(dbPath!, { readOnly: true });
+  const query = candidateQuery(now, limit);
+  const rows = db.prepare(query.sql).all(...query.params) as Record<string, unknown>[];
+  db.close();
+  return rows.map(dumpRowToFeed);
+}
+
+/**
+ * Podcasts de l'API officielle (https://podcastindex-org.github.io/docs-api/) : les tendances et les flux mis à jour
+ * récemment, 1 000 de chaque au plus. Signature : sha1(clé + secret + date Unix), envoyée avec la clé et la date.
+ */
+async function feedsFromApi(now: Date): Promise<IndexFeed[]> {
+  const get = async (path: string): Promise<Record<string, unknown>[]> => {
+    const date = String(Math.floor(Date.now() / 1000));
+    const response = await fetch(`https://api.podcastindex.org/api/1.0${path}`, { headers: {
+      'User-Agent': headers['user-agent'], 'X-Auth-Key': apiKey, 'X-Auth-Date': date,
+      Authorization: createHash('sha1').update(apiKey + apiSecret + date).digest('hex'),
+    }, signal: AbortSignal.timeout(60_000) });
+    if (!response.ok) throw new Error(`API Podcast Index ${path} : ${response.status}`);
+    const body = await response.json() as { feeds?: Record<string, unknown>[] };
+    return body.feeds ?? [];
+  };
+  const raw = [...await get('/podcasts/trending?max=1000&lang=fr,en'), ...await get('/recent/feeds?max=1000&lang=fr,en')];
+  const seen = new Set<string>();
+  return raw.flatMap(feed => {
+    const item = apiFeedToFeed(feed, now);
+    if (!item || seen.has(item.itunesId)) return [];
+    seen.add(item.itunesId);
+    return [item];
+  }).slice(0, limit);
+}
+
 async function main() {
   const now = new Date();
   const catalogResponse = await fetch(`${base}/api/cron/podcast-index`, { headers });
@@ -65,11 +106,8 @@ async function main() {
   const followed = new Set(catalog.followed);
   console.log(`Catalogue : ${catalog.tools.length} outils, ${followed.size} podcasts déjà suivis.`);
 
-  const db = new DatabaseSync(dbPath!, { readOnly: true });
-  const query = candidateQuery(now, limit);
-  const rows = (db.prepare(query.sql).all(...query.params) as Record<string, unknown>[]).filter(row => !followed.has(String(row.itunesId)));
-  db.close();
-  console.log(`Base Podcast Index : ${rows.length} podcasts actifs à lire.`);
+  const rows = (useDump ? feedsFromDump(now) : await feedsFromApi(now)).filter(row => !followed.has(row.itunesId));
+  console.log(`${useDump ? 'Base Podcast Index' : 'API Podcast Index (base non téléchargée)'} : ${rows.length} podcasts actifs à lire.`);
 
   const candidates: CandidateInput[] = [];
   let read = 0;
@@ -78,17 +116,15 @@ async function main() {
   async function worker() {
     while (next < rows.length) {
       const row = rows[next++];
-      const xml = await fetchFeed(String(row.url));
+      const xml = await fetchFeed(row.url);
       read++;
       if (read % 250 === 0) console.log(`  ${read} / ${rows.length} flux lus, ${candidates.length} candidats`);
       if (!xml) { unreachable++; continue; }
       const hits = scanFeed(parseFeedItems(xml), catalog.tools, now);
       if (!hits.length) continue;
-      const newest = Number(row.newestItemPubdate);
       candidates.push({
-        itunesId: String(row.itunesId), podcastIndexId: Number(row.id), title: String(row.title ?? '').trim() || 'Sans titre', author: String(row.itunesAuthor ?? ''),
-        feedUrl: String(row.url), imageUrl: row.imageUrl ? String(row.imageUrl) : null, language: String(row.language ?? ''), category: categoryOf(row),
-        episodeCount: Number(row.episodeCount) || 0, newestEpisodeAt: newest > 0 ? new Date(newest * 1000).toISOString() : null, hits,
+        itunesId: row.itunesId, podcastIndexId: row.id, title: row.title, author: row.author, feedUrl: row.url, imageUrl: row.imageUrl,
+        language: row.language, category: row.category, episodeCount: row.episodeCount, newestEpisodeAt: row.newestAt, hits,
       });
     }
   }

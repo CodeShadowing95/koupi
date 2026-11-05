@@ -30,6 +30,8 @@ jobs:
     env:
       MERKOD_URL: ${{ vars.MERKOD_URL }}
       CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      PODCASTINDEX_API_KEY: ${{ secrets.PODCASTINDEX_API_KEY }}
+      PODCASTINDEX_API_SECRET: ${{ secrets.PODCASTINDEX_API_SECRET }}
     steps:
       - name: Check configuration
         id: config
@@ -49,8 +51,11 @@ jobs:
           cache: npm
       - run: npm ci
         if: steps.config.outputs.ready == 'true'
+      # Si le site refuse le téléchargement (403 vu le 2026-11-05), le script passe par l'API officielle
+      # avec les secrets PODCASTINDEX_API_KEY et PODCASTINDEX_API_SECRET.
       - name: Download the Podcast Index database
         if: steps.config.outputs.ready == 'true'
+        continue-on-error: true
         run: |
           curl -fsSL --retry 3 -o "$RUNNER_TEMP/feeds.tgz" https://public.podcastindex.org/podcastindex_feeds.db.tgz
           tar -xzf "$RUNNER_TEMP/feeds.tgz" -C "$RUNNER_TEMP"

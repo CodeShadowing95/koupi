@@ -23,6 +23,9 @@ Une table `podcast_candidates` (unique par identifiant Apple) garde le podcast, 
 
 La base est lue avec `node:sqlite`, intégré à Node 22 : aucune dépendance ajoutée.
 
+## Mise à jour du 2026-11-05 : repli sur l'API
+Au premier passage, le site a refusé le téléchargement de la base depuis la machine de GitHub (403). L'étape de téléchargement peut désormais échouer sans arrêter le passage : sans base, le script interroge l'API officielle (tendances et flux mis à jour récemment, 1 000 de chaque au plus) avec les secrets `PODCASTINDEX_API_KEY` et `PODCASTINDEX_API_SECRET` (compte créé par l'admin), puis applique les mêmes conditions (connu d'Apple, français ou anglais, actif depuis 90 jours). On ne contourne pas le refus du site : on passe par l'accès prévu pour les développeurs.
+
 ## Alternatives envisagées
 - **API Podcast Index** : inscription impossible avec une adresse Gmail ; à revoir avec un domaine à nous.
 - **Script dans une fonction Vercel** : la base ne tient pas dans ses limites.
