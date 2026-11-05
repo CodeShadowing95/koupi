@@ -46,7 +46,10 @@ export async function followPodcast(db: Db, feed: PodcastFeed): Promise<Parsed<{
   const creatorId = account?.creatorId ?? await resolveCreator(db, feed.title.slice(0, 160));
   if (!account) {
     const url = feed.link || applePodcastUrl(feed.id);
-    await db.insert(creatorAccounts).values({ creatorId, platform: 'podcast', externalId: feedId, handle: feed.title.slice(0, 120), url }).onConflictDoNothing();
+    await db.insert(creatorAccounts).values({
+      creatorId, platform: 'podcast', externalId: feedId, handle: feed.title.slice(0, 120), url,
+      ...(feed.episodeCount > 0 ? { metrics: { episodes: feed.episodeCount }, metricsAt: new Date() } : {}),
+    }).onConflictDoNothing();
   }
 
   const [row] = await db.insert(watchedSources).values({

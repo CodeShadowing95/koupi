@@ -8,6 +8,7 @@ import { InfoTip } from '@/components/admin-info-tip';
 import { PlatformIcon } from '@/components/platform-icon';
 import { CREATOR_LEVEL_LABELS, MIN_SUBSCRIBERS, type CreatorLevel } from '@/lib/verification';
 import { AccountClaim } from './account-claim';
+import { audienceLine } from '@/lib/account-metrics';
 import { PLATFORM_LABELS, formatSubscribers, type AdminCreatorAccount, type CreatorPlatform } from '@/lib/creator-accounts-display';
 
 const LEVEL_TONES: Record<CreatorLevel, Tone> = { spotted: 'muted', checked: 'ok', verified: 'info' };
@@ -23,6 +24,7 @@ const day = (iso: string) => dayFormat.format(new Date(iso));
 function nextStep(account: AdminCreatorAccount): string | null {
   if (account.level !== 'spotted') return null;
   if (account.adminCheckedAt && account.subscribers !== null && account.subscribers < MIN_SUBSCRIBERS) return `Moins de ${MIN_SUBSCRIBERS} abonnés : le créateur reste repéré.`;
+  if (account.adminCheckedAt && account.subscribers === null && account.platform === 'podcast') return 'Les abonnés d’un podcast ne sont pas publics : indique-les à la main si tu les connais, ou coche le badge certifié.';
   if (account.adminCheckedAt && account.subscribers === null) return 'Abonnés inconnus : indique-les pour atteindre le seuil.';
   return 'Contrôle le compte pour le passer « Contrôlé par Merkod ».';
 }
@@ -71,7 +73,8 @@ export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtube
       ) : (
         <ul className="adm-ca-list">
           {accounts.map(account => {
-            const subs = formatSubscribers(account.subscribers);
+            const audience = audienceLine(formatSubscribers(account.subscribers), account.metrics);
+            const readAt = [account.subscribersAt, account.metricsAt].filter((at): at is string => at !== null).sort().at(-1);
             const hint = nextStep(account);
             return (
               <li key={account.id} className="adm-ca-item">
@@ -83,8 +86,8 @@ export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtube
                   <LevelDot level={account.level} />
                 </div>
                 <p className="adm-ca-subs">
-                  {subs ?? 'Abonnés inconnus'}
-                  {account.subscribersAt && <span> · relevé le {day(account.subscribersAt)}</span>}
+                  {audience ?? (account.platform === 'podcast' ? 'Audience inconnue : clique sur « Actualiser »' : 'Abonnés inconnus')}
+                  {readAt && <span> · relevé le {day(readAt)}</span>}
                 </p>
                 <label className="adm-ca-check">
                   <input type="checkbox" checked={account.adminCheckedAt !== null} disabled={busy !== null} onChange={event => patch(account, { adminChecked: event.target.checked })} />
@@ -98,9 +101,9 @@ export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtube
                 </label>
                 {hint && <p className="adm-ca-hint">{hint}</p>}
                 <div className="adm-ca-actions">
-                  {account.platform === 'youtube'
-                    ? <button type="button" className="adm-btn" disabled={busy !== null || !youtubeReady} title={youtubeReady ? 'Relit les abonnés et le pseudo sur YouTube' : 'La clé YouTube manque'} onClick={() => refresh(account)}>{busy === `${account.id}-refresh` ? 'Lecture…' : 'Actualiser'}</button>
-                    : <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => editSubscribers(account)}>Modifier les abonnés</button>}
+                  {account.platform === 'youtube' && <button type="button" className="adm-btn" disabled={busy !== null || !youtubeReady} title={youtubeReady ? 'Relit les abonnés, le pseudo, les vues et les vidéos sur YouTube' : 'La clé YouTube manque'} onClick={() => refresh(account)}>{busy === `${account.id}-refresh` ? 'Lecture…' : 'Actualiser'}</button>}
+                  {account.platform === 'podcast' && <button type="button" className="adm-btn" disabled={busy !== null} title="Relit la note et le nombre d’épisodes sur Apple Podcasts" onClick={() => refresh(account)}>{busy === `${account.id}-refresh` ? 'Lecture…' : 'Actualiser'}</button>}
+                  {account.platform !== 'youtube' && <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => editSubscribers(account)}>Modifier les abonnés</button>}
                   <span style={{ flex: 1 }} />
                   <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => remove(account)}>Retirer</button>
                 </div>

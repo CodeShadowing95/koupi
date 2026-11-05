@@ -67,10 +67,10 @@ async function linkPodcasts(db: Db, directory: PodcastDirectory, sourcesByCreato
   }
   if (podcastOf.size === 0) return;
 
-  let titles = new Map<number, { title: string; link: string }>();
+  let titles = new Map<number, { title: string; link: string; episodeCount: number }>();
   try {
     const feeds = await directory.podcasts([...new Set(podcastOf.values())]);
-    titles = new Map(feeds.map(feed => [feed.id, { title: feed.title, link: feed.link }]));
+    titles = new Map(feeds.map(feed => [feed.id, { title: feed.title, link: feed.link, episodeCount: feed.episodeCount }]));
   } catch (error) {
     console.error('apple podcasts lookup failed', error);
   }
@@ -84,6 +84,7 @@ async function linkPodcasts(db: Db, directory: PodcastDirectory, sourcesByCreato
     if (takenHandles.has(handle.toLowerCase())) { report.toLink.push({ creator: name, reason: `Le podcast « ${handle} » est déjà relié à un autre créateur.` }); continue; }
     const inserted = await db.insert(creatorAccounts).values({
       creatorId, platform: 'podcast', externalId: String(podcastId), handle, url: feed?.link || applePodcastUrl(podcastId),
+      ...(feed && feed.episodeCount > 0 ? { metrics: { episodes: feed.episodeCount }, metricsAt: new Date() } : {}),
     }).onConflictDoNothing().returning({ id: creatorAccounts.id });
     if (inserted.length) { report.linked.push({ creator: name, platform: 'podcast' }); takenHandles.add(handle.toLowerCase()); ownerOf.set(String(podcastId), creatorId); }
   }

@@ -94,7 +94,7 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
                       <a className="k-chip" href={account.url} target="_blank" rel="noopener noreferrer me" title={account.proven ? 'Compte prouvé par le créateur' : undefined}>
                         {account.proven && <span className="k-chip-proof" aria-label="Compte prouvé par le créateur">✓</span>}
                         <PlatformIcon platform={account.platform} size={20} className="k-platform-icon" />
-                        {account.label} · {account.handle}{account.subscribers && <small>{account.subscribers}</small>}<span aria-hidden="true">↗</span>
+                        {account.label} · {account.handle}{account.audience && <small>{account.audience}</small>}<span aria-hidden="true">↗</span>
                       </a>
                     </li>
                   ))}

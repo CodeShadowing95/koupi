@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { boolean, check, date, index, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import type { ToolAnalysis } from '../lib/tool-analysis';
+import type { AccountMetrics } from '../lib/account-metrics';
 
 // Propositions de codes envoyées par le public, en attente de modération.
 export const submissions = pgTable('submissions', {
@@ -257,6 +258,9 @@ export const creatorAccounts = pgTable('creator_accounts', {
   url: text('url').notNull(),
   subscribers: integer('subscribers'),
   subscribersAt: timestamp('subscribers_at', { withTimezone: true }),
+  /** Autres mesures d'audience lues sur la source : note et nombre de notes, épisodes, vues… (lib/account-metrics.ts, ADR-0030). */
+  metrics: jsonb('metrics').$type<AccountMetrics>().notNull().default({}),
+  metricsAt: timestamp('metrics_at', { withTimezone: true }),
   /** Badge de compte certifié du réseau, coché à la main par l'admin (l'API YouTube ne le donne pas). */
   platformVerified: boolean('platform_verified').notNull().default(false),
   /** Date du contrôle par l'admin : compte réel, actif, pas une usurpation. */
@@ -281,6 +285,7 @@ export const creatorAccounts = pgTable('creator_accounts', {
   check('creator_accounts_handle_len', sql`char_length(trim(${table.handle})) between 1 and 120`),
   check('creator_accounts_external_id_len', sql`${table.externalId} is null or char_length(trim(${table.externalId})) between 1 and 200`),
   check('creator_accounts_url_http', sql`${table.url} ~* '^https?://'`),
+  check('creator_accounts_metrics_object', sql`jsonb_typeof(${table.metrics}) = 'object'`),
   check('creator_accounts_subscribers_positive', sql`${table.subscribers} is null or ${table.subscribers} >= 0`),
   check('creator_accounts_claim_code_format', sql`${table.claimCode} is null or ${table.claimCode} ~ '^(MERKOD|KOUPI)-[A-Z0-9]{6}$'`),
   check('creator_accounts_claim_code_pending', sql`${table.claimCode} is null or (${table.claimStatus} = 'pending' and ${table.claimCodeAt} is not null)`),
