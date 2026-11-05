@@ -9,6 +9,7 @@ import { accountLevelOf } from './creator-level';
 import type { AdminCreatorAccount, CreatorPlatform } from './creator-accounts-display';
 import { youtubeFetch } from './api-usage';
 import { cleanMetrics, mergeMetrics, type AccountMetrics } from './account-metrics';
+import { guessLanguage, normalizeCountry, normalizeLanguage } from './language-guess';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 const text = (value: unknown, max: number) => (typeof value === 'string' ? value.trim().slice(0, max) : '');
@@ -37,6 +38,13 @@ export function youtubeChannelRef(raw: string): ChannelRef | null {
 export type YoutubeChannel = { externalId: string; title: string; handle: string; url: string; subscribers: number | null; metrics?: AccountMetrics };
 export type ChannelReader = (ref: ChannelRef) => Promise<YoutubeChannel | null>;
 
+/** Pays et langue d'une chaîne : ceux que le créateur a remplis sur YouTube, sinon la langue devinée sur sa description. */
+export function channelLocale(snippet: { title?: string; country?: string; defaultLanguage?: string; description?: string } | undefined): { country?: string; language?: string } {
+  const country = normalizeCountry(snippet?.country) ?? undefined;
+  const language = normalizeLanguage(snippet?.defaultLanguage) ?? guessLanguage(`${snippet?.title ?? ''}. ${snippet?.description ?? ''}`) ?? undefined;
+  return { ...(country ? { country } : {}), ...(language ? { language } : {}) };
+}
+
 // Lecture d'une chaîne par l'API officielle. null : chaîne introuvable. Lève une erreur si l'API ne répond pas.
 export function youtubeChannelReader(apiKey: string | undefined, fetchFn: typeof fetch = youtubeFetch): ChannelReader | null {
   if (!apiKey) return null;
@@ -45,7 +53,7 @@ export function youtubeChannelReader(apiKey: string | undefined, fetchFn: typeof
     const endpoint = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&${param}=${encodeURIComponent(ref.value)}&key=${encodeURIComponent(apiKey)}`;
     const response = await fetchFn(endpoint, { cache: 'no-store' });
     if (!response.ok) throw new Error(`YouTube API ${response.status}`);
-    const body = await response.json() as { items?: { id?: string; snippet?: { title?: string; customUrl?: string }; statistics?: { subscriberCount?: string; hiddenSubscriberCount?: boolean; viewCount?: string; videoCount?: string } }[] };
+    const body = await response.json() as { items?: { id?: string; snippet?: { title?: string; customUrl?: string; country?: string; defaultLanguage?: string; description?: string }; statistics?: { subscriberCount?: string; hiddenSubscriberCount?: boolean; viewCount?: string; videoCount?: string } }[] };
     const item = body.items?.[0];
     if (!item?.id) return null;
     const handle = item.snippet?.customUrl || (ref.by === 'handle' ? ref.value : item.id);
@@ -57,7 +65,7 @@ export function youtubeChannelReader(apiKey: string | undefined, fetchFn: typeof
       url: handle.startsWith('@') ? `https://www.youtube.com/${handle}` : `https://www.youtube.com/channel/${item.id}`,
       subscribers: item.statistics?.hiddenSubscriberCount || !Number.isFinite(count) ? null : count,
       // Vues et vidéos viennent avec les abonnés, sans coût en plus (1 unité de quota).
-      metrics: cleanMetrics({ views: Number(item.statistics?.viewCount), videos: Number(item.statistics?.videoCount) }),
+      metrics: cleanMetrics({ views: Number(item.statistics?.viewCount), videos: Number(item.statistics?.videoCount), ...channelLocale(item.snippet) }),
     };
   };
 }
@@ -186,6 +194,15 @@ export async function updateCreatorAccount(db: Db, id: string, body: Record<stri
     if (!subscribers.ok) return subscribers;
     changes.subscribers = subscribers.data;
     changes.subscribersAt = subscribers.data === null ? null : now;
+  }
+  if ('country' in body || 'language' in body) {
+    const country = body.country === '' || body.country === null ? null : normalizeCountry(body.country);
+    const language = body.language === '' || body.language === null ? null : normalizeLanguage(body.language);
+    if (body.country && !country) return { ok: false, error: 'Le pays doit être un code à deux lettres (FR, BE, CA…).' };
+    if (body.language && !language) return { ok: false, error: 'La langue doit être un code à deux lettres (fr, en…).' };
+    const metrics = cleanMetrics(account.metrics);
+    delete metrics.country; delete metrics.language;
+    changes.metrics = cleanMetrics({ ...metrics, country, language, localeManual: true });
   }
   if (Object.keys(changes).length === 0) return { ok: false, error: 'Rien à changer.' };
   await db.update(creatorAccounts).set({ ...changes, updatedAt: now }).where(eq(creatorAccounts.id, id));

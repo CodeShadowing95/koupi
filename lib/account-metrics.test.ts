@@ -15,6 +15,14 @@ describe('mesures d’audience', () => {
     expect(mergeMetrics({ rating: 4.5, ratingCount: 10, episodes: 80 }, { episodes: 82 })).toEqual({ rating: 4.5, ratingCount: 10, episodes: 82 });
   });
 
+  it('garde le pays et la langue, et ceux corrigés à la main', () => {
+    expect(cleanMetrics({ country: 'fr', language: 'fr-FR' })).toEqual({ country: 'FR', language: 'fr' });
+    expect(cleanMetrics({ country: 'France', language: 'français' })).toEqual({});
+    expect(mergeMetrics({ country: 'BE', language: 'fr', localeManual: true }, { country: 'FR', language: 'en', episodes: 3 }))
+      .toEqual({ country: 'BE', language: 'fr', localeManual: true, episodes: 3 });
+    expect(mergeMetrics({ country: 'BE' }, { country: 'FR' })).toEqual({ country: 'FR' });
+  });
+
   it('écrit la ligne d’audience', () => {
     expect(metricParts({ rating: 4.7, ratingCount: 5281, episodes: 1100 })).toEqual(['4,7 ★', '5 281 notes', '1 100 épisodes']);
     expect(metricParts({ rating: 5, ratingCount: 1, episodes: 1 })).toEqual(['5,0 ★', '1 note', '1 épisode']);

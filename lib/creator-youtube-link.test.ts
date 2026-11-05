@@ -27,13 +27,13 @@ describe('youtubeBatch', () => {
         const ids = new URL(url).searchParams.get('id')!.split(',');
         return new Response(JSON.stringify({ items: ids.map(id => ({ id, snippet: { channelId: 'UCa' } })) }));
       }
-      return new Response(JSON.stringify({ items: [{ id: 'UCa', snippet: { customUrl: '@ana' }, statistics: { subscriberCount: '1200' } }] }));
+      return new Response(JSON.stringify({ items: [{ id: 'UCa', snippet: { customUrl: '@ana', country: 'fr', defaultLanguage: 'fr-FR' }, statistics: { subscriberCount: '1200', viewCount: '50000', videoCount: '12' } }] }));
     });
     const youtube = youtubeBatch('k', fetchFn as unknown as typeof fetch)!;
     const ids = Array.from({ length: 60 }, (_, i) => `vid${String(i).padStart(8, '0')}`);
     expect((await youtube.videoChannels(ids)).size).toBe(60);
     expect(fetchFn).toHaveBeenCalledTimes(2);
-    expect(await youtube.channels(['UCa'])).toEqual(new Map([['UCa', { id: 'UCa', handle: '@ana', url: 'https://www.youtube.com/@ana', subscribers: 1200 }]]));
+    expect(await youtube.channels(['UCa'])).toEqual(new Map([['UCa', { id: 'UCa', handle: '@ana', url: 'https://www.youtube.com/@ana', subscribers: 1200, thumbnail: undefined, metrics: { views: 50_000, videos: 12, country: 'FR', language: 'fr' } }]]));
   });
 });
 
