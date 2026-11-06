@@ -39,7 +39,7 @@ const icons = {
 
 // Menu regroupé : chaque grand espace (Codes, Créateurs, Outils, Statistiques) garde ses pages liées en sous-menus,
 // pour que tout tienne sans défiler. « Voir le site » et « Se déconnecter » restent fixés en bas.
-function navGroups(counts: { toTest?: number; pending?: number; newFeedback?: number } = {}): { label: string; items: Item[] }[] {
+function navGroups(counts: { toTest?: number; pending?: number; newFeedback?: number; newRequests?: number } = {}): { label: string; items: Item[] }[] {
   return [
   { label: 'Pilotage', items: [
     { href: '/admin', label: 'Accueil', icon: icons.home },
@@ -54,7 +54,7 @@ function navGroups(counts: { toTest?: number; pending?: number; newFeedback?: nu
       { href: '/admin/podcasts', label: 'Podcasts suivis', icon: icons.mic },
     ] },
     { href: '/admin/createurs', label: 'Créateurs', icon: icons.users, children: [
-      { href: '/admin/createurs/demandes', label: 'Demandes', icon: icons.inbox },
+      { href: '/admin/createurs/demandes', label: 'Demandes', icon: icons.inbox, count: counts.newRequests, countLabel: 'à traiter' },
     ] },
     { href: '/admin/outils', label: 'Outils', icon: icons.tool, children: [
       { href: '/admin/categories', label: 'Catégories', icon: icons.folder },
@@ -126,12 +126,12 @@ function SideItem({ item, current, pathname }: { item: Item; current?: string; p
   );
 }
 
-/** toTest : codes à tester (badge de Codes) ; newFeedback : avis pas encore lus (badge de Retours). Lus en base par le layout. */
-export function AdminShell({ children, toTest = 0, newFeedback = 0 }: { children: React.ReactNode; toTest?: number; newFeedback?: number }) {
+/** toTest : codes à tester (badge de Codes) ; newFeedback : avis pas encore lus (badge de Retours) ; newRequests : demandes des créateurs à traiter (badge de Demandes). Lus en base par le layout. */
+export function AdminShell({ children, toTest = 0, newFeedback = 0, newRequests = 0 }: { children: React.ReactNode; toTest?: number; newFeedback?: number; newRequests?: number }) {
   const pathname = usePathname();
   useStoredTheme();
   const pending = usePendingSubmissions() ?? 0;
-  const groups = navGroups({ toTest, pending, newFeedback });
+  const groups = navGroups({ toTest, pending, newFeedback, newRequests });
   // Mobile : le menu latéral devient un tiroir ouvert par le bouton ☰ de la barre du haut.
   const [menuOpen, setMenuOpen] = useState(false);
   const burger = useRef<HTMLButtonElement>(null);

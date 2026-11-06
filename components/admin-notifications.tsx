@@ -22,7 +22,7 @@ const checks = (
     <path d="m2 12.5 4.5 4.5L15 8.5" /><path d="m11.5 15.5 1.5 1.5L22 8" />
   </svg>
 );
-const kindIcon: Record<NotificationKind, IconName> = { proposal: 'inbox', flag: 'ticket', reminder: 'clock' };
+const kindIcon: Record<NotificationKind, IconName> = { proposal: 'inbox', flag: 'ticket', message: 'chat', reminder: 'clock' };
 
 function readSeen(): string[] {
   try { return parseSeen(localStorage.getItem(NOTIFICATIONS_SEEN_KEY)); } catch { return []; }
@@ -122,7 +122,7 @@ export function AdminNotifications() {
                   </span>
                   <div className="adm-bell-body">
                     <Link href={item.href} className="adm-bell-link" onClick={() => { read([item.id]); setOpen(false); }}>
-                      <b className={item.kind === 'reminder' ? undefined : 'mono'}>{item.subject}</b> {item.text}
+                      <b className={item.kind === 'proposal' || item.kind === 'flag' ? 'mono' : undefined}>{item.subject}</b> {item.text}
                     </Link>
                     <div className="adm-bell-sub">
                       <span>{item.detail}</span>
