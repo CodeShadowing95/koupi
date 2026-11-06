@@ -129,6 +129,8 @@ export function keepVerbatimCodes(raw: unknown, description: string): ExtractedC
   for (const item of list as RawCode[]) {
     const code = text(item?.code, 120);
     if (!code || seen.has(code.toLowerCase())) continue;
+    // Un code se tape d'un bloc : une phrase comme « 10-30% off merch » (espaces, pourcentage) n'en est pas un.
+    if (/[\s%]/.test(code)) continue;
     const match = findCodeInText(code, description);
     if (!match.found) continue;
     seen.add(code.toLowerCase());
