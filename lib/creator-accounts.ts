@@ -6,7 +6,7 @@ import type { Db } from '@/db';
 import { CREATOR_PLATFORMS, creatorAccounts, creators, type CreatorAccountRow } from '@/db/schema';
 import { validUrl } from './codes-admin';
 import { accountLevelOf } from './creator-level';
-import type { AdminCreatorAccount, CreatorPlatform } from './creator-accounts-display';
+import { handleFromProfileUrl, profileUrlFor, type AdminCreatorAccount, type CreatorPlatform } from './creator-accounts-display';
 import { youtubeFetch } from './api-usage';
 import { cleanMetrics, mergeMetrics, type AccountMetrics } from './account-metrics';
 import { guessLanguage, normalizeCountry, normalizeLanguage } from './language-guess';
@@ -158,8 +158,11 @@ export async function addCreatorAccount(db: Db, creatorId: string, body: Record<
       subscribers: channel.subscribers, subscribersAt: now,
     };
   } else {
-    const handle = text(body.handle, 120);
-    const url = text(body.url, 500);
+    // Un des deux suffit quand le réseau a des adresses de profil prévisibles (TikTok, Instagram, X…).
+    const typedHandle = text(body.handle, 120);
+    const typedUrl = text(body.url, 500);
+    const handle = typedHandle || (handleFromProfileUrl(body.platform, typedUrl) ?? '');
+    const url = typedUrl || (profileUrlFor(body.platform, typedHandle) ?? '');
     if (!handle) return { ok: false, error: 'Indique le pseudo du compte.' };
     if (!validUrl(url)) return { ok: false, error: 'Le lien du compte doit commencer par https://.' };
     const subscribers = parseSubscribers(body.subscribers);

@@ -8,6 +8,7 @@ import { sendJson } from '@/components/admin-form-dialog';
 import { StatusDot } from '@/components/admin-card';
 import { RefreshButton } from '@/components/admin-refresh-button';
 import { parisDate } from '@/lib/paris-date';
+import { confirmAction } from '@/components/admin-ask';
 
 type Filter = CreatorRequestStatus | 'all';
 const filters: { value: Filter; label: string }[] = [
@@ -50,7 +51,7 @@ export function RequestsView({ requests, granted, proven }: { requests: AdminCre
     const question = grant
       ? `Donner à ${request.email} l’accès à l’espace de ${request.creator.name} ? Fais-le seulement si cette personne a prouvé un compte par la bio.`
       : `Retirer à ${request.email} l’accès à l’espace de ${request.creator.name} ?`;
-    if (!window.confirm(question)) return;
+    if (!(await confirmAction(question, { confirmLabel: grant ? 'Donner l’accès' : 'Retirer l’accès', danger: !grant }))) return;
     setBusy(request.id);
     setError('');
     const failed = await sendJson(`/api/admin/creator-requests/${request.id}/access`, 'POST', { grant });

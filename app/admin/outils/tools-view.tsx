@@ -17,6 +17,7 @@ import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer'
 import { FetchLogosButton, RefreshLogoButton } from './logos-button';
 import { ToolCodeSearch } from './tool-code-search';
 import { RefreshButton } from '@/components/admin-refresh-button';
+import { confirmAction } from '@/components/admin-ask';
 
 type Filter = 'all' | 'published' | 'empty' | 'archived';
 const filters: { value: Filter; label: string }[] = [
@@ -75,7 +76,7 @@ export function ToolsView({ tools, categories, missingLogos, youtubeReady }: { t
   }
   const set = (key: keyof Form) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setForm(value => ({ ...value, [key]: key === 'priority' ? Number(event.target.value) : event.target.value }));
   async function archive(tool: AdminTool) {
-    if (!tool.archived && !window.confirm(`Archiver ${tool.name} ? L’outil et ses codes disparaissent du site. Tu pourras le restaurer.`)) return;
+    if (!tool.archived && !(await confirmAction(`Archiver ${tool.name} ? L’outil et ses codes disparaissent du site. Tu pourras le restaurer.`, { confirmLabel: 'Archiver', danger: true }))) return;
     const error = await sendJson(`/api/admin/tools/${tool.id}`, 'PATCH', { archived: !tool.archived });
     if (error) window.alert(error);
     setEditing(null);

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { InfoTip } from '@/components/admin-info-tip';
 import { CLAIM_CODE_DAYS, PLATFORM_LABELS, claimMessage, type AdminCreatorAccount } from '@/lib/creator-accounts-display';
 import { MIN_RATINGS, MIN_SUBSCRIBERS, audienceReached } from '@/lib/verification';
+import { confirmAction, showCopyText } from '@/components/admin-ask';
 
 const dayFormat = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Paris' });
 const day = (iso: string) => dayFormat.format(new Date(iso));
@@ -20,8 +21,8 @@ export function AccountClaim({ account, disabled, youtubeReady }: { account: Adm
   const readable = account.platform === 'youtube' && account.externalId !== null;
 
   async function run(action: Action) {
-    if (action === 'revoke' && !window.confirm(`Retirer la preuve du compte ${account.handle} ? Le créateur ne sera plus « Créateur vérifié » grâce à ce compte.`)) return;
-    if (action === 'confirm' && !window.confirm(`Tu as bien vu ${account.claimCode} dans la bio de ${account.handle} ?`)) return;
+    if (action === 'revoke' && !(await confirmAction(`Retirer la preuve du compte ${account.handle} ? Le créateur ne sera plus « Créateur vérifié » grâce à ce compte.`, { confirmLabel: 'Retirer la preuve', danger: true }))) return;
+    if (action === 'confirm' && !(await confirmAction(`Tu as bien vu ${account.claimCode} dans la bio de ${account.handle} ? Le créateur passera « Créateur vérifié ».`, { confirmLabel: 'Oui, je l’ai vu' }))) return;
     setBusy(action);
     setNotice(null);
     try {
@@ -39,7 +40,7 @@ export function AccountClaim({ account, disabled, youtubeReady }: { account: Adm
   async function copy(kind: 'code' | 'message') {
     if (!account.claimCode) return;
     const text = kind === 'code' ? account.claimCode : claimMessage(account.claimCode, account.platform, account.handle);
-    try { await navigator.clipboard.writeText(text); setCopied(kind); setTimeout(() => setCopied(null), 1600); } catch { window.prompt('Copie ce texte :', text); }
+    try { await navigator.clipboard.writeText(text); setCopied(kind); setTimeout(() => setCopied(null), 1600); } catch { await showCopyText({ title: kind === 'code' ? 'Copie le code' : 'Copie le message', text }); }
   }
 
   const off = disabled || busy !== null;

@@ -15,6 +15,7 @@ import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
 import { RefreshButton } from '@/components/admin-refresh-button';
 import { parisDate } from '@/lib/paris-date';
+import { askText } from '@/components/admin-ask';
 type Submission = { id: string; tool_name: string; creator_name: string; code: string; discount_label: string; source_url: string; creator_link: string | null; comment: string | null; submitter_email: string | null; status: string; admin_note: string | null; created_at: string; category: string | null; created_code_id: string | null };
 const sortFields: SortField<Submission>[] = [
   { key: 'received', label: 'Date de réception', value: item => item.created_at },
@@ -51,7 +52,12 @@ export function PropositionsView({ categories, tools, creators, existing }: { ca
   // La recherche globale ouvre la liste déjà filtrée (?q=CODE).
   useEffect(() => { const q = new URLSearchParams(window.location.search).get('q'); if (q) setQuery(q); }, []);
   async function decide(id: string, action: string) {
-    const note = action === 'reject' ? window.prompt('Note de refus (facultative)') || '' : '';
+    let note = '';
+    if (action === 'reject') {
+      const answer = await askText({ title: 'Refuser cette proposition ?', label: 'Note de refus (facultative)', placeholder: 'Ex. le code n’apparaît pas dans la vidéo', confirmLabel: 'Refuser' });
+      if (answer === null) return;
+      note = answer.trim();
+    }
     const response = await fetch('/api/admin/submissions', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id, action, note }) });
     if (!response.ok) { setError('La décision n’a pas pu être enregistrée.'); return; }
     await load();

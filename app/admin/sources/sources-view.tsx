@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { StatusDot, type Tone } from '@/components/admin-card';
 import { InfoTip } from '@/components/admin-info-tip';
+import { confirmAction } from '@/components/admin-ask';
 import type { CodeOrigin } from '@/lib/code-origin';
 import type { RunRow, SourceActivity } from '@/lib/source-runs';
 import {
@@ -55,7 +56,7 @@ function RunNow({ label, url, body, confirm, disabled, title }: { label: string;
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
   async function run() {
-    if (confirm && !window.confirm(confirm)) return;
+    if (confirm && !(await confirmAction(confirm, { confirmLabel: 'Lancer' }))) return;
     setBusy(true);
     setMessage(null);
     try {
