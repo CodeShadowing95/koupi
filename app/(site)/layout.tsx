@@ -2,6 +2,7 @@ import './site.css';
 import { SiteHeader } from '@/components/site/header';
 import { SiteFooter } from '@/components/site/footer';
 import { SiteEffects } from '@/components/site/effects';
+import { WebVitals } from '@/components/site/web-vitals';
 import { SitePagesProvider } from '@/components/site/site-pages';
 import { getSiteState } from '@/lib/site-settings-server';
 import { getMediaMap } from '@/lib/catalog-server';
@@ -24,6 +25,7 @@ export default async function SiteLayout({ children }: Readonly<{ children: Reac
       <div className="k-main" id="contenu">{children}</div>
       <SiteFooter logoDev={media.logoDev} />
       <SiteEffects />
+      <WebVitals />
     </div>
     </AvatarMapProvider>
     </SitePagesProvider>

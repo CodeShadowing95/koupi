@@ -7,12 +7,13 @@ import { SourcesTab } from './sources-tab';
 import { StatsTabs } from './stats-tabs';
 import { StatsView } from './stats-view';
 import { UsageTab } from './usage-tab';
+import { SpeedTab } from './speed-tab';
 
 export const metadata = { title: 'Statistiques · Admin Merkod' };
 
 export const dynamic = 'force-dynamic';
 
-// Statistiques en trois onglets (?tab=) : catalogue et audience, sources et outils, consommation des API.
+// Statistiques en quatre onglets (?tab=) : catalogue et audience, sources et outils, consommation des API, vitesse.
 export default async function Page({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const tab = parseStatsTab((await searchParams).tab);
   return (
@@ -24,12 +25,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
             <h1>Statistiques</h1>
             <p>Comment le catalogue évolue et où concentrer tes efforts. Chaque graphique se termine par ce qu’il t’apprend.</p>
           </div>
-          {tab === 'consommation' && <div className="adm-head-actions"><RefreshButton /></div>}
+          {(tab === 'consommation' || tab === 'vitesse') && <div className="adm-head-actions"><RefreshButton /></div>}
         </div>
         <StatsTabs current={tab} />
         {tab === 'catalogue' && <StatsView catalog={await getCatalog()} />}
         {tab === 'sources' && <SourcesTab stats={await sourceStats(getDb())} />}
         {tab === 'consommation' && <UsageTab />}
+        {tab === 'vitesse' && <SpeedTab />}
       </div>
     </main>
   );

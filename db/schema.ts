@@ -195,6 +195,28 @@ export const dailyCounters = pgTable('daily_counters', {
   check('daily_counters_key_len', sql`char_length(${table.key}) between 1 and 80`),
 ]);
 
+// Vitesse ressentie par les visiteurs (Web Vitals), mesurée par leur navigateur (ADR-0038).
+// Comme daily_counters : un total par jour, sans IP, cookie ni identifiant. Une ligne par jour, page, mesure, appareil et verdict.
+export const VITAL_METRICS = ['LCP', 'INP', 'CLS', 'FCP', 'TTFB'] as const;
+export const VITAL_PAGES = ['home', 'codes', 'tool', 'creator', 'creators', 'category', 'other'] as const;
+export const VITAL_DEVICES = ['mobile', 'desktop'] as const;
+export const VITAL_RATINGS = ['good', 'needs-improvement', 'poor'] as const;
+
+export const webVitals = pgTable('web_vitals', {
+  day: date('day').notNull(),
+  page: text('page', { enum: VITAL_PAGES }).notNull(),
+  metric: text('metric', { enum: VITAL_METRICS }).notNull(),
+  device: text('device', { enum: VITAL_DEVICES }).notNull(),
+  rating: text('rating', { enum: VITAL_RATINGS }).notNull(),
+  count: integer('count').notNull().default(0),
+}, table => [
+  primaryKey({ columns: [table.day, table.page, table.metric, table.device, table.rating] }),
+  check('web_vitals_page_valid', sql`${table.page} in ('home','codes','tool','creator','creators','category','other')`),
+  check('web_vitals_metric_valid', sql`${table.metric} in ('LCP','INP','CLS','FCP','TTFB')`),
+  check('web_vitals_device_valid', sql`${table.device} in ('mobile','desktop')`),
+  check('web_vitals_rating_valid', sql`${table.rating} in ('good','needs-improvement','poor')`),
+]);
+
 export type VerificationReason = { points: number; label: string };
 
 // Analyses d'un code ou d'une proposition (contrôles automatiques, puis lecture par l'IA quand elle est active).

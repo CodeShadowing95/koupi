@@ -21,6 +21,8 @@ export const CREATOR_SIGN_IN_EMAIL_RULE: RateLimitRule = { limit: 3, windowSecon
 export const VOTE_PER_CODE_RULE: RateLimitRule = { limit: 1, windowSeconds: 24 * 60 * 60 };
 export const VOTE_RULE: RateLimitRule = { limit: 30, windowSeconds: 60 * 60 };
 export const EVENT_RULE: RateLimitRule = { limit: 120, windowSeconds: 60 * 60 };
+/** Vitesse ressentie : jusqu'à 5 mesures par page vue, soit une soixantaine de pages par heure. */
+export const VITALS_RULE: RateLimitRule = { limit: 300, windowSeconds: 60 * 60 };
 
 // Compte un essai pour cette clé, en une seule requête atomique (pas de course entre deux requêtes simultanées).
 // La fenêtre est fixe : elle s'ouvre au premier essai et dure windowSeconds.
