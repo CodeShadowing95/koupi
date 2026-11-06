@@ -65,6 +65,14 @@ describe('keepVerbatimCodes', () => {
     expect(codes[0].expiresOn).toBe('2026-12-31');
     expect(codes[1].expiresOn).toBe('');
   });
+  it('écarte une réduction lue comme un code', () => {
+    const notes = 'Members also get 10-30% off merch. Use code BOYDAD at instantly.ai.';
+    const codes = keepVerbatimCodes({ codes: [
+      { code: '10-30% off merch', tool: 'Patreon', discount: '10-30%', conditions: '', expires_on: '' },
+      { code: 'BOYDAD', tool: 'Instantly', discount: '', conditions: '', expires_on: '' },
+    ] }, notes);
+    expect(codes.map(c => c.code)).toEqual(['BOYDAD']);
+  });
   it('supporte une réponse vide ou mal formée', () => {
     expect(keepVerbatimCodes(null, description)).toEqual([]);
     expect(keepVerbatimCodes({ codes: 'x' }, description)).toEqual([]);
