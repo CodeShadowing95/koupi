@@ -10,6 +10,8 @@ export function usePendingSubmissions(): number | null {
   const pathname = usePathname();
   const [count, setCount] = useState<number | null>(null);
   useEffect(() => {
+    // Pas de session sur la page de connexion : l'API répondrait 401.
+    if (pathname.startsWith('/admin/login')) { setCount(null); return; }
     let active = true;
     const load = () => fetch('/api/admin/submissions?status=new')
       .then(response => (response.ok ? response.json() : Promise.reject(new Error(String(response.status)))))

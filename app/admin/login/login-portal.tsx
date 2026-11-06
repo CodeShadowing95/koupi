@@ -37,6 +37,8 @@ function couponOrigin(): CouponOrigin {
 
 export function LoginPortal() {
   const scope = useRef<HTMLElement>(null);
+  // Animations de défilement des rangées : accélérées à l'entrée (on anime leur vitesse, pas l'élément HTML).
+  const rowTweens = useRef<gsap.core.Tween[]>([]);
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [visible, setVisible] = useState(false);
@@ -49,9 +51,8 @@ export function LoginPortal() {
     const mm = gsap.matchMedia();
     mm.add(MOTION_OK, () => {
       // Rangées de codes : défilement sans fin, sens alterné, vitesses différentes.
-      gsap.utils.toArray<HTMLElement>('.lp-row-track').forEach((track, i) => {
-        gsap.fromTo(track, { xPercent: i % 2 ? -50 : 0 }, { xPercent: i % 2 ? 0 : -50, duration: 38 + i * 9, ease: 'none', repeat: -1 });
-      });
+      rowTweens.current = gsap.utils.toArray<HTMLElement>('.lp-row-track').map((track, i) =>
+        gsap.fromTo(track, { xPercent: i % 2 ? -50 : 0 }, { xPercent: i % 2 ? 0 : -50, duration: 38 + i * 9, ease: 'none', repeat: -1 }));
       // Halo qui suit la souris.
       gsap.set('.lp-glow', { x: window.innerWidth / 2, y: window.innerHeight * 0.45 });
       const xTo = gsap.quickTo('.lp-glow', 'x', { duration: 0.8, ease: 'power3' });
@@ -102,11 +103,12 @@ export function LoginPortal() {
   const enter = contextSafe(() => {
     if (window.matchMedia(MOTION_REDUCED).matches) { router.push('/admin'); return; }
     clearRefusal();
-    gsap.timeline({ onComplete: () => window.dispatchEvent(new CustomEvent<CouponOrigin>(ADMIN_ENTER_EVENT, { detail: couponOrigin() })) })
+    const tl = gsap.timeline({ onComplete: () => window.dispatchEvent(new CustomEvent<CouponOrigin>(ADMIN_ENTER_EVENT, { detail: couponOrigin() })) })
       .fromTo('.lp-stamp-ok', { autoAlpha: 0, scale: 3, rotate: 8 }, { autoAlpha: 1, scale: 1, rotate: -10, duration: 0.32, ease: 'power4.in' })
       .to('.lp-pass', { scale: 0.97, duration: 0.08, yoyo: true, repeat: 1 }, '>-0.02')
-      .to('.lp-row-track', { timeScale: 4, duration: 0.6 }, '+=0.1')
-      .to(document.querySelector('.lp-theme'), { autoAlpha: 0, duration: 0.2 }, '<')
+      .addLabel('rush', '+=0.1');
+    if (rowTweens.current.length) tl.to(rowTweens.current, { timeScale: 4, duration: 0.6, ease: 'power2.in' }, 'rush');
+    tl.to(document.querySelector('.lp-theme'), { autoAlpha: 0, duration: 0.2 }, 'rush')
       .to('.lp-logo', { scale: 1.12, duration: 0.25, yoyo: true, repeat: 1, ease: 'power2.inOut', transformOrigin: '38% 54%' }, '<0.1');
   });
 
