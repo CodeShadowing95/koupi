@@ -60,7 +60,7 @@ export function RequestsView({ requests, granted }: { requests: AdminCreatorRequ
       <div className="container">
         <div className="adm-head">
           <div>
-            <span className="eyebrow">Modération</span>
+            <span className="eyebrow">Catalogue</span>
             <h1>Demandes des créateurs</h1>
             <p>Envoyées depuis la page publique d’un créateur. <b>C’est ma page</b> : quelqu’un dit être le créateur et veut gérer sa page. <b>Page incorrecte</b> : un visiteur signale une erreur. Réponds par e-mail, puis marque la demande comme traitée.</p>
           </div>

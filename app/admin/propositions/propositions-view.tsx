@@ -78,21 +78,19 @@ export function PropositionsView({ categories, tools, creators, existing }: { ca
       <div className="container">
         <div className="adm-head">
           <div>
-            <span className="eyebrow">Modération</span>
+            <span className="eyebrow">Catalogue</span>
             <h1>Propositions</h1>
             <p>Vérifie la source et décide ce qui peut entrer dans le catalogue public.</p>
           </div>
           <div className="adm-head-actions"><RefreshButton onRefresh={() => load()} /><ExportMenu type="propositions" /></div>
         </div>
-        <div className="adm-toolbar">
-          <div className="adm-filters">
-            {['new', 'duplicate', 'approved', 'rejected', 'all'].map(option => <button key={option} type="button" className="adm-filter" aria-pressed={status === option} onClick={() => setStatus(option)}>{option === 'new' ? 'À traiter' : option === 'duplicate' ? 'Doublons' : option === 'approved' ? 'Validées' : option === 'rejected' ? 'Refusées' : 'Toutes'}{counts && <span className="adm-tab-n">{counts[option] ?? 0}</span>}</button>)}
-          </div>
-          <ViewToggle view={view} onChange={setView} />
+        {/* Onglets soulignés, comme sur Codes, Créateurs et Retours. */}
+        <div className="adm-tabs" role="group" aria-label="Statut">
+          {['new', 'duplicate', 'approved', 'rejected', 'all'].map(option => <button key={option} type="button" className="adm-tab" aria-pressed={status === option} onClick={() => setStatus(option)}>{option === 'new' ? 'À traiter' : option === 'duplicate' ? 'Doublons' : option === 'approved' ? 'Validées' : option === 'rejected' ? 'Refusées' : 'Toutes'}{counts && <> <span className="adm-tab-n">{counts[option] ?? 0}</span></>}</button>)}
         </div>
         <div className="adm-toolbar">
           <label htmlFor="proposal-search" className="sr-only">Rechercher une proposition</label>
-          <input id="proposal-search" className="adm-search" type="search" placeholder="Rechercher un code, un outil, un créateur, un e-mail…" value={query} onChange={event => setQuery(event.target.value)} />
+          <input id="proposal-search" className="adm-search" type="search" placeholder="Code, outil, créateur ou e-mail…" value={query} onChange={event => setQuery(event.target.value)} />
           <label htmlFor="category-filter" className="sr-only">Catégorie</label>
           <AdminSelect id="category-filter" variant="filter" ariaLabel="Catégorie" value={category} onChange={setCategory} options={[{ value: '', label: 'Toutes les catégories' }, ...categories.map(item => ({ value: item.name, label: item.name }))]} searchPlaceholder="Rechercher une catégorie…" />
           <label htmlFor="from-filter" className="sr-only">Du</label>
@@ -102,6 +100,7 @@ export function PropositionsView({ categories, tools, creators, existing }: { ca
           {view !== 'table' && <SortControl sort={sort} id="proposal-sort" />}
           <button type="button" className="adm-btn" onClick={resetFilters}>Réinitialiser</button>
           {!loading && <span className="adm-count" role="status">{visible.length} sur {items.length}</span>}
+          <ViewToggle view={view} onChange={setView} />
         </div>
         <LetterBar sort={sort} />
         <div ref={topRef} className="adm-list-top" />

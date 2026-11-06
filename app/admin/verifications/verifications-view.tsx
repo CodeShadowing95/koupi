@@ -162,7 +162,7 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
       <div className="container">
         <div className="adm-head">
           <div>
-            <span className="eyebrow">Modération</span>
+            <span className="eyebrow">Catalogue</span>
             <h1>Vérifications</h1>
             <p>Merkod lit la source de chaque code, fait les contrôles et propose un score. Tu gardes la décision : valider, noter le test au paiement ou rejeter.</p>
           </div>

@@ -3,6 +3,8 @@ import { loadCatalog } from '@/lib/catalog-db';
 import { toolOptions } from '@/lib/codes-admin';
 import { PropositionsView } from './propositions-view';
 
+export const metadata = { title: 'Propositions · Admin Merkod' };
+
 export const dynamic = 'force-dynamic';
 
 // Lecture directe, archives comprises : le formulaire de validation prévient si le code est déjà au catalogue.

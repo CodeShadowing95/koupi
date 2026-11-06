@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { GuideProgress, ReadMark } from '@/components/admin-guide-progress';
 import { chapterNumber, chaptersOf, guideChapters, guideParts, totalMinutes } from '@/lib/admin-guide';
 
+export const metadata = { title: 'Guide de l’admin · Admin Merkod' };
+
 // Guide de l'admin : le sommaire, comme une notice découpée en chapitres courts.
 export default function AdminGuide() {
   return (

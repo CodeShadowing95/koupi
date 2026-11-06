@@ -1,7 +1,7 @@
 'use client';
 // Podcasts suivis : l'admin cherche un podcast dans Apple Podcasts et le suit. Ses nouveaux épisodes seront lus
 // pour trouver des codes, qui arriveront dans Vérifications.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { IconButton, StatusDot } from '@/components/admin-card';
@@ -62,6 +62,8 @@ export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, sug
   const [report, setReport] = useState<PodcastReadReport | null>(null);
   const followed = new Set(podcasts.map(podcast => podcast.feedId));
   const [panel, setPanel] = useState<Panel>(initialTab ?? (podcasts.length ? 'list' : 'add'));
+  // Une erreur de recherche ou de classement ne suit pas l'admin dans un autre onglet.
+  useEffect(() => { setError(''); }, [panel]);
   const [filter, setFilter] = useState<Filter>('all');
   const [listQuery, setListQuery] = useState('');
   const [view, setView] = useAdminView();
@@ -177,7 +179,7 @@ export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, sug
       <div className="container">
         <div className="adm-head">
           <div>
-            <span className="eyebrow">Modération</span>
+            <span className="eyebrow">Catalogue</span>
             <h1>Podcasts suivis</h1>
             <p>Les podcasts dont Merkod lit les nouveaux épisodes pour trouver des codes promo. Chaque code trouvé arrive dans Vérifications, où tu décides. Suivre un podcast crée aussi son créateur.</p>
           </div>

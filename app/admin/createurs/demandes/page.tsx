@@ -3,6 +3,8 @@ import { grantedAccessKeys } from '@/lib/creator-auth';
 import { listCreatorRequests } from '@/lib/creator-requests';
 import { RequestsView } from './requests-view';
 
+export const metadata = { title: 'Demandes des créateurs · Admin Merkod' };
+
 export const dynamic = 'force-dynamic';
 
 export default async function Page() {

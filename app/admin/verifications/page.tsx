@@ -4,6 +4,8 @@ import { verificationQueue } from '@/lib/verification-queue';
 import { aiSpendSince, startOfMonthUtc } from '@/lib/verification-store';
 import { VerificationsView } from './verifications-view';
 
+export const metadata = { title: 'Vérifications · Admin Merkod' };
+
 export const dynamic = 'force-dynamic';
 
 // File des codes à décider, avec leur dernière analyse, l'état de l'IA et la dépense du mois.

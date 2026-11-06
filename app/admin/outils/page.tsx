@@ -4,6 +4,8 @@ import { copiesByToolThisMonth } from '@/lib/creator-directory';
 import { toolsWithoutImage } from '@/lib/stored-images';
 import { ToolsView } from './tools-view';
 
+export const metadata = { title: 'Outils · Admin Merkod' };
+
 export const dynamic = 'force-dynamic';
 
 export default async function Page() {
