@@ -14,17 +14,17 @@ describe('buildNotifications', () => {
     const items = buildNotifications({
       proposals: [proposal('1', '2026-11-01T10:00:00.000Z'), proposal('2', '2026-11-02T09:00:00.000Z')],
       codes: [
-        code({ id: 'f', code: 'DEAD', votes: 4, success: 25 }),
+        code({ id: 'f', code: 'DEAD', status: 'to_test', votes: 4, success: 25 }),
         code({ id: 's', lastTestedAt: null }),
         code({ id: 't', status: 'to_test' }), code({ id: 't2', status: 'to_test' }), code({ id: 'a', status: 'to_test', archived: true }),
       ],
     }, now);
-    expect(items.map(item => item.id)).toEqual(['proposal-2', 'proposal-1', 'flag-f-4', 'retest-1', 'to-test-2']);
+    expect(items.map(item => item.id)).toEqual(['proposal-2', 'proposal-1', 'flag-f-4', 'retest-1', 'to-test-3']);
     expect(items[0]).toMatchObject({ kind: 'proposal', subject: 'P2', text: 'proposé pour Canva', detail: 'Crédité à Bea', href: '/admin/propositions?q=P2', at: '2026-11-02T09:00:00.000Z', proposalId: '2' });
     expect(items[2]).toMatchObject({ tone: 'bad', kind: 'flag', title: 'DEAD signalé par les visiteurs', detail: 'Notion · 4 votes, 25 % de réussite', at: null });
     expect(countByTab(items)).toEqual({ all: 5, proposal: 2, flag: 1, reminder: 2 });
     expect(items[3].title).toBe('1 code à retester');
-    expect(items[4]).toMatchObject({ title: '2 codes à tester', href: '/admin/codes?status=to_test' });
+    expect(items[4]).toMatchObject({ title: '3 codes à tester', href: '/admin/codes?status=to_test' });
   });
   it('is empty when everything is done', () => {
     expect(buildNotifications({ proposals: [], codes: [code({})] }, now)).toEqual([]);

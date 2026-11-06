@@ -87,7 +87,9 @@ function AudienceSection() {
             <div className="adm-table-wrap">
               <table className="adm-table">
                 <thead><tr><th scope="col">Recherche</th><th scope="col">Fois</th><th scope="col"><span className="sr-only">Action</span></th></tr></thead>
-                <tbody>{audience.emptySearches.map(item => <tr key={item.query}><td>{item.query}</td><td>{item.count}</td><td className="adm-cell-actions"><Link className="adm-btn" href={`/admin/outils?new=${encodeURIComponent(item.query)}`}>Ajouter cet outil</Link></td></tr>)}</tbody>
+                <tbody>{audience.emptySearches.map(item => <tr key={item.query}><td>{item.query}</td><td>{item.count}</td><td className="adm-cell-actions">{item.tool
+                  ? <Link className="adm-btn" href={`/admin/outils?q=${encodeURIComponent(item.tool)}`}>Déjà ajouté · voir l’outil</Link>
+                  : <Link className="adm-btn" href={`/admin/outils?new=${encodeURIComponent(item.query)}`}>Ajouter cet outil</Link>}</td></tr>)}</tbody>
               </table>
             </div>
           ) : empty('Aucune recherche sans résultat : les visiteurs trouvent ce qu’ils cherchent.')}
