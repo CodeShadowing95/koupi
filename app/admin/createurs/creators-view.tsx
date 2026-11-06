@@ -94,7 +94,7 @@ export function CreatorsView({ creators, toLink, missingPhotos, followed, youtub
           </div>
           <div className="adm-head-actions"><RefreshButton /><ExportMenu type="createurs" /></div>
         </div>
-        <section className="adm-maint" aria-label="Entretien des comptes">
+        <section className="adm-maint adm-maint-tools" aria-label="Entretien des comptes">
           <div className="adm-maint-group">
             <span className="adm-maint-label">Comptes</span>
             <div className="adm-maint-actions"><LinkAccountsButton toLink={toLink} youtubeReady={youtubeReady} /><RefreshAccountsButton accounts={creators.reduce((sum, creator) => sum + creator.accounts.filter(account => account.platform === 'youtube' || account.platform === 'podcast').length, 0)} /><FetchAvatarsButton missing={missingPhotos} youtubeReady={youtubeReady} /></div>
@@ -110,6 +110,13 @@ export function CreatorsView({ creators, toLink, missingPhotos, followed, youtub
         <div className="adm-toolbar">
           <label htmlFor="creator-search" className="sr-only">Rechercher un créateur</label>
           <input id="creator-search" className="adm-search" type="search" placeholder="Rechercher un créateur, un outil…" value={query} onChange={event => setQuery(event.target.value)} />
+          <div className="adm-toolbar-end">
+            <span className="adm-count" role="status">{visible.length} sur {countOf(filter)}</span>
+            <ViewToggle view={view} onChange={setView} />
+          </div>
+        </div>
+        {/* Deuxième rangée : les filtres et le tri, pour que la recherche, le nombre et la vue restent sur une ligne. */}
+        <div className="adm-toolbar adm-toolbar-filters">
           <label htmlFor="creator-platform" className="sr-only">Réseau</label>
           <select id="creator-platform" className="adm-filter-select" value={extra.platform} onChange={setOne('platform')}>{PLATFORM_FILTERS.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
           <label htmlFor="creator-language" className="sr-only">Langue</label>
@@ -118,8 +125,6 @@ export function CreatorsView({ creators, toLink, missingPhotos, followed, youtub
           <select id="creator-audience" className="adm-filter-select" value={extra.audience} onChange={setOne('audience')}>{AUDIENCE_FILTERS.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
           {activeFilters(extra) > 0 && <button type="button" className="adm-btn" onClick={() => setExtra(NO_FILTERS)}>Effacer les filtres</button>}
           {view !== 'table' && <SortControl sort={sort} id="creator-sort" />}
-          <span className="adm-count" role="status">{visible.length} sur {countOf(filter)}</span>
-          <ViewToggle view={view} onChange={setView} />
         </div>
         {filter === 'tocontact' && <p className="adm-hint">Sur le site, sans compte prouvé, sans espace créateur ni revendication en cours. Les plus copiés et les plus suivis d’abord : propose-leur de revendiquer leur page.</p>}
         <LetterBar sort={sort} />
