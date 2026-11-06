@@ -46,14 +46,19 @@ export function weightedSuccess(codes: Code[]): { rate: number | null; votes: nu
   return { rate: votes === 0 ? null : Math.round(weighted / votes), votes, votedCodes: voted.length };
 }
 
-/** Codes visibles que les visiteurs signalent comme ne marchant pas. */
-export function flaggedCodes(codes: Code[]): Code[] {
+/**
+ * Codes visibles que les visiteurs signalent comme ne marchant pas. Un code que l'admin a testé (Vérifié, Testé au
+ * paiement) depuis moins de RETEST_DAYS jours n'est plus signalé : son test compte plus que les votes d'avant.
+ */
+export function flaggedCodes(codes: Code[], now = new Date()): Code[] {
+  const testedSince = now.getTime() - RETEST_DAYS * 86_400_000;
   return codes
     .filter(code => isVisible(code) && code.votes >= FLAG_MIN_VOTES && code.success < FLAG_MAX_SUCCESS)
+    .filter(code => !(code.status === 'verified' && code.lastTestedAt && new Date(code.lastTestedAt).getTime() >= testedSince))
     .sort((a, b) => a.success - b.success || b.votes - a.votes);
 }
 
-export function overview(catalog: CatalogInput) {
+export function overview(catalog: CatalogInput, now = new Date()) {
   const counts = statusCounts(catalog.codes);
   const visible = catalog.codes.filter(isVisible);
   const coveredTools = new Set(visible.map(code => code.tool.toLowerCase())).size;
@@ -68,7 +73,7 @@ export function overview(catalog: CatalogInput) {
     verifiedRate: percent(counts.verified, visible.length),
     creators: new Set(visible.map(code => code.creator)).size,
     success,
-    flagged: flaggedCodes(catalog.codes),
+    flagged: flaggedCodes(catalog.codes, now),
     emptyCategories: catalog.categories.filter(category => category.count === 0),
   };
 }
@@ -103,7 +108,7 @@ export type Todo = { id: string; tone: 'warn' | 'bad' | 'info'; title: string; w
 
 /** Les actions du jour, de la plus utile à la moins utile. */
 export function todos(catalog: CatalogInput, pendingSubmissions: number | null, now = new Date(), creatorRequests: number | null = null): Todo[] {
-  const stats = overview(catalog);
+  const stats = overview(catalog, now);
   const list: Todo[] = [];
   if (pendingSubmissions) list.push({
     id: 'submissions', tone: 'bad',
@@ -145,8 +150,8 @@ export function todos(catalog: CatalogInput, pendingSubmissions: number | null, 
   if (stats.emptyCategories.length) list.push({
     id: 'empty-categories', tone: 'info',
     title: `Trouver des codes pour ${stats.emptyCategories.length} catégorie${stats.emptyCategories.length > 1 ? 's' : ''} vide${stats.emptyCategories.length > 1 ? 's' : ''}`,
-    why: `${stats.emptyCategories.map(category => category.name).join(', ')} : aucun outil n’y a encore de code visible.`,
-    cta: 'Voir les statistiques', href: '/admin/stats',
+    why: `${stats.emptyCategories.map(category => category.name).join(', ')} : aucun outil n’y a encore de code publié. Une recherche range ses codes sous l’outil cité, souvent un autre : si elle ne donne rien ici, ajoute d’autres outils connus de ces catégories.`,
+    cta: 'Voir les catégories', href: '/admin/categories',
   });
   return list;
 }

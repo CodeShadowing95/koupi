@@ -256,7 +256,7 @@ export function DashboardView({ catalog, urgent, nowIso }: { catalog: Catalog; u
           {audience ? <>
             <span>{plural(audience.totals.copies, 'code copié', 'codes copiés')}</span>
             <span>{plural(audience.totals.opens, 'lien ouvert', 'liens ouverts')}</span>
-            <span>{plural(audience.totals.emptySearches, 'recherche sans résultat', 'recherches sans résultat')}{audience.emptySearches[0] ? ` (« ${audience.emptySearches[0].query} »)` : ''}</span>
+            <span>{plural(audience.totals.emptySearches, 'recherche sans résultat', 'recherches sans résultat')}{audience.emptySearches[0] && !audience.emptySearches[0].tool ? ` (« ${audience.emptySearches[0].query} »)` : ''}</span>
           </> : <span className="muted">{audienceFailed ? 'L’audience n’a pas pu être chargée.' : 'Chargement…'}</span>}
           <Link href="/admin/stats#audience">Voir dans Statistiques →</Link>
         </p>

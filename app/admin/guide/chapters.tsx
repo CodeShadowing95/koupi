@@ -241,7 +241,7 @@ function Codes() {
     </Section>
     <Section id="votes" title="Les votes des visiteurs">
       <p>Sur le site, sous chaque code, les visiteurs peuvent dire « ça marche » ou « ça ne marche pas ». La colonne <b>Réussite</b> montre le pourcentage de « ça marche ».</p>
-      <Callout tone="why">Si un code passe sous {FLAG_MAX_SUCCESS} % de réussite avec au moins {FLAG_MIN_VOTES} votes, il remonte dans la liste « À faire » de l’accueil. C’est le signal qu’il faut le retester.</Callout>
+      <Callout tone="why">Si un code passe sous {FLAG_MAX_SUCCESS} % de réussite avec au moins {FLAG_MIN_VOTES} votes, il remonte dans la liste « À faire » de l’accueil. C’est le signal qu’il faut le retester. Une fois testé, clique sur <b>✓ Marche</b> dans Codes (ou <b>Testé au paiement</b>) : la ligne disparaît pour {RETEST_DAYS} jours, ton test compte plus que les votes d’avant.</Callout>
     </Section>
     <Section id="ajouter" title="Ajouter ou modifier un code">
       <p>Le bouton <b>Nouveau code</b> ouvre le formulaire. Les champs importants :</p>
@@ -647,6 +647,7 @@ function Indicateurs() {
     </Section>
     <Section id="a-faire" title="La liste « À faire »">
       <p>Sur l’accueil, « À faire maintenant » est classée <b>par impact</b> : en haut, ce qui fait le plus de bien au catalogue. Fais-la de haut en bas, chaque lien ouvre la bonne liste déjà filtrée.</p>
+      <p>Une ligne disparaît quand son problème est réglé, pas quand tu l’as ouverte. <b>Catégories vides</b> reste tant qu’aucun outil de la catégorie n’a de code publié : une recherche range chaque code sous l’outil cité dans la vidéo, souvent un autre que celui cherché. Si elle ne trouve rien, ajoute d’autres outils connus de la catégorie.</p>
       <p>À droite, « Le parcours des codes » montre combien de codes sont à chaque étape. Juste en dessous, la carte <b>Oubi et Lili</b> présente les deux assistants IA à venir : Oubi, l’éclaireuse (Claude Haiku 5.5), repérera les codes dans les vidéos et les podcasts, Lili, la vérificatrice (Claude Opus 5.5), vérifiera chaque preuve et te préparera la décision. Ils ne sont pas encore actifs ; tu garderas toujours le dernier mot.</p>
     </Section>
     <Section id="consommation" title="La consommation des API">
@@ -675,7 +676,7 @@ function Indicateurs() {
       <Legend rows={[
         { term: 'Codes copiés', meaning: 'Le geste clé : un visiteur a trouvé ce qu’il cherchait.' },
         { term: 'Liens ouverts', meaning: 'Vers le créateur ou l’outil. C’est ce que tu montreras plus tard aux marques.' },
-        { term: 'Recherches sans résultat', meaning: <>Les outils que les gens cherchent et que Merkod n’a pas. La meilleure liste des prochains outils à ajouter : le bouton <b>Ajouter cet outil</b> ouvre la fiche d’un nouvel outil avec le nom déjà rempli.</> },
+        { term: 'Recherches sans résultat', meaning: <>Les outils que les gens cherchent et que Merkod n’a pas. La meilleure liste des prochains outils à ajouter : le bouton <b>Ajouter cet outil</b> ouvre la fiche d’un nouvel outil avec le nom déjà rempli. Une fois l’outil ajouté (majuscules ou non), la ligne passe en fin de liste avec <b>Déjà ajouté</b>.</> },
       ]} />
     </Section>
   </>;
