@@ -1,9 +1,10 @@
+import { routes } from '@/lib/routes';
 import { CONTACT_EMAIL } from '@/lib/site-contact';
 import { PageHead } from '@/components/site/page-head';
 import { TrustPill } from '@/components/site/trust';
 import { CreatorMark } from '@/components/site/creator-mark';
 
-export const metadata = { title: 'Transparence · Merkod' };
+export const metadata = { title: 'Transparence · Merkod', alternates: { canonical: routes.transparency } };
 
 export default function Transparency() {
   return (

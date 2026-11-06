@@ -1,7 +1,8 @@
+import { routes } from '@/lib/routes';
 import { CONTACT_EMAIL } from '@/lib/site-contact';
 import { PageHead } from '@/components/site/page-head';
 
-export const metadata = { title: 'Confidentialité · Merkod' };
+export const metadata = { title: 'Confidentialité · Merkod', alternates: { canonical: routes.privacy } };
 
 export default function Privacy() {
   return (
