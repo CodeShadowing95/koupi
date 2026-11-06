@@ -45,6 +45,18 @@ export function domainOf(url: string): string | null {
 const DOMAIN_PATTERN = /(?<![\p{L}\p{N}@.-])(?:https?:\/\/)?(?:www\.)?((?:[a-z0-9-]+\.)+(?:com|fr|io|ai|co|app|net|org|dev|so|eu|de|be|ch|ca|us|uk|me|tv|gg|xyz|tech|store|shop|cloud))(?![\p{L}\p{N}-])/giu;
 // Raccourcisseurs, réseaux et hébergeurs de podcast : jamais l'outil sponsorisé.
 const NOT_TOOL_DOMAINS = /(^|\.)(bit\.ly|taap\.it|linktr\.ee|tinyurl\.com|youtube\.com|youtu\.be|apple\.com|spotify\.com|instagram\.com|facebook\.com|twitter\.com|x\.com|tiktok\.com|linkedin\.com|lnkd\.in|audiomeans\.fr|acast\.com|ausha\.co|anchor\.fm|podcastics\.com|google\.com|amzn\.to)$/i;
+/** Liens vers une plateforme de paiement ou de vente : la ligne vend le produit du créateur (formation, livre), pas un outil. */
+const PAYMENT_DOMAINS = /(^|\.)(thrivecart\.com|systeme\.io|gumroad\.com|podia\.com|kajabi\.com|teachable\.com|learnybox\.com|schoolmaker\.co|lemonsqueezy\.com|sellfy\.com|stripe\.com|paypal\.com|paypal\.me|sumup\.com|payhip\.com|samcart\.com|tipeee\.com|patreon\.com|ulule\.com|kisskissbankbank\.com)$/i;
+/** Plateformes de paiement ou de vente : elles encaissent pour le créateur (une formation, un livre), ce ne sont pas les outils en promotion. */
+const PAYMENT_PLATFORMS = new Set(['thrivecart', 'systeme', 'systeme.io', 'gumroad', 'podia', 'kajabi', 'teachable', 'learnybox', 'schoolmaker', 'lemon squeezy', 'lemonsqueezy', 'sellfy', 'stripe', 'paypal', 'sumup', 'payhip', 'samcart', 'tipeee', 'patreon', 'ulule', 'kisskissbankbank']);
+/** Mots qui ouvrent une ligne comme une étiquette (« Avantages : avec le code… ») et pas comme un nom d'outil. */
+const LABEL_WORDS = new Set(['avantage', 'avantages', 'offre', 'offres', 'offre spéciale', 'promo', 'promotion', 'réduction', 'reduction', 'remise', 'bonus', 'cadeau', 'lien', 'liens', 'infos', 'info', 'sponsor', 'sponsors', 'partenaire', 'partenaires', 'merci', 'bon plan', 'bons plans', 'exclusivité', 'exclusif', 'inscription', 'ressources', 'à découvrir', 'deal', 'discount', 'offer', 'link', 'links', 'perks', 'benefits']);
+
+/** Faux nom d'outil : une étiquette (« Avantages ») ou une plateforme de paiement (« Thrivecart »). */
+export function notAToolName(name: string): boolean {
+  const key = name.trim().toLowerCase();
+  return LABEL_WORDS.has(key) || PAYMENT_PLATFORMS.has(key);
+}
 
 /** Premier outil du catalogue nommé (ou dont le site est cité) dans un texte, sinon null. */
 export function catalogToolIn(text: string, tools: CatalogTool[]): string | null {
@@ -55,7 +67,7 @@ export function catalogToolIn(text: string, tools: CatalogTool[]): string | null
 export function toolDomainIn(text: string): string | null {
   for (const match of text.matchAll(DOMAIN_PATTERN)) {
     const domain = match[1].toLowerCase();
-    if (!NOT_TOOL_DOMAINS.test(domain)) return domain;
+    if (!NOT_TOOL_DOMAINS.test(domain) && !PAYMENT_DOMAINS.test(domain)) return domain;
   }
   return null;
 }
@@ -65,6 +77,7 @@ function guessTool(line: string, previous: string | undefined): { name: string; 
   for (const text of [line, previous ?? '']) {
     for (const match of text.matchAll(DOMAIN_PATTERN)) {
       const domain = match[1].toLowerCase();
+      if (PAYMENT_DOMAINS.test(domain)) return null;
       if (NOT_TOOL_DOMAINS.test(domain)) continue;
       const label = domain.split('.').slice(-2)[0];
       return { name: label.charAt(0).toUpperCase() + label.slice(1), domain };
@@ -73,7 +86,7 @@ function guessTool(line: string, previous: string | undefined): { name: string; 
   for (const text of [line, previous ?? '']) {
     const lead = text.match(/^([\p{Lu}][\p{L}\p{N}&' .-]{1,40}?)\s*:/u);
     // Un nom de marque tient en trois mots au plus : « Notre film est dispo : » n'en est pas un.
-    if (lead && !/^code/i.test(lead[1]) && lead[1].trim().split(/\s+/).length <= 3) return { name: lead[1].trim(), domain: null };
+    if (lead && !/^code/i.test(lead[1]) && lead[1].trim().split(/\s+/).length <= 3 && !notAToolName(lead[1])) return { name: lead[1].trim(), domain: null };
   }
   return null;
 }

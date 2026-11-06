@@ -40,6 +40,14 @@ describe('mergeAiCodes', () => {
     ]);
   });
 
+  it('ne garde pas en outil à ajouter une étiquette ou une plateforme de paiement nommée par l’IA', () => {
+    const merged = mergeAiCodes({ found: [], unknown: [] }, [
+      ai('PODCAST20', { tool: 'Avantages', evidence: 'Avantages : avec le code PODCAST20' }),
+      ai('ANA30', { tool: 'Thrivecart', evidence: 'ma formation sur ana.thrivecart.com, code ANA30' }),
+    ], tools);
+    expect(merged.unknown).toEqual([]);
+  });
+
   it('n’appelle l’IA que si les notes parlent d’une offre', () => {
     expect(PROMO_HINT.test('Avec le code CARNE')).toBe(true);
     expect(PROMO_HINT.test('-20 % sur tout')).toBe(true);

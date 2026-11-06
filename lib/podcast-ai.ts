@@ -2,7 +2,7 @@
 // (lib/podcast-codes.ts) : codes mal formulés, réduction et date de fin. Chaque code rendu par l'IA figure mot
 // pour mot dans les notes (keepVerbatimCodes) ; rien n'est publié, tout passe par Vérifications.
 import type { ExtractedCode } from './ai-extract';
-import { catalogToolIn, toolDomainIn, type CatalogTool, type FoundCode, type UnknownToolCode } from './podcast-codes';
+import { catalogToolIn, notAToolName, toolDomainIn, type CatalogTool, type FoundCode, type UnknownToolCode } from './podcast-codes';
 
 /** Les notes parlent-elles d'une offre ? Sinon, pas d'appel à l'IA. */
 export const PROMO_HINT = /(code|coupon|promo|r[ée]duction|discount|remise|offert|offre|\d+\s*%|% off)/i;
@@ -27,7 +27,7 @@ export function mergeAiCodes(scan: { found: FoundCode[]; unknown: UnknownToolCod
     // Sans IA, un code est rattaché à l'outil du catalogue le plus proche sur la ligne. Quand l'IA nomme un autre
     // outil (« … et Gradium, code GDIY » après « NordVPN »), on la suit : elle lit la phrase entière.
     const index = found.findIndex(entry => entry.code.toLowerCase() === key);
-    if (index >= 0 && item.tool && aiToolId !== found[index].toolId) {
+    if (index >= 0 && item.tool && !notAToolName(item.tool) && aiToolId !== found[index].toolId) {
       const [moved] = found.splice(index, 1);
       if (aiToolId) found.push({ ...moved, toolId: aiToolId });
       else unknown.push({ name: item.tool.trim().slice(0, 120), domain: toolDomainIn(item.evidence), code: moved.code, discount: moved.discount, evidence: moved.evidence });
@@ -42,7 +42,8 @@ export function mergeAiCodes(scan: { found: FoundCode[]; unknown: UnknownToolCod
     const evidence = item.evidence.slice(0, 300);
     const toolId = aiToolId || catalogToolIn(evidence, tools);
     if (toolId) { found.push({ toolId, code: item.code, discount, evidence, ...extra(item) }); continue; }
-    const name = item.tool.trim().slice(0, 120);
+    // L'IA peut nommer une étiquette (« Avantages ») ou la plateforme qui encaisse (« Thrivecart ») : on ne garde pas ce nom.
+    const name = notAToolName(item.tool) ? '' : item.tool.trim().slice(0, 120);
     const domain = toolDomainIn(evidence);
     if (!name && !domain) continue;
     const label = domain?.split('.').slice(-2)[0] ?? '';
