@@ -6,6 +6,7 @@ import { aiUsage, codeLogs, codes, toolSuggestions, tools, watchedSources } from
 import { aiStatusOf, extractCodes } from './ai-extract';
 import { mergeAiCodes, PROMO_HINT } from './podcast-ai';
 import { aiSpendSince, startOfMonthUtc } from './verification-store';
+import { clip } from './verification';
 import { applePodcastUrl } from './podcasts-admin';
 import { appleEpisodeRef, type PodcastDirectory } from './apple-podcasts';
 import { resolveCreator } from './codes-admin';
@@ -38,11 +39,16 @@ export type PendingCodeInput = Omit<PodcastCodeInput, 'podcastTitle' | 'origin'>
 /** Ajoute en attente un code trouvé automatiquement, sauf s'il est déjà connu pour cet outil. null s'il existait. */
 export async function addPendingCode(db: Db, input: PendingCodeInput, logNote: string): Promise<string | null> {
   // Déjà connu pour cet outil (même rejeté ou archivé) : on ne le recrée pas.
+  // Les règles de la table codes (codes_code_len, codes_discount_len) : un code mal lu est ignoré
+  // au lieu de faire échouer tout le passage.
+  const code = input.code.trim();
+  if (code.length < 1 || code.length > 120 || !/^https?:\/\//i.test(input.sourceUrl)) return null;
+  const discount = clip(input.discount.trim(), 240).trim() || 'Voir la source';
   const [known] = await db.select({ id: codes.id }).from(codes)
-    .where(and(eq(codes.toolId, input.toolId), sql`lower(${codes.code}) = lower(${input.code})`)).limit(1);
+    .where(and(eq(codes.toolId, input.toolId), sql`lower(${codes.code}) = lower(${code})`)).limit(1);
   if (known) return null;
   const [created] = await db.insert(codes).values({
-    toolId: input.toolId, creatorId: input.creatorId, code: input.code, discount: input.discount, sourceUrl: input.sourceUrl,
+    toolId: input.toolId, creatorId: input.creatorId, code, discount, sourceUrl: input.sourceUrl,
     sourceTitle: input.sourceTitle.slice(0, 300), status: 'pending', note: input.note.slice(0, 1000), origin: input.origin,
     ...(input.expiresOn && /^\d{4}-\d{2}-\d{2}$/.test(input.expiresOn) ? { expiresOn: input.expiresOn } : {}),
   }).returning({ id: codes.id });

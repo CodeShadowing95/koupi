@@ -6,6 +6,7 @@ import { CODE_ORIGINS, type CodeOrigin } from './code-origin';
 import { monthStart } from './creator-directory';
 import { EMPTY_YIELD, runStatus, type OriginYield, type RunSource, type RunStatus, type RunTrigger } from './sources';
 import { startOfMonthUtc } from './verification-store';
+import { readableError, readableRunError } from './db-error';
 
 export type RunSummary = { items: number; codes: number; suggested: number; units: number; failed: string[]; attempted: number;
   /** Portée plus précise connue après coup (nom de la catégorie plutôt que son adresse). */
@@ -29,8 +30,10 @@ export async function recordRun<R>(db: Db, run: { source: RunSource; trigger: Ru
     }).catch(error => console.error('source run log failed', error));
     return report;
   } catch (error) {
+    // La cause complète (contrainte, détail de Postgres) va dans les journaux Vercel ; le journal de l'admin garde une phrase lisible.
+    console.error('source run failed', run.source, run.scope, error, error instanceof Error ? error.cause : undefined);
     await db.insert(sourceRuns).values({
-      source: run.source, trigger: run.trigger, scope: run.scope.slice(0, 200), status: 'failed', error: String(error instanceof Error ? error.message : error).slice(0, 500), startedAt, finishedAt: new Date(),
+      source: run.source, trigger: run.trigger, scope: run.scope.slice(0, 200), status: 'failed', error: readableError(error).slice(0, 500), startedAt, finishedAt: new Date(),
     }).catch(logError => console.error('source run log failed', logError));
     throw error;
   }
@@ -44,8 +47,12 @@ export type RunRow = {
 /** Derniers passages, du plus récent au plus ancien. */
 export async function listRuns(db: Db, limit = 40): Promise<RunRow[]> {
   const rows = await db.select().from(sourceRuns).orderBy(desc(sourceRuns.startedAt)).limit(limit);
-  return rows.map(row => ({ ...row, startedAt: row.startedAt.toISOString(), finishedAt: row.finishedAt.toISOString() }));
+  return rows.map(toRunRow);
 }
+
+const toRunRow = (row: typeof sourceRuns.$inferSelect): RunRow => ({
+  ...row, error: readableRunError(row.error), startedAt: row.startedAt.toISOString(), finishedAt: row.finishedAt.toISOString(),
+});
 
 const AI_PURPOSE: Record<RunSource, string> = { youtube_search: 'category_search', youtube_channel: 'youtube_channel', podcast: 'podcast_notes' };
 
@@ -73,7 +80,7 @@ export async function sourceActivity(db: Db, now = new Date()): Promise<Record<R
     const total = totals.find(row => row.source === source);
     const lastRow = last.find(row => row.source === source);
     result[source] = {
-      lastRun: lastRow ? { ...lastRow, startedAt: lastRow.startedAt.toISOString(), finishedAt: lastRow.finishedAt.toISOString() } : null,
+      lastRun: lastRow ? toRunRow(lastRow) : null,
       runsThisMonth: total?.runs ?? 0,
       unitsThisMonth: total?.units ?? 0,
       aiUsdThisMonth: (ai.find(row => row.purpose === AI_PURPOSE[source])?.micros ?? 0) / 1_000_000,
