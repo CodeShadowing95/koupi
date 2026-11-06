@@ -28,7 +28,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const input = parseCodeInput(parsed.data);
     if (!input.ok) return NextResponse.json({ error: input.error }, { status: 400 });
     const result = await updateCode(db, id, input.data);
-    if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.error === 'Code introuvable.' ? 404 : 400 });
+    if (!result.ok) return NextResponse.json({ error: result.error, ...(result.duplicateId ? { duplicateId: result.duplicateId } : {}) }, { status: result.duplicateId ? 409 : result.error === 'Code introuvable.' ? 404 : 400 });
     revalidateCatalog();
     return NextResponse.json({ ok: true });
   } catch (error) {

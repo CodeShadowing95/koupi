@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import type { Category } from '@/lib/data';
 import type { ToolOption } from '@/lib/codes-admin';
+import type { ExistingCode } from '@/lib/code-format';
 import { CodeEditor, type EditorTarget } from '@/components/admin-code-editor';
 import { matchesSearch } from '@/lib/admin-search';
 import { SUBMISSIONS_CHANGED } from '../pending-count';
@@ -21,7 +22,7 @@ const sortFields: SortField<Submission>[] = [
   { key: 'tool', label: 'Outil', value: item => item.tool_name, text: true },
   { key: 'creator', label: 'Créateur', value: item => item.creator_name, text: true },
 ];
-export function PropositionsView({ categories, tools, creators }: { categories: Category[]; tools: ToolOption[]; creators: string[] }) {
+export function PropositionsView({ categories, tools, creators, existing }: { categories: Category[]; tools: ToolOption[]; creators: string[]; existing: ExistingCode[] }) {
   const [editing, setEditing] = useState<EditorTarget | null>(null);
   const [items, setItems] = useState<Submission[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -166,7 +167,7 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
             {selected.comment && <p className="adm-detail-quote">« {selected.comment} »</p>}
           </>}
         </AdminDrawer>
-        <CodeEditor target={editing} tools={tools} categories={categories} creators={creators} onClose={() => setEditing(null)} onSaved={() => { void load(); window.dispatchEvent(new Event(SUBMISSIONS_CHANGED)); }} />
+        <CodeEditor target={editing} tools={tools} categories={categories} creators={creators} existing={existing} onClose={() => setEditing(null)} onSaved={() => { void load(); window.dispatchEvent(new Event(SUBMISSIONS_CHANGED)); }} />
       </div>
     </main>
   );

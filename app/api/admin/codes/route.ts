@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     const submissionId = parsed.data.submissionId;
     if (submissionId !== undefined && (typeof submissionId !== 'string' || !uuidPattern.test(submissionId))) return NextResponse.json({ error: 'Proposition invalide.' }, { status: 400 });
     const result = await createCode(getDb(), input.data, { submissionId: submissionId as string | undefined });
-    if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });
+    if (!result.ok) return NextResponse.json({ error: result.error, ...(result.duplicateId ? { duplicateId: result.duplicateId } : {}) }, { status: result.duplicateId ? 409 : 400 });
     // Nouveau créateur venu de YouTube : sa chaîne est reliée tout de suite (2 unités de quota au plus).
     await linkChannelForCode(getDb(), result.data.id, youtubeBatch(process.env.YOUTUBE_API_KEY));
     revalidateCatalog();

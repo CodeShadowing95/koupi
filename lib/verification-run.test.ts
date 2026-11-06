@@ -148,10 +148,11 @@ describe('runVerification', () => {
   });
 
   it('repère un doublon', async () => {
-    await createCode(ctx.db, {
-      toolSlug: 'nordvpn', creatorName: 'Bob', code: 'ana10', discount: '-10 %', sourceUrl: 'https://youtube.com/watch?v=other1234',
-      sourceTitle: '', creatorLink: null, note: null, status: 'verified',
-    });
+    // L'admin refuse un deuxième ANA10 pour NordVPN ; un doublon peut encore venir d'une recherche automatique, écrit ici directement en base.
+    const [tool] = await ctx.db.select({ id: schema.tools.id }).from(schema.tools).where(eq(schema.tools.slug, 'nordvpn'));
+    await ctx.db.insert(schema.creators).values({ slug: 'bob', name: 'Bob' });
+    const [bob] = await ctx.db.select({ id: schema.creators.id }).from(schema.creators).where(eq(schema.creators.slug, 'bob'));
+    await ctx.db.insert(schema.codes).values({ toolId: tool.id, creatorId: bob.id, code: 'ana10', discount: '-10 %', sourceUrl: 'https://youtube.com/watch?v=other1234', status: 'verified' });
     const check = await runVerification(ctx.db, ctx.codeId, { readSource: reader('code ANA10') });
     expect(check?.reasons.map(r => r.label)).toContain('Un code identique existe déjà.');
   });

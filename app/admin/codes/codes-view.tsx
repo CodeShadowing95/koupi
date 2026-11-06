@@ -199,7 +199,7 @@ export function CodesView({ codes: rows, tools, categories, copies }: { codes: C
             {selected.note && <p className="adm-detail-quote">Note : {selected.note}</p>}
           </>}
         </AdminDrawer>
-        <CodeEditor target={editing} tools={tools} categories={categories} creators={creators} onClose={() => setEditing(null)} />
+        <CodeEditor target={editing} tools={tools} categories={categories} creators={creators} existing={codes} onClose={() => setEditing(null)} />
       </div>
     </main>
   );

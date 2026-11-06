@@ -23,6 +23,13 @@ const base: CodeInput = {
 };
 
 describe('validation du formulaire', () => {
+  it('range le code en majuscules et refuse un code mal formé', () => {
+    const body = { toolSlug: 'nordvpn', creatorName: 'Ana', discount: '-10 %', sourceUrl: 'https://youtube.com/watch?v=a' };
+    expect(parseCodeInput({ ...body, code: '  merci-20 ' })).toMatchObject({ ok: true, data: { code: 'MERCI-20' } });
+    for (const code of ['<script>alert(1)</script>', 'MERCI 20', 'A'.repeat(41)]) expect(parseCodeInput({ ...body, code })).toMatchObject({ ok: false, error: expect.stringContaining('lettres, des chiffres et des tirets') });
+    expect(parseCodeInput({ ...body, code: ' ' })).toEqual({ ok: false, error: 'Indique le code.' });
+  });
+
   it('accepte un code complet et ajoute https:// au site d’un nouvel outil', () => {
     const parsed = parseCodeInput({ newTool: { name: 'Runway', categorySlug: 'ia', website: 'runwayml.com' }, creatorName: 'Ana', code: 'X', discount: '-10 %', sourceUrl: 'https://tiktok.com/@ana/video/1' });
     expect(parsed).toMatchObject({ ok: true, data: { newTool: { website: 'https://runwayml.com' }, status: 'to_test', creatorLink: null } });
@@ -146,5 +153,39 @@ describe('actions de l’admin', () => {
     expect(code.submissionId).toBe(submission.id);
     expect(await db.select().from(schema.moderationLogs)).toHaveLength(1);
     expect(await createCode(db, base, { submissionId: submission.id })).toEqual({ ok: false, error: 'Cette proposition a déjà donné un code.' });
+  });
+
+  it('refuse un deuxième code identique pour le même outil, casse ignorée', async () => {
+    const first = await createCode(db, base);
+    if (!first.ok) throw new Error(first.error);
+    expect(await createCode(db, { ...base, code: 'ytstack', creatorName: 'Autre' })).toEqual({ ok: false, error: 'Le code YTSTACK existe déjà pour cet outil.', duplicateId: first.data.id });
+    await db.insert(schema.tools).values({ slug: 'surfshark', name: 'Surfshark', categorySlug: 'vpn', website: 'https://surfshark.com' });
+    expect(await createCode(db, { ...base, toolSlug: 'surfshark' })).toMatchObject({ ok: true });
+    expect(await db.select().from(schema.codes)).toHaveLength(2);
+  });
+
+  it('signale un doublon archivé pour qu’on le restaure', async () => {
+    const first = await createCode(db, base);
+    if (!first.ok) throw new Error(first.error);
+    await applyCodeAction(db, first.data.id, 'archive');
+    expect(await createCode(db, base)).toMatchObject({ ok: false, error: expect.stringContaining('dans les archives'), duplicateId: first.data.id });
+  });
+
+  it('ne valide pas une proposition dont le code est déjà au catalogue', async () => {
+    const first = await createCode(db, base);
+    if (!first.ok) throw new Error(first.error);
+    await db.insert(schema.submissions).values({ toolName: 'NordVPN', creatorName: 'Léa', code: 'YTSTACK', discountLabel: '-20 %', sourceUrl: 'https://instagram.com/p/1', ipHash: 'h', fingerprint: 'f' });
+    const [submission] = await db.select().from(schema.submissions);
+    expect(await createCode(db, base, { submissionId: submission.id })).toMatchObject({ ok: false, duplicateId: first.data.id });
+    const [after] = await db.select().from(schema.submissions);
+    expect(after.status).toBe('new');
+  });
+
+  it('refuse de renommer un code en un code qui existe déjà, mais garde le sien', async () => {
+    const first = await createCode(db, base);
+    const second = await createCode(db, { ...base, code: 'OTHER' });
+    if (!first.ok || !second.ok) throw new Error('setup');
+    expect(await updateCode(db, second.data.id, base)).toMatchObject({ ok: false, duplicateId: first.data.id });
+    expect(await updateCode(db, first.data.id, { ...base, discount: '-80 %' })).toEqual({ ok: true, data: { id: first.data.id } });
   });
 });

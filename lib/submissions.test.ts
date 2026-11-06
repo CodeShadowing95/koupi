@@ -105,3 +105,21 @@ describe('filtre de statut', () => {
     expect(isStatusFilter("new' or 1=1")).toBe(false);
   });
 });
+
+describe('propositions face au catalogue', () => {
+  it('marque en doublon un code déjà au catalogue pour cet outil, casse ignorée', async () => {
+    const fresh = drizzle(new PGlite(), { schema });
+    await migrate(fresh, { migrationsFolder: 'db/migrations' });
+    const catalogDb = fresh as unknown as Db;
+    await catalogDb.insert(schema.categories).values({ slug: 'compta', name: 'Comptabilité' });
+    const [tool] = await catalogDb.insert(schema.tools).values({ slug: 'abby', name: 'Abby', categorySlug: 'compta', website: 'https://abby.fr' }).returning();
+    const [creator] = await catalogDb.insert(schema.creators).values({ slug: 'digitiz', name: 'Digitiz' }).returning();
+    await catalogDb.insert(schema.codes).values({ toolId: tool.id, creatorId: creator.id, code: 'DIGITIZ', discount: '-20 %', sourceUrl: 'https://youtube.com/watch?v=d', status: 'verified' });
+
+    const proposal = { ...input, toolName: 'abby', creatorName: 'Digitiz', code: 'digitiz' };
+    expect(await createSubmission(catalogDb, proposal, 'hash')).toEqual({ status: 'duplicate' });
+    expect(await createSubmission(catalogDb, { ...proposal, toolName: 'Notion' }, 'hash')).toEqual({ status: 'new' });
+    const [marked] = await listSubmissions(catalogDb, { status: 'duplicate' });
+    expect(marked.adminNote).toBe('Ce code est déjà au catalogue.');
+  });
+});

@@ -1,10 +1,11 @@
 // Actions de l'admin sur le catalogue : créer et modifier un code, changer son statut, l'archiver.
 // Chaque action est inscrite dans code_logs. Une proposition validée devient un code relié à elle.
-import { and, eq, isNull, sql } from 'drizzle-orm';
+import { and, eq, isNull, ne, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { categories, codeLogs, codes, creators, moderationLogs, submissions, tools, CODE_STATUSES, type CodeRow } from '@/db/schema';
 import { slugify } from './slug';
 import { isValidDay, todayInParis } from './code-expiry';
+import { codeFormatError, normalizeCode } from './code-format';
 
 export type CodeStatus = typeof CODE_STATUSES[number];
 export type NewTool = { name: string; categorySlug: string; website: string };
@@ -25,6 +26,8 @@ export type CodeInput = {
 };
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
+/** Une erreur d'enregistrement : duplicateId est le code du catalogue qui porte déjà ce code pour cet outil. */
+export type SaveResult<T> = { ok: true; data: T } | { ok: false; error: string; duplicateId?: string };
 
 function text(value: unknown, max: number): string { return typeof value === 'string' ? value.trim().slice(0, max) : ''; }
 export function validUrl(value: string): boolean {
@@ -43,10 +46,11 @@ export function parseCodeInput(body: Record<string, unknown>): Parsed<CodeInput>
     if (!newTool.name || !newTool.categorySlug || !validUrl(newTool.website)) return { ok: false, error: 'Pour un nouvel outil, indique son nom, sa catégorie et son site.' };
   } else if (!toolSlug) return { ok: false, error: 'Choisis l’outil.' };
 
-  const creatorName = text(body.creatorName, 160), code = text(body.code, 120), discount = text(body.discount, 240);
+  const creatorName = text(body.creatorName, 160), code = normalizeCode(text(body.code, 120)), discount = text(body.discount, 240);
   const sourceUrl = text(body.sourceUrl, 1000), sourceTitle = text(body.sourceTitle, 300), creatorLink = text(body.creatorLink, 1000);
   if (!creatorName || !slugify(creatorName)) return { ok: false, error: 'Indique le créateur.' };
-  if (!code) return { ok: false, error: 'Indique le code.' };
+  const codeError = codeFormatError(code);
+  if (codeError) return { ok: false, error: codeError };
   if (!discount) return { ok: false, error: 'Indique la réduction.' };
   if (!validUrl(sourceUrl)) return { ok: false, error: 'Le lien source doit être une adresse web valide.' };
   if (creatorLink && !validUrl(creatorLink)) return { ok: false, error: 'Le lien du créateur doit être une adresse web valide.' };
@@ -88,9 +92,26 @@ function testedAt(status: CodeStatus, previous: CodeStatus | null, current: Date
   return (status === 'verified' || status === 'rejected') && status !== previous ? new Date() : current;
 }
 
-export async function createCode(db: Db, input: CodeInput, options: { submissionId?: string } = {}): Promise<Parsed<{ id: string }>> {
+/** Le code de cet outil qui a déjà ce code (casse ignorée, archivés compris), en dehors de celui qu'on modifie. */
+export async function findCatalogDuplicate(db: Db, toolId: string, code: string, exceptId?: string): Promise<{ id: string; archived: boolean } | null> {
+  const conditions = [eq(codes.toolId, toolId), sql`upper(${codes.code}) = ${normalizeCode(code)}`];
+  if (exceptId) conditions.push(ne(codes.id, exceptId));
+  const [row] = await db.select({ id: codes.id, archivedAt: codes.archivedAt }).from(codes).where(and(...conditions)).limit(1);
+  return row ? { id: row.id, archived: Boolean(row.archivedAt) } : null;
+}
+
+function duplicateError(code: string, duplicate: { id: string; archived: boolean }): SaveResult<never> {
+  const error = duplicate.archived
+    ? `Le code ${normalizeCode(code)} existe déjà pour cet outil, dans les archives. Restaure-le plutôt que d’en créer un deuxième.`
+    : `Le code ${normalizeCode(code)} existe déjà pour cet outil.`;
+  return { ok: false, error, duplicateId: duplicate.id };
+}
+
+export async function createCode(db: Db, input: CodeInput, options: { submissionId?: string } = {}): Promise<SaveResult<{ id: string }>> {
   const tool = await resolveTool(db, input);
   if (!tool.ok) return tool;
+  const duplicate = await findCatalogDuplicate(db, tool.data, input.code);
+  if (duplicate) return duplicateError(input.code, duplicate);
   if (options.submissionId) {
     const [submission] = await db.select({ status: submissions.status, createdCodeId: submissions.createdCodeId }).from(submissions).where(eq(submissions.id, options.submissionId)).limit(1);
     if (!submission) return { ok: false, error: 'Proposition introuvable.' };
@@ -119,11 +140,13 @@ async function currentCode(db: Db, id: string): Promise<CodeRow | undefined> {
 }
 
 /** Remplace les champs d'un code. Renvoie une erreur si le code n'existe pas. */
-export async function updateCode(db: Db, id: string, input: CodeInput): Promise<Parsed<{ id: string }>> {
+export async function updateCode(db: Db, id: string, input: CodeInput): Promise<SaveResult<{ id: string }>> {
   const current = await currentCode(db, id);
   if (!current) return { ok: false, error: 'Code introuvable.' };
   const tool = await resolveTool(db, input);
   if (!tool.ok) return tool;
+  const duplicate = await findCatalogDuplicate(db, tool.data, input.code, id);
+  if (duplicate) return duplicateError(input.code, duplicate);
   const creatorId = await resolveCreator(db, input.creatorName);
   await db.update(codes).set({
     toolId: tool.data, creatorId, code: input.code, discount: input.discount, sourceUrl: input.sourceUrl, sourceTitle: input.sourceTitle,
