@@ -118,6 +118,16 @@ describe('runVerification', () => {
     expect(check).toMatchObject({ model: 'claude-opus-5-5', costUsdMicros: 8200 });
   });
 
+  it('retire des points quand l’IA ne retrouve pas le code', async () => {
+    const config = aiConfigFrom({ ANTHROPIC_API_KEY: 'k' });
+    const seen = vi.fn(async (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => aiResponse(params.model, ['ANA10']));
+    const clear = await runVerification(ctx.db, ctx.codeId, { readSource: reader('Merci NordVPN, code ANA10'), ai: { config, create: seen } });
+    const missed = vi.fn(async (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => aiResponse(params.model, []));
+    const doubtful = await runVerification(ctx.db, ctx.codeId, { readSource: reader('Merci NordVPN, code ANA10'), ai: { config, create: missed } });
+    expect(doubtful!.score).toBe(clear!.score - 20);
+    expect(doubtful?.reasons).toContainEqual({ points: -20, label: 'L’IA ne retrouve pas ce code dans la description.' });
+  });
+
   it('relit directement avec Opus à la demande', async () => {
     const create = vi.fn(async (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => aiResponse(params.model, ['ANA10']));
     const config = aiConfigFrom({ ANTHROPIC_API_KEY: 'k' });

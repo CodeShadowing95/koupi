@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { CLEAR_SCORE, REJECT_BELOW, findCodeInText } from './verification';
+import { CLEAR_SCORE, REJECT_BELOW, findCodeInText, implausibleCode } from './verification';
 
 export { CLEAR_SCORE };
 
@@ -134,6 +134,8 @@ export function keepVerbatimCodes(raw: unknown, description: string): ExtractedC
     if (!code || seen.has(code.toLowerCase())) continue;
     // Un code se tape d'un bloc : une phrase comme « 10-30% off merch » (espaces, pourcentage) n'en est pas un.
     if (/[\s%]/.test(code)) continue;
+    // Une année ou une clé de licence n'est pas un code promo, même si l'IA en rend une.
+    if (implausibleCode(code)) continue;
     const match = findCodeInText(code, description);
     if (!match.found) continue;
     seen.add(code.toLowerCase());

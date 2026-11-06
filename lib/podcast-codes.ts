@@ -3,6 +3,8 @@
 // Rien n'est publié : chaque code trouvé arrive « En attente » dans Vérifications, où l'admin décide.
 // Un code sans outil du catalogue devient une suggestion d'outil à ajouter, avec le nom deviné du lien voisin.
 
+import { clip, implausibleCode } from './verification';
+
 /** domain : domaine du site officiel (nordvpn.com), pour reconnaître un lien vers l'outil. */
 export type CatalogTool = { id: string; name: string; domain?: string | null };
 export type FoundCode = { toolId: string; code: string; discount: string; evidence: string };
@@ -91,8 +93,14 @@ function guessTool(line: string, previous: string | undefined): { name: string; 
   return null;
 }
 
-function looksLikeCode(candidate: string): boolean {
+function looksLikeCode(candidate: string, after = ''): boolean {
   if (NOT_CODES.has(candidate.toLowerCase())) return false;
+  // Un nombre seul (« code 2026 ») ou une clé de licence n'est pas un code promo.
+  if (implausibleCode(candidate)) return false;
+  // Suivi d'une barre (« 3M3K9/5R92S/… ») : un morceau de clé de licence ou de chemin.
+  if (/^\/[A-Za-z0-9]/.test(after)) return false;
+  // Un mot en capitales suivi d'un autre mot en capitales est un titre qui crie (« Claude Code is SOMETHING ELSE! »), pas un code.
+  if (/^[A-Za-z]+$/.test(candidate) && /^\s+[A-Z]{2,}\b/.test(after)) return false;
   // Un code s'écrit en majuscules ou contient un chiffre ; un mot en minuscules est sans doute du texte.
   return /[0-9]/.test(candidate) || candidate === candidate.toUpperCase();
 }
@@ -111,7 +119,7 @@ export function scanPromoCodes(text: string, tools: CatalogTool[]): { found: Fou
   lines.forEach((line, lineIndex) => {
     for (const match of line.matchAll(CODE_PATTERN)) {
       const code = match[1];
-      if (!looksLikeCode(code)) continue;
+      if (!looksLikeCode(code, line.slice((match.index ?? 0) + match[0].length))) continue;
       const at = match.index ?? 0;
       // L'outil le plus proche sur la ligne ; sinon le dernier nommé sur la ligne d'avant.
       const here = toolPositions(line, tools).sort((a, b) => Math.abs(a.index - at) - Math.abs(b.index - at));
@@ -121,7 +129,7 @@ export function scanPromoCodes(text: string, tools: CatalogTool[]): { found: Fou
       const tool = here[0] ?? (ownGuess ? undefined : before[0]);
       const discount = line.match(DISCOUNT_PATTERN)?.[0].trim() ?? (lineIndex > 0 ? lines[lineIndex - 1].match(DISCOUNT_PATTERN)?.[0].trim() : undefined) ?? 'Voir l’épisode';
       // La ligne d'avant donne souvent le nom de l'outil (« Cuure : cuure.com » puis « (code DOIT) ») : on la garde comme preuve.
-      const evidence = (lineIndex > 0 && !here[0] && !ownGuess ? `${lines[lineIndex - 1]}\n${line}` : line).slice(0, 300);
+      const evidence = clip(lineIndex > 0 && !here[0] && !ownGuess ? `${lines[lineIndex - 1]}\n${line}` : line, 300);
       if (!tool) {
         const guess = ownGuess ?? guessTool(line, lines[lineIndex - 1]);
         if (!guess) continue;
@@ -134,7 +142,7 @@ export function scanPromoCodes(text: string, tools: CatalogTool[]): { found: Fou
       const key = `${tool.toolId}:${code.toLowerCase()}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      results.push({ toolId: tool.toolId, code, discount, evidence: line.slice(0, 300) });
+      results.push({ toolId: tool.toolId, code, discount, evidence: clip(line, 300) });
     }
   });
   return { found: results, unknown };

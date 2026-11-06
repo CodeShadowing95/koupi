@@ -2,6 +2,7 @@
 // (lib/podcast-codes.ts) : codes mal formulés, réduction et date de fin. Chaque code rendu par l'IA figure mot
 // pour mot dans les notes (keepVerbatimCodes) ; rien n'est publié, tout passe par Vérifications.
 import type { ExtractedCode } from './ai-extract';
+import { clip } from './verification';
 import { catalogToolIn, notAToolName, toolDomainIn, type CatalogTool, type FoundCode, type UnknownToolCode } from './podcast-codes';
 
 /** Les notes parlent-elles d'une offre ? Sinon, pas d'appel à l'IA. */
@@ -11,6 +12,12 @@ export type MergedCode = FoundCode & { expiresOn?: string };
 export type MergedUnknown = UnknownToolCode & { expiresOn?: string };
 
 const NO_DISCOUNT = 'Voir l’épisode';
+const NO_DISCOUNT_VIDEO = 'Voir la vidéo';
+
+/** Pour une vidéo YouTube : « Voir la vidéo » à la place de « Voir l'épisode » quand la réduction n'est pas écrite. */
+export function forVideo<T extends { discount: string }>(items: T[]): T[] {
+  return items.map(item => item.discount === NO_DISCOUNT ? { ...item, discount: NO_DISCOUNT_VIDEO } : item);
+}
 
 /**
  * Ajoute aux codes repérés sans IA ceux que l'IA a lus. Un code déjà repéré garde son outil, mais prend la réduction
@@ -30,20 +37,20 @@ export function mergeAiCodes(scan: { found: FoundCode[]; unknown: UnknownToolCod
     if (index >= 0 && item.tool && !notAToolName(item.tool) && aiToolId !== found[index].toolId) {
       const [moved] = found.splice(index, 1);
       if (aiToolId) found.push({ ...moved, toolId: aiToolId });
-      else unknown.push({ name: item.tool.trim().slice(0, 120), domain: toolDomainIn(item.evidence), code: moved.code, discount: moved.discount, evidence: moved.evidence });
+      else unknown.push({ name: clip(item.tool.trim(), 120), domain: toolDomainIn(item.evidence), code: moved.code, discount: moved.discount, evidence: moved.evidence });
     }
     const known = [...found, ...unknown].find(entry => entry.code.toLowerCase() === key);
     if (known) {
-      if (known.discount === NO_DISCOUNT && item.discount) known.discount = item.discount.slice(0, 240);
+      if (known.discount === NO_DISCOUNT && item.discount) known.discount = clip(item.discount, 240);
       Object.assign(known, extra(item));
       continue;
     }
-    const discount = item.discount.slice(0, 240) || NO_DISCOUNT;
-    const evidence = item.evidence.slice(0, 300);
+    const discount = clip(item.discount, 240) || NO_DISCOUNT;
+    const evidence = clip(item.evidence, 300);
     const toolId = aiToolId || catalogToolIn(evidence, tools);
     if (toolId) { found.push({ toolId, code: item.code, discount, evidence, ...extra(item) }); continue; }
     // L'IA peut nommer une étiquette (« Avantages ») ou la plateforme qui encaisse (« Thrivecart ») : on ne garde pas ce nom.
-    const name = notAToolName(item.tool) ? '' : item.tool.trim().slice(0, 120);
+    const name = notAToolName(item.tool) ? '' : clip(item.tool.trim(), 120);
     const domain = toolDomainIn(evidence);
     if (!name && !domain) continue;
     const label = domain?.split('.').slice(-2)[0] ?? '';

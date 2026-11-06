@@ -91,6 +91,15 @@ describe('scanPromoCodes', () => {
   });
 });
 
+describe('faux codes', () => {
+  it('ignore une année, une clé de licence et un titre en capitales', () => {
+    expect(findPromoCodes('NordVPN promo code 2026 : -70 %', tools)).toEqual([]);
+    expect(findPromoCodes('NordVPN code 3M3K9/5R92S/ZDH5Y/NA944', tools)).toEqual([]);
+    expect(findPromoCodes('Notion + Claude Code is SOMETHING ELSE!', tools)).toEqual([]);
+    expect(findPromoCodes('NordVPN : code NORD20 pour -20 %', tools).map(found => found.code)).toEqual(['NORD20']);
+  });
+});
+
 describe('domainOf', () => {
   it('rend le domaine sans www', () => {
     expect(domainOf('https://www.NordVPN.com/fr')).toBe('nordvpn.com');

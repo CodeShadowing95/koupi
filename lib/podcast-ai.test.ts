@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ExtractedCode } from './ai-extract';
-import { mergeAiCodes, PROMO_HINT } from './podcast-ai';
+import { forVideo, mergeAiCodes, PROMO_HINT } from './podcast-ai';
 
 const tools = [{ id: 't-nord', name: 'NordVPN', domain: 'nordvpn.com' }, { id: 't-qonto', name: 'Qonto', domain: 'qonto.com' }];
 const ai = (code: string, extra: Partial<ExtractedCode> = {}): ExtractedCode => ({ code, tool: '', discount: '', conditions: '', expiresOn: '', evidence: `code ${code}`, ...extra });
@@ -52,5 +52,11 @@ describe('mergeAiCodes', () => {
     expect(PROMO_HINT.test('Avec le code CARNE')).toBe(true);
     expect(PROMO_HINT.test('-20 % sur tout')).toBe(true);
     expect(PROMO_HINT.test('Une discussion sur la musique')).toBe(false);
+  });
+});
+
+describe('forVideo', () => {
+  it('parle de vidéo quand la réduction n’est pas écrite', () => {
+    expect(forVideo([{ discount: 'Voir l’épisode' }, { discount: '-10 %' }])).toEqual([{ discount: 'Voir la vidéo' }, { discount: '-10 %' }]);
   });
 });
