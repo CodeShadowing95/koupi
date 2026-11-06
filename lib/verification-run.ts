@@ -7,7 +7,7 @@ import { aiStatusOf, extractCodes, needsSecondReading, type AiConfig, type Extra
 import { isValidDay } from './code-expiry';
 import { creatorLevelFor } from './creator-level';
 import { aiSpendSince, recordVerificationCheck, startOfMonthUtc } from './verification-store';
-import { findCodeInText, scoreVerification, spamSignals } from './verification';
+import { AI_MISS_POINTS, findCodeInText, implausibleCode, scoreVerification, spamSignals } from './verification';
 import { youtubeFetch } from './api-usage';
 
 export type SourceRead = { online: boolean; title: string; description: string };
@@ -93,17 +93,25 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
     toolKnown: true,
     duplicate: Boolean(duplicate),
     spam: spamSignals({ sourceUrl: code.sourceUrl, code: code.code }),
+    implausible: implausibleCode(code.code),
     votesUp: code.votesUp,
     votesDown: code.votesDown,
   });
 
   const reasons = [...result.reasons];
+  let score = result.score;
   if (!source) reasons.push({ points: 0, label: 'Cette source ne peut pas encore être lue automatiquement : ouvre-la toi-même.' });
   const ai = source?.online ? await runAi(db, deps, mode, source, result.score) : { extraction: null, calls: [], note: null };
   if (ai.note) reasons.push(ai.note);
   if (ai.extraction) {
     const seen = ai.extraction.codes.find(found => found.code.toLowerCase() === code.code.toLowerCase());
-    reasons.push({ points: 0, label: seen ? 'L’IA retrouve ce code dans la description.' : 'L’IA ne retrouve pas ce code dans la description.' });
+    // L'IA lit la phrase entière : quand elle ne voit pas de code là où notre repérage en voit un (« 2026 », un mot du titre),
+    // le dossier n'est plus clair. Le score reste calculé ici, l'IA ne fait que retirer des points.
+    if (seen) reasons.push({ points: 0, label: 'L’IA retrouve ce code dans la description.' });
+    else {
+      reasons.push({ points: AI_MISS_POINTS, label: 'L’IA ne retrouve pas ce code dans la description.' });
+      score = Math.max(0, score + AI_MISS_POINTS);
+    }
     // Date de fin écrite par le créateur : l'IA pré-remplit le champ s'il est vide. L'admin peut la corriger.
     if (seen?.expiresOn && !code.expiresOn && isValidDay(seen.expiresOn)) {
       await db.update(codes).set({ expiresOn: seen.expiresOn, updatedAt: new Date() }).where(eq(codes.id, code.id));
@@ -114,7 +122,7 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
   const last = ai.calls.at(-1);
   return recordVerificationCheck(db, {
     codeId: code.id,
-    score: result.score,
+    score,
     reasons,
     evidence: match?.excerpt ?? null,
     extracted: ai.extraction ? { codes: ai.extraction.codes, calls: ai.calls } : null,

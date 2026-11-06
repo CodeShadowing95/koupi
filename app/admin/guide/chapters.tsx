@@ -288,6 +288,7 @@ function Verifications() {
         { term: <StatusDot tone="muted">Pas analysé</StatusDot>, meaning: 'Aucune analyse pour l’instant. Lance-la.' },
       ]} />
       <p>La file met devant les dossiers analysés, du plus sûr au moins sûr : tu valides vite ce qui est clair, puis tu prends le temps sur le reste.</p>
+      <p>Tout code part de 30 points (la ligne « Point de départ »), et la somme des lignes donne le score. Un code qui n’est qu’un nombre (« 2026 ») ou qui ressemble à une clé de licence perd 50 points : il n’est jamais classé clair. Quand l’IA lit la source sans y voir ce code, il perd encore 20 points.</p>
     </Section>
     <Section id="decider" title="Tes trois décisions">
       <Legend rows={[
@@ -320,7 +321,7 @@ function Verifications() {
       <p>Le bandeau du haut dit si l’IA est <b>active</b>, <b>en attente d’activation</b> (pas encore de clé) ou si le <b>plafond du mois</b> est atteint. Sans IA, les contrôles automatiques marchent quand même.</p>
       <p>Quand elle est active, un petit modèle rapide lit chaque description. Un modèle plus fin relit seulement les dossiers douteux, ou quand tu cliques sur <b>Relire avec Opus</b>. La jauge montre la dépense du mois face au plafond, en euros (survole le montant pour le voir en dollars).</p>
       <p>Les dossiers s’affichent par pages de 24, comme les autres listes ; <Key>J</Key> et <Key>K</Key> passent d’une page à l’autre quand tu arrives au bout. Le message qui confirme une décision s’affiche en bas de l’écran, pour rester visible même loin du haut de la liste.</p>
-      <Callout tone="warn">L’IA ne décide jamais du score : elle aide à repérer les codes dans un texte. Un code qu’elle croit voir mais qui n’est pas mot pour mot dans la source est écarté.</Callout>
+      <Callout tone="warn">L’IA ne décide jamais seule : elle aide à repérer les codes dans un texte, et ne peut que retirer des points quand elle ne voit pas le code. Un code qu’elle croit voir mais qui n’est pas mot pour mot dans la source est écarté, tout comme une année ou une clé de licence.</Callout>
       <Callout tone="tip">Seuls les textes publics (titre et description) sont envoyés à l’IA. Aucune donnée de visiteur : la promesse « zéro pistage » tient.</Callout>
     </Section>
   </>;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  MIN_SUBSCRIBERS, REJECT_BELOW, creatorLevelOf, findCodeInText, scoreVerification, sourceKindOf, spamSignals,
+  MIN_SUBSCRIBERS, REJECT_BELOW, clip, creatorLevelOf, findCodeInText, implausibleCode, scoreVerification, sourceKindOf, spamSignals,
   type VerificationFacts,
 } from './verification';
 
@@ -100,6 +100,15 @@ describe('scoreVerification', () => {
     expect(result.suggestion).toBe('review');
     expect(result.reasons.map(reason => reason.label)).toContain('Le code figure mot pour mot dans la source.');
   });
+  it('affiche des lignes dont la somme tombe juste sur le score, point de départ compris', () => {
+    const result = scoreVerification({ ...ideal, creatorLevel: 'spotted' });
+    expect(result.reasons[0]).toEqual({ points: 30, label: 'Point de départ de tout code.' });
+    expect(result.reasons.reduce((sum, reason) => sum + reason.points, 0)).toBe(result.score);
+  });
+  it('ne classe jamais clair un nombre seul ou une clé de licence', () => {
+    const result = scoreVerification({ ...ideal, creatorLevel: 'spotted', implausible: implausibleCode('2026') });
+    expect(result.score).toBe(40);
+  });
   it('propose le rejet quand la source a disparu', () => {
     const result = scoreVerification({ ...ideal, sourceOnline: false, codeInSource: null });
     expect(result.score).toBeLessThan(REJECT_BELOW);
@@ -130,5 +139,28 @@ describe('scoreVerification', () => {
       sourceOnline: false, codeInSource: false, creatorLevel: null, toolKnown: false, duplicate: true, spam: ['a', 'b'], votesDown: 9,
     });
     expect(worst.score).toBe(0);
+  });
+});
+
+describe('implausibleCode', () => {
+  it('écarte un nombre seul et une clé de licence', () => {
+    expect(implausibleCode('2026')).toMatch(/nombre/);
+    expect(implausibleCode('3M3K9/5R92S/ZDH5Y/NA944')).toMatch(/clé de licence/);
+    expect(implausibleCode('ABCD-EFGH-IJKL')).toMatch(/clé de licence/);
+  });
+  it('garde les vrais codes', () => {
+    for (const code of ['NORD20', 'DIGITIZ', 'SUMMER-2026', 'CN-BITDEF', 'A1B2C3']) expect(implausibleCode(code)).toBeNull();
+  });
+});
+
+describe('clip', () => {
+  it('ne coupe jamais un emoji en deux', () => {
+    expect(clip('ab🔗cd', 3)).toBe('ab');
+    expect(clip('ab🔗cd', 4)).toBe('ab🔗');
+  });
+  it('donne un extrait sans moitié d’emoji', () => {
+    // L'extrait commence 80 caractères avant le code, ici au milieu de l'emoji.
+    const { excerpt } = findCodeInText('NORD20', `🔗${'y'.repeat(73)} code NORD20`);
+    expect(excerpt?.startsWith('…y')).toBe(true);
   });
 });

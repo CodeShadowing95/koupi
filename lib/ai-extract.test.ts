@@ -80,6 +80,14 @@ describe('keepVerbatimCodes', () => {
   });
 });
 
+describe('keepVerbatimCodes et faux codes', () => {
+  it('écarte une année et une clé de licence même présentes dans le texte', () => {
+    const text = 'Bitdefender promo code 2026, clé 3M3K9/5R92S/ZDH5Y/NA944, code BITDEF20';
+    const codes = keepVerbatimCodes({ codes: ['2026', '3M3K9/5R92S/ZDH5Y/NA944', 'BITDEF20'].map(code => ({ code, tool: 'Bitdefender', discount: '', conditions: '', expires_on: '' })) }, text);
+    expect(codes.map(item => item.code)).toEqual(['BITDEF20']);
+  });
+});
+
 describe('extractCodes', () => {
   it('envoie la description comme donnée et rend les codes vérifiés avec le coût', async () => {
     const create = vi.fn(async (_params: Anthropic.Beta.MessageCreateParamsNonStreaming) => fakeResponse(JSON.stringify({ codes: [{ code: 'NORD20', tool: 'NordVPN', discount: '', conditions: '', expires_on: '' }] })));
