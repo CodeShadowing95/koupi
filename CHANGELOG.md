@@ -2,6 +2,12 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.6.1](https://github.com/CodeShadowing95/koupi/compare/v0.6.0...v0.6.1) (2026-11-06)
+
+### Corrections
+
+- **sources:** Hide SQL in run errors and skip malformed codes ([80c36a7](https://github.com/CodeShadowing95/koupi/commit/80c36a7ef327459ce3da62f96a36819d5bb6c0b8))
+
 ## [0.6.0](https://github.com/CodeShadowing95/koupi/compare/v0.5.2...v0.6.0) (2026-11-06)
 
 ### Nouveautés
