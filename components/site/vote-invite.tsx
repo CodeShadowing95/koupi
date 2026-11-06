@@ -49,9 +49,10 @@ function QuickVote({ copied, onVoted }: { copied: CopiedCode; onVoted: () => voi
   // (lu au chargement) ne doit pas la fermer avant que le visiteur ait pu la lire.
   const asked = useRef(false);
   const done = useRef(false);
+  // Le merci s'affiche dès le clic, mais la fenêtre ne se range qu'une fois le vote accepté par le serveur.
   useEffect(() => {
-    if (voted && asked.current && !done.current) { done.current = true; onVoted(); }
-  }, [voted, onVoted]);
+    if (voted && !sending && asked.current && !done.current) { done.current = true; onVoted(); }
+  }, [voted, sending, onVoted]);
   const answer = (worked: boolean) => { asked.current = true; void vote(worked); };
   if (voted && !asked.current) {
     return (
