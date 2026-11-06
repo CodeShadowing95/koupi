@@ -34,13 +34,21 @@ export type CreatorFacts = {
   ratingCount?: number | null;
 };
 
-// Le badge de la plateforme suffit pour « Contrôlé par Merkod » ; sinon il faut le contrôle de l'admin et un seuil
-// d'audience : au moins MIN_SUBSCRIBERS abonnés, ou MIN_RATINGS notes pour un podcast.
+/** Le seuil d'audience : au moins MIN_SUBSCRIBERS abonnés, ou MIN_RATINGS notes pour un podcast. */
+export function audienceReached(facts: Pick<CreatorFacts, 'subscribers' | 'ratingCount'>): boolean {
+  return (facts.subscribers ?? 0) >= MIN_SUBSCRIBERS || (facts.ratingCount ?? 0) >= MIN_RATINGS;
+}
+
+/** « Contrôlé par Merkod » : le badge de la plateforme, ou le contrôle de l'admin avec le seuil d'audience. */
+export function controlledByMerkod(facts: CreatorFacts): boolean {
+  return Boolean(facts.platformVerified) || (Boolean(facts.adminChecked) && audienceReached(facts));
+}
+
+// « Créateur vérifié » demande la preuve par la bio ET un compte « Contrôlé par Merkod » (décision du 6 novembre 2026,
+// ADR-0020) : la preuve sur un petit compte ne suffit pas.
 export function creatorLevelOf(facts: CreatorFacts): CreatorLevel {
-  if (facts.claimed) return 'verified';
-  if (facts.platformVerified) return 'checked';
-  if (facts.adminChecked && ((facts.subscribers ?? 0) >= MIN_SUBSCRIBERS || (facts.ratingCount ?? 0) >= MIN_RATINGS)) return 'checked';
-  return 'spotted';
+  if (!controlledByMerkod(facts)) return 'spotted';
+  return facts.claimed ? 'verified' : 'checked';
 }
 
 export type SourceKind = 'youtube' | 'podcast' | 'instagram' | 'tiktok' | 'other';

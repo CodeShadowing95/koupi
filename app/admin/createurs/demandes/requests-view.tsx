@@ -23,7 +23,10 @@ function replyLink(request: AdminCreatorRequest) {
   return `mailto:${request.email}?subject=${encodeURIComponent(subject)}`;
 }
 
-export function RequestsView({ requests, granted }: { requests: AdminCreatorRequest[]; granted: string[] }) {
+/** Pourquoi « Donner l’accès » reste grisé : le serveur refuse tant qu'aucun compte n'est « Créateur vérifié ». */
+const NOT_PROVEN = 'Fais d’abord prouver un de ses comptes par la bio, sur un compte « Contrôlé par Merkod » : l’accès ne se donne qu’au vrai créateur.';
+
+export function RequestsView({ requests, granted, proven }: { requests: AdminCreatorRequest[]; granted: string[]; proven: string[] }) {
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>('new');
   const [busy, setBusy] = useState<string | null>(null);
@@ -93,7 +96,7 @@ export function RequestsView({ requests, granted }: { requests: AdminCreatorRequ
                     {request.message && <><dt>Message</dt><dd style={{ whiteSpace: 'pre-line' }}>{request.message}</dd></>}
                   </dl>
                   {request.kind === 'claim' && request.status === 'new' && (
-                    <p className="adm-ca-hint">Pour qu’il prouve que le compte est le sien : ouvre sa <a href={`/admin/createurs?q=${encodeURIComponent(request.creator.name)}`}>fiche admin</a>, relie ce compte s’il ne l’est pas, puis <b>Donner un code</b> et envoie-lui le message. Une fois le compte prouvé, <b>Donner l’accès à son espace</b>.</p>
+                    <p className="adm-ca-hint">Pour qu’il prouve que le compte est le sien : ouvre sa <a href={`/admin/createurs?q=${encodeURIComponent(request.creator.name)}`}>fiche admin</a>, relie ce compte s’il ne l’est pas, puis <b>Donner un code</b> et envoie-lui le message. Le compte doit être « Contrôlé par Merkod » (seuil d’audience atteint). Une fois le compte prouvé, <b>Donner l’accès à son espace</b>.</p>
                   )}
                   <div className="field">
                     <label htmlFor={`note-${request.id}`}>Note pour toi <span className="muted">(facultatif)</span></label>
@@ -103,7 +106,9 @@ export function RequestsView({ requests, granted }: { requests: AdminCreatorRequ
                     {reply && request.status === 'new' && <a className="adm-btn" href={reply}>Répondre par e-mail</a>}
                     {request.kind === 'claim' && request.email && (hasAccess(request)
                       ? <><span className="adm-req-access">✓ Accès à son espace donné</span><button type="button" className="adm-btn" disabled={busy === request.id} onClick={() => setAccess(request, false)}>Retirer l’accès</button></>
-                      : <button type="button" className="adm-btn" disabled={busy === request.id} onClick={() => setAccess(request, true)}>Donner l’accès à son espace</button>)}
+                      : proven.includes(request.creator.id)
+                        ? <button type="button" className="adm-btn" disabled={busy === request.id} onClick={() => setAccess(request, true)}>Donner l’accès à son espace</button>
+                        : <span className="adm-req-locked" title={NOT_PROVEN}><button type="button" className="adm-btn" disabled aria-describedby={`locked-${request.id}`}>Donner l’accès à son espace</button><span id={`locked-${request.id}`} className="sr-only">{NOT_PROVEN}</span></span>)}
                     <span style={{ flex: 1 }} />
                     {request.status === 'new' ? <>
                       <button type="button" className="adm-btn" disabled={busy === request.id} onClick={() => setStatus(request, 'dismissed')}>Écarter</button>

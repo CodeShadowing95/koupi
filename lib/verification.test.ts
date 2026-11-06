@@ -5,8 +5,15 @@ import {
 } from './verification';
 
 describe('creatorLevelOf', () => {
-  it('donne « Créateur vérifié » au créateur qui a réclamé sa page', () => {
-    expect(creatorLevelOf({ claimed: true })).toBe('verified');
+  it('donne « Créateur vérifié » au créateur qui a prouvé un compte contrôlé', () => {
+    expect(creatorLevelOf({ claimed: true, adminChecked: true, subscribers: 1000 })).toBe('verified');
+    expect(creatorLevelOf({ claimed: true, platformVerified: true })).toBe('verified');
+    expect(creatorLevelOf({ claimed: true, adminChecked: true, subscribers: null, ratingCount: 50 })).toBe('verified');
+  });
+  it('ne donne rien à une preuve sur un compte sous le seuil d’audience', () => {
+    expect(creatorLevelOf({ claimed: true })).toBe('spotted');
+    expect(creatorLevelOf({ claimed: true, adminChecked: true, subscribers: 999 })).toBe('spotted');
+    expect(creatorLevelOf({ claimed: true, adminChecked: true, ratingCount: 49 })).toBe('spotted');
   });
   it('donne « Contrôlé par Merkod » dès le badge de la plateforme', () => {
     expect(creatorLevelOf({ platformVerified: true, subscribers: 0 })).toBe('checked');

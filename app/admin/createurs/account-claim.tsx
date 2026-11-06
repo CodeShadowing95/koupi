@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { InfoTip } from '@/components/admin-info-tip';
 import { CLAIM_CODE_DAYS, PLATFORM_LABELS, claimMessage, type AdminCreatorAccount } from '@/lib/creator-accounts-display';
+import { MIN_RATINGS, MIN_SUBSCRIBERS, audienceReached } from '@/lib/verification';
 
 const dayFormat = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Paris' });
 const day = (iso: string) => dayFormat.format(new Date(iso));
@@ -43,8 +44,12 @@ export function AccountClaim({ account, disabled, youtubeReady }: { account: Adm
 
   const off = disabled || busy !== null;
   // Garde-fou : pas de preuve sur un compte que l'admin n'a pas contrôlé (le serveur refuse aussi).
-  const checked = account.adminCheckedAt !== null;
-  const uncheckedHint = 'Contrôle d’abord ce compte (case ci-dessus) : c’est la garantie que la preuve porte sur le vrai compte du créateur, pas sur une copie.';
+  // Et la preuve ne vaut que sur un compte « Contrôlé par Merkod » : badge du réseau, ou seuil d'audience atteint.
+  const bigEnough = account.platformVerified || audienceReached({ subscribers: account.subscribers, ratingCount: account.metrics.ratingCount ?? null });
+  const uncheckedHint = !account.adminCheckedAt
+    ? 'Contrôle d’abord ce compte (case ci-dessus) : c’est la garantie que la preuve porte sur le vrai compte du créateur, pas sur une copie.'
+    : `Ce compte n’atteint pas le seuil d’audience (${MIN_SUBSCRIBERS.toLocaleString('fr-FR')} abonnés, ou ${MIN_RATINGS} notes pour un podcast) : il ne peut pas être prouvé par la bio.`;
+  const checked = account.adminCheckedAt !== null && bigEnough;
   return (
     <div className="adm-claim">
       <div className="adm-claim-head">
@@ -55,6 +60,7 @@ export function AccountClaim({ account, disabled, youtubeReady }: { account: Adm
       {account.claimStatus === 'verified' ? (
         <div className="adm-claim-row">
           <span className="adm-claim-ok">✓ Prouvé par le créateur{account.claimedAt && <> le {day(account.claimedAt)}</>}</span>
+          {!checked && !account.platformVerified && <span className="adm-ca-hint">Ne compte pas : {account.adminCheckedAt ? 'le compte est sous le seuil d’audience' : 'le compte n’est plus contrôlé'}, le créateur n’est pas « Créateur vérifié ».</span>}
           <button type="button" className="adm-btn" disabled={off} onClick={() => run('revoke')}>Retirer la preuve</button>
         </div>
       ) : account.claimStatus === 'pending' && account.claimCode && account.claimCodeAt ? (
@@ -77,7 +83,7 @@ export function AccountClaim({ account, disabled, youtubeReady }: { account: Adm
       ) : (
         <div className="adm-claim-row">
           <span className="adm-ca-hint">{!checked ? uncheckedHint : account.claimStatus === 'revoked' ? 'Preuve retirée.' : 'Le créateur n’a pas encore prouvé que ce compte est le sien.'}</span>
-          <button type="button" className="adm-btn" disabled={off || !checked} title={checked ? undefined : 'Contrôle d’abord ce compte'} onClick={() => run('start')}>{busy === 'start' ? 'Création…' : 'Donner un code'}</button>
+          <button type="button" className="adm-btn" disabled={off || !checked} title={checked ? undefined : uncheckedHint} onClick={() => run('start')}>{busy === 'start' ? 'Création…' : 'Donner un code'}</button>
         </div>
       )}
       {notice && <div className={`notice ${notice.tone === 'error' ? 'notice-error' : 'notice-info'}`} role={notice.tone === 'error' ? 'alert' : 'status'}>{notice.text}</div>}

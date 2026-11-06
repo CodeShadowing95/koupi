@@ -473,7 +473,7 @@ function Createurs() {
       <Legend rows={[
         { term: <StatusDot tone="muted">{CREATOR_LEVEL_LABELS.spotted}</StatusDot>, meaning: 'Merkod connaît son nom, mais personne n’a encore contrôlé ses comptes. C’est le niveau de départ.' },
         { term: <StatusDot tone="ok">{CREATOR_LEVEL_LABELS.checked}</StatusDot>, meaning: `Tu as contrôlé un de ses comptes et il a au moins ${MIN_SUBSCRIBERS} abonnés (ou, pour un podcast, au moins ${MIN_RATINGS} notes sur Apple Podcasts), ou ce compte a le badge certifié du réseau.` },
-        { term: <StatusDot tone="info">{CREATOR_LEVEL_LABELS.verified}</StatusDot>, meaning: 'Le créateur a prouvé lui-même qu’un compte est à lui, avec un code dans sa bio (voir plus bas).' },
+        { term: <StatusDot tone="info">{CREATOR_LEVEL_LABELS.verified}</StatusDot>, meaning: 'Le créateur a prouvé lui-même, avec un code dans sa bio (voir plus bas), qu’un compte « Contrôlé par Merkod » est à lui. La preuve sur un compte sous le seuil d’audience ne compte pas.' },
       ]} />
       <p>Le filtre <b>À contrôler</b> liste les créateurs déjà sur le site mais encore repérés : commence par eux.</p>
       <p>Sur le site, un créateur contrôlé ou vérifié porte une coche verte à côté de son nom, et la mention <b>✓ Contrôlé par Merkod</b> (ou <b>✓ Créateur vérifié</b>) sur sa page. Un créateur repéré n’a aucune marque.</p>
@@ -498,7 +498,7 @@ function Createurs() {
     <Section id="preuve" title="Faire prouver un compte par la bio">
       <p>Seul le vrai propriétaire d’un compte peut modifier sa bio. C’est la preuve la plus simple : tu donnes un code au créateur, il l’ajoute à la bio du compte, et Merkod le retrouve. Le créateur passe alors <b>Créateur vérifié</b>, et ce compte porte une coche bleue sur sa page.</p>
       <Steps>
-        <Step title="Contrôle le compte d’abord">Coche <b>J’ai contrôlé ce compte</b> après avoir vérifié que c’est la vraie chaîne du créateur. Sans ce contrôle, Merkod refuse de donner un code.</Step>
+        <Step title="Contrôle le compte d’abord">Coche <b>J’ai contrôlé ce compte</b> après avoir vérifié que c’est la vraie chaîne du créateur. Le compte doit aussi être « Contrôlé par Merkod » : au moins {MIN_SUBSCRIBERS} abonnés (ou {MIN_RATINGS} notes pour un podcast), ou le badge certifié du réseau. Sinon, <b>Donner un code</b> reste grisé et Merkod refuse la preuve.</Step>
         <Step title="Donne un code">Dans le panneau du créateur, sous le compte, <b>Donner un code</b>. Merkod crée un code du type MERKOD-7F3K2Q, valable 14 jours.</Step>
         <Step title="Envoie-le">« Copier le message » prépare un e-mail prêt à envoyer, avec le code et la marche à suivre. Envoie-le à l’adresse laissée dans sa demande.</Step>
         <Step title="Retrouve le code">YouTube : <b>Lire la bio</b> lit la description de la chaîne (1 unité de quota). Si le code y est, c’est fait. Autres réseaux : ouvre le profil toi-même et clique <b>J’ai vu le code dans la bio</b>.</Step>
@@ -525,7 +525,7 @@ function Createurs() {
       <p>Depuis la connexion des créateurs, « C’est ta page ? » mène à la page <b>Pour les créateurs</b> : la personne voit les chiffres de la page, laisse son e-mail et reçoit un lien pour se connecter. La revendication arrive ici en même temps, avec le compte principal de la page comme « compte annoncé ».</p>
       <Steps>
         <Step title="Fais prouver le compte">Contrôle le compte, puis donne un code à mettre dans la bio (voir « Faire prouver un compte par la bio »).</Step>
-        <Step title="Donne l’accès">Une fois le compte prouvé, <b>Donner l’accès à son espace</b> sur la revendication. À sa prochaine visite, la personne voit ses codes et leurs copies du mois. Merkod refuse tant qu’aucun compte du créateur n’est prouvé.</Step>
+        <Step title="Donne l’accès">Une fois le compte prouvé, <b>Donner l’accès à son espace</b> sur la revendication. À sa prochaine visite, la personne voit ses codes et leurs copies du mois. Tant qu’aucun compte « Contrôlé par Merkod » du créateur n’est prouvé, le bouton reste grisé : survole-le pour voir pourquoi.</Step>
         <Step title="Retire-le si besoin">« Retirer l’accès » la remet dans un espace vide, sans toucher à la page.</Step>
       </Steps>
       <Callout tone="warn">Une revendication ne prouve rien à elle seule : n’importe qui peut écrire « je suis MrBeast ». Ne change jamais le niveau d’un créateur sur la seule foi d’un e-mail : demande-lui la preuve par la bio.</Callout>
