@@ -54,7 +54,7 @@ export function ChannelWatchButtons({ followed, youtubeReady }: { followed: numb
                 <b>{plural(read.channels, 'chaîne lue', 'chaînes lues')}, {plural(read.videos, 'nouvelle vidéo', 'nouvelles vidéos')}{read.skipped > 0 && ` (${plural(read.skipped, 'déjà lue écartée', 'déjà lues écartées')})`}, environ {read.units} unités du quota.</b>
                 <span>{read.found.length === 0 ? 'Aucun nouveau code trouvé.' : `${plural(read.found.length, 'nouveau code', 'nouveaux codes')} en attente : ${read.found.map(item => `${item.code} (${item.tool})`).join(', ')}.`}</span>
                 {read.suggested.length > 0 && <span>{plural(read.suggested.length, 'code', 'codes')} pour des outils absents du catalogue. <a href="/admin/podcasts?tab=outils">Voir les outils à ajouter</a></span>}
-                {read.remaining > 0 && <span>{plural(read.remaining, 'chaîne', 'chaînes')} pas encore lue{read.remaining > 1 ? 's' : ''} : la suite passe à la prochaine lecture.</span>}
+                {read.remaining > 0 && <span>{plural(read.remaining, 'chaîne', 'chaînes')} pas encore lue{read.remaining > 1 ? 's' : ''} : reclique pour continuer, sinon la suite passe cette nuit.</span>}
                 {read.failed.length > 0 && <span>YouTube n’a pas répondu pour : {read.failed.join(', ')}.</span>}
                 {read.found.length > 0 && <Link href="/admin/verifications" className="adm-btn adm-btn-pri">Ouvrir les vérifications</Link>}
               </>}

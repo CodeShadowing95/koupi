@@ -65,7 +65,9 @@ function RunNow({ label, url, body, confirm, disabled, title }: { label: string;
       if (!response.ok) setMessage({ tone: 'error', text: data.error ?? 'Le passage a échoué.' });
       else {
         const found = Array.isArray(data.found) ? data.found.length : 0;
-        setMessage({ tone: 'ok', text: found ? `${plural(found, 'nouveau code', 'nouveaux codes')} en attente dans Vérifications.` : 'Passage terminé : aucun nouveau code.' });
+        const left = typeof data.remaining === 'number' && data.remaining > 0
+          ? ` ${plural(data.remaining, 'chaîne reste', 'chaînes restent')} à lire : relance pour continuer.` : '';
+        setMessage({ tone: 'ok', text: `${found ? `${plural(found, 'nouveau code', 'nouveaux codes')} en attente dans Vérifications.` : 'Passage terminé : aucun nouveau code.'}${left}` });
         router.refresh();
       }
     } catch {
