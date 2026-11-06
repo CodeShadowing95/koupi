@@ -11,7 +11,8 @@ import { CREATOR_LEVEL_LABELS, MIN_RATINGS, MIN_SUBSCRIBERS, type CreatorLevel }
 import { AccountClaim } from './account-claim';
 import { audienceLine } from '@/lib/account-metrics';
 import { localeLabel } from '@/lib/creator-locale';
-import { PLATFORM_LABELS, formatSubscribers, type AdminCreatorAccount, type CreatorPlatform } from '@/lib/creator-accounts-display';
+import { PLATFORM_LABELS, formatSubscribers, handleFromProfileUrl, profileUrlFor, type AdminCreatorAccount, type CreatorPlatform } from '@/lib/creator-accounts-display';
+import { askText, confirmAction } from '@/components/admin-ask';
 
 const LEVEL_TONES: Record<CreatorLevel, Tone> = { spotted: 'muted', checked: 'ok', verified: 'info' };
 
@@ -62,20 +63,33 @@ export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtube
   const patch = (account: AdminCreatorAccount, body: Record<string, unknown>) => act(`${account.id}-patch`, () => sendJson(`/api/admin/creator-accounts/${account.id}`, 'PATCH', body));
   const watch = (account: AdminCreatorAccount, follow: boolean) => act(`${account.id}-watch`, () => sendJson(`/api/admin/creator-accounts/${account.id}/watch`, 'POST', { follow }));
   const refresh = (account: AdminCreatorAccount) => act(`${account.id}-refresh`, () => sendJson(`/api/admin/creator-accounts/${account.id}/refresh`, 'POST', {}));
-  const remove = (account: AdminCreatorAccount) => {
-    if (!window.confirm(`Retirer le compte ${account.handle} de ${creatorName} ? Le créateur et ses codes restent.`)) return;
+  const remove = async (account: AdminCreatorAccount) => {
+    if (!(await confirmAction(`Retirer le compte ${account.handle} de ${creatorName} ? Le créateur et ses codes restent.`, { confirmLabel: 'Retirer le compte', danger: true }))) return;
     void act(`${account.id}-delete`, () => sendJson(`/api/admin/creator-accounts/${account.id}`, 'DELETE', {}));
   };
+  // Le pseudo remplit le lien du profil, et le lien collé remplit le pseudo, tant que l'admin n'a pas écrit l'autre lui-même.
+  const typeHandle = (value: string) => {
+    if (!url || url === profileUrlFor(platform, handle)) setUrl(profileUrlFor(platform, value) ?? '');
+    setHandle(value);
+  };
+  const typeUrl = (value: string) => {
+    if (!handle || handle === handleFromProfileUrl(platform, url)) setHandle(handleFromProfileUrl(platform, value) ?? '');
+    setUrl(value);
+  };
+  const choosePlatform = (value: CreatorPlatform) => {
+    if (url && url === profileUrlFor(platform, handle)) setUrl(profileUrlFor(value, handle) ?? '');
+    setPlatform(value);
+  };
   const openAdd = () => { setPlatform('youtube'); setChannel(''); setHandle(''); setUrl(''); setSubscribers(''); setAdding(true); };
-  const editLocale = (account: AdminCreatorAccount) => {
+  const editLocale = async (account: AdminCreatorAccount) => {
     const current = [account.metrics.country, account.metrics.language].filter(Boolean).join(' ');
-    const value = window.prompt(`Pays et langue de ${account.handle}, en codes à deux lettres séparés par un espace (ex. « FR fr », « BE fr », « US en »). Laisse vide pour effacer.`, current);
+    const value = await askText({ title: `Pays et langue de ${account.handle}`, message: 'En codes à deux lettres séparés par un espace. Laisse vide pour effacer.', label: 'Pays et langue', initial: current, placeholder: 'FR fr, BE fr, US en…' });
     if (value === null) return;
     const [country = '', language = ''] = value.trim().split(/[\s,;/]+/);
     void patch(account, { country, language });
   };
-  const editSubscribers = (account: AdminCreatorAccount) => {
-    const value = window.prompt(`Abonnés de ${account.handle} sur ${PLATFORM_LABELS[account.platform]} (laisse vide si inconnu)`, account.subscribers?.toString() ?? '');
+  const editSubscribers = async (account: AdminCreatorAccount) => {
+    const value = await askText({ title: `Abonnés de ${account.handle} sur ${PLATFORM_LABELS[account.platform]}`, message: 'Laisse vide si tu ne le sais pas.', label: 'Abonnés', initial: account.subscribers?.toString() ?? '', inputMode: 'numeric', placeholder: '12000' });
     if (value !== null) void patch(account, { subscribers: value.trim() });
   };
 
@@ -164,12 +178,12 @@ export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtube
       {error && <div className="notice notice-error" role="alert">{error}</div>}
 
       <FormDialog open={adding} title={`Relier un compte à ${creatorName}`} submitLabel={platform === 'youtube' ? 'Lire la chaîne et relier' : 'Relier'}
-        intro={platform === 'youtube' ? 'Merkod lit la chaîne sur YouTube : son identifiant, son nom et ses abonnés.' : 'Ce réseau n’a pas d’accès ouvert : recopie le pseudo, le lien et les abonnés affichés sur le profil.'}
+        intro={platform === 'youtube' ? 'Merkod lit la chaîne sur YouTube : son identifiant, son nom et ses abonnés.' : profileUrlFor(platform, 'pseudo') ? 'Ce réseau n’a pas d’accès ouvert : écris le pseudo ou colle le lien du profil, l’autre se remplit tout seul. Recopie les abonnés affichés sur le profil.' : 'Ce réseau n’a pas d’accès ouvert : recopie le pseudo, le lien et les abonnés affichés sur le profil.'}
         onClose={() => setAdding(false)}
         onSubmit={() => sendJson(`/api/admin/creators/${creatorId}/accounts`, 'POST', platform === 'youtube' ? { platform, channel } : { platform, handle, url, subscribers })}>
         <div className="field adm-span-2">
           <label htmlFor="ca-platform">Réseau</label>
-          <select id="ca-platform" value={platform} onChange={event => setPlatform(event.target.value as CreatorPlatform)}>
+          <select id="ca-platform" value={platform} onChange={event => choosePlatform(event.target.value as CreatorPlatform)}>
             {(Object.keys(PLATFORM_LABELS) as CreatorPlatform[]).map(value => <option key={value} value={value}>{PLATFORM_LABELS[value]}</option>)}
           </select>
         </div>
@@ -180,9 +194,9 @@ export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtube
             {!youtubeReady && <small className="muted">La clé YouTube (YOUTUBE_API_KEY) manque sur ce serveur : la chaîne ne pourra pas être lue.</small>}
           </div>
         ) : <>
-          <div className="field"><label htmlFor="ca-handle">Pseudo</label><input id="ca-handle" value={handle} onChange={event => setHandle(event.target.value)} placeholder="@pseudo" required maxLength={120} /></div>
+          <div className="field"><label htmlFor="ca-handle">Pseudo</label><input id="ca-handle" value={handle} onChange={event => typeHandle(event.target.value)} placeholder="@pseudo" required maxLength={120} /></div>
           <div className="field"><label htmlFor="ca-subs">Abonnés (facultatif)</label><input id="ca-subs" inputMode="numeric" value={subscribers} onChange={event => setSubscribers(event.target.value)} placeholder="12 400" maxLength={16} /></div>
-          <div className="field adm-span-2"><label htmlFor="ca-url">Lien du profil</label><input id="ca-url" type="url" value={url} onChange={event => setUrl(event.target.value)} placeholder="https://" required maxLength={500} /></div>
+          <div className="field adm-span-2"><label htmlFor="ca-url">Lien du profil</label><input id="ca-url" type="url" value={url} onChange={event => typeUrl(event.target.value)} placeholder={profileUrlFor(platform, 'pseudo') ?? 'https://'} required maxLength={500} /></div>
         </>}
       </FormDialog>
     </div>

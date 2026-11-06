@@ -21,6 +21,7 @@ import type { AdminCandidate } from '@/lib/podcast-candidates';
 import { CandidatesPanel } from './candidates-panel';
 import { PodcastDrawer } from './podcast-drawer';
 import { ToolSuggestionsPanel, type AiAvailability, type CatalogToolOption, type CategoryOption } from './tool-suggestions-panel';
+import { confirmAction } from '@/components/admin-ask';
 
 type Filter = 'all' | 'active' | 'paused' | 'never' | 'codes' | 'quiet';
 const filters: { value: Filter; label: string }[] = [
@@ -142,7 +143,7 @@ export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, sug
   }
   // Met en pause d'un coup les podcasts actifs qui ne donnent plus rien. Ils gardent leur historique et se reprennent un par un.
   async function pauseQuiet() {
-    if (!window.confirm(`Mettre en pause ${quietActive.length} podcast${quietActive.length > 1 ? 's' : ''} sans code depuis ${QUIET_DAYS} jours ? Ils ne seront plus lus la nuit, tu pourras les reprendre.`)) return;
+    if (!(await confirmAction(`Mettre en pause ${quietActive.length} podcast${quietActive.length > 1 ? 's' : ''} sans code depuis ${QUIET_DAYS} jours ? Ils ne seront plus lus la nuit, tu pourras les reprendre.`, { confirmLabel: 'Mettre en pause' }))) return;
     await act('pause-quiet', async () => {
       for (const podcast of quietActive) {
         const failure = await sendJson(`/api/admin/podcasts/${podcast.id}`, 'PATCH', { active: false });
@@ -151,8 +152,8 @@ export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, sug
       return null;
     });
   }
-  const remove = (podcast: AdminPodcast) => {
-    if (!window.confirm(`Ne plus suivre « ${podcast.title} » ? Son créateur et ses codes restent.`)) return;
+  const remove = async (podcast: AdminPodcast) => {
+    if (!(await confirmAction(`Ne plus suivre « ${podcast.title} » ? Son créateur et ses codes restent.`, { confirmLabel: 'Ne plus suivre', danger: true }))) return;
     void act(`${podcast.id}-delete`, () => sendJson(`/api/admin/podcasts/${podcast.id}`, 'DELETE', {}));
   };
 

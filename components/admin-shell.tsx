@@ -9,6 +9,7 @@ import { ThemeToggle, useStoredTheme } from '@/components/admin-theme';
 import { CommandPalette } from '@/components/admin-command';
 import { AdminNotifications } from '@/components/admin-notifications';
 import { AdminCouponTear } from '@/components/admin-coupon-tear';
+import { AdminAskHost } from '@/components/admin-ask';
 import { UsageGauge } from '@/components/admin-usage-gauge';
 import { AdminIcon } from '@/components/admin-icons';
 import { parisDate } from '@/lib/paris-date';
@@ -215,6 +216,7 @@ export function AdminShell({ children, toTest = 0, newFeedback = 0, newRequests 
       </div>
     </div>
     <AdminCouponTear key="coupon-tear" />
+    <AdminAskHost />
     </>
   );
 }

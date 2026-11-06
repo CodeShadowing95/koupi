@@ -9,6 +9,7 @@ import type { ToolOption } from '@/lib/codes-admin';
 import { AdminSelect } from '@/components/admin-select';
 import { matchCategory } from '@/lib/category-match';
 import { codeFormatError, findDuplicateCode, normalizeCode, MAX_CODE_LENGTH, type ExistingCode } from '@/lib/code-format';
+import { confirmAction } from '@/components/admin-ask';
 
 export type EditorTarget =
   | { kind: 'create' }
@@ -116,10 +117,10 @@ export function CodeEditor({ target, tools, categories, creators, existing = [],
     else void send('/api/admin/codes', 'POST', body);
   }
 
-  function archive() {
+  async function archive() {
     if (target?.kind !== 'edit') return;
     const restoring = target.code.archived;
-    if (!restoring && !window.confirm('Archiver ce code ? Il disparaît du site et des statistiques. Tu pourras le restaurer depuis l’onglet Archivés.')) return;
+    if (!restoring && !(await confirmAction('Archiver ce code ? Il disparaît du site et des statistiques. Tu pourras le restaurer depuis l’onglet Archivés.', { confirmLabel: 'Archiver', danger: true }))) return;
     void send(`/api/admin/codes/${target.code.id}`, 'PATCH', { action: restoring ? 'restore' : 'archive' });
   }
 

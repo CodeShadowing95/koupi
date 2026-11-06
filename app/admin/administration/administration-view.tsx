@@ -6,6 +6,7 @@ import { SITE_PAGES, pageSettingKey, type PageKey, type SitePage } from '@/lib/s
 import { auditLabel, formatAuditDate } from '@/lib/admin-audit';
 import type { AuditEntry, SiteSwitchRow } from '@/lib/site-settings';
 import type { CreatorUserAction, CreatorUserItem } from '@/lib/creator-users-admin';
+import { confirmAction } from '@/components/admin-ask';
 
 type Props = { off: PageKey[]; maintenance: boolean; rows: SiteSwitchRow[]; journal: AuditEntry[]; creatorUsers: CreatorUserItem[] };
 
@@ -15,6 +16,8 @@ const USER_QUESTIONS: Record<CreatorUserAction, (user: CreatorUserItem) => strin
   'remove-access': user => `Retirer à ${user.email} l’accès à la page ${user.creator?.name ?? ''} ? Le compte reste, sans page.`,
   delete: user => `Supprimer définitivement le compte ${user.email} ? Son e-mail est effacé partout (compte, liens, revendications, journal). La page publique et les codes restent. Impossible d’annuler.`,
 };
+
+const USER_LABELS: Record<CreatorUserAction, string> = { disable: 'Désactiver', enable: 'Réactiver', 'remove-access': 'Retirer l’accès', delete: 'Supprimer définitivement' };
 
 function Switch({ on, label, disabled, onChange }: { on: boolean; label: string; disabled?: boolean; onChange?: () => void }) {
   return (
@@ -30,8 +33,9 @@ export function AdministrationView({ off, maintenance, rows, journal, creatorUse
   const [error, setError] = useState('');
   const changedAt = new Map(rows.map(row => [row.key, row.updatedAt]));
 
-  async function toggle(target: string, enabled: boolean, question: string) {
-    if (!window.confirm(question)) return;
+  async function toggle(target: string, enabled: boolean, question: string, cutLabel: string | null) {
+    // cutLabel : le bouton d'une action qui coupe quelque chose (en rouge) ; null pour remettre en ligne.
+    if (!(await confirmAction(question, { confirmLabel: cutLabel ?? 'Remettre en ligne', danger: cutLabel !== null }))) return;
     setBusy(target);
     setError('');
     try {
@@ -48,7 +52,7 @@ export function AdministrationView({ off, maintenance, rows, journal, creatorUse
   }
 
   async function userAction(user: CreatorUserItem, action: CreatorUserAction) {
-    if (!window.confirm(USER_QUESTIONS[action](user))) return;
+    if (!(await confirmAction(USER_QUESTIONS[action](user), { confirmLabel: USER_LABELS[action], danger: action !== 'enable' }))) return;
     setBusy(user.id);
     setError('');
     try {
@@ -68,7 +72,7 @@ export function AdministrationView({ off, maintenance, rows, journal, creatorUse
     const isOn = !off.includes(page.key);
     toggle(page.key, !isOn, isOn
       ? `Couper la page ${page.label} ? Elle répondra « page introuvable » (404) et ses liens disparaîtront du site.`
-      : `Remettre la page ${page.label} en ligne ?`);
+      : `Remettre la page ${page.label} en ligne ?`, isOn ? 'Couper la page' : null);
   }
 
   const onCount = SITE_PAGES.filter(page => !off.includes(page.key)).length;
@@ -97,7 +101,7 @@ export function AdministrationView({ off, maintenance, rows, journal, creatorUse
           <div className="adm-maint-action">
             <span className={`adm-maint-state${maintenance ? ' is-on' : ''}`}>{maintenance ? 'En pause' : 'En ligne'}</span>
             <Switch on={maintenance} label="Mode maintenance" disabled={busy !== null}
-              onChange={() => toggle('maintenance', !maintenance, maintenance ? 'Remettre le site en ligne pour tout le monde ?' : 'Mettre tout le site en pause ? Les visiteurs verront une page d’attente jusqu’à ce que tu le remettes en ligne.')} />
+              onChange={() => toggle('maintenance', !maintenance, maintenance ? 'Remettre le site en ligne pour tout le monde ?' : 'Mettre tout le site en pause ? Les visiteurs verront une page d’attente jusqu’à ce que tu le remettes en ligne.', maintenance ? null : 'Mettre en pause')} />
           </div>
         </section>
 

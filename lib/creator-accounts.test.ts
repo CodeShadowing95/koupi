@@ -103,6 +103,15 @@ describe('comptes créateurs', () => {
     expect(account).toMatchObject({ platform: 'instagram', subscribers: 8500, subscribersAt: now.toISOString() });
   });
 
+  it('déduit le lien du pseudo, ou le pseudo du lien', async () => {
+    expect(await addCreatorAccount(db, ana, { platform: 'tiktok', handle: '@ana.tt' }, { readChannel: null, now })).toMatchObject({ ok: true });
+    expect(await addCreatorAccount(db, ana, { platform: 'instagram', url: 'https://www.instagram.com/ana.photo/' }, { readChannel: null, now })).toMatchObject({ ok: true });
+    expect((await accountsByCreator(db)).get(ana)!.map(account => [account.handle, account.url])).toEqual(expect.arrayContaining([
+      ['@ana.tt', 'https://www.tiktok.com/@ana.tt'], ['@ana.photo', 'https://www.instagram.com/ana.photo/'],
+    ]));
+    expect(await addCreatorAccount(db, ana, { platform: 'other', handle: 'Ana' }, { readChannel: null })).toEqual({ ok: false, error: expect.stringContaining('https://') });
+  });
+
   it('monte d’un niveau avec le contrôle de l’admin ou le badge certifié', async () => {
     const added = await addCreatorAccount(db, ana, { platform: 'youtube', channel: '@ana' }, { readChannel: reader() });
     if (!added.ok) throw new Error('setup');

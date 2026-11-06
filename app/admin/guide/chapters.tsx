@@ -122,6 +122,7 @@ function SeReperer() {
         <div className="gd-row"><FakeIcon icon="check" tone="ok" /><FakeIcon icon="cross" tone="bad" /><FakeIcon icon="edit" /><FakeIcon icon="external" /></div>
       </Demo>
       <p>Pour fermer : la croix, la touche <Key>Échap</Key>, ou un clic à côté du panneau.</p>
+      <p>Avant une action qui retire ou coupe quelque chose (archiver, retirer un compte, mettre le site en pause…), une petite fenêtre te demande de confirmer : la question en titre, ce qui va se passer dessous. Le bouton <b>rouge</b> signale ce qui retire quelque chose ; <b>Annuler</b> ou <Key>Échap</Key> ne change rien.</p>
     </Section>
     <Section id="theme" title="Clair ou sombre">
       <p>L’admin suit le thème de ton ordinateur. Tu peux le forcer avec le bouton soleil/lune en haut de la page. Le choix est gardé dans ce navigateur.</p>
@@ -187,7 +188,7 @@ function Propositions() {
       <Legend rows={[
         { term: 'Valider…', meaning: <>Ouvre le formulaire du code, pré-rempli. Corrige ce qui doit l’être (orthographe de l’outil, réduction claire comme « -20 % » ou « 3 mois offerts »), choisis le statut, puis <b>Valider et créer le code</b>. La proposition passe en « Validée » et le code entre dans le catalogue.</> },
         { term: 'Doublon', meaning: 'Le même code existe déjà pour cet outil. Merkod range tout seul dans l’onglet « Doublons » une proposition déjà envoyée ou déjà au catalogue, casse ignorée. Pour une proposition plus ancienne, le formulaire de validation te prévient et refuse de créer le code une deuxième fois.' },
-        { term: 'Refuser', meaning: 'Pas de source, code inventé, offre officielle de la marque, spam. Tu peux écrire une courte note de refus : elle reste dans l’historique.' },
+        { term: 'Refuser', meaning: 'Pas de source, code inventé, offre officielle de la marque, spam. Une fenêtre te propose d’écrire une courte note de refus (facultative) : elle reste dans l’historique. Annuler ne refuse pas la proposition.' },
       ]} />
       <Callout tone="tip" title="Quel statut choisir en validant ?">
         Si tu as vu le code dans la source mais pas essayé : <b>À tester</b>. Si tu l’as essayé et qu’il marche : <b>Vérifié</b>. S’il manque une info : <b>En attente</b>, il restera caché.
@@ -484,7 +485,7 @@ function Createurs() {
     </Section>
     <Section id="comptes" title="Relier et contrôler un compte">
       <Steps>
-        <Step title="Relie sa chaîne">Dans le panneau du créateur, <b>Relier un compte</b>, choisis YouTube et colle le lien de la chaîne (youtube.com/@pseudo). Merkod lit son identifiant, son nom et ses abonnés. Pour TikTok, Instagram et les autres, recopie le pseudo, le lien et les abonnés affichés sur le profil.</Step>
+        <Step title="Relie sa chaîne">Dans le panneau du créateur, <b>Relier un compte</b>, choisis YouTube et colle le lien de la chaîne (youtube.com/@pseudo). Merkod lit son identifiant, son nom et ses abonnés. Pour TikTok, Instagram, X, Twitch et Snapchat, écris le pseudo <i>ou</i> colle le lien du profil : l’autre se remplit tout seul. Recopie aussi les abonnés affichés sur le profil.</Step>
         <Step title="Contrôle-le">Ouvre le compte : il est actif, il publie sous ce nom, ce n’est pas une copie. Coche alors <b>J’ai contrôlé ce compte</b>.</Step>
         <Step title="Coche le badge s’il y en a un">Si la chaîne affiche la coche grise de compte certifié, coche <b>Badge certifié du réseau</b>. Ce badge suffit pour passer « Contrôlé par Merkod ».</Step>
       </Steps>
