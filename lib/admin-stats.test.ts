@@ -43,6 +43,15 @@ describe('indicateurs du catalogue', () => {
     expect(flaggedCodes(codes).map(item => item.code)).toEqual(['A2']);
   });
 
+  it('ne signale plus un code que l’admin a testé depuis moins de 30 jours', () => {
+    const now = new Date('2026-11-06T08:00:00Z');
+    const voted = { votes: 2, success: 0 };
+    expect(flaggedCodes([
+      code({ code: 'RECENT', status: 'verified', lastTestedAt: '2026-11-06T07:00:00Z', ...voted }),
+      code({ code: 'OLD', status: 'verified', lastTestedAt: '2026-09-01T07:00:00Z', ...voted }),
+    ], now).map(item => item.code)).toEqual(['OLD']);
+  });
+
   it('classe les catégories de la mieux couverte à la moins couverte', () => {
     expect(coverageByCategory(categories).map(item => [item.slug, item.rate])).toEqual([['finance', 50], ['marketing', 25], ['ia', 0]]);
   });

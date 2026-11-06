@@ -48,7 +48,8 @@ export type Audience = {
   daily: { day: string; copies: number; opens: number }[];
   topCodes: { code: string; tool: string; copies: number }[];
   topTools: { tool: string; opens: number }[];
-  emptySearches: { query: string; count: number }[];
+  /** tool : nom de l'outil du catalogue qui porte ce nom depuis (ajouté après la recherche), null sinon. */
+  emptySearches: { query: string; count: number; tool: string | null }[];
 };
 
 export async function audienceStats(db: Db, period: AudiencePeriod, now = new Date()): Promise<Audience> {
@@ -78,7 +79,12 @@ export async function audienceStats(db: Db, period: AudiencePeriod, now = new Da
   const opensByTool = new Map<string, number>();
   for (const row of names) opensByTool.set(row.tool, (opensByTool.get(row.tool) ?? 0) + (byCode.get(row.id)?.opens ?? 0));
   const topTools = [...opensByTool].map(([tool, opens]) => ({ tool, opens })).filter(row => row.opens > 0).sort((a, b) => b.opens - a.opens).slice(0, 8);
-  const emptySearches = [...searches].map(([query, count]) => ({ query, count })).sort((a, b) => b.count - a.count).slice(0, 10);
+  // Un outil ajouté depuis la recherche ne doit plus être proposé à l'ajout : on le reconnaît à son nom.
+  const catalogNames = searches.size
+    ? new Map((await db.select({ name: tools.name }).from(tools).where(isNull(tools.archivedAt))).map(tool => [normalizeQuery(tool.name), tool.name]))
+    : new Map<string, string>();
+  const emptySearches = [...searches].map(([query, count]) => ({ query, count, tool: catalogNames.get(normalizeQuery(query)) ?? null }))
+    .sort((a, b) => Number(a.tool !== null) - Number(b.tool !== null) || b.count - a.count).slice(0, 10);
 
   return {
     period,

@@ -59,6 +59,16 @@ describe('audience anonyme', () => {
     expect(stats.daily.at(-2)).toEqual({ day: '2026-11-03', copies: 1, opens: 0 });
     expect(stats.topCodes).toEqual([{ code: 'LIVE', tool: 'NordVPN', copies: 3 }]);
     expect(stats.topTools).toEqual([{ tool: 'NordVPN', opens: 1 }]);
-    expect(stats.emptySearches).toEqual([{ query: 'canva', count: 2 }]);
+    expect(stats.emptySearches).toEqual([{ query: 'canva', count: 2, tool: null }]);
+  });
+
+  it('reconnaît une recherche vide dont l’outil a été ajouté depuis, et la range après les autres', async () => {
+    const { db } = await setup();
+    const now = new Date('2026-11-04T12:00:00Z');
+    await bumpCounter(db, 'search_empty', 'nordvpn', now);
+    await bumpCounter(db, 'search_empty', 'nordvpn', now);
+    await bumpCounter(db, 'search_empty', 'vercel', now);
+    const stats = await audienceStats(db, 7, now);
+    expect(stats.emptySearches).toEqual([{ query: 'vercel', count: 1, tool: null }, { query: 'nordvpn', count: 2, tool: 'NordVPN' }]);
   });
 });

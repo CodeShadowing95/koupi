@@ -56,7 +56,7 @@ export function buildNotifications(input: {
       id: `proposal-${item.id}`, tone: 'info', kind: 'proposal', subject: item.code, text: `proposé pour ${item.toolName}`,
       detail: `Crédité à ${item.creatorName}`, href: `/admin/propositions?q=${q(item.code)}`, at: item.at, proposalId: item.id,
     }));
-  for (const code of flaggedCodes(input.codes).slice(0, MAX_FLAGS)) list.push(make({
+  for (const code of flaggedCodes(input.codes, now).slice(0, MAX_FLAGS)) list.push(make({
     id: `flag-${code.id}-${code.votes}`, tone: 'bad', kind: 'flag', subject: code.code, text: 'signalé par les visiteurs',
     detail: `${code.tool} · ${plural(code.votes, 'vote')}, ${code.success} % de réussite`, href: `/admin/codes?q=${q(code.code)}`, at: null,
   }));
