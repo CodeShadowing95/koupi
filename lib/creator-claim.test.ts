@@ -61,8 +61,8 @@ describe('preuve par la bio', () => {
     await migrate(db as never, { migrationsFolder: 'db/migrations' });
     [{ id: creatorId }] = await db.insert(schema.creators).values({ slug: 'ana', name: 'Ana' }).returning();
     const accounts = await db.insert(schema.creatorAccounts).values([
-      { creatorId, platform: 'youtube', externalId: CHANNEL_ID, handle: '@ana', url: 'https://www.youtube.com/@ana', adminCheckedAt: now },
-      { creatorId, platform: 'tiktok', handle: '@ana.tt', url: 'https://tiktok.com/@ana.tt', adminCheckedAt: now },
+      { creatorId, platform: 'youtube', externalId: CHANNEL_ID, handle: '@ana', url: 'https://www.youtube.com/@ana', adminCheckedAt: now, subscribers: 12_000 },
+      { creatorId, platform: 'tiktok', handle: '@ana.tt', url: 'https://tiktok.com/@ana.tt', adminCheckedAt: now, subscribers: 3_000 },
     ]).returning();
     [youtube, tiktok] = accounts.map(account => account.id);
   });
@@ -74,7 +74,7 @@ describe('preuve par la bio', () => {
     expect(await row(youtube)).toMatchObject({ claimStatus: 'pending', claimMethod: 'bio_code', claimCode: 'MERKOD-AB3CD7' });
 
     expect(await runClaimAction(db, youtube, 'check', { readDescription: bio('Pas encore'), now: later(1) })).toEqual({ ok: true, data: { status: 'pending', code: 'MERKOD-AB3CD7', found: false } });
-    expect(await creatorLevelFor(db, creatorId)).toBe('spotted');
+    expect(await creatorLevelFor(db, creatorId)).toBe('checked');
 
     expect(await runClaimAction(db, youtube, 'check', { readDescription: bio('Tech. MERKOD-AB3CD7'), now: later(2) })).toEqual({ ok: true, data: { status: 'verified', code: null, found: true } });
     expect(await row(youtube)).toMatchObject({ claimStatus: 'verified', claimCode: null, claimCodeAt: null, claimedAt: later(2) });
@@ -105,7 +105,7 @@ describe('preuve par la bio', () => {
     await runClaimAction(db, youtube, 'confirm', { readDescription: null, now });
     expect(await runClaimAction(db, youtube, 'start', { readDescription: null, now })).toEqual({ ok: false, error: 'Ce compte est déjà prouvé par le créateur.' });
     expect(await runClaimAction(db, youtube, 'revoke', { readDescription: null, now })).toEqual({ ok: true, data: { status: 'revoked', code: null } });
-    expect(await creatorLevelFor(db, creatorId)).toBe('spotted');
+    expect(await creatorLevelFor(db, creatorId)).toBe('checked');
     expect(await runClaimAction(db, youtube, 'revoke', { readDescription: null, now })).toEqual({ ok: false, error: 'Ce compte n’est pas prouvé par le créateur.' });
     expect(await runClaimAction(db, '00000000-0000-0000-0000-000000000000', 'start', { readDescription: null, now })).toEqual({ ok: false, error: 'Compte introuvable.' });
   });
@@ -120,6 +120,23 @@ describe('preuve par la bio', () => {
     expect(await runClaimAction(db, youtube, 'check', { readDescription: bio('MERKOD-AB3CD7'), now })).toEqual({ ok: false, error: expect.stringContaining('Contrôle d’abord ce compte') });
     expect(await runClaimAction(db, youtube, 'confirm', { readDescription: null, now })).toEqual({ ok: false, error: expect.stringContaining('Contrôle d’abord ce compte') });
     expect(await creatorLevelFor(db, creatorId)).toBe('spotted');
+  });
+
+  it('refuse toute preuve sur un compte sous le seuil d’audience, même contrôlé', async () => {
+    await db.update(schema.creatorAccounts).set({ subscribers: 999 }).where(eq(schema.creatorAccounts.id, tiktok));
+    expect(await runClaimAction(db, tiktok, 'start', { readDescription: null, now, newCode: code })).toEqual({ ok: false, error: expect.stringContaining('seuil d’audience') });
+    expect((await row(tiktok)).claimStatus).toBe('none');
+
+    await runClaimAction(db, youtube, 'start', { readDescription: null, now, newCode: code });
+    await db.update(schema.creatorAccounts).set({ subscribers: 200 }).where(eq(schema.creatorAccounts.id, youtube));
+    expect(await runClaimAction(db, youtube, 'check', { readDescription: bio('MERKOD-AB3CD7'), now })).toEqual({ ok: false, error: expect.stringContaining('seuil d’audience') });
+    expect(await runClaimAction(db, youtube, 'confirm', { readDescription: null, now })).toEqual({ ok: false, error: expect.stringContaining('seuil d’audience') });
+    expect(await creatorLevelFor(db, creatorId)).toBe('spotted');
+  });
+
+  it('accepte un podcast par son nombre de notes', async () => {
+    await db.update(schema.creatorAccounts).set({ subscribers: null, metrics: { rating: 4.5, ratingCount: 50 } }).where(eq(schema.creatorAccounts.id, tiktok));
+    expect(await runClaimAction(db, tiktok, 'start', { readDescription: null, now, newCode: code })).toMatchObject({ ok: true });
   });
 
   it('la base refuse un code mal formé ou sans preuve en cours', async () => {

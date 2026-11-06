@@ -6,6 +6,7 @@ import { creatorAccounts, creators } from '@/db/schema';
 import { PLATFORM_LABELS, formatSubscribers, type CreatorPlatform } from './creator-accounts-display';
 import type { Code, Tool } from './data';
 import { audienceLine, cleanMetrics } from './account-metrics';
+import { controlledByMerkod } from './verification';
 
 export type PublicCreatorAccount = { platform: CreatorPlatform; label: string; handle: string; url: string; /** « 12 400 abonnés » ou « 4,7 ★ · 5 281 notes · 1 100 épisodes » ; null si inconnue. */ audience: string | null; proven: boolean };
 export type CreatorProfile = { bio: string | null; accounts: PublicCreatorAccount[] };
@@ -13,11 +14,13 @@ export type CreatorProfile = { bio: string | null; accounts: PublicCreatorAccoun
 const PLATFORM_ORDER: CreatorPlatform[] = ['youtube', 'tiktok', 'instagram', 'snapchat', 'twitch', 'x', 'podcast', 'other'];
 
 /** Comptes rangés pour l'affichage : par réseau (YouTube d'abord), puis le plus suivi en premier. */
-/** proven : le créateur a prouvé que ce compte est le sien (preuve par la bio, ADR-0020). */
-export function publicAccounts(rows: { platform: CreatorPlatform; handle: string; url: string; subscribers: number | null; metrics?: unknown; claimStatus?: string }[]): PublicCreatorAccount[] {
+/** proven : le créateur a prouvé que ce compte est le sien (preuve par la bio, ADR-0020), sur un compte « Contrôlé par Merkod ». */
+export function publicAccounts(rows: { platform: CreatorPlatform; handle: string; url: string; subscribers: number | null; metrics?: unknown; claimStatus?: string; platformVerified?: boolean; adminCheckedAt?: Date | null }[]): PublicCreatorAccount[] {
   return [...rows]
     .sort((a, b) => PLATFORM_ORDER.indexOf(a.platform) - PLATFORM_ORDER.indexOf(b.platform) || (b.subscribers ?? -1) - (a.subscribers ?? -1))
-    .map(row => ({ platform: row.platform, label: PLATFORM_LABELS[row.platform], handle: row.handle, url: row.url, audience: publicAudience(row), proven: row.claimStatus === 'verified' }));
+    .map(row => ({ platform: row.platform, label: PLATFORM_LABELS[row.platform], handle: row.handle, url: row.url, audience: publicAudience(row), proven: row.claimStatus === 'verified' && controlledByMerkod({
+      platformVerified: row.platformVerified, adminChecked: Boolean(row.adminCheckedAt), subscribers: row.subscribers, ratingCount: cleanMetrics(row.metrics).ratingCount ?? null,
+    }) }));
 }
 
 // Sur le site : abonnés, note et épisodes. Les vues et vidéos YouTube restent dans l'admin.
@@ -30,7 +33,7 @@ function publicAudience(row: { subscribers: number | null; metrics?: unknown }):
 export async function loadCreatorProfile(db: Db, slug: string): Promise<CreatorProfile | null> {
   const [creator] = await db.select({ id: creators.id, bio: creators.bio }).from(creators).where(eq(creators.slug, slug)).limit(1);
   if (!creator) return null;
-  const rows = await db.select({ platform: creatorAccounts.platform, handle: creatorAccounts.handle, url: creatorAccounts.url, subscribers: creatorAccounts.subscribers, metrics: creatorAccounts.metrics, claimStatus: creatorAccounts.claimStatus })
+  const rows = await db.select({ platform: creatorAccounts.platform, handle: creatorAccounts.handle, url: creatorAccounts.url, subscribers: creatorAccounts.subscribers, metrics: creatorAccounts.metrics, claimStatus: creatorAccounts.claimStatus, platformVerified: creatorAccounts.platformVerified, adminCheckedAt: creatorAccounts.adminCheckedAt })
     .from(creatorAccounts).where(eq(creatorAccounts.creatorId, creator.id)).orderBy(asc(creatorAccounts.createdAt));
   return { bio: creator.bio, accounts: publicAccounts(rows) };
 }

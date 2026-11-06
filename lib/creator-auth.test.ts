@@ -7,6 +7,7 @@ import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import { createTool } from './catalog-admin';
 import { createCode } from './codes-admin';
+import { provenCreatorIds } from './creator-level';
 import {
   consumeSignInToken, copiesByCode, createSignInLink, grantCreatorAccess, grantedAccessKeys, hashToken, loadCreatorAccount,
   newSignInToken, normalizeEmail, parseSignInRequest, pruneSignInTokens, revokeCreatorAccess,
@@ -84,7 +85,12 @@ describe('connexion des créateurs', () => {
     const userId = signedIn.ok ? signedIn.data.userId : '';
 
     expect(await grantCreatorAccess(db, request.id, now)).toEqual({ ok: false, error: expect.stringContaining('prouver un de ses comptes') });
+    // Une preuve sur un compte sous le seuil d'audience ne suffit pas : il faut un compte « Contrôlé par Merkod ».
     await db.update(schema.creatorAccounts).set({ claimStatus: 'verified', claimMethod: 'bio_code', claimedAt: now }).where(eq(schema.creatorAccounts.platform, 'youtube'));
+    expect(await grantCreatorAccess(db, request.id, now)).toEqual({ ok: false, error: expect.stringContaining('prouver un de ses comptes') });
+    expect(await provenCreatorIds(db)).toEqual(new Set());
+    await db.update(schema.creatorAccounts).set({ adminCheckedAt: now, subscribers: 4_000 }).where(eq(schema.creatorAccounts.platform, 'youtube'));
+    expect(await provenCreatorIds(db)).toEqual(new Set([ana]));
     expect(await grantCreatorAccess(db, request.id, now)).toEqual({ ok: true, data: { userId } });
     expect((await db.select().from(schema.creatorRequests))[0].status).toBe('done');
     expect((await loadCreatorAccount(db, userId))?.creator).toEqual({ id: ana, slug: 'ana', name: 'Ana' });
