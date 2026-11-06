@@ -2,6 +2,21 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.7.0](https://github.com/CodeShadowing95/koupi/compare/v0.6.1...v0.7.0) (2026-11-06)
+
+### Nouveautés
+
+- **stats:** Measure real visitor speed with first-party Web Vitals (#220) ([190ea6d](https://github.com/CodeShadowing95/koupi/commit/190ea6d3b9a4356d3cc5b1378febfe95c02dec32))
+- **seo:** Add coupon share previews and structured data (#219) ([c89aa7c](https://github.com/CodeShadowing95/koupi/commit/c89aa7c522527453d89ec0333bc65997b08b3b9e))
+- **seo:** Add robots.txt, sitemap.xml and canonical addresses for merkod.com (#218) ([f59bd6e](https://github.com/CodeShadowing95/koupi/commit/f59bd6edaf4e1d941ece8db78d063b97d94547d8))
+- **votes:** Light up the vote thumb before the server answers (#217) ([8c23f7d](https://github.com/CodeShadowing95/koupi/commit/8c23f7d10a9d90b349fdeeb2ad4effe0dca155ec))
+- **site:** Show skeleton screens while public and admin pages load (#216) ([35d08e4](https://github.com/CodeShadowing95/koupi/commit/35d08e48459c6ba8e695002113b2d9b08429bbdd))
+
+### Performances
+
+- **api:** Put a time limit on external API calls (#215) ([e9a55a6](https://github.com/CodeShadowing95/koupi/commit/e9a55a67ca51d9ce984aea23bed07031c64cff0f))
+- **media:** Let the Vercel CDN keep stored logos and avatars ([7adb6d6](https://github.com/CodeShadowing95/koupi/commit/7adb6d60239e68759def7a74aea7a92902e145b0))
+
 ## [0.6.1](https://github.com/CodeShadowing95/koupi/compare/v0.6.0...v0.6.1) (2026-11-06)
 
 ### Corrections
