@@ -15,6 +15,8 @@ import { CreatorRotator } from '@/components/site/creator-rotator';
 import { rotationCreators } from '@/lib/creator-rotation';
 import { VoteInvite } from '@/components/site/vote-invite';
 
+export const metadata = { alternates: { canonical: routes.home } };
+
 export default async function Home() {
   const { codes, tools } = await getCatalog();
   const live = codes.filter(isPublic);

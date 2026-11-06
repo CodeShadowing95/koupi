@@ -1,3 +1,4 @@
+import { routes } from '@/lib/routes';
 import type { Metadata } from 'next';
 import { isPublic } from '@/lib/data';
 import { getCatalog } from '@/lib/catalog-server';
@@ -8,6 +9,8 @@ import { VoteInvite } from '@/components/site/vote-invite';
 export const metadata: Metadata = {
   title: 'Tous les codes promo · Merkod',
   description: 'Tous les codes promo donnés par les créateurs, vérifiés et reliés à leur source. Filtre par catégorie, outil, créateur, type d’offre ou date de fin.',
+  // Les filtres changent l'adresse (?tool=…) : une seule adresse compte pour Google.
+  alternates: { canonical: routes.codes },
 };
 
 export default async function CodesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {

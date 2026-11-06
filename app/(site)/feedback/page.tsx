@@ -1,9 +1,11 @@
+import { routes } from '@/lib/routes';
 import { PageHead } from '@/components/site/page-head';
 import { FeedbackForm } from './feedback-form';
 
 export const metadata = {
   title: 'Ton avis · Merkod',
   description: 'Une remarque, une idée, un problème sur Merkod ? Dis-le-nous : chaque avis est lu.',
+  alternates: { canonical: routes.feedback },
 };
 
 export default function Feedback() {
