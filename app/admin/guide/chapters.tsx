@@ -54,7 +54,7 @@ function SeReperer() {
     <Section id="menu" title="Le menu de gauche">
       <p>Le menu est rangé par grandes tâches, de haut en bas :</p>
       <Legend rows={[
-        { term: 'Pilotage', meaning: <><b>Accueil</b> (ce qu’il y a à faire aujourd’hui), <b>Statistiques</b> (les chiffres en détail, en trois onglets, dont <b>Consommation</b> : le quota YouTube et la dépense IA) et <b>Retours</b> (les avis des visiteurs).</> },
+        { term: 'Pilotage', meaning: <><b>Accueil</b> (ce qu’il y a à faire aujourd’hui), <b>Statistiques</b> (les chiffres en détail, en quatre onglets, dont <b>Consommation</b> : le quota YouTube et la dépense IA, et <b>Vitesse</b> : la vitesse ressentie par les visiteurs) et <b>Retours</b> (les avis des visiteurs).</> },
         { term: 'Catalogue', meaning: <><b>Codes</b> (tout le catalogue), avec en sous-menus <b>Propositions</b> (les codes envoyés par les visiteurs), <b>Vérifications</b> (les dossiers préparés avec un score), <b>Sources</b> (d’où viennent les codes, ce qu’elles rapportent et coûtent) et <b>Podcasts suivis</b>. Puis <b>Créateurs</b> (avec <b>Demandes</b>) et <b>Outils</b> (avec <b>Catégories</b>).</> },
         { term: 'Aide et réglages', meaning: <>Ce <b>guide</b> et l’espace <b>Administration</b>.</> },
       ]} />
@@ -666,8 +666,18 @@ function Indicateurs() {
       ]} />
       <Callout tone="tip">Au-dessus de 70 %, évite les grosses recherches par catégorie pour la journée : la lecture des vidéos proposées par les visiteurs a besoin du reste du quota.</Callout>
     </Section>
-    <Section id="onglets" title="Les trois onglets de Statistiques">
-      <p>Statistiques se lit en trois onglets : <b>Catalogue et audience</b> (l’état des codes et ce que font les visiteurs), <b>Sources et outils</b> (d’où viennent les codes et ce que les visiteurs copient) et <b>Consommation</b> (quota YouTube et dépense IA).</p>
+    <Section id="onglets" title="Les quatre onglets de Statistiques">
+      <p>Statistiques se lit en quatre onglets : <b>Catalogue et audience</b> (l’état des codes et ce que font les visiteurs), <b>Sources et outils</b> (d’où viennent les codes et ce que les visiteurs copient), <b>Consommation</b> (quota YouTube et dépense IA) et <b>Vitesse</b> (ce que les visiteurs ressentent en chargeant les pages).</p>
+    </Section>
+    <Section id="vitesse" title="La vitesse ressentie">
+      <p>L’onglet <b>Vitesse</b> montre, sur les 28 derniers jours, la part des visites où la page a été rapide, par type de page et par appareil (téléphone ou ordinateur). Les mesures viennent des vrais visiteurs, sans cookie ni identifiant : seulement un compteur par jour.</p>
+      <Legend rows={[
+        { term: 'Affichage', meaning: 'Le temps pour que le gros du contenu apparaisse (LCP). Bon sous 2,5 secondes.' },
+        { term: 'Réactivité', meaning: 'Le délai entre un clic et la réponse de la page (INP). Bon sous 200 millisecondes.' },
+        { term: 'Stabilité', meaning: 'Les sauts de mise en page pendant le chargement (CLS). Bon sous 0,1.' },
+      ]} />
+      <p>Une page est <b>rapide</b> quand au moins 75 % des visites sont bonnes sur les trois mesures, <b>lente</b> dès que plus d’un quart sont mauvaises. Sous 20 visites, le verdict attend d’avoir assez de mesures.</p>
+      <Callout tone="tip">Regarde d’abord la ligne téléphone : c’est là que la plupart des visiteurs arrivent, et là que la lenteur se voit en premier.</Callout>
     </Section>
     <Section id="rendement" title="Le rendement par source">
       <p>Dans <b>Sources et outils</b>, chaque source a trois barres sur les 30 derniers jours :</p>

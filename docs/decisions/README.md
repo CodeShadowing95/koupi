@@ -40,5 +40,6 @@ Chaque décision importante est notée ici dans un fichier numéroté. On ne sup
 | [0035](0035-journal-des-passages-et-page-sources.md) | Journal des passages et page Sources | Acceptée |
 | [0036](0036-podcasts-candidats-podcast-index.md) | Podcasts candidats depuis la base publique de Podcast Index | Acceptée |
 | [0037](0037-avis-de-l-ia-dans-le-score.md) | L'avis de l'IA retire des points au score | Acceptée |
+| [0038](0038-vitesse-ressentie-web-vitals.md) | Vitesse ressentie mesurée chez les visiteurs, comptée dans Neon | Acceptée |
 
 Modèle : copier [`template.md`](template.md).
