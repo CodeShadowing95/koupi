@@ -15,7 +15,7 @@ Les photos des créateurs (`npm run avatars`) et les logos des outils (`npm run 
 - Une photo de créateur arrive dès que sa chaîne YouTube est reliée (ajout d'un code, bouton « Relier les comptes »), et l'admin peut la récupérer (« Récupérer les photos ») ou l'actualiser (« Actualiser la photo »). Coût : 1 unité de quota par lot de 50 chaînes.
 - Un créateur sans chaîne YouTube mais avec un podcast relié prend la pochette de son podcast (Apple Podcasts, domaine `mzstatic.com`, demandée en 240 px), dès que le podcast est suivi ou relié, et par les mêmes boutons. La chaîne YouTube passe avant le podcast quand un créateur a les deux. Gratuit (ajout du 2026-11-05).
 - Un logo d'outil arrive dès sa création dans l'admin : Logo.dev (`img.logo.dev`, si `LOGO_DEV_TOKEN` est défini ; la clé n'est jamais enregistrée), sinon l'`apple-touch-icon.png` du site de la marque (seulement ce domaine). L'admin peut récupérer ceux qui manquent (« Récupérer les logos », par lots de 20) ou en actualiser un (« Actualiser le logo »). Le pied de page garde le lien d'attribution Logo.dev tant qu'un logo en vient.
-- Merkod les sert à `/media/avatars/<slug>.<ext>?v=<date>` et `/media/logos/<slug>.<ext>?v=<date>`, avec un cache long et une politique de contenu qui interdit tout script.
+- Merkod les sert à `/media/avatars/<slug>.<ext>?v=<date>` et `/media/logos/<slug>.<ext>?v=<date>`, avec un cache long (un an dans le navigateur et le CDN de Vercel grâce à `s-maxage` quand l’adresse porte `?v=`, une heure sinon, voir `lib/media-cache.ts`) et une politique de contenu qui interdit tout script.
 - Les images du dépôt restent en secours ; celle en base passe avant.
 
 ## Alternatives envisagées
