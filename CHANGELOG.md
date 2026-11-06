@@ -2,6 +2,12 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.5.1](https://github.com/CodeShadowing95/koupi/compare/v0.5.0...v0.5.1) (2026-11-06)
+
+### Corrections
+
+- **verification:** Ignore AI codes that contain spaces or a percent sign ([3f0aa45](https://github.com/CodeShadowing95/koupi/commit/3f0aa450c8b74ad28546cb4d8867389dccd9fcdb))
+
 ## [0.5.0](https://github.com/CodeShadowing95/koupi/compare/v0.4.1...v0.5.0) (2026-11-05)
 
 ### Nouveautés
