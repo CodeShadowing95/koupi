@@ -3,9 +3,10 @@ import type { Db } from '@/db';
 import { aiConfigFrom, aiStatusOf } from './ai-extract';
 import { aiSpendByDay, serviceUsage, usageLevel, usageRatio, type ServiceUsage } from './api-usage';
 import { startOfMonthUtc } from './verification-store';
+import { formatEur } from './verification-display';
 
 export type AiUsageSummary = {
-  active: boolean; spentUsdMicros: number; budgetUsdMicros: number;
+  active: boolean; spentUsdMicros: number; budgetUsdMicros: number; usdPerEur: number;
   /** Chaque jour du mois en cours (UTC), les jours à venir à zéro : le graphique garde la même largeur tout le mois. */
   days: { day: string; usdMicros: number }[];
 };
@@ -26,7 +27,7 @@ export async function usageSummary(db: Db, env: Record<string, string | undefine
   const spent = days.reduce((total, item) => total + item.usdMicros, 0);
   return {
     services,
-    ai: { active: aiStatusOf(config, spent).state !== 'inactive', spentUsdMicros: spent, budgetUsdMicros: config.monthlyBudgetUsdMicros, days },
+    ai: { active: aiStatusOf(config, spent).state !== 'inactive', spentUsdMicros: spent, budgetUsdMicros: config.monthlyBudgetUsdMicros, usdPerEur: config.usdPerEur, days },
   };
 }
 
@@ -38,6 +39,6 @@ export function usageGauges(summary: UsageSummary): UsageGauge[] {
     return { key: service.service, label: service.service === 'youtube' ? 'YouTube' : service.label, ratio, level: usageLevel(ratio), detail: `${service.today.toLocaleString('fr-FR')} / ${service.dailyLimit.toLocaleString('fr-FR')} unités aujourd’hui (${percent(ratio)})` };
   });
   const ratio = usageRatio(summary.ai.spentUsdMicros, summary.ai.budgetUsdMicros);
-  const ai = { key: 'ai', label: 'IA', ratio, level: usageLevel(ratio), detail: summary.ai.active ? `${percent(ratio)} du plafond du mois` : 'IA en attente d’activation' };
+  const ai = { key: 'ai', label: 'IA', ratio, level: usageLevel(ratio), detail: summary.ai.active ? `${formatEur(summary.ai.spentUsdMicros, summary.ai.usdPerEur)} sur ${formatEur(summary.ai.budgetUsdMicros, summary.ai.usdPerEur)} ce mois-ci (${percent(ratio)})` : 'IA en attente d’activation' };
   return [...services, ai];
 }

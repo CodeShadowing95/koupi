@@ -14,7 +14,7 @@ export default async function Page() {
   return (
     <VerificationsView
       queue={queue}
-      ai={{ status: aiStatusOf(config, spent), spentUsdMicros: spent, budgetUsdMicros: config.monthlyBudgetUsdMicros, model: config.model, reviewModel: config.reviewModel }}
+      ai={{ status: aiStatusOf(config, spent), spentUsdMicros: spent, budgetUsdMicros: config.monthlyBudgetUsdMicros, usdPerEur: config.usdPerEur, model: config.model, reviewModel: config.reviewModel }}
       youtubeReady={Boolean(process.env.YOUTUBE_API_KEY)}
     />
   );

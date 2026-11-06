@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Category, Code } from './data';
-import { coverageByCategory, flaggedCodes, overview, reliabilityBuckets, staleCodes, todos, topTools, weightedSuccess } from './admin-stats';
+import { coverageByCategory, flaggedCodes, namesPreview, overview, reliabilityBuckets, staleCodes, todos, topTools, weightedSuccess } from './admin-stats';
 
 const code = (over: Partial<Code>): Code => ({
   id: over.code ?? 'X', tool: 'Abby', toolSlug: 'abby', creator: 'Créa', creatorSlug: 'crea', code: 'X', discount: '-10 %', status: 'to_test',
@@ -96,5 +96,14 @@ describe('codes à retester', () => {
     ];
     expect(staleCodes(list, now).map(item => item.code)).toEqual(['NEVER', 'OLD']);
     expect(todos({ ...catalog, codes: list }, null, now).find(todo => todo.id === 'retest')?.title).toBe('Retester 2 codes vérifiés : test de plus de 30 jours ou jamais daté');
+  });
+});
+
+describe('namesPreview', () => {
+  it('montre cinq noms puis le reste en nombre', () => {
+    const names = Array.from({ length: 38 }, (_, index) => `C${index + 1}`);
+    expect(namesPreview(names)).toBe('C1, C2, C3, C4, C5 et 33 autres');
+    expect(namesPreview(['A', 'B'])).toBe('A, B');
+    expect(namesPreview(['A', 'B', 'C', 'D', 'E', 'F'])).toBe('A, B, C, D, E, F');
   });
 });
