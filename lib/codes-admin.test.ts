@@ -30,6 +30,12 @@ describe('validation du formulaire', () => {
     expect(parseCodeInput({ ...body, code: ' ' })).toEqual({ ok: false, error: 'Indique le code.' });
   });
 
+  it('dit ce qui manque pour un nouvel outil', () => {
+    const body = { creatorName: 'Ana', code: 'X', discount: '-10 %', sourceUrl: 'https://tiktok.com/@ana/video/1' };
+    expect(parseCodeInput({ ...body, newTool: { name: 'Runway', categorySlug: '', website: 'runwayml.com' } })).toEqual({ ok: false, error: 'Pour un nouvel outil, indique son nom, sa catégorie et son site.' });
+    expect(parseCodeInput({ ...body, newTool: { name: 'Runway', categorySlug: 'ia', website: 'not a site' } })).toEqual({ ok: false, error: 'Le site officiel de l’outil doit être une adresse web valide.' });
+  });
+
   it('accepte un code complet et ajoute https:// au site d’un nouvel outil', () => {
     const parsed = parseCodeInput({ newTool: { name: 'Runway', categorySlug: 'ia', website: 'runwayml.com' }, creatorName: 'Ana', code: 'X', discount: '-10 %', sourceUrl: 'https://tiktok.com/@ana/video/1' });
     expect(parsed).toMatchObject({ ok: true, data: { newTool: { website: 'https://runwayml.com' }, status: 'to_test', creatorLink: null } });

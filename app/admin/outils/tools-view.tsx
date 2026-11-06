@@ -50,7 +50,7 @@ export function ToolsView({ tools, categories, missingLogos, youtubeReady }: { t
     if (params.get('category')) setCategory(params.get('category') ?? '');
     const name = params.get('new');
     if (name !== null) {
-      setForm({ name: name.trim().slice(0, 120), categorySlug: categories[0]?.slug ?? '', website: '', description: '', priority: 3 });
+      setForm({ name: name.trim().slice(0, 120), categorySlug: '', website: '', description: '', priority: 3 });
       setEditing('new');
       params.delete('new');
       window.history.replaceState(null, '', `${window.location.pathname}${params.size ? `?${params}` : ''}`);
@@ -60,7 +60,7 @@ export function ToolsView({ tools, categories, missingLogos, youtubeReady }: { t
   const [editing, setEditing] = useState<AdminTool | 'new' | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = tools.find(tool => tool.id === selectedId) ?? null;
-  const [form, setForm] = useState<Form>({ name: '', categorySlug: categories[0]?.slug ?? '', website: '', description: '', priority: 3 });
+  const [form, setForm] = useState<Form>({ name: '', categorySlug: '', website: '', description: '', priority: 3 });
   const filtered = tools.filter(tool => matches(tool, filter) && (!category || tool.categorySlug === category) && matchesSearch([tool.name, tool.category, tool.website, tool.description], query));
   const sort = useAdminSort(filtered, sortFields, 'name');
   const visible = sort.items;
@@ -69,7 +69,7 @@ export function ToolsView({ tools, categories, missingLogos, youtubeReady }: { t
 
   function open(target: AdminTool | 'new') {
     setForm(target === 'new'
-      ? { name: '', categorySlug: categories[0]?.slug ?? '', website: '', description: '', priority: 3 }
+      ? { name: '', categorySlug: '', website: '', description: '', priority: 3 }
       : { name: target.name, categorySlug: target.categorySlug, website: target.website, description: target.description ?? '', priority: target.priority });
     setEditing(target);
   }

@@ -43,7 +43,8 @@ export function parseCodeInput(body: Record<string, unknown>): Parsed<CodeInput>
   if (rawTool) {
     const website = text(rawTool.website, 300);
     newTool = { name: text(rawTool.name, 120), categorySlug: text(rawTool.categorySlug, 80), website: /^https?:\/\//i.test(website) ? website : website ? `https://${website}` : '' };
-    if (!newTool.name || !newTool.categorySlug || !validUrl(newTool.website)) return { ok: false, error: 'Pour un nouvel outil, indique son nom, sa catégorie et son site.' };
+    if (!newTool.name || !newTool.categorySlug || !newTool.website) return { ok: false, error: 'Pour un nouvel outil, indique son nom, sa catégorie et son site.' };
+    if (!validUrl(newTool.website)) return { ok: false, error: 'Le site officiel de l’outil doit être une adresse web valide.' };
   } else if (!toolSlug) return { ok: false, error: 'Choisis l’outil.' };
 
   const creatorName = text(body.creatorName, 160), code = normalizeCode(text(body.code, 120)), discount = text(body.discount, 240);

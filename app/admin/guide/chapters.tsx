@@ -192,7 +192,7 @@ function Propositions() {
       </Callout>
     </Section>
     <Section id="outil-inconnu" title="Si l’outil n’existe pas encore">
-      <p>Dans le formulaire, la liste « Outil » propose <b>+ Nouvel outil</b>. Donne son nom, sa catégorie et son site officiel : l’outil est créé en même temps que le code.</p>
+      <p>Dans le formulaire, la liste « Outil » propose <b>+ Nouvel outil</b>. Donne son nom, sa catégorie et son site officiel : l’outil est créé en même temps que le code. Si le visiteur a choisi une catégorie, elle est déjà remplie ; sinon, choisis-la toi-même. Son commentaire est repris dans la note interne.</p>
       <Callout tone="warn">Avant de créer un outil, cherche-le dans la liste avec une autre orthographe (« Nord VPN » ou « NordVPN »). Deux fiches pour le même outil, c’est deux pages à moitié vides.</Callout>
     </Section>
     <Section id="filtres" title="Retrouver une ancienne proposition">
@@ -394,7 +394,7 @@ function Outils() {
       <Steps>
         <Step title="Vérifie qu’il n’existe pas déjà">Tape son nom dans la recherche, avec et sans espace.</Step>
         <Step title="Clique sur « Nouvel outil »">Donne son nom exact, tel que la marque l’écrit.</Step>
-        <Step title="Choisis la catégorie">Le menu se filtre quand tu tapes. Si aucune ne convient, crée-la d’abord dans Catégories.</Step>
+        <Step title="Choisis la catégorie">Elle est vide au départ, et l’enregistrement attend ton choix. Le menu se filtre quand tu tapes. Si aucune ne convient, crée-la d’abord dans Catégories.</Step>
         <Step title="Site officiel">Le domaine suffit : « exemple.com ». Il sert au logo et au lien.</Step>
         <Step title="Description (facultative)">Une phrase pour la fiche. Vide, le site écrit « Les codes promo donnés par les créateurs pour … ».</Step>
       </Steps>
