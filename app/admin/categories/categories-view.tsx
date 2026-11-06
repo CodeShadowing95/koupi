@@ -33,8 +33,14 @@ export function CategoriesView({ categories: all, families, search }: { categori
   const [query, setQuery] = useState('');
   const [family, setFamily] = useState('');
   const inFamily = (category: AdminCategory) => !family || (family === NONE ? !category.familySlug : category.familySlug === family);
-  // Les liens des autres pages ouvrent la liste déjà filtrée (?q=…).
-  useEffect(() => { const q = new URLSearchParams(window.location.search).get('q'); if (q) setQuery(q); }, []);
+  // Les liens des autres pages ouvrent la liste déjà filtrée (?q=…, ?filter=empty).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get('q');
+    if (q) setQuery(q);
+    const wanted = filters.find(item => item.value === params.get('filter'));
+    if (wanted) setFilter(wanted.value);
+  }, []);
   const filtered = all.filter(category => matches(category, filter) && inFamily(category) && matchesSearch([category.name, category.slug, category.family ?? ''], query));
   const sort = useAdminSort(filtered, sortFields, 'name');
   const categories = sort.items;

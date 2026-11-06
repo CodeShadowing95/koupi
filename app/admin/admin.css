@@ -1498,3 +1498,22 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-pod-hit .mono{color:var(--blue);font-weight:700}
 .adm-pod-cand-actions{display:flex;flex-direction:column;gap:6px;flex:none}
 @media (max-width:640px){.adm-pod-cand-actions{flex-direction:row;flex-basis:100%;justify-content:flex-end}}
+
+/* Message fixe en bas de l'écran (Vérifications) : reste visible quand on agit loin du haut de la liste. */
+.adm-toast{position:fixed;left:50%;bottom:20px;z-index:60;display:flex;align-items:center;gap:12px;max-width:min(560px,calc(100vw - 32px));padding:0;transform:translate(-50%,12px);opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease}
+.adm-toast.is-on{padding:12px 12px 12px 16px;border-radius:12px;background:var(--ink);color:var(--card);font-size:14px;box-shadow:0 12px 32px rgba(0,0,0,.25);opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.adm-toast-close{flex:none;width:28px;height:28px;border:0;border-radius:8px;background:transparent;color:inherit;font-size:18px;line-height:1;cursor:pointer;opacity:.75}
+.adm-toast-close:hover{opacity:1;background:rgba(255,255,255,.12)}
+@media(prefers-reduced-motion:reduce){.adm-toast{transition:none}}
+.adm-chart-more{display:block;margin:10px auto 0}
+/* Pages du site sur petit écran : chaque ligne devient une carte, l'interrupteur reste à droite du nom. */
+@media(max-width:720px){
+  .adm-pages-table thead{display:none}
+  .adm-pages-table,.adm-pages-table tbody{display:block}
+  .adm-pages-table tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  .adm-pages-table tr:last-child{border-bottom:0}
+  .adm-pages-table tr.is-off{background:var(--bad-bg)}
+  .adm-pages-table td{display:block;padding:0;border:0;grid-column:1;white-space:normal}
+  .adm-pages-table td:first-child{grid-row:1}
+  .adm-pages-table td:last-child{grid-column:2;grid-row:1 / span 2;align-self:start}
+}

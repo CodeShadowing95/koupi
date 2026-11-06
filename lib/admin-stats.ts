@@ -107,6 +107,14 @@ export function reliabilityBuckets(codes: Code[]): { low: number; mid: number; h
 export type Todo = { id: string; tone: 'warn' | 'bad' | 'info'; title: string; why: string; cta: string; href: string };
 
 /** Les actions du jour, de la plus utile à la moins utile. */
+
+/** Les premiers noms d'une liste, puis « et N autres » : une tâche reste lisible avec 38 catégories. */
+export function namesPreview(names: string[], shown = 5): string {
+  if (names.length <= shown + 1) return names.join(', ');
+  const rest = names.length - shown;
+  return `${names.slice(0, shown).join(', ')} et ${rest} autres`;
+}
+
 export function todos(catalog: CatalogInput, pendingSubmissions: number | null, now = new Date(), creatorRequests: number | null = null): Todo[] {
   const stats = overview(catalog, now);
   const list: Todo[] = [];
@@ -150,8 +158,8 @@ export function todos(catalog: CatalogInput, pendingSubmissions: number | null, 
   if (stats.emptyCategories.length) list.push({
     id: 'empty-categories', tone: 'info',
     title: `Trouver des codes pour ${stats.emptyCategories.length} catégorie${stats.emptyCategories.length > 1 ? 's' : ''} vide${stats.emptyCategories.length > 1 ? 's' : ''}`,
-    why: `${stats.emptyCategories.map(category => category.name).join(', ')} : aucun outil n’y a encore de code publié. Une recherche range ses codes sous l’outil cité, souvent un autre : si elle ne donne rien ici, ajoute d’autres outils connus de ces catégories.`,
-    cta: 'Voir les catégories', href: '/admin/categories',
+    why: `${namesPreview(stats.emptyCategories.map(category => category.name))} : aucun outil n’y a encore de code publié. Une recherche range ses codes sous l’outil cité, souvent un autre : si elle ne donne rien ici, ajoute d’autres outils connus de ces catégories.`,
+    cta: 'Chercher des codes', href: '/admin/categories?filter=empty',
   });
   return list;
 }

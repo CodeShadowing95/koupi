@@ -316,7 +316,8 @@ function Verifications() {
     </Section>
     <Section id="ia" title="L’IA, son coût et ses limites">
       <p>Le bandeau du haut dit si l’IA est <b>active</b>, <b>en attente d’activation</b> (pas encore de clé) ou si le <b>plafond du mois</b> est atteint. Sans IA, les contrôles automatiques marchent quand même.</p>
-      <p>Quand elle est active, un petit modèle rapide lit chaque description. Un modèle plus fin relit seulement les dossiers douteux, ou quand tu cliques sur <b>Relire avec Opus</b>. La jauge montre la dépense du mois face au plafond.</p>
+      <p>Quand elle est active, un petit modèle rapide lit chaque description. Un modèle plus fin relit seulement les dossiers douteux, ou quand tu cliques sur <b>Relire avec Opus</b>. La jauge montre la dépense du mois face au plafond, en euros (survole le montant pour le voir en dollars).</p>
+      <p>Les dossiers s’affichent par pages de 24, comme les autres listes ; <Key>J</Key> et <Key>K</Key> passent d’une page à l’autre quand tu arrives au bout. Le message qui confirme une décision s’affiche en bas de l’écran, pour rester visible même loin du haut de la liste.</p>
       <Callout tone="warn">L’IA ne décide jamais du score : elle aide à repérer les codes dans un texte. Un code qu’elle croit voir mais qui n’est pas mot pour mot dans la source est écarté.</Callout>
       <Callout tone="tip">Seuls les textes publics (titre et description) sont envoyés à l’IA. Aucune donnée de visiteur : la promesse « zéro pistage » tient.</Callout>
     </Section>
@@ -560,6 +561,7 @@ function Categories() {
       <Callout tone="tip">Moins de catégories bien remplies valent mieux que beaucoup de catégories vides.</Callout>
     </Section>
     <Section id="chercher" title="Chercher des codes pour une catégorie">
+      <p>La tâche de l’accueil « Trouver des codes pour … catégories vides » cite les cinq premières et ouvre cette page déjà filtrée sur <b>Vides sur le site</b>.</p>
       <p><b>Chercher des codes</b>, en haut de la page, prend les outils des catégories vides (priorité 1 d’abord) et cherche sur YouTube « <i>outil</i> code promo » parmi les vidéos de l’année. Dans le panneau d’une catégorie, le même bouton cherche ses outils, ceux qui ont le moins de codes d’abord, même si elle a déjà des codes, puis « <i>catégorie</i> code promo » pour repérer des outils qu’on n’a pas encore.</p>
       <p><b>Chaque recherche fait du neuf.</b> Pour un même outil, Merkod change de formulation à chaque fois : « code promo », puis « code réduction », « promo code » et « discount code ». Une formulation déjà essayée ne ramène que les vidéos publiées depuis. Les vidéos déjà lues sont écartées sans être relues, et le compte rendu le dit : nouvelles chaînes, chaînes déjà connues (un créateur qu’on a, ou une vidéo déjà lue), vidéos écartées. Une chaîne nouvelle avec un code, c’est un créateur à ajouter et à suivre.</p>
       <p>Les descriptions des vidéos sont lues comme les notes des podcasts. <b>Rien n’est publié</b> : chaque code trouvé arrive « En attente » dans Vérifications, crédité à la chaîne qui l’a donné, et un code pour un outil absent du catalogue va dans <b>Podcasts › Outils à ajouter</b>.</p>
@@ -656,7 +658,7 @@ function Indicateurs() {
       <p>Pour trouver et vérifier les codes, Merkod appelle des services extérieurs. L’onglet <b>Consommation</b> de Statistiques dit où tu en es (l’ancienne adresse /admin/consommation y mène toujours) :</p>
       <Legend rows={[
         { term: 'YouTube', meaning: <>10 000 unités gratuites par jour. Lire une vidéo ou une chaîne coûte 1 unité, une recherche 100. Le compteur repart de zéro vers 9 h, heure de Paris. YouTube ne donne pas ce chiffre : c’est Merkod qui compte chacun de ses appels.</> },
-        { term: 'IA', meaning: <>La dépense du mois face au plafond (10 € par défaut). Une fois atteint, l’IA s’arrête jusqu’au 1er du mois suivant.</> },
+        { term: 'IA', meaning: <>La dépense du mois face au plafond (10 € par défaut), en euros comme le plafond. L’API est facturée en dollars : le montant en dollars est rappelé à côté. Une fois le plafond atteint, l’IA s’arrête jusqu’au 1er du mois suivant.</> },
       ]} />
       <Callout tone="tip">Au-dessus de 70 %, évite les grosses recherches par catégorie pour la journée : la lecture des vidéos proposées par les visiteurs a besoin du reste du quota.</Callout>
     </Section>
@@ -702,7 +704,7 @@ function Routine() {
         <div><dt>Source</dt><dd>La vidéo, l’épisode ou le post où le créateur donne le code. La preuve.</dd></div>
         <div><dt>Code mort</dt><dd>Code expiré ou désactivé. L’ennemi numéro 1 de la confiance.</dd></div>
         <div><dt>Doublon</dt><dd>Le même code, pour le même outil, déjà dans le catalogue.</dd></div>
-        <div><dt>Couverture</dt><dd>Part des outils qui ont au moins un code visible.</dd></div>
+        <div><dt>Couverture</dt><dd>Part des outils qui ont au moins un code visible. Dans Statistiques, le graphique « Couverture par catégorie » montre les 10 premières catégories ; « Voir les … catégories » les affiche toutes.</dd></div>
         <div><dt>Taux de conversion</dt><dd>Part des visiteurs qui font l’action voulue : copier un code, aller sur l’outil.</dd></div>
         <div><dt>Modération</dt><dd>Décider ce qui est publié et ce qui ne l’est pas.</dd></div>
         <div><dt>B2B</dt><dd>« Business to business » : l’offre future de Merkod pour les marques.</dd></div>
@@ -724,7 +726,7 @@ function Administration() {
     <Section id="pages" title="Couper une page">
       <p>Chaque page publique a son interrupteur. Une page coupée répond « page introuvable » (erreur 404), elle et tout ce qui est en dessous : couper « Pages de catégorie » coupe chaque page de catégorie (les pastilles de la page Codes restent). Elle disparaît en même temps du menu, du pied de page et de la recherche ; ailleurs, ses liens deviennent du texte simple et ses boutons disparaissent.</p>
       <Legend rows={SITE_PAGES.filter(page => !page.locked).map(page => ({ term: page.label, meaning: page.effect }))} />
-      <p>Le changement s’applique en quelques secondes, sans redéploiement. Rallumer la page la remet en ligne de la même façon.</p>
+      <p>Sur téléphone, chaque page devient une carte avec son interrupteur à droite du nom. Le changement s’applique en quelques secondes, sans redéploiement. Rallumer la page la remet en ligne de la même façon.</p>
       <Callout tone="rule">L’accueil, les mentions légales et la page confidentialité restent <b>toujours en ligne</b> : l’accueil est l’entrée du site, les deux autres sont obligatoires. Elles sont listées sans interrupteur.</Callout>
     </Section>
     <Section id="comptes" title="Gérer les comptes créateurs">

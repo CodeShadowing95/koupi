@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import { applyCodeAction, createCode, type CodeInput } from './codes-admin';
-import { formatUsd, highlightCode, modelLabel, verdictOf, type QueueItem } from './verification-display';
+import { formatEur, formatUsd, highlightCode, modelLabel, verdictOf, type QueueItem } from './verification-display';
 import { sortQueue, verificationQueue } from './verification-queue';
 import { recordVerificationCheck } from './verification-store';
 
@@ -54,6 +54,8 @@ describe('affichage', () => {
     expect(formatUsd(8200).replace(/\s/g, ' ')).toBe('0,0082 $');
     expect(formatUsd(1_200_000).replace(/\s/g, ' ')).toBe('1,20 $');
     expect(formatUsd(0).replace(/\s/g, ' ')).toBe('0,00 $');
+    expect(formatEur(12_000_000, 1.2).replace(/\s/g, ' ')).toBe('10,00 €');
+    expect(formatEur(6000, 1.2).replace(/\s/g, ' ')).toBe('0,0050 €');
   });
   it('surligne le code dans l’extrait, sans tenir compte de la casse', () => {
     expect(highlightCode('Code ana10 et ANA10.', 'ANA10')).toEqual([

@@ -100,7 +100,10 @@ function AudienceSection() {
   );
 }
 
+const COVERAGE_PREVIEW = 10;
+
 export function StatsView({ catalog }: { catalog: Catalog }) {
+  const [allCoverage, setAllCoverage] = useState(false);
   const stats = overview(catalog);
   const coverage = coverageByCategory(catalog.categories);
   const top = topTools(catalog.codes, 8);
@@ -114,9 +117,11 @@ export function StatsView({ catalog }: { catalog: Catalog }) {
     { label: 'Rejeté', data: [stats.counts.rejected], color: '--st-rejected' },
   ];
   const statusLabels = ['Codes'];
-  const coverageLabels = coverage.map(item => item.name);
-  const coverageSeries: Series[] = [{ label: 'Couverture', data: coverage.map(item => item.rate), color: '--chart-1' }];
-  const coverageFormat = (value: number, index: number) => `${value} % (${coverage[index].covered} / ${coverage[index].tracked} outils)`;
+  // Les 10 premières catégories, puis toutes à la demande : le graphique grandit avec le nombre de lignes.
+  const shownCoverage = allCoverage ? coverage : coverage.slice(0, COVERAGE_PREVIEW);
+  const coverageLabels = shownCoverage.map(item => item.name);
+  const coverageSeries: Series[] = [{ label: 'Couverture', data: shownCoverage.map(item => item.rate), color: '--chart-1' }];
+  const coverageFormat = (value: number, index: number) => `${value} % (${shownCoverage[index].covered} / ${shownCoverage[index].tracked} outils)`;
   const topLabels = top.map(item => item.tool);
   const topSeries: Series[] = [{ label: 'Codes visibles', data: top.map(item => item.count), color: '--chart-1' }];
   const reliabilityLabels = ['Moins de 50 %', '50 à 79 %', '80 % et plus'];
@@ -163,7 +168,13 @@ export function StatsView({ catalog }: { catalog: Catalog }) {
             table={{ head: ['Catégorie', 'Couverture', 'Outils couverts', 'Outils suivis'], rows: coverage.map(item => [item.name, `${item.rate} %`, item.covered, item.tracked]) }}
             learn={mostTracked ? <>« {mostTracked.name} » est la catégorie la plus suivie ({mostTracked.tracked} outils) avec {mostTracked.covered} outil{mostTracked.covered > 1 ? 's' : ''} couvert{mostTracked.covered > 1 ? 's' : ''}. C’est là qu’un nouveau créateur à suivre rapporterait le plus.</> : 'Aucune catégorie pour l’instant.'}>
             <BarChart className="adm-chart adm-chart-tall" horizontal labels={coverageLabels} series={coverageSeries} max={100} format={coverageFormat}
-              summary={coverage.map(item => `${item.name} ${item.rate} %`).join(', ')} />
+              height={Math.max(300, shownCoverage.length * 26 + 40)}
+              summary={shownCoverage.map(item => `${item.name} ${item.rate} %`).join(', ')} />
+            {coverage.length > COVERAGE_PREVIEW && (
+              <button type="button" className="adm-link-btn adm-chart-more" aria-expanded={allCoverage} onClick={() => setAllCoverage(value => !value)}>
+                {allCoverage ? `Voir les ${COVERAGE_PREVIEW} premières` : `Voir les ${coverage.length} catégories`}
+              </button>
+            )}
           </ChartCard>
 
           <ChartCard id="tools" title="Outils avec le plus de codes visibles" sub={`Top ${top.length} sur ${stats.coveredTools} outils couverts`}

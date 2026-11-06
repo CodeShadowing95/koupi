@@ -32,6 +32,8 @@ export type AiConfig = {
   model: string;
   reviewModel: string;
   monthlyBudgetUsdMicros: number;
+  /** Dollars pour un euro : sert à afficher en euros une dépense facturée en dollars. */
+  usdPerEur: number;
 };
 
 function positiveNumber(value: string | undefined, fallback: number): number {
@@ -47,6 +49,7 @@ export function aiConfigFrom(env: Record<string, string | undefined>): AiConfig 
     model: env.AI_MODEL?.trim() || DEFAULT_AI_MODEL,
     reviewModel: env.AI_REVIEW_MODEL?.trim() || DEFAULT_REVIEW_MODEL,
     monthlyBudgetUsdMicros: Math.round(budgetEur * usdPerEur * 1_000_000),
+    usdPerEur,
   };
 }
 
