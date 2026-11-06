@@ -152,10 +152,15 @@ export function keepVerbatimCodes(raw: unknown, description: string): ExtractedC
   return codes;
 }
 
+/** Délai maximal d'un appel à l'IA. */
+export const AI_TIMEOUT_MS = 60_000;
+
 type CreateMessage = (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => Promise<Anthropic.Beta.BetaMessage>;
 
 export function anthropicCreate(apiKey: string): CreateMessage {
-  const client = new Anthropic({ apiKey });
+  // Une extraction dure quelques secondes : au-delà d'une minute, on abandonne (une seule nouvelle tentative)
+  // au lieu des 10 minutes et 2 tentatives par défaut du SDK, pour rester sous la limite de la route.
+  const client = new Anthropic({ apiKey, timeout: AI_TIMEOUT_MS, maxRetries: 1 });
   return params => client.beta.messages.create(params);
 }
 

@@ -2,6 +2,7 @@
 // RESEND_API_KEY et EMAIL_FROM (adresse d'un domaine vérifié chez Resend) suffisent.
 // Sans eux : en local, le lien s'affiche dans la console ; en production, la connexion reste fermée.
 import { SIGN_IN_MINUTES } from './creator-auth';
+import { withTimeout } from './timeout-fetch';
 
 export type Mail = { to: string; subject: string; text: string; html: string };
 export type Mailer = (mail: Mail) => Promise<void>;
@@ -28,7 +29,7 @@ export function signInMail(to: string, link: string, creatorName: string | null)
   return { to, subject, text, html };
 }
 
-export function resendMailer(apiKey: string, from: string, fetchFn: typeof fetch = fetch): Mailer {
+export function resendMailer(apiKey: string, from: string, fetchFn: typeof fetch = withTimeout()): Mailer {
   return async mail => {
     const response = await fetchFn('https://api.resend.com/emails', {
       method: 'POST',

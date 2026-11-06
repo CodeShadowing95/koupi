@@ -4,6 +4,7 @@
 import { and, gte, isNotNull, sql } from 'drizzle-orm';
 import { getDb, type Db } from '@/db';
 import { aiUsage, apiUsage, toolSuggestions, verificationChecks } from '@/db/schema';
+import { withTimeout } from './timeout-fetch';
 
 /** Les services comptés. Ajouter Spotify, Podcast Index… ici : la page Consommation les affiche d'elle-même. */
 export const API_SERVICES = {
@@ -82,7 +83,7 @@ export function countedYoutubeFetch(record: Recorder = recordInDb, fetchFn: type
 }
 
 /** Le fetch par défaut des lecteurs YouTube de Merkod. */
-export const youtubeFetch: typeof fetch = countedYoutubeFetch();
+export const youtubeFetch: typeof fetch = countedYoutubeFetch(recordInDb, withTimeout());
 
 export type UsageDay = { day: string; units: number };
 export type ServiceUsage = {
