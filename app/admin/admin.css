@@ -1228,6 +1228,9 @@ html:has(> body > .ct){overflow:hidden}
 .adm-pod-panel-tab[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .adm-pod-search>p{margin:0;font-size:14px}
 img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:7px;flex:none;object-fit:cover;background:var(--line)}
+/* Pochette absente ou cassée : les initiales du podcast, comme l'avatar d'un créateur. */
+.adm-pod-initials{display:inline-flex;align-items:center;justify-content:center;color:var(--ink-soft);font-size:15px;font-weight:700;letter-spacing:.02em}
+.adm-pod-art.adm-pod-initials{font-size:13px}
 .adm-card-foot .adm-btn{flex:none}
 .adm-pod-table td:first-child{min-width:240px}
 .adm-req-list{display:flex;flex-direction:column;gap:12px}

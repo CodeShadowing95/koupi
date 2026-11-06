@@ -1,5 +1,6 @@
 'use client';
 // Détail d'un podcast suivi : ses derniers épisodes, lesquels Merkod a lus, et ce qui a été trouvé dans chacun.
+import { PodcastArt } from '@/components/admin-podcast-art';
 import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { AdminDrawer, DetailList } from '@/components/admin-drawer';
@@ -38,7 +39,7 @@ export function PodcastDrawer({ podcast, image, onClose, onShowTools, state, act
 
   return (
     <AdminDrawer open={podcast !== null} onClose={onClose} label={`Détail de ${podcast?.title ?? ''}`} eyebrow="Podcast suivi"
-      title={podcast && <span className="adm-drawer-name">{image ? <img className="adm-pod-art" src={image} alt="" width={40} height={40} /> : <span className="adm-pod-art adm-pod-noimg" aria-hidden="true" />}{podcast.title}</span>}
+      title={podcast && <span className="adm-drawer-name"><PodcastArt className="adm-pod-art" src={image} title={podcast.title} size={40} />{podcast.title}</span>}
       aside={state} actions={actions}>
       {podcast && <>
         <DetailList items={[

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { domainOf, findPromoCodes, scanPromoCodes } from './podcast-codes';
+import { domainOf, findPromoCodes, notAToolName, scanPromoCodes } from './podcast-codes';
 
 const tools = [
   { id: 't-nord', name: 'NordVPN' },
@@ -75,6 +75,15 @@ describe('scanPromoCodes', () => {
     expect(found).toMatchObject([{ toolId: 't-nord', code: 'CARNE' }]);
     expect(unknown).toMatchObject([{ name: 'Gradium', domain: 'gradium.ai', code: 'GDIY', evidence: 'Gradium : code GDIY sur gradium.ai' }]);
     expect(scanPromoCodes('NordVPN, le VPN\n-60 % avec le code CARNE', [{ id: 't-nord', name: 'NordVPN' }]).found).toMatchObject([{ toolId: 't-nord' }]);
+  });
+
+  it('ne prend pas une étiquette ni une plateforme de paiement pour un outil', () => {
+    expect(scanPromoCodes('Avantages : avec le code PODCAST20, -20 % sur la formation', tools).unknown).toEqual([]);
+    expect(scanPromoCodes('Ma formation : https://ana.thrivecart.com/formation code ANA30', tools).unknown).toEqual([]);
+    expect(scanPromoCodes('La boutique sur systeme.io, code BOUTIQUE10', tools).unknown).toEqual([]);
+    expect(notAToolName('Avantages')).toBe(true);
+    expect(notAToolName('Thrivecart')).toBe(true);
+    expect(notAToolName('Gradium')).toBe(false);
   });
 
   it('ne garde rien sans indice sur l’outil', () => {

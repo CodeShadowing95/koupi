@@ -1,6 +1,7 @@
 'use client';
 // Onglet « Candidats » de Podcasts (ADR-0036) : les podcasts trouvés chaque semaine dans la base de Podcast Index,
 // qui citent un outil du catalogue près d'un code. L'admin suit ceux qui l'intéressent, ou les écarte.
+import { PodcastArt } from '@/components/admin-podcast-art';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { sendJson } from '@/components/admin-form-dialog';
@@ -50,10 +51,10 @@ export function CandidatesPanel({ candidates }: { candidates: AdminCandidate[] }
           <ul className="adm-pod-results adm-pod-cands">
             {shown.map(item => (
               <li key={item.id} className="adm-pod-result adm-pod-cand">
-                {item.imageUrl ? <img src={item.imageUrl} alt="" width={56} height={56} loading="lazy" referrerPolicy="no-referrer" /> : <span className="adm-pod-noimg" aria-hidden="true" />}
+                <PodcastArt src={item.imageUrl} title={item.title} size={56} />
                 <div className="adm-pod-info">
                   <b>{item.title}</b>
-                  <small>{[item.author, languageLabel(item.language), item.category, item.episodeCount ? `${item.episodeCount} épisodes` : '', item.newestEpisodeAt ? `dernier épisode le ${day(item.newestEpisodeAt)}` : ''].filter(Boolean).join(' · ')}</small>
+                  <small>{[item.author, languageLabel(item.language), item.category, item.episodeCount ? `${item.episodeCount} épisode${item.episodeCount > 1 ? 's' : ''}` : '', item.newestEpisodeAt ? `dernier épisode le ${day(item.newestEpisodeAt)}` : ''].filter(Boolean).join(' · ')}</small>
                   <ul className="adm-pod-hits" aria-label="Codes repérés">
                     {item.hits.map(hit => (
                       <li key={`${hit.toolId}-${hit.code}`}>

@@ -1,6 +1,7 @@
 'use client';
 // Podcasts suivis : l'admin cherche un podcast dans Apple Podcasts et le suit. Ses nouveaux épisodes seront lus
 // pour trouver des codes, qui arriveront dans Vérifications.
+import { PodcastArt } from '@/components/admin-podcast-art';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -153,9 +154,7 @@ export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, sug
     void act(`${podcast.id}-delete`, () => sendJson(`/api/admin/podcasts/${podcast.id}`, 'DELETE', {}));
   };
 
-  const artwork = (podcast: AdminPodcast, size: number) => images[podcast.feedId]
-    ? <img className="adm-pod-art" src={images[podcast.feedId]} alt="" width={size} height={size} loading="lazy" />
-    : <span className="adm-pod-art adm-pod-noimg" aria-hidden="true" />;
+  const artwork = (podcast: AdminPodcast, size: number) => <PodcastArt className="adm-pod-art" src={images[podcast.feedId]} title={podcast.title} size={size} />;
   const state = (podcast: AdminPodcast) => <StatusDot tone={podcast.active ? 'ok' : 'muted'}>{podcast.active ? 'Lu chaque nuit' : 'En pause'}</StatusDot>;
   const lastRead = (podcast: AdminPodcast) => podcast.lastFetchedAt ? `Lu le ${day(podcast.lastFetchedAt)}` : 'Pas encore lu';
   const creatorLink = (podcast: AdminPodcast) => podcast.creatorName ? <Link href={`/admin/createurs?q=${encodeURIComponent(podcast.creatorName)}`}>{podcast.creatorName}</Link> : '—';
@@ -231,10 +230,10 @@ export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, sug
                   return (
                     <li key={feed.id} className="adm-pod-result">
                       {rank !== null && <span className="adm-pod-rank" aria-label={`Rang ${rank}`}>{rank}</span>}
-                      {feed.image ? <img src={feed.image} alt="" width={56} height={56} loading="lazy" /> : <span className="adm-pod-noimg" aria-hidden="true" />}
+                      <PodcastArt src={feed.image} title={feed.title} size={56} />
                       <div className="adm-pod-info">
                         <b>{feed.title}</b>
-                        <small>{[feed.author, feed.genre, feed.episodeCount ? `${feed.episodeCount} épisodes` : ''].filter(Boolean).join(' · ')}</small>
+                        <small>{[feed.author, feed.genre, feed.episodeCount ? `${feed.episodeCount} épisode${feed.episodeCount > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')}</small>
                       </div>
                       {feed.link && <a href={feed.link} target="_blank" rel="noopener noreferrer" className="adm-btn">Écouter ↗</a>}
                       {already
