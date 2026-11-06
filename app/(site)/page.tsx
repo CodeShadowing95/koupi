@@ -2,6 +2,9 @@ import Link from '@/components/site/site-pages';
 import { isPublic } from '@/lib/data';
 import { getCatalog } from '@/lib/catalog-server';
 import { routes } from '@/lib/routes';
+import { siteLd } from '@/lib/structured-data';
+import { siteUrl } from '@/lib/seo';
+import { JsonLd } from '@/components/json-ld';
 import { Hero } from '@/components/site/hero';
 import { Marquee } from '@/components/site/marquee';
 import { HowItWorks } from '@/components/site/how-it-works';
@@ -14,6 +17,8 @@ import { featuredPool } from '@/lib/featured-codes';
 import { CreatorRotator } from '@/components/site/creator-rotator';
 import { rotationCreators } from '@/lib/creator-rotation';
 import { VoteInvite } from '@/components/site/vote-invite';
+
+export const metadata = { alternates: { canonical: routes.home } };
 
 export default async function Home() {
   const { codes, tools } = await getCatalog();
@@ -33,6 +38,7 @@ export default async function Home() {
 
   return (
     <main>
+      <JsonLd data={siteLd(siteUrl())} />
       <Hero codes={codes} tools={tools} />
 
       <section className="k-section is-tight">

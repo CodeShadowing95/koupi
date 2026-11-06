@@ -3,6 +3,7 @@ export const STATS_TABS = [
   { value: 'catalogue', label: 'Catalogue et audience' },
   { value: 'sources', label: 'Sources et outils' },
   { value: 'consommation', label: 'Consommation' },
+  { value: 'vitesse', label: 'Vitesse' },
 ] as const;
 export type StatsTab = (typeof STATS_TABS)[number]['value'];
 

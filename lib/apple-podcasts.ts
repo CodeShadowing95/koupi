@@ -2,6 +2,8 @@
 // Il sert à chercher un podcast et à lire les notes de ses derniers épisodes, où les créateurs donnent leurs codes.
 // Limite d'Apple : une vingtaine d'appels par minute, largement assez pour l'admin et la lecture de nuit.
 
+import { withTimeout } from './timeout-fetch';
+
 const API = 'https://itunes.apple.com';
 /** Boutique interrogée : la française trouve aussi les podcasts en anglais. */
 const COUNTRY = 'FR';
@@ -103,7 +105,7 @@ export function htmlToText(html: string): string {
     .replace(/[ \t]+/g, ' ').replace(/ *\n\s*/g, '\n').trim();
 }
 
-export function applePodcasts(fetchFn: typeof fetch = fetch): PodcastDirectory {
+export function applePodcasts(fetchFn: typeof fetch = withTimeout()): PodcastDirectory {
   const get = async (path: string, params: Record<string, string>): Promise<RawResult[]> => {
     const response = await fetchFn(`${API}${path}?${new URLSearchParams({ ...params, country: COUNTRY })}`, { cache: 'no-store' });
     if (!response.ok) throw new Error(`Apple Podcasts ${path} ${response.status}`);

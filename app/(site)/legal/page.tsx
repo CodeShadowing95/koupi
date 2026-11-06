@@ -1,7 +1,8 @@
+import { routes } from '@/lib/routes';
 import { CONTACT_EMAIL, HOST, PUBLISHER_NAME } from '@/lib/site-contact';
 import { PageHead } from '@/components/site/page-head';
 
-export const metadata = { title: 'Mentions légales · Merkod' };
+export const metadata = { title: 'Mentions légales · Merkod', alternates: { canonical: routes.legal } };
 
 export default function Legal() {
   return (

@@ -1,7 +1,8 @@
+import { routes } from '@/lib/routes';
 import { CONTACT_EMAIL } from '@/lib/site-contact';
 import { PageHead } from '@/components/site/page-head';
 
-export const metadata = { title: 'Confidentialité · Merkod' };
+export const metadata = { title: 'Confidentialité · Merkod', alternates: { canonical: routes.privacy } };
 
 export default function Privacy() {
   return (
@@ -12,6 +13,7 @@ export default function Privacy() {
           <p>Merkod ne demande pas de compte aux visiteurs et n&apos;utilise pas de publicité personnalisée. Ton vote est gardé dans ton navigateur pour ne pas te reposer la question. Côté serveur, une adresse IP hachée (jamais l&apos;IP elle-même) limite les abus pendant 24 heures, puis elle est effacée.</p>
           <h2>Mesure d&apos;audience</h2>
           <p>Pour savoir quels codes servent, Merkod compte chaque jour combien de fois un code est copié, combien de fois le lien d&apos;un créateur est ouvert, et quelles recherches ne trouvent aucun outil. Ce sont de simples totaux par jour : pas de cookie, pas de service tiers, aucun identifiant qui permette de te reconnaître ou de suivre ta visite.</p>
+          <p>Pour savoir si le site est rapide, ton navigateur envoie aussi, à chaque page, le temps d&apos;affichage et de réaction mesuré, avec le type de page et d&apos;appareil (téléphone ou ordinateur). Merkod n&apos;en garde qu&apos;un total par jour, rapide, moyen ou lent : ni l&apos;adresse exacte de la page, ni ton navigateur, ni ton IP.</p>
           <h2>Données envoyées</h2>
           <p>Proposer un code ne demande pas d&apos;adresse e-mail : Merkod garde seulement ce que tu envoies (outil, créateur, code, source, commentaire) pour le vérifier. Tu peux demander la suppression d&apos;une proposition à <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>
           <h2>Espace créateur</h2>

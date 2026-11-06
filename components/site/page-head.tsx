@@ -1,13 +1,19 @@
 import Link from '@/components/site/site-pages';
 import type { ReactNode } from 'react';
 import { routes } from '@/lib/routes';
+import { breadcrumbLd } from '@/lib/structured-data';
+import { siteUrl } from '@/lib/seo';
+import { JsonLd } from '@/components/json-ld';
 
 export type Crumb = { label: string; href?: string };
 
-/** Fil d'Ariane du site public : commence toujours par l'accueil, la dernière étape est la page en cours. */
+/** Fil d'Ariane du site public : commence toujours par l'accueil, la dernière étape est la page en cours.
+ * Le même fil est donné à Google en données structurées (BreadcrumbList). */
 export function Crumbs({ items }: { items: Crumb[] }) {
   const all: Crumb[] = [{ label: 'Accueil', href: routes.home }, ...items];
   return (
+    <>
+    <JsonLd data={breadcrumbLd(all, siteUrl())} />
     <nav className="k-crumbs" aria-label="Fil d'Ariane">
       {all.map((item, index) => {
         const last = index === all.length - 1;
@@ -19,6 +25,7 @@ export function Crumbs({ items }: { items: Crumb[] }) {
         );
       })}
     </nav>
+    </>
   );
 }
 
