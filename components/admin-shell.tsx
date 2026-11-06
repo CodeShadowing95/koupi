@@ -2,7 +2,7 @@
 // Coque du back-office : menu latéral groupé, barre du haut avec le fil d'Ariane et le bouton clair / sombre.
 // La page de connexion garde un affichage simple, sans menu.
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { usePendingSubmissions } from '@/app/admin/pending-count';
 import { ThemeToggle, useStoredTheme } from '@/components/admin-theme';
@@ -129,7 +129,16 @@ function SideItem({ item, current, pathname }: { item: Item; current?: string; p
 /** toTest : codes à tester (badge de Codes) ; newFeedback : avis pas encore lus (badge de Retours) ; newRequests : demandes des créateurs à traiter (badge de Demandes). Lus en base par le layout. */
 export function AdminShell({ children, toTest = 0, newFeedback = 0, newRequests = 0 }: { children: React.ReactNode; toTest?: number; newFeedback?: number; newRequests?: number }) {
   const pathname = usePathname();
+  const router = useRouter();
   useStoredTheme();
+  // Juste après la connexion : le layout avait été rendu sans session (rien lu en base). On le relit une fois,
+  // pour les nombres du menu et les photos.
+  const fromLogin = useRef(pathname.startsWith('/admin/login'));
+  useEffect(() => {
+    const onLogin = pathname.startsWith('/admin/login');
+    if (fromLogin.current && !onLogin) router.refresh();
+    fromLogin.current = onLogin;
+  }, [pathname, router]);
   const pending = usePendingSubmissions() ?? 0;
   const groups = navGroups({ toTest, pending, newFeedback, newRequests });
   // Mobile : le menu latéral devient un tiroir ouvert par le bouton ☰ de la barre du haut.
