@@ -12,7 +12,7 @@ export function CodeThumbs({ code, dark = false }: Props) {
   const ups = Math.round((code.votes * code.success) / 100) + (voted === 'up' && fresh ? 1 : 0);
   return (
     <div className={`k-pass-thumbs${dark ? ' is-dark' : ''}`} role="group" aria-label={`Le code ${code.code} a-t-il marché ?`}>
-      <button type="button" className={`is-up${voted === 'up' && fresh ? ' is-new' : ''}${sending ? ' is-sending' : ''}`} aria-pressed={voted === 'up'}
+      <button type="button" className={`is-up${voted === 'up' && fresh ? ' is-new' : ''}${sending && !voted ? ' is-sending' : ''}`} aria-pressed={voted === 'up'}
         disabled={sending || voted !== null} onClick={() => vote(true)}
         title={voted ? `${ups} ${ups > 1 ? 'personnes disent' : 'personne dit'} que ce code marche` : 'Ce code a marché'}
         aria-label={`Ce code a marché (${ups} ${ups > 1 ? 'votes' : 'vote'})`}>
