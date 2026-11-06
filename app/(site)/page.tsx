@@ -2,6 +2,9 @@ import Link from '@/components/site/site-pages';
 import { isPublic } from '@/lib/data';
 import { getCatalog } from '@/lib/catalog-server';
 import { routes } from '@/lib/routes';
+import { siteLd } from '@/lib/structured-data';
+import { siteUrl } from '@/lib/seo';
+import { JsonLd } from '@/components/json-ld';
 import { Hero } from '@/components/site/hero';
 import { Marquee } from '@/components/site/marquee';
 import { HowItWorks } from '@/components/site/how-it-works';
@@ -35,6 +38,7 @@ export default async function Home() {
 
   return (
     <main>
+      <JsonLd data={siteLd(siteUrl())} />
       <Hero codes={codes} tools={tools} />
 
       <section className="k-section is-tight">

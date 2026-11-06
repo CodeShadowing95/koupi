@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   // Adresse publique : les canoniques et les aperçus de partage deviennent des adresses complètes merkod.com.
   metadataBase: new URL(siteUrl()),
   openGraph: { siteName: 'Merkod', locale: 'fr_FR', type: 'website' },
+  twitter: { card: 'summary_large_image' },
   // La pré-production ne doit jamais apparaître dans Google (robots.txt la ferme aussi).
   ...(isIndexable() ? {} : { robots: { index: false, follow: false } }),
   title: 'Merkod · Le code du créateur, vérifié.',

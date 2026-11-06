@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from '@/components/site/site-pages';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { isPublic, type Code } from '@/lib/data';
-import { getCatalog, getCreatorFacts, getCreatorProfile } from '@/lib/catalog-server';
+import { getCatalog, getCreatorFacts, getCreatorProfile, getMediaMap } from '@/lib/catalog-server';
 import { creatorCategories } from '@/lib/creator-profile';
 import { creatorDescription, formatCopies } from '@/lib/creator-page';
 import { expiryOf } from '@/lib/code-expiry';
@@ -15,6 +15,9 @@ import { CreatorMore } from '@/components/site/creator-more';
 import { CodeRows, CreatorCodes } from '@/components/site/creator-codes';
 import { PlatformIcon } from '@/components/platform-icon';
 import { Crumbs } from '@/components/site/page-head';
+import { JsonLd } from '@/components/json-ld';
+import { creatorProfileLd } from '@/lib/structured-data';
+import { siteUrl } from '@/lib/seo';
 import { CopyPageLink } from '@/components/site/copy-page-link';
 import { VoteInvite } from '@/components/site/vote-invite';
 
@@ -48,13 +51,14 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
   // Une date de fin passée : on garde le code pour l'historique, mais replié en bas.
   const expired = creatorCodes.filter(code => expiryOf(code.expiresOn).state === 'expired');
   const active = creatorCodes.filter(code => !expired.includes(code));
-  const [profile, facts] = await Promise.all([getCreatorProfile(match.creatorSlug), getCreatorFacts()]);
+  const [profile, facts, media] = await Promise.all([getCreatorProfile(match.creatorSlug), getCreatorFacts(), getMediaMap()]);
   const copies = facts[match.creatorSlug]?.copies ?? 0;
   const themes = creatorCategories(creatorCodes, tools);
   return (
     <main className="k-page">
       <div className="k-wrap">
         <Crumbs items={[{ label: 'Créateurs', href: routes.creators() }, { label: creator }]} />
+        <JsonLd data={creatorProfileLd({ name: creator, path: routes.creator(match.creatorSlug), bio: profile?.bio, accounts: (profile?.accounts ?? []).map(account => account.url), image: media.avatars[creator] }, siteUrl())} />
         {/* L'essentiel d'abord : qui, combien de codes, où le suivre. Le reste se déplie avec « Plus d'infos ». */}
         <header className="k-creator-head">
           <CreatorAvatar name={creator} size="lg" />
