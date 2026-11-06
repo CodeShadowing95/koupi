@@ -88,7 +88,8 @@ Toutes les variables sont listées, sans valeur, dans [`.env.example`](.env.exam
 | `ADMIN_PASSWORD`, `SESSION_SECRET` | Accès au back-office et signature de sa session |
 | `HASH_SALT` | Anonymisation des votes et de l'audience |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Protection du formulaire de proposition |
-| `NEXT_PUBLIC_APP_URL` | Adresse publique du site |
+| `NEXT_PUBLIC_APP_URL` | Adresse publique du site (liens des e-mails) |
+| `NEXT_PUBLIC_SITE_URL` | Adresse pour le référencement (canoniques, sitemap), `https://merkod.com` par défaut |
 | `YOUTUBE_API_KEY`, `LOGO_DEV_TOKEN` | Scripts locaux uniquement (avatars des créateurs, logos des outils) |
 
 ### Scripts
