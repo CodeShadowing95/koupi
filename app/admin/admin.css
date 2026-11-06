@@ -351,6 +351,15 @@ a.tool-card:hover{color:var(--ink);border-color:var(--ink);box-shadow:var(--shad
 .adm-pager-btn:disabled{opacity:.4;cursor:not-allowed}
 .adm-pager-gap{min-width:20px;text-align:center;color:var(--muted)}
 @media(prefers-reduced-motion:reduce){.adm-page-enter{animation:none}}
+/* Écran de chargement (components/admin-skeleton.tsx) : formes grises qui respirent doucement. */
+.adm-skel{display:block;background:var(--line);border-radius:6px;animation:adm-skel-pulse 1.4s ease-in-out infinite}
+.adm-skel-sm{height:11px}.adm-skel-md{height:15px}.adm-skel-lg{height:30px}
+.adm-skel-head{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.adm-skel-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.adm-skel-tabs .adm-skel{height:32px;border-radius:999px}
+.adm-skel-card{gap:10px;min-height:96px}
+@keyframes adm-skel-pulse{0%,100%{opacity:1}50%{opacity:.45}}
+@media(prefers-reduced-motion:reduce){.adm-skel{animation:none}}
 
 /* ===== Thème sombre du back-office =====
    Par défaut, le thème suit le système. Le bouton clair / sombre force un choix (data-theme sur .admin-root). */
