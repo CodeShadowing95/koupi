@@ -77,6 +77,7 @@ function SeReperer() {
       <Legend rows={[
         { term: 'Propositions', meaning: <>Chaque <b>nouvelle proposition</b> d’un visiteur, avec le moment où elle est arrivée. <b>Refuser</b> la rejette tout de suite ; <b>Examiner</b> ouvre la file pour la valider.</> },
         { term: 'Signalés', meaning: <>Les <b>codes signalés</b> : les visiteurs votent qu’ils ne marchent pas (marqués d’un « ! » rouge). À tester en priorité.</> },
+        { term: 'Messages', meaning: <>Les <b>demandes des créateurs</b> à traiter (« C’est ma page », « Page incorrecte ») et les <b>avis des visiteurs</b> pas encore lus, les 5 plus récents de chaque. Ils mènent à <Link href="/admin/createurs/demandes">Demandes</Link> et à <Link href="/admin/retours">Retours</Link>. Dans le menu, <b>Demandes</b> et <b>Retours</b> portent aussi une pastille avec leur nombre.</> },
         { term: 'Rappels', meaning: <>Les codes <b>à tester</b> et <b>à retester</b>.</> },
       ]} />
       <p>Les onglets du haut filtrent par type, avec leur nombre. Un point bleu marque ce qui n’est pas lu : cliquer sur une notification t’amène à l’élément et la marque comme lue, et <b>Tout marquer comme lu</b> les marque toutes. Un rappel ne redevient non lu que si quelque chose change (un nombre de codes différent, par exemple).</p>
