@@ -184,7 +184,7 @@ function Propositions() {
       </Demo>
       <Legend rows={[
         { term: 'Valider…', meaning: <>Ouvre le formulaire du code, pré-rempli. Corrige ce qui doit l’être (orthographe de l’outil, réduction claire comme « -20 % » ou « 3 mois offerts »), choisis le statut, puis <b>Valider et créer le code</b>. La proposition passe en « Validée » et le code entre dans le catalogue.</> },
-        { term: 'Doublon', meaning: 'Le même code existe déjà pour cet outil. Merkod en détecte certains tout seul (onglet « Doublons »), mais pas tous : vérifie avec ⌘K.' },
+        { term: 'Doublon', meaning: 'Le même code existe déjà pour cet outil. Merkod range tout seul dans l’onglet « Doublons » une proposition déjà envoyée ou déjà au catalogue, casse ignorée. Pour une proposition plus ancienne, le formulaire de validation te prévient et refuse de créer le code une deuxième fois.' },
         { term: 'Refuser', meaning: 'Pas de source, code inventé, offre officielle de la marque, spam. Tu peux écrire une courte note de refus : elle reste dans l’historique.' },
       ]} />
       <Callout tone="tip" title="Quel statut choisir en validant ?">
@@ -246,6 +246,7 @@ function Codes() {
     <Section id="ajouter" title="Ajouter ou modifier un code">
       <p>Le bouton <b>Nouveau code</b> ouvre le formulaire. Les champs importants :</p>
       <Legend rows={[
+        { term: 'Code', meaning: 'Lettres, chiffres et tirets, sans espace, 40 caractères au plus. Il est rangé en majuscules : « merci20 » devient « MERCI20 ». Si l’outil a déjà ce code, même archivé, le formulaire te prévient avec un lien et refuse d’en créer un deuxième.' },
         { term: 'Lien de la source', meaning: 'Obligatoire. La vidéo, l’épisode ou le post où le créateur donne le code.' },
         { term: 'Réduction', meaning: 'Court et concret : « -20 % », « 3 mois offerts », « 50 € offerts ».' },
         { term: 'Lien du créateur', meaning: 'Facultatif. Son lien d’affiliation, ouvert tel quel quand le visiteur clique.' },

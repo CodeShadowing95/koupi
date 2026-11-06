@@ -7,6 +7,7 @@ import { afterDialogClose } from '@/lib/admin-dialog';
 import type { Category, Code, CodeStatus } from '@/lib/data';
 import type { ToolOption } from '@/lib/codes-admin';
 import { AdminSelect } from '@/components/admin-select';
+import { codeFormatError, findDuplicateCode, normalizeCode, MAX_CODE_LENGTH, type ExistingCode } from '@/lib/code-format';
 
 export type EditorTarget =
   | { kind: 'create' }
@@ -36,25 +37,33 @@ function initialValues(target: EditorTarget, tools: ToolOption[], categories: Ca
     return {
       ...empty,
       toolSlug: tool?.slug ?? NEW_TOOL, newToolName: tool ? '' : submission.tool_name, newToolCategory: category?.slug ?? empty.newToolCategory,
-      creatorName: submission.creator_name, code: submission.code, discount: submission.discount_label, sourceUrl: submission.source_url, creatorLink: submission.creator_link ?? '',
+      creatorName: submission.creator_name, code: normalizeCode(submission.code), discount: submission.discount_label, sourceUrl: submission.source_url, creatorLink: submission.creator_link ?? '',
     };
   }
   return empty;
 }
 
-export function CodeEditor({ target, tools, categories, creators, onClose, onSaved }: {
-  target: EditorTarget | null; tools: ToolOption[]; categories: Category[]; creators: string[]; onClose: () => void; onSaved?: () => void;
+/** Lien vers un code du catalogue dans la liste des codes. */
+function codeHref(code: string): string { return `/admin/codes?q=${encodeURIComponent(code)}`; }
+
+export function CodeEditor({ target, tools, categories, creators, existing = [], onClose, onSaved }: {
+  target: EditorTarget | null; tools: ToolOption[]; categories: Category[]; creators: string[];
+  /** Les codes du catalogue (archivés compris si possible), pour prévenir d'un doublon avant l'envoi. */
+  existing?: readonly ExistingCode[];
+  onClose: () => void; onSaved?: () => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const router = useRouter();
   const [values, setValues] = useState<Initial>(() => initialValues(target ?? { kind: 'create' }, tools, categories));
   const [error, setError] = useState('');
+  const [errorCode, setErrorCode] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!target) { dialog.current?.close(); return; }
     setValues(initialValues(target, tools, categories));
     setError('');
+    setErrorCode('');
     setSaving(false);
     if (!dialog.current?.open) dialog.current?.showModal();
   }, [target, tools, categories]);
@@ -65,14 +74,23 @@ export function CodeEditor({ target, tools, categories, creators, onClose, onSav
   const set = <K extends keyof Initial>(key: K) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setValues(current => ({ ...current, [key]: event.target.value }));
   const title = target.kind === 'create' ? 'Nouveau code' : target.kind === 'edit' ? `Modifier ${target.code.code}` : 'Valider la proposition';
   const isNewTool = values.toolSlug === NEW_TOOL;
+  const typedCode = normalizeCode(values.code);
+  const formatError = typedCode ? codeFormatError(typedCode) : null;
+  const duplicate = isNewTool ? undefined : findDuplicateCode(existing, values.toolSlug, values.code, target.kind === 'edit' ? target.code.id : undefined);
 
   async function send(url: string, method: string, body: unknown) {
     setSaving(true);
     setError('');
+    setErrorCode('');
     try {
       const response = await fetch(url, { method, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-      const result = await response.json().catch(() => ({})) as { error?: string };
-      if (!response.ok) { setError(result.error || 'L’enregistrement a échoué.'); setSaving(false); return; }
+      const result = await response.json().catch(() => ({})) as { error?: string; duplicateId?: string };
+      if (!response.ok) {
+        setError(result.error || 'L’enregistrement a échoué.');
+        if (result.duplicateId) setErrorCode(typedCode);
+        setSaving(false);
+        return;
+      }
       dialog.current?.close();
       onSaved?.();
       router.refresh();
@@ -132,7 +150,23 @@ export function CodeEditor({ target, tools, categories, creators, onClose, onSav
               <div className="field"><label htmlFor="ce-tool-site">Site officiel</label><input id="ce-tool-site" value={values.newToolWebsite} onChange={set('newToolWebsite')} required placeholder="exemple.com" maxLength={300} /></div>
             </fieldset>
           )}
-          <div className="field"><label htmlFor="ce-code">Code</label><input id="ce-code" className="mono" value={values.code} onChange={set('code')} required maxLength={120} /></div>
+          <div className="field">
+            <label htmlFor="ce-code">Code</label>
+            <input
+              id="ce-code" className="mono" value={values.code} required maxLength={MAX_CODE_LENGTH + 10} autoCapitalize="characters" spellCheck={false}
+              onChange={event => setValues(current => ({ ...current, code: event.target.value.toLocaleUpperCase('fr-FR') }))}
+              aria-invalid={Boolean(formatError || duplicate) || undefined} aria-describedby="ce-code-hint"
+            />
+            {duplicate ? (
+              <small id="ce-code-hint" className="adm-field-warn" role="status">
+                Ce code existe déjà pour cet outil{duplicate.archived ? ', dans les archives' : ''}. <a href={codeHref(duplicate.code)} target="_blank" rel="noreferrer">Voir le code</a>
+              </small>
+            ) : formatError ? (
+              <small id="ce-code-hint" className="adm-field-warn" role="status">{formatError}</small>
+            ) : (
+              <small id="ce-code-hint">Lettres, chiffres et tirets, sans espace.</small>
+            )}
+          </div>
           <div className="field"><label htmlFor="ce-discount">Réduction</label><input id="ce-discount" value={values.discount} onChange={set('discount')} required maxLength={240} placeholder="-20 %, 3 mois offerts…" /></div>
           <div className="field adm-span-2"><label htmlFor="ce-source">Lien de la source</label><input id="ce-source" type="url" value={values.sourceUrl} onChange={set('sourceUrl')} required maxLength={1000} placeholder="https://… (vidéo, post, story)" /><small>Là où le créateur donne le code. C’est la preuve qu’il est public.</small></div>
           <div className="field"><label htmlFor="ce-source-title">Titre de la source</label><input id="ce-source-title" value={values.sourceTitle} onChange={set('sourceTitle')} maxLength={300} /></div>
@@ -152,7 +186,7 @@ export function CodeEditor({ target, tools, categories, creators, onClose, onSav
           <div className="field adm-span-2"><label htmlFor="ce-note">Note interne (facultative)</label><textarea id="ce-note" rows={2} value={values.note} onChange={set('note')} maxLength={1000} /></div>
         </div>
 
-        {error && <div className="notice notice-error" role="alert">{error}</div>}
+        {error && <div className="notice notice-error" role="alert">{error}{errorCode && <> <a href={codeHref(errorCode)} target="_blank" rel="noreferrer">Voir le code</a></>}</div>}
         <div className="adm-dialog-foot">
           {target.kind === 'edit' && <button type="button" className="adm-btn adm-btn-danger" onClick={archive} disabled={saving}>{target.code.archived ? 'Restaurer' : 'Archiver'}</button>}
           <span style={{ flex: 1 }} />
