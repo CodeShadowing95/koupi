@@ -23,6 +23,11 @@ const MARGIN_DAYS = 2;
 export const UPLOADS_PER_CHANNEL = 20;
 /** Chaînes lues par passage : au pire 200 unités, 2 % du quota du jour. Les moins récemment lues d'abord. */
 export const MAX_CHANNELS_PER_RUN = 200;
+/**
+ * Temps de lecture d'un passage. Vercel coupe une fonction à 300 s (maxDuration) : au-delà de 4 minutes, on s'arrête
+ * proprement après la chaîne en cours. Les chaînes restantes, les moins récemment lues, passent en tête au passage suivant.
+ */
+export const RUN_BUDGET_MS = 240_000;
 /** Requête notée pour une vidéo lue depuis une chaîne suivie (table des vidéos déjà lues). */
 export const CHANNEL_QUERY = 'Chaîne suivie';
 const DAY = 24 * 60 * 60 * 1000;
@@ -134,7 +139,7 @@ export type ChannelReadReport = {
 };
 
 /** Lit les nouvelles vidéos des chaînes suivies actives (ou d'une seule, même en pause, avec onlyId). */
-export async function readYoutubeChannels(db: Db, youtube: YoutubeChannels, options: { onlyId?: string; deps?: RunDeps; now?: Date; max?: number } = {}): Promise<ChannelReadReport> {
+export async function readYoutubeChannels(db: Db, youtube: YoutubeChannels, options: { onlyId?: string; deps?: RunDeps; now?: Date; max?: number; budgetMs?: number; clock?: () => number } = {}): Promise<ChannelReadReport> {
   const now = options.now ?? new Date();
   const report: ChannelReadReport = { channels: 0, videos: 0, skipped: 0, found: [], suggested: [], units: 0, aiRead: 0, failed: [], remaining: 0 };
   const all = await db.select().from(watchedSources)
@@ -164,7 +169,14 @@ export async function readYoutubeChannels(db: Db, youtube: YoutubeChannels, opti
     }
   }
 
-  for (const channel of channels) {
+  const clock = options.clock ?? Date.now;
+  const startedAt = clock();
+  const budget = options.budgetMs ?? RUN_BUDGET_MS;
+  for (const [index, channel] of channels.entries()) {
+    if (index > 0 && clock() - startedAt > budget) {
+      report.remaining += channels.length - index;
+      break;
+    }
     report.channels++;
     let videos: FoundVideo[];
     try {
@@ -187,7 +199,7 @@ export async function readYoutubeChannels(db: Db, youtube: YoutubeChannels, opti
     report.videos += videos.length;
     const creatorId = channel.creatorId ?? await resolveCreator(db, channel.title);
 
-    for (const video of videos) {
+    const readVideo = async (video: FoundVideo) => {
       const sourceUrl = `https://www.youtube.com/watch?v=${video.id}`;
       const merged = mergeAiCodes(scanPromoCodes(`${video.title}\n${video.description}`, catalog), await readWithAi(video, sourceUrl), catalog);
       const scan = { found: forVideo(merged.found), unknown: forVideo(merged.unknown) };
@@ -212,6 +224,16 @@ export async function readYoutubeChannels(db: Db, youtube: YoutubeChannels, opti
       await db.insert(youtubeSeenVideos).values({
         videoId: video.id, channelId: video.channelId ?? channel.externalId, channelTitle: clip(video.channelTitle || channel.title, 200), toolId: null, query: CHANNEL_QUERY, codes: codesForVideo, seenAt: now,
       }).onConflictDoNothing();
+    };
+
+    for (const video of videos) {
+      // Une vidéo en erreur (texte refusé par la base, IA indisponible…) ne doit pas arrêter les autres ni les chaînes suivantes.
+      try {
+        await readVideo(video);
+      } catch (error) {
+        console.error('youtube channel video failed', video.id, error);
+        report.failed.push(`${channel.title} (vidéo ${video.id})`);
+      }
     }
     await db.update(watchedSources).set({ lastFetchedAt: now, ...(channel.creatorId ? {} : { creatorId }) }).where(eq(watchedSources.id, channel.id));
   }

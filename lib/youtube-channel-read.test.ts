@@ -106,4 +106,28 @@ describe('chaînes suivies en base', () => {
     const report = await readYoutubeChannels(db, refused, { now });
     expect(report.failed).toEqual(['@geek']);
   });
+
+  it('s’arrête avant la limite de temps et garde les chaînes restantes pour le passage suivant', async () => {
+    await setChannelWatch(db, accountId, true);
+    const [quietAccount] = await db.select().from(schema.creatorAccounts).where(eq(schema.creatorAccounts.externalId, OTHER));
+    await setChannelWatch(db, quietAccount.id, true);
+    const youtube = fake([], []);
+    let time = 0;
+    // Chaque lecture de l'horloge avance d'une minute : la deuxième chaîne dépasse un budget de 30 s.
+    const report = await readYoutubeChannels(db, youtube, { now, budgetMs: 30_000, clock: () => (time += 60_000) });
+    expect(report).toMatchObject({ channels: 1, remaining: 1 });
+    // La chaîne pas lue passe en tête au passage suivant.
+    const next = await readYoutubeChannels(db, youtube, { now, budgetMs: 30_000, clock: () => (time += 60_000) });
+    expect(next).toMatchObject({ channels: 1, remaining: 1 });
+    expect(new Set(vi.mocked(youtube.uploads).mock.calls.map(call => call[0]))).toEqual(new Set([CHANNEL, OTHER]));
+  });
+
+  it('garde un emoji entier dans la preuve, même coupée au milieu', async () => {
+    await setChannelWatch(db, accountId, true);
+    const description = `${'y'.repeat(73)}🔗 Stylevana code SARA10 https://stylevana.com`;
+    const youtube = fake([{ videoId: 'v9', publishedAt: daysAgo(1) }], [{ id: 'v9', title: 'Haul', description, channelTitle: 'Geek', channelId: CHANNEL }]);
+    const report = await readYoutubeChannels(db, youtube, { now });
+    expect(report.failed).toEqual([]);
+    expect((await db.select().from(schema.youtubeSeenVideos)).map(row => row.videoId)).toContain('v9');
+  });
 });
