@@ -2,6 +2,29 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.6.0](https://github.com/CodeShadowing95/koupi/compare/v0.5.2...v0.6.0) (2026-11-06)
+
+### Nouveautés
+
+- **home:** Say anyone can suggest a code in the hero (#205) ([06d454f](https://github.com/CodeShadowing95/koupi/commit/06d454f111a3cac9bd0f3a2e475333e0524cb8a0))
+- **admin:** Add Merkod confirm dialogs and derive profile links (#204) ([2c060ad](https://github.com/CodeShadowing95/koupi/commit/2c060ad714a9b63b14778582853ad3e659b393ce))
+- **submit:** Bring back a simple submit form (#200) ([e70998f](https://github.com/CodeShadowing95/koupi/commit/e70998f824b97de8a7eefd46952a8f02d78454d3))
+
+### Corrections
+
+- **sources:** Read followed channels in batches under the time limit (#207) ([a10b398](https://github.com/CodeShadowing95/koupi/commit/a10b39833317ff517add81560c3e8af451de7549))
+- **verifications:** Stop scoring years and licence keys as clear codes (#206) ([34013a0](https://github.com/CodeShadowing95/koupi/commit/34013a0238726685ad41c65f36aa2032e9ececb2))
+- **admin:** Polish admin titles, tabs and small labels (#203) ([f0499c8](https://github.com/CodeShadowing95/koupi/commit/f0499c8fdf99c7487b1a97c1c4864f715dda634f))
+- **podcasts:** Stop reading labels and payment pages as tools (#202) ([cdb9c7e](https://github.com/CodeShadowing95/koupi/commit/cdb9c7e95cf4003560e48855d8f4d0fe948405a3))
+- **admin:** Tidy the creators toolbar (#201) ([d67951e](https://github.com/CodeShadowing95/koupi/commit/d67951e9d53da00cd5e41c8a1eb7e90a58422c8a))
+- **admin:** Make long admin lists readable (#199) ([9cb291e](https://github.com/CodeShadowing95/koupi/commit/9cb291e12639144090c816cba0973a838d935ac3))
+- **admin:** Keep the login page off the database (#198) ([d4fbbc5](https://github.com/CodeShadowing95/koupi/commit/d4fbbc53859c4bbc31e5ea6df916b11ca24668e7))
+- **admin:** Show creator requests and feedback in the bell (#197) ([1619c64](https://github.com/CodeShadowing95/koupi/commit/1619c64e2df709ab2e14d67887eaa3839d9f6785))
+- **creators:** Require the audience threshold for bio proof (#196) ([67c4dce](https://github.com/CodeShadowing95/koupi/commit/67c4dce4315205b2dd988397416036f4c381f9fa))
+- **admin:** Leave new tool category empty and show form errors (#195) ([a9e0da7](https://github.com/CodeShadowing95/koupi/commit/a9e0da790370f35fc40dd93ca486a064e8b359e3))
+- **codes:** Block duplicate codes and check the code format (#194) ([417346d](https://github.com/CodeShadowing95/koupi/commit/417346dd891f05f15ad81bf722b3941ada5c14ec))
+- **admin:** Format admin dates in the Paris time zone (#193) ([53e5df1](https://github.com/CodeShadowing95/koupi/commit/53e5df1cce4502a750231daf6cfd7e08de76b73b))
+
 ## [0.5.2](https://github.com/CodeShadowing95/koupi/compare/v0.5.1...v0.5.2) (2026-11-06)
 
 ### Corrections
