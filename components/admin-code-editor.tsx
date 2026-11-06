@@ -7,12 +7,13 @@ import { afterDialogClose } from '@/lib/admin-dialog';
 import type { Category, Code, CodeStatus } from '@/lib/data';
 import type { ToolOption } from '@/lib/codes-admin';
 import { AdminSelect } from '@/components/admin-select';
+import { matchCategory } from '@/lib/category-match';
 import { codeFormatError, findDuplicateCode, normalizeCode, MAX_CODE_LENGTH, type ExistingCode } from '@/lib/code-format';
 
 export type EditorTarget =
   | { kind: 'create' }
   | { kind: 'edit'; code: Code }
-  | { kind: 'submission'; submission: { id: string; tool_name: string; creator_name: string; code: string; discount_label: string; source_url: string; creator_link: string | null; category: string | null } };
+  | { kind: 'submission'; submission: { id: string; tool_name: string; creator_name: string; code: string; discount_label: string; source_url: string; creator_link: string | null; category: string | null; comment?: string | null } };
 
 const NEW_TOOL = '__new__';
 const statusOptions: { value: CodeStatus; label: string; hint: string }[] = [
@@ -25,7 +26,7 @@ const statusOptions: { value: CodeStatus; label: string; hint: string }[] = [
 type Initial = { toolSlug: string; newToolName: string; newToolCategory: string; newToolWebsite: string; creatorName: string; code: string; discount: string; sourceUrl: string; sourceTitle: string; creatorLink: string; status: CodeStatus; note: string; expiresOn: string };
 
 function initialValues(target: EditorTarget, tools: ToolOption[], categories: Category[]): Initial {
-  const empty: Initial = { toolSlug: '', newToolName: '', newToolCategory: categories[0]?.slug ?? '', newToolWebsite: '', creatorName: '', code: '', discount: '', sourceUrl: '', sourceTitle: '', creatorLink: '', status: 'to_test', note: '', expiresOn: '' };
+  const empty: Initial = { toolSlug: '', newToolName: '', newToolCategory: '', newToolWebsite: '', creatorName: '', code: '', discount: '', sourceUrl: '', sourceTitle: '', creatorLink: '', status: 'to_test', note: '', expiresOn: '' };
   if (target.kind === 'edit') {
     const { code } = target;
     return { ...empty, toolSlug: code.toolSlug, creatorName: code.creator, code: code.code, discount: code.discount, sourceUrl: code.source, sourceTitle: code.sourceTitle, creatorLink: code.creatorLink ?? '', status: code.status, note: code.note ?? '', expiresOn: code.expiresOn ?? '' };
@@ -33,11 +34,14 @@ function initialValues(target: EditorTarget, tools: ToolOption[], categories: Ca
   if (target.kind === 'submission') {
     const { submission } = target;
     const tool = tools.find(item => item.name.toLowerCase() === submission.tool_name.trim().toLowerCase());
-    const category = categories.find(item => item.name === submission.category);
+    // La catégorie choisie par le visiteur, si elle existe ; sinon l'admin la choisit (jamais une catégorie au hasard).
+    const category = matchCategory(categories, submission.category);
+    const comment = submission.comment?.trim();
     return {
       ...empty,
       toolSlug: tool?.slug ?? NEW_TOOL, newToolName: tool ? '' : submission.tool_name, newToolCategory: category?.slug ?? empty.newToolCategory,
       creatorName: submission.creator_name, code: normalizeCode(submission.code), discount: submission.discount_label, sourceUrl: submission.source_url, creatorLink: submission.creator_link ?? '',
+      note: comment ? `Commentaire du visiteur : ${comment}`.slice(0, 1000) : '',
     };
   }
   return empty;
@@ -186,8 +190,8 @@ export function CodeEditor({ target, tools, categories, creators, existing = [],
           <div className="field adm-span-2"><label htmlFor="ce-note">Note interne (facultative)</label><textarea id="ce-note" rows={2} value={values.note} onChange={set('note')} maxLength={1000} /></div>
         </div>
 
-        {error && <div className="notice notice-error" role="alert">{error}{errorCode && <> <a href={codeHref(errorCode)} target="_blank" rel="noreferrer">Voir le code</a></>}</div>}
         <div className="adm-dialog-foot">
+          {error && <div className="notice notice-error adm-foot-error" role="alert">{error}{errorCode && <> <a href={codeHref(errorCode)} target="_blank" rel="noreferrer">Voir le code</a></>}</div>}
           {target.kind === 'edit' && <button type="button" className="adm-btn adm-btn-danger" onClick={archive} disabled={saving}>{target.code.archived ? 'Restaurer' : 'Archiver'}</button>}
           <span style={{ flex: 1 }} />
           <button type="button" className="adm-btn" onClick={() => dialog.current?.close()}>Annuler</button>
