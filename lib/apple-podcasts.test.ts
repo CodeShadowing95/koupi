@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { appleEpisodeRef, applePodcasts, htmlToText, podcastReader } from './apple-podcasts';
+import { appleEpisodeRef, applePodcasts, htmlToText, podcastReader, uniqueFeeds } from './apple-podcasts';
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
 
@@ -108,5 +108,13 @@ describe('podcastReader', () => {
     expect(await podcastReader(directory(true))('https://podcasts.apple.com/podcast/id42?i=8')).toBeNull();
     expect(await podcastReader(directory(false))('https://podcasts.apple.com/podcast/id42?i=7')).toEqual({ online: false, title: '', description: '' });
     expect(await podcastReader(directory(true))('https://example.com')).toBeNull();
+  });
+});
+
+describe('uniqueFeeds', () => {
+  const feed = (id: number, title: string, author: string) => ({ id, title, author, feedUrl: '', link: '', image: '', episodeCount: 1, genre: '' });
+  it('garde une seule fois un podcast listé sous deux identifiants', () => {
+    const list = uniqueFeeds([feed(1, 'UNBX', 'Unbox'), feed(2, 'Autre', 'X'), feed(3, 'Unbx ', 'UNBOX'), feed(2, 'Autre', 'X'), feed(4, 'UNBX', 'Quelqu’un d’autre')]);
+    expect(list.map(item => item.id)).toEqual([1, 2, 4]);
   });
 });

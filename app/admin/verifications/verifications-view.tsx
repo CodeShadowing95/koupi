@@ -2,17 +2,19 @@
 // Page Vérifications : la file des codes à décider, chacun avec son analyse (score, raisons, extrait de la source).
 // L'admin garde la décision : Valider (source vérifiée), Testé au paiement, ou Rejeter. Raccourcis J/K, A, V, T, R.
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Pagination, usePagination } from '@/components/admin-pagination';
 import { useRouter } from 'next/navigation';
 import type { AiStatus } from '@/lib/ai-extract';
-import { VERDICT_LABELS, formatUsd, highlightCode, modelLabel, verdictOf, type QueueItem, type Verdict } from '@/lib/verification-display';
+import { VERDICT_LABELS, formatEur, formatUsd, highlightCode, modelLabel, verdictOf, type QueueItem, type Verdict } from '@/lib/verification-display';
 import { matchesSearch } from '@/lib/admin-search';
 import { Key } from '@/components/admin-guide';
 import { RETEST_DAYS } from '@/lib/admin-stats';
 import { RefreshButton } from '@/components/admin-refresh-button';
 import { CODE_ORIGIN_LABELS } from '@/lib/code-origin';
 import { USAGE_CHANGED } from '@/components/admin-usage-gauge';
+import { calendarDay, parisDate } from '@/lib/paris-date';
 
-type Ai = { status: AiStatus; spentUsdMicros: number; budgetUsdMicros: number; model: string; reviewModel: string };
+type Ai = { status: AiStatus; spentUsdMicros: number; budgetUsdMicros: number; usdPerEur: number; model: string; reviewModel: string };
 type Filter = 'all' | Verdict | 'retest';
 const filters: { value: Filter; label: string }[] = [
   { value: 'all', label: 'Tout' },
@@ -26,9 +28,8 @@ const verdictClass: Record<Verdict, string> = { clear: 'is-ok', doubt: 'is-warn'
 const statusLabel: Record<QueueItem['status'], string> = { pending: 'En attente', to_test: 'À tester', verified: 'Vérifié' };
 const isRetest = (item: QueueItem) => item.status === 'verified';
 const matchesFilter = (item: QueueItem, filter: Filter) => filter === 'retest' ? isRetest(item) : !isRetest(item) && (filter === 'all' || verdictOf(item.check) === filter);
-const shortDay = (day: string) => new Date(`${day}T12:00:00Z`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
-// Heure de Paris, côté serveur comme dans le navigateur : sinon le texte diffère au chargement et React refait la page.
-const dateTime = (iso: string) => new Date(iso).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' });
+const shortDay = (day: string) => calendarDay(day, { day: 'numeric', month: 'short', year: 'numeric' });
+const dateTime = (iso: string) => parisDate(iso, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
 type Decision = 'verify' | 'payment_test' | 'reject';
 const decisionDone: Record<Decision, string> = { verify: 'validé', payment_test: 'validé et testé au paiement', reject: 'rejeté' };
@@ -51,7 +52,7 @@ function AiBanner({ ai, youtubeReady }: { ai: Ai; youtubeReady: boolean }) {
         </div>
       </div>
       <div className="adm-vf-budget">
-        <div className="adm-vf-budget-row"><span>Dépense du mois</span><b>{formatUsd(ai.spentUsdMicros)} <small>sur {formatUsd(ai.budgetUsdMicros)}</small></b></div>
+        <div className="adm-vf-budget-row"><span>Dépense du mois</span><b title={`${formatUsd(ai.spentUsdMicros)} sur ${formatUsd(ai.budgetUsdMicros)} facturés en dollars`}>{formatEur(ai.spentUsdMicros, ai.usdPerEur)} <small>sur {formatEur(ai.budgetUsdMicros, ai.usdPerEur)}</small></b></div>
         <div className="adm-vf-meter" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} aria-label="Part du plafond mensuel dépensée"><span style={{ width: `${percent}%` }} /></div>
       </div>
       {!youtubeReady && <p className="adm-vf-ai-warn">La clé YOUTUBE_API_KEY manque sur ce déploiement : les sources YouTube ne peuvent pas être lues, ouvre-les toi-même.</p>}
@@ -78,6 +79,8 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
   const visible = queue.filter(item => matchesFilter(item, filter)
     && matchesSearch([item.code, item.tool, item.creator, item.discount, item.sourceTitle], query));
   const current = visible[Math.min(selected, visible.length - 1)] ?? null;
+  // 24 dossiers par page, comme les autres listes : selected reste la position dans toute la liste filtrée.
+  const { current: page, goTo, topRef, size, changeSize } = usePagination(visible, `${filter}|${query}`);
   const unanalyzed = queue.filter(item => !item.check && !isRetest(item));
   const aiActive = ai.status.state === 'active';
 
@@ -138,6 +141,8 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
         event.preventDefault();
         const next = Math.max(0, Math.min(visible.length - 1, selected + (key === 'j' ? 1 : -1)));
         setSelected(next);
+        const nextPage = Math.floor(next / size) + 1;
+        if (nextPage !== page.page) { goTo(nextPage); return; }
         const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         cards.current[next]?.scrollIntoView({ block: 'nearest', behavior: still ? 'auto' : 'smooth' });
         return;
@@ -153,16 +158,22 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [visible.length, selected, current, busy, batch, runOne, decide]);
+  }, [visible.length, selected, current, busy, batch, runOne, decide, size, page.page, goTo]);
 
   useEffect(() => { setSelected(0); }, [filter, query]);
+  // Le message s'efface seul après 8 secondes.
+  useEffect(() => {
+    if (!message) return;
+    const timer = setTimeout(() => setMessage(''), 8000);
+    return () => clearTimeout(timer);
+  }, [message]);
 
   return (
     <main className="adm-page">
       <div className="container">
         <div className="adm-head">
           <div>
-            <span className="eyebrow">Modération</span>
+            <span className="eyebrow">Catalogue</span>
             <h1>Vérifications</h1>
             <p>Merkod lit la source de chaque code, fait les contrôles et propose un score. Tu gardes la décision : valider, noter le test au paiement ou rejeter.</p>
           </div>
@@ -191,14 +202,19 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
             <button type="button" className="adm-btn" disabled={Boolean(busy) || Boolean(batch)} onClick={retestNow}>{busy === 'retest' ? 'Retests en cours…' : 'Lancer les retests maintenant'}</button>
           </div>
         )}
-        <p className="sr-only" role="status" aria-live="polite">{message}</p>
-        {message && <p className="adm-hint" aria-hidden="true">{message}</p>}
+        {/* Message fixe en bas de l'écran : il reste visible quand on agit sur un dossier plus bas dans la page. */}
+        <div className={`adm-toast${message ? ' is-on' : ''}`} role="status" aria-live="polite">
+          {message && <><span>{message}</span><button type="button" className="adm-toast-close" aria-label="Fermer le message" onClick={() => setMessage('')}>×</button></>}
+        </div>
 
         {visible.length === 0 ? (
           <div className="adm-empty">{filter === 'retest' && !query ? 'Aucun code vérifié ne pose problème.' : queue.length === 0 ? 'Rien à vérifier : tous les codes ont une décision.' : 'Aucun code ne correspond à ce filtre.'}</div>
         ) : (
+          <>
+          <div ref={topRef} className="adm-list-top" />
           <div className="adm-vf-list">
-            {visible.map((item, index) => {
+            {page.items.map((item, pageIndex) => {
+              const index = page.from - 1 + pageIndex;
               const verdict = verdictOf(item.check);
               const isBusy = busy === item.id || Boolean(batch);
               return (
@@ -224,7 +240,7 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
                           <li key={reasonIndex}><span className={reason.points > 0 ? 'is-ok' : reason.points < 0 ? 'is-bad' : 'is-none'}>{reason.points > 0 ? `+${reason.points}` : reason.points < 0 ? reason.points : '·'}</span>{reason.label}</li>
                         ))}
                       </ul>
-                      <p className="adm-vf-meta">Analysé le {dateTime(item.check.createdAt)}{item.check.model ? ` · lu par ${modelLabel(item.check.model)} · ${formatUsd(item.check.costUsdMicros)}` : ' · sans IA'}</p>
+                      <p className="adm-vf-meta">Analysé le {dateTime(item.check.createdAt)}{item.check.model ? ` · lu par ${modelLabel(item.check.model)} · ${formatEur(item.check.costUsdMicros, ai.usdPerEur)}` : ' · sans IA'}</p>
                     </div>
                   ) : (
                     <p className="adm-vf-meta">Pas encore analysé. « Analyser » lit la source et calcule le score.</p>
@@ -242,6 +258,8 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
               );
             })}
           </div>
+          <Pagination current={page} onChange={next => { goTo(next); setSelected((next - 1) * size); }} label="codes" size={size} onSizeChange={changeSize} />
+          </>
         )}
       </div>
     </main>

@@ -6,6 +6,8 @@ import { sourceActivity } from '@/lib/source-runs';
 import { RUN_SOURCE_LABELS, type RunSource } from '@/lib/sources';
 import { DashboardView } from './dashboard-view';
 
+export const metadata = { title: 'Accueil · Admin Merkod' };
+
 export const dynamic = 'force-dynamic';
 
 // Sources dont le dernier passage a échoué, et jauges du quota YouTube et du plafond IA.

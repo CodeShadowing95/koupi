@@ -23,8 +23,12 @@ describe('niveau d’un compte', () => {
     expect(accountLevelOf({ ...base, platformVerified: true })).toBe('checked');
   });
   it('passe vérifié quand le créateur a prouvé que le compte est à lui', () => {
-    expect(accountLevelOf({ ...base, claimStatus: 'verified' })).toBe('verified');
-    expect(accountLevelOf({ ...base, claimStatus: 'revoked' })).toBe('spotted');
+    expect(accountLevelOf({ ...base, claimStatus: 'verified', adminCheckedAt: checkedAt, subscribers: 1000 })).toBe('verified');
+    expect(accountLevelOf({ ...base, claimStatus: 'revoked', adminCheckedAt: checkedAt, subscribers: 1000 })).toBe('checked');
+  });
+  it('reste repéré quand la preuve porte sur un compte sous le seuil', () => {
+    expect(accountLevelOf({ ...base, claimStatus: 'verified' })).toBe('spotted');
+    expect(accountLevelOf({ ...base, claimStatus: 'verified', adminCheckedAt: checkedAt, subscribers: 200 })).toBe('spotted');
   });
 });
 

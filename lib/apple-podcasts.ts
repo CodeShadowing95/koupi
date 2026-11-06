@@ -76,6 +76,23 @@ function toEpisode(raw: RawResult): PodcastEpisode | null {
 }
 
 /** Le HTML des notes d'épisode réduit à du texte, pour y chercher les codes. */
+/**
+ * Un podcast n'apparaît qu'une fois dans un classement : Apple liste parfois le même sous deux identifiants
+ * (même nom, même auteur). On garde la première place.
+ */
+export function uniqueFeeds(feeds: PodcastFeed[]): PodcastFeed[] {
+  const key = (value: string | null | undefined) => (value ?? '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const ids = new Set<number>();
+  const names = new Set<string>();
+  return feeds.filter(feed => {
+    const name = `${key(feed.title)}|${key(feed.author)}`;
+    if (ids.has(feed.id) || names.has(name)) return false;
+    ids.add(feed.id);
+    names.add(name);
+    return true;
+  });
+}
+
 export function htmlToText(html: string): string {
   return html
     .replace(/<\s*(br|\/p|\/li|\/div)\s*\/?>/gi, '\n')
@@ -115,8 +132,7 @@ export function applePodcasts(fetchFn: typeof fetch = fetch): PodcastDirectory {
       const body = await response.json() as { feed?: { entry?: ChartEntry[] | ChartEntry } };
       const entries = body.feed?.entry;
       const list = Array.isArray(entries) ? entries : entries ? [entries] : [];
-      const seen = new Set<number>();
-      return list.map(chartEntryToFeed).filter((feed): feed is PodcastFeed => feed !== null && !seen.has(feed.id) && Boolean(seen.add(feed.id)));
+      return uniqueFeeds(list.map(chartEntryToFeed).filter((feed): feed is PodcastFeed => feed !== null));
     },
     async episodes(podcastId, options = {}) {
       const results = await get('/lookup', { id: String(podcastId), entity: 'podcastEpisode', limit: String(options.max ?? 20) });

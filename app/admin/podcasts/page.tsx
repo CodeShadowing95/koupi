@@ -9,6 +9,8 @@ import { listToolSuggestions } from '@/lib/tool-suggestions';
 import { aiSpendSince, startOfMonthUtc } from '@/lib/verification-store';
 import { PodcastsView } from './podcasts-view';
 
+export const metadata = { title: 'Podcasts suivis · Admin Merkod' };
+
 export const dynamic = 'force-dynamic';
 
 // Images des podcasts suivis, relues dans Apple Podcasts en un appel. Sans réponse, la liste s'affiche sans images.

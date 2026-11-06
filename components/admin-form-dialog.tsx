@@ -1,6 +1,7 @@
 'use client';
 // Fenêtre de formulaire du back-office (outil, créateur, catégorie) : titre, champs, erreur, boutons.
 // onSubmit renvoie un message d'erreur, ou null quand c'est enregistré (la page est alors rechargée côté serveur).
+// L'erreur s'affiche dans le pied, collé en bas du panneau, à côté du bouton : toujours visible, même après défilement.
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { afterDialogClose } from '@/lib/admin-dialog';
@@ -49,8 +50,8 @@ export function FormDialog({ open, title, intro, submitLabel = 'Enregistrer', on
           </div>
           {intro && <p className="adm-dialog-intro">{intro}</p>}
           <div className="adm-form-grid">{children}</div>
-          {error && <div className="notice notice-error" role="alert">{error}</div>}
           <div className="adm-dialog-foot">
+            {error && <div className="notice notice-error adm-foot-error" role="alert">{error}</div>}
             {extra}
             <span style={{ flex: 1 }} />
             <button type="button" className="adm-btn" onClick={() => dialog.current?.close()}>Annuler</button>

@@ -2,6 +2,7 @@
 'use client';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { copyText } from '@/lib/copy';
+import { showCopyText } from '@/components/admin-ask';
 
 export type Tone = 'ok' | 'warn' | 'bad' | 'info' | 'muted';
 
@@ -43,7 +44,7 @@ export function CopyCode({ code }: { code: string }) {
   const timer = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(timer.current), []);
   async function copy() {
-    if (!(await copyText(code))) { window.prompt('Copie ce code :', code); return; }
+    if (!(await copyText(code))) { await showCopyText({ title: 'Copie le code', text: code }); return; }
     setCopied(true);
     window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => setCopied(false), 1500);

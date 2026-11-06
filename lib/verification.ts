@@ -1,6 +1,6 @@
 // Contrôles automatiques d'un code promo et score de confiance (voir la spec « vérifications assistées par IA »).
 // Tout est calculé par notre code, sans IA : le résultat doit être prévisible, expliqué et testable.
-// L'IA, quand elle sera branchée, ne fera que lire les descriptions ; elle ne décide jamais du score.
+// L'IA ne fait que lire les descriptions : elle peut retirer des points quand elle ne voit pas le code (ADR-0037), jamais en ajouter.
 
 /** Seuil d'abonnés pour qu'un créateur puisse être « Contrôlé par Merkod ». */
 export const MIN_SUBSCRIBERS = 1000;
@@ -13,6 +13,8 @@ export const REJECT_BELOW = 20;
 export const CLEAR_SCORE = 60;
 
 const BASE_SCORE = 30;
+/** Points retirés quand l'IA lit la source et n'y voit pas ce code (lib/verification-run.ts). */
+export const AI_MISS_POINTS = -20;
 
 export type CreatorLevel = 'spotted' | 'checked' | 'verified';
 
@@ -34,13 +36,21 @@ export type CreatorFacts = {
   ratingCount?: number | null;
 };
 
-// Le badge de la plateforme suffit pour « Contrôlé par Merkod » ; sinon il faut le contrôle de l'admin et un seuil
-// d'audience : au moins MIN_SUBSCRIBERS abonnés, ou MIN_RATINGS notes pour un podcast.
+/** Le seuil d'audience : au moins MIN_SUBSCRIBERS abonnés, ou MIN_RATINGS notes pour un podcast. */
+export function audienceReached(facts: Pick<CreatorFacts, 'subscribers' | 'ratingCount'>): boolean {
+  return (facts.subscribers ?? 0) >= MIN_SUBSCRIBERS || (facts.ratingCount ?? 0) >= MIN_RATINGS;
+}
+
+/** « Contrôlé par Merkod » : le badge de la plateforme, ou le contrôle de l'admin avec le seuil d'audience. */
+export function controlledByMerkod(facts: CreatorFacts): boolean {
+  return Boolean(facts.platformVerified) || (Boolean(facts.adminChecked) && audienceReached(facts));
+}
+
+// « Créateur vérifié » demande la preuve par la bio ET un compte « Contrôlé par Merkod » (décision du 6 novembre 2026,
+// ADR-0020) : la preuve sur un petit compte ne suffit pas.
 export function creatorLevelOf(facts: CreatorFacts): CreatorLevel {
-  if (facts.claimed) return 'verified';
-  if (facts.platformVerified) return 'checked';
-  if (facts.adminChecked && ((facts.subscribers ?? 0) >= MIN_SUBSCRIBERS || (facts.ratingCount ?? 0) >= MIN_RATINGS)) return 'checked';
-  return 'spotted';
+  if (!controlledByMerkod(facts)) return 'spotted';
+  return facts.claimed ? 'verified' : 'checked';
 }
 
 export type SourceKind = 'youtube' | 'podcast' | 'instagram' | 'tiktok' | 'other';
@@ -74,8 +84,29 @@ export function findCodeInText(code: string, text: string): CodeMatch {
   if (!match) return { found: false, excerpt: null };
   const start = Math.max(0, match.index - EXCERPT_RADIUS);
   const end = Math.min(text.length, match.index + match[0].length + EXCERPT_RADIUS);
-  const excerpt = `${start > 0 ? '…' : ''}${text.slice(start, end).replace(/\s+/g, ' ').trim()}${end < text.length ? '…' : ''}`;
+  const excerpt = `${start > 0 ? '…' : ''}${wellFormed(text.slice(start, end)).replace(/\s+/g, ' ').trim()}${end < text.length ? '…' : ''}`;
   return { found: true, excerpt };
+}
+
+/** Retire une moitié d'emoji laissée par une coupe au milieu : Postgres refuse ces caractères orphelins. */
+export function wellFormed(text: string): string {
+  return text.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '');
+}
+
+/** Les max premiers caractères d'un texte, sans couper un emoji en deux. */
+export function clip(text: string, max: number): string {
+  return wellFormed(text.slice(0, max));
+}
+
+/**
+ * Raison pour laquelle un « code » n'en est sûrement pas un, sinon null : un nombre seul (« 2026 », une année)
+ * ou une clé de licence (« 3M3K9/5R92S/ZDH5Y/NA944 »), qui n'est pas une réduction et vient souvent d'un site de clés piratées.
+ */
+export function implausibleCode(code: string): string | null {
+  const value = code.trim();
+  if (/^\d+$/.test(value)) return 'Le code n’est qu’un nombre (une année ?), pas un code promo.';
+  if (/^[A-Z0-9]{4,6}(?:[-/][A-Z0-9]{4,6}){2,}$/i.test(value)) return 'Le code ressemble à une clé de licence, pas à un code promo.';
+  return null;
 }
 
 const SHORTENERS = ['bit.ly', 'tinyurl.com', 't.co', 'goo.gl', 'is.gd', 'cutt.ly', 'rebrand.ly', 'shorturl.at', 'ow.ly'];
@@ -107,6 +138,8 @@ export type VerificationFacts = {
   toolKnown: boolean;
   duplicate: boolean;
   spam: string[];
+  /** Raison donnée par implausibleCode : un nombre seul, une clé de licence. */
+  implausible?: string | null;
   votesUp?: number;
   votesDown?: number;
 };
@@ -123,6 +156,8 @@ export type VerificationScore = {
 export function scoreVerification(facts: VerificationFacts): VerificationScore {
   const reasons: ScoreReason[] = [];
   const add = (points: number, label: string) => reasons.push({ points, label });
+  // Affiché pour que la somme des lignes tombe juste sur le score.
+  add(BASE_SCORE, 'Point de départ de tout code.');
 
   if (facts.codeInSource === true) add(40, 'Le code figure mot pour mot dans la source.');
   else if (facts.codeInSource === false) add(-40, 'Le code est introuvable dans la source.');
@@ -141,13 +176,14 @@ export function scoreVerification(facts: VerificationFacts): VerificationScore {
 
   if (facts.duplicate) add(-30, 'Un code identique existe déjà.');
   for (const signal of facts.spam) add(-20, signal);
+  if (facts.implausible) add(-50, facts.implausible);
 
   const up = facts.votesUp ?? 0;
   const down = facts.votesDown ?? 0;
   if (down >= 3 && down > up) add(-20, 'Les visiteurs disent qu’il ne marche plus.');
   else if (up >= 3 && up > down) add(10, 'Les visiteurs disent qu’il marche.');
 
-  const total = reasons.reduce((sum, reason) => sum + reason.points, BASE_SCORE);
+  const total = reasons.reduce((sum, reason) => sum + reason.points, 0);
   const score = Math.max(0, Math.min(100, total));
   return { score, reasons, suggestion: score < REJECT_BELOW ? 'reject' : 'review' };
 }

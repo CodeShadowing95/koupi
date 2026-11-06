@@ -2,15 +2,17 @@
 // Coque du back-office : menu latéral groupé, barre du haut avec le fil d'Ariane et le bouton clair / sombre.
 // La page de connexion garde un affichage simple, sans menu.
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { usePendingSubmissions } from '@/app/admin/pending-count';
 import { ThemeToggle, useStoredTheme } from '@/components/admin-theme';
 import { CommandPalette } from '@/components/admin-command';
 import { AdminNotifications } from '@/components/admin-notifications';
 import { AdminCouponTear } from '@/components/admin-coupon-tear';
+import { AdminAskHost } from '@/components/admin-ask';
 import { UsageGauge } from '@/components/admin-usage-gauge';
 import { AdminIcon } from '@/components/admin-icons';
+import { parisDate } from '@/lib/paris-date';
 
 /** count : nombre à traiter (pastille). children : sous-menus, dépliés par la flèche à droite de l'item. */
 type Item = { href: string; label: string; icon: React.ReactNode; count?: number; countLabel?: string; children?: Item[] };
@@ -38,7 +40,7 @@ const icons = {
 
 // Menu regroupé : chaque grand espace (Codes, Créateurs, Outils, Statistiques) garde ses pages liées en sous-menus,
 // pour que tout tienne sans défiler. « Voir le site » et « Se déconnecter » restent fixés en bas.
-function navGroups(counts: { toTest?: number; pending?: number; newFeedback?: number } = {}): { label: string; items: Item[] }[] {
+function navGroups(counts: { toTest?: number; pending?: number; newFeedback?: number; newRequests?: number } = {}): { label: string; items: Item[] }[] {
   return [
   { label: 'Pilotage', items: [
     { href: '/admin', label: 'Accueil', icon: icons.home },
@@ -53,7 +55,7 @@ function navGroups(counts: { toTest?: number; pending?: number; newFeedback?: nu
       { href: '/admin/podcasts', label: 'Podcasts suivis', icon: icons.mic },
     ] },
     { href: '/admin/createurs', label: 'Créateurs', icon: icons.users, children: [
-      { href: '/admin/createurs/demandes', label: 'Demandes', icon: icons.inbox },
+      { href: '/admin/createurs/demandes', label: 'Demandes', icon: icons.inbox, count: counts.newRequests, countLabel: 'à traiter' },
     ] },
     { href: '/admin/outils', label: 'Outils', icon: icons.tool, children: [
       { href: '/admin/categories', label: 'Catégories', icon: icons.folder },
@@ -125,12 +127,21 @@ function SideItem({ item, current, pathname }: { item: Item; current?: string; p
   );
 }
 
-/** toTest : codes à tester (badge de Codes) ; newFeedback : avis pas encore lus (badge de Retours). Lus en base par le layout. */
-export function AdminShell({ children, toTest = 0, newFeedback = 0 }: { children: React.ReactNode; toTest?: number; newFeedback?: number }) {
+/** toTest : codes à tester (badge de Codes) ; newFeedback : avis pas encore lus (badge de Retours) ; newRequests : demandes des créateurs à traiter (badge de Demandes). Lus en base par le layout. */
+export function AdminShell({ children, toTest = 0, newFeedback = 0, newRequests = 0 }: { children: React.ReactNode; toTest?: number; newFeedback?: number; newRequests?: number }) {
   const pathname = usePathname();
+  const router = useRouter();
   useStoredTheme();
+  // Juste après la connexion : le layout avait été rendu sans session (rien lu en base). On le relit une fois,
+  // pour les nombres du menu et les photos.
+  const fromLogin = useRef(pathname.startsWith('/admin/login'));
+  useEffect(() => {
+    const onLogin = pathname.startsWith('/admin/login');
+    if (fromLogin.current && !onLogin) router.refresh();
+    fromLogin.current = onLogin;
+  }, [pathname, router]);
   const pending = usePendingSubmissions() ?? 0;
-  const groups = navGroups({ toTest, pending, newFeedback });
+  const groups = navGroups({ toTest, pending, newFeedback, newRequests });
   // Mobile : le menu latéral devient un tiroir ouvert par le bouton ☰ de la barre du haut.
   const [menuOpen, setMenuOpen] = useState(false);
   const burger = useRef<HTMLButtonElement>(null);
@@ -163,7 +174,7 @@ export function AdminShell({ children, toTest = 0, newFeedback = 0 }: { children
     );
   }
   const current = Object.keys(titles).filter(href => isActive(pathname, href)).sort((a, b) => b.length - a.length)[0];
-  const today = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const today = parisDate(new Date(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   return (
     <>
     <div className="adm-shell" data-menu={menuOpen ? 'open' : undefined}>
@@ -205,6 +216,7 @@ export function AdminShell({ children, toTest = 0, newFeedback = 0 }: { children
       </div>
     </div>
     <AdminCouponTear key="coupon-tear" />
+    <AdminAskHost />
     </>
   );
 }

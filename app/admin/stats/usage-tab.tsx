@@ -2,7 +2,7 @@
 import { getDb } from '@/db';
 import { usageLevel, usageRatio } from '@/lib/api-usage';
 import { usageSummary } from '@/lib/api-usage-summary';
-import { formatUsd } from '@/lib/verification-display';
+import { formatEur, formatUsd } from '@/lib/verification-display';
 
 const number = (value: number) => value.toLocaleString('fr-FR');
 const percent = (ratio: number) => `${Math.round(ratio * 100)} %`;
@@ -52,11 +52,11 @@ export async function UsageTab() {
 
           <section className="adm-panel">
             <div className="adm-panel-head"><h2>IA (Claude)</h2><span className="adm-panel-sub">{ai.active ? 'Plafond remis à zéro le 1er du mois' : 'En attente d’activation'}</span></div>
-            <div className="adm-use-figure"><strong>{formatUsd(ai.spentUsdMicros)}</strong><span>sur {formatUsd(ai.budgetUsdMicros)} ce mois-ci · {percent(aiRatio)}</span></div>
+            <div className="adm-use-figure"><strong>{formatEur(ai.spentUsdMicros, ai.usdPerEur)}</strong><span>sur {formatEur(ai.budgetUsdMicros, ai.usdPerEur)} ce mois-ci · {percent(aiRatio)} <small>(soit {formatUsd(ai.spentUsdMicros)} sur {formatUsd(ai.budgetUsdMicros)}, l’API étant facturée en dollars)</small></span></div>
             <span className={`adm-usage-bar is-${usageLevel(aiRatio)}`} aria-hidden="true"><i style={{ width: `${aiRatio * 100}%` }} /></span>
             <p className="adm-panel-sub">Analyses des codes, outils à ajouter et lecture des notes d’épisodes. Le plafond est fixé par AI_MONTHLY_BUDGET_EUR (10 € par défaut) : une fois atteint, l’IA s’arrête jusqu’au mois suivant.</p>
             <h3 className="adm-use-sub">Ce mois-ci, par jour</h3>
-            <DayBars days={ai.days.map(day => ({ day: day.day, value: day.usdMicros }))} max={0} format={formatUsd} label="Dépense IA par jour" />
+            <DayBars days={ai.days.map(day => ({ day: day.day, value: day.usdMicros }))} max={0} format={value => formatEur(value, ai.usdPerEur)} label="Dépense IA par jour" />
           </section>
         </div>
     </>

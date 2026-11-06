@@ -27,9 +27,11 @@ describe('publicAccounts', () => {
     expect(podcast.audience).toBe('4,7\u00a0★ · 5\u00a0281\u00a0notes · 1\u00a0100\u00a0épisodes');
     expect(youtube.audience).toBe('12 400 abonnés');
   });
-  it('marque le compte prouvé par le créateur', () => {
-    const [account] = publicAccounts([{ platform: 'youtube', handle: '@ana', url: 'https://youtube.com/@ana', subscribers: 1, claimStatus: 'verified' }]);
-    expect(account.proven).toBe(true);
+  it('marque le compte prouvé par le créateur, s’il est contrôlé et au-dessus du seuil', () => {
+    const ana = { platform: 'youtube' as const, handle: '@ana', url: 'https://youtube.com/@ana', claimStatus: 'verified', adminCheckedAt: new Date('2026-11-01') };
+    expect(publicAccounts([{ ...ana, subscribers: 1000 }])[0].proven).toBe(true);
+    expect(publicAccounts([{ ...ana, subscribers: 1 }])[0].proven).toBe(false);
+    expect(publicAccounts([{ ...ana, subscribers: 1, adminCheckedAt: null, platformVerified: true }])[0].proven).toBe(true);
   });
 });
 

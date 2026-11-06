@@ -52,7 +52,8 @@ function ReportNotice({ report, error, close }: { report: Report | null; error: 
 /** En haut de la page Créateurs : récupère les photos de ceux qui ont une chaîne ou un podcast relié mais pas encore de photo. */
 export function FetchAvatarsButton({ missing, youtubeReady }: { missing: number; youtubeReady: boolean }) {
   const { busy, report, error, run, close } = useAvatarRefresh();
-  const title = missing === 0 ? 'Tous les créateurs qui ont une chaîne ou un podcast relié ont leur photo'
+  // Rien à récupérer : soit chaque compte relié a déjà sa photo, soit aucun créateur n'a encore de chaîne ou de podcast relié.
+  const title = missing === 0 ? 'Aucune photo à récupérer. Relie d’abord une chaîne ou un podcast aux créateurs qui n’ont pas de photo.'
     : youtubeReady ? 'Récupère la photo de leur chaîne YouTube, ou la pochette de leur podcast'
     : 'Récupère la pochette de leur podcast (les chaînes YouTube demandent YOUTUBE_API_KEY)';
   return (

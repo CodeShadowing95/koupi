@@ -11,7 +11,8 @@ import { aiUsage, categories, creatorAccounts, toolSuggestions, tools, youtubeSe
 import { aiStatusOf, extractCodes } from './ai-extract';
 import { listToolsAdmin, type AdminTool } from './catalog-admin';
 import { resolveCreator } from './codes-admin';
-import { mergeAiCodes, PROMO_HINT } from './podcast-ai';
+import { clip } from './verification';
+import { forVideo, mergeAiCodes, PROMO_HINT } from './podcast-ai';
 import { domainOf, scanPromoCodes } from './podcast-codes';
 import { addPendingCode } from './podcast-read';
 import { aiSpendSince, startOfMonthUtc } from './verification-store';
@@ -194,7 +195,8 @@ export async function searchCategoryCodes(db: Db, youtube: YoutubeSearch, option
         else report.newChannels++;
       }
       const sourceUrl = `https://www.youtube.com/watch?v=${video.id}`;
-      const scan = mergeAiCodes(scanPromoCodes(`${video.title}\n${video.description}`, catalog), await readWithAi(video, sourceUrl), catalog);
+      const merged = mergeAiCodes(scanPromoCodes(`${video.title}\n${video.description}`, catalog), await readWithAi(video, sourceUrl), catalog);
+      const scan = { found: forVideo(merged.found), unknown: forVideo(merged.unknown) };
       let codesForVideo = 0;
       if (scan.found.length > 0 || scan.unknown.length > 0) {
         const creatorId = await resolveCreator(db, video.channelTitle || 'Chaîne YouTube');
@@ -210,15 +212,15 @@ export async function searchCategoryCodes(db: Db, youtube: YoutubeSearch, option
         }
         for (const item of scan.unknown) {
           const inserted = await db.insert(toolSuggestions).values({
-            name: item.name.slice(0, 120), domain: item.domain, code: item.code, discount: item.discount, evidence: item.evidence,
-            sourceUrl, sourceTitle: video.title.slice(0, 300), creatorId,
+            name: clip(item.name, 120), domain: item.domain, code: item.code, discount: item.discount, evidence: item.evidence,
+            sourceUrl, sourceTitle: clip(video.title, 300), creatorId,
           }).onConflictDoNothing().returning({ id: toolSuggestions.id });
           if (inserted.length) report.suggested.push({ tool: item.domain ?? item.name, code: item.code });
         }
       }
       codesForQuery += codesForVideo;
       await db.insert(youtubeSeenVideos).values({
-        videoId: video.id, channelId: video.channelId ?? null, channelTitle: video.channelTitle.slice(0, 200), toolId: subject.toolId, query, codes: codesForVideo, seenAt: now,
+        videoId: video.id, channelId: video.channelId ?? null, channelTitle: clip(video.channelTitle, 200), toolId: subject.toolId, query, codes: codesForVideo, seenAt: now,
       }).onConflictDoNothing();
     }
     await db.insert(youtubeSearches).values({

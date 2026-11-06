@@ -22,9 +22,30 @@ describe('buildNotifications', () => {
     expect(items.map(item => item.id)).toEqual(['proposal-2', 'proposal-1', 'flag-f-4', 'retest-1', 'to-test-3']);
     expect(items[0]).toMatchObject({ kind: 'proposal', subject: 'P2', text: 'proposé pour Canva', detail: 'Crédité à Bea', href: '/admin/propositions?q=P2', at: '2026-11-02T09:00:00.000Z', proposalId: '2' });
     expect(items[2]).toMatchObject({ tone: 'bad', kind: 'flag', title: 'DEAD signalé par les visiteurs', detail: 'Notion · 4 votes, 25 % de réussite', at: null });
-    expect(countByTab(items)).toEqual({ all: 5, proposal: 2, flag: 1, reminder: 2 });
+    expect(countByTab(items)).toEqual({ all: 5, proposal: 2, flag: 1, message: 0, reminder: 2 });
     expect(items[3].title).toBe('1 code à retester');
     expect(items[4]).toMatchObject({ title: '3 codes à tester', href: '/admin/codes?status=to_test' });
+  });
+  it('adds creator requests and unread visitor feedback as messages, newest first', () => {
+    const items = buildNotifications({
+      proposals: [], codes: [],
+      requests: [
+        { id: 'r1', kind: 'claim', creatorName: 'Ana', createdAt: '2026-11-01T10:00:00.000Z' },
+        { id: 'r2', kind: 'report', creatorName: 'Bea', createdAt: '2026-11-02T10:00:00.000Z' },
+      ],
+      feedback: [{ id: 'f1', kind: 'problem', message: `Le bouton copier ne marche pas ${'x'.repeat(120)}`, createdAt: '2026-11-02T11:00:00.000Z' }],
+    }, now);
+    expect(items.map(item => item.id)).toEqual(['request-r2', 'request-r1', 'feedback-f1']);
+    expect(items[0]).toMatchObject({ kind: 'message', tone: 'warn', subject: 'Bea', detail: 'Demande « Page incorrecte »', href: '/admin/createurs/demandes' });
+    expect(items[1]).toMatchObject({ tone: 'info', title: 'Ana : quelqu’un dit être le créateur' });
+    expect(items[2]).toMatchObject({ kind: 'message', tone: 'warn', title: 'Problème d’un visiteur', href: '/admin/retours', at: '2026-11-02T11:00:00.000Z' });
+    expect(items[2].detail.length).toBeLessThanOrEqual(90);
+    expect(items[2].detail.endsWith('…')).toBe(true);
+    expect(countByTab(items)).toMatchObject({ all: 3, message: 3, proposal: 0 });
+  });
+  it('keeps at most 5 messages of each kind', () => {
+    const requests = Array.from({ length: 7 }, (_, i) => ({ id: `r${i}`, kind: 'claim' as const, creatorName: 'Ana', createdAt: `2026-11-0${i + 1}T10:00:00.000Z` }));
+    expect(buildNotifications({ proposals: [], codes: [], requests }, now)).toHaveLength(5);
   });
   it('is empty when everything is done', () => {
     expect(buildNotifications({ proposals: [], codes: [code({})] }, now)).toEqual([]);

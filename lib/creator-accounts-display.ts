@@ -70,3 +70,34 @@ export function linkedSummary(linked: LinkReport['linked']): string {
   const parts = [channels ? plural(channels, 'chaîne YouTube', 'chaînes YouTube') : '', podcasts ? plural(podcasts, 'podcast', 'podcasts') : ''].filter(Boolean);
   return `${parts.join(' et ')} relié${linked.length > 1 ? 's' : ''}.`;
 }
+
+// Adresse du profil de chaque réseau, à partir du pseudo, et l'inverse (formulaire « Relier un compte »).
+const PROFILE_PATTERNS: Partial<Record<CreatorPlatform, { hosts: string[]; prefix: string; path: RegExp }>> = {
+  tiktok: { hosts: ['tiktok.com'], prefix: 'https://www.tiktok.com/@', path: /^\/@([\w.]{2,24})\/?$/ },
+  instagram: { hosts: ['instagram.com'], prefix: 'https://www.instagram.com/', path: /^\/([\w.]{1,30})\/?$/ },
+  x: { hosts: ['x.com', 'twitter.com'], prefix: 'https://x.com/', path: /^\/(\w{1,15})\/?$/ },
+  twitch: { hosts: ['twitch.tv'], prefix: 'https://www.twitch.tv/', path: /^\/(\w{3,25})\/?$/ },
+  snapchat: { hosts: ['snapchat.com'], prefix: 'https://www.snapchat.com/add/', path: /^\/add\/([\w.-]{3,15})\/?$/ },
+};
+const RESERVED = new Set(['p', 'reel', 'reels', 'explore', 'stories', 'tv', 'accounts', 'home', 'search', 'directory', 'videos', 'tag', 'discover', 'i', 'intent', 'share']);
+
+/** Lien du profil d'après le pseudo (« @ana » sur TikTok → https://www.tiktok.com/@ana), null si le réseau ou le pseudo ne s'y prête pas. */
+export function profileUrlFor(platform: CreatorPlatform, handle: string): string | null {
+  const pattern = PROFILE_PATTERNS[platform];
+  const name = handle.trim().replace(/^@/, '');
+  if (!pattern || !name || !/^[\w.-]+$/.test(name)) return null;
+  return pattern.prefix + name;
+}
+
+/** Pseudo d'après le lien du profil (https://www.instagram.com/ana/ → @ana), null pour un lien qui n'est pas un profil de ce réseau. */
+export function handleFromProfileUrl(platform: CreatorPlatform, url: string): string | null {
+  const pattern = PROFILE_PATTERNS[platform];
+  if (!pattern) return null;
+  let parsed: URL;
+  try { parsed = new URL(/^https?:\/\//i.test(url.trim()) ? url.trim() : `https://${url.trim()}`); } catch { return null; }
+  const host = parsed.hostname.toLowerCase().replace(/^(www|m|vm)\./, '');
+  if (!pattern.hosts.includes(host)) return null;
+  const name = parsed.pathname.match(pattern.path)?.[1];
+  if (!name || RESERVED.has(name.toLowerCase())) return null;
+  return `@${name}`;
+}

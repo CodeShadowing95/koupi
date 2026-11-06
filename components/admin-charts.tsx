@@ -21,13 +21,15 @@ type Props = {
   /** Résumé lu par les lecteurs d'écran. */
   summary: string;
   className?: string;
+  /** Hauteur en pixels, pour un graphique horizontal qui grandit avec son nombre de lignes. */
+  height?: number;
 };
 
 function resolve(color: string): string {
   return color.startsWith('--') ? cssVar(color) || '#888' : color;
 }
 
-export function BarChart({ labels, series, horizontal = false, stacked = false, max, format, summary, className = 'adm-chart' }: Props) {
+export function BarChart({ labels, series, horizontal = false, stacked = false, max, format, summary, className = 'adm-chart', height }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const theme = useAdminTheme();
   useEffect(() => {
@@ -36,7 +38,7 @@ export function BarChart({ labels, series, horizontal = false, stacked = false, 
     const grid = cssVar('--chart-grid');
     const surface = cssVar('--card');
     const valueAxis = { beginAtZero: true, max, grid: { color: grid }, border: { display: false }, ticks: { color: text, precision: 0, font: { size: 11 } }, stacked };
-    const categoryAxis = { grid: { display: false }, border: { color: grid }, ticks: { color: cssVar('--ink-soft'), font: { size: 12 } }, stacked };
+    const categoryAxis = { grid: { display: false }, border: { color: grid }, ticks: { color: cssVar('--ink-soft'), font: { size: 12 }, autoSkip: !horizontal }, stacked };
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const config: ChartConfiguration<'bar'> = {
       type: 'bar',
@@ -68,7 +70,7 @@ export function BarChart({ labels, series, horizontal = false, stacked = false, 
     const chart = new Chart(canvas.current, config);
     return () => chart.destroy();
   }, [labels, series, horizontal, stacked, max, format, theme]);
-  return <div className={className}><canvas ref={canvas} role="img" aria-label={summary} /></div>;
+  return <div className={className} style={height ? { height } : undefined}><canvas ref={canvas} role="img" aria-label={summary} /></div>;
 }
 
 /** Légende : toujours présente à partir de deux séries, l'identité ne repose jamais sur la couleur seule. */

@@ -7,11 +7,14 @@ import { afterDialogClose } from '@/lib/admin-dialog';
 import type { Category, Code, CodeStatus } from '@/lib/data';
 import type { ToolOption } from '@/lib/codes-admin';
 import { AdminSelect } from '@/components/admin-select';
+import { matchCategory } from '@/lib/category-match';
+import { codeFormatError, findDuplicateCode, normalizeCode, MAX_CODE_LENGTH, type ExistingCode } from '@/lib/code-format';
+import { confirmAction } from '@/components/admin-ask';
 
 export type EditorTarget =
   | { kind: 'create' }
   | { kind: 'edit'; code: Code }
-  | { kind: 'submission'; submission: { id: string; tool_name: string; creator_name: string; code: string; discount_label: string; source_url: string; creator_link: string | null; category: string | null } };
+  | { kind: 'submission'; submission: { id: string; tool_name: string; creator_name: string; code: string; discount_label: string; source_url: string; creator_link: string | null; category: string | null; comment?: string | null } };
 
 const NEW_TOOL = '__new__';
 const statusOptions: { value: CodeStatus; label: string; hint: string }[] = [
@@ -24,7 +27,7 @@ const statusOptions: { value: CodeStatus; label: string; hint: string }[] = [
 type Initial = { toolSlug: string; newToolName: string; newToolCategory: string; newToolWebsite: string; creatorName: string; code: string; discount: string; sourceUrl: string; sourceTitle: string; creatorLink: string; status: CodeStatus; note: string; expiresOn: string };
 
 function initialValues(target: EditorTarget, tools: ToolOption[], categories: Category[]): Initial {
-  const empty: Initial = { toolSlug: '', newToolName: '', newToolCategory: categories[0]?.slug ?? '', newToolWebsite: '', creatorName: '', code: '', discount: '', sourceUrl: '', sourceTitle: '', creatorLink: '', status: 'to_test', note: '', expiresOn: '' };
+  const empty: Initial = { toolSlug: '', newToolName: '', newToolCategory: '', newToolWebsite: '', creatorName: '', code: '', discount: '', sourceUrl: '', sourceTitle: '', creatorLink: '', status: 'to_test', note: '', expiresOn: '' };
   if (target.kind === 'edit') {
     const { code } = target;
     return { ...empty, toolSlug: code.toolSlug, creatorName: code.creator, code: code.code, discount: code.discount, sourceUrl: code.source, sourceTitle: code.sourceTitle, creatorLink: code.creatorLink ?? '', status: code.status, note: code.note ?? '', expiresOn: code.expiresOn ?? '' };
@@ -32,29 +35,40 @@ function initialValues(target: EditorTarget, tools: ToolOption[], categories: Ca
   if (target.kind === 'submission') {
     const { submission } = target;
     const tool = tools.find(item => item.name.toLowerCase() === submission.tool_name.trim().toLowerCase());
-    const category = categories.find(item => item.name === submission.category);
+    // La catégorie choisie par le visiteur, si elle existe ; sinon l'admin la choisit (jamais une catégorie au hasard).
+    const category = matchCategory(categories, submission.category);
+    const comment = submission.comment?.trim();
     return {
       ...empty,
       toolSlug: tool?.slug ?? NEW_TOOL, newToolName: tool ? '' : submission.tool_name, newToolCategory: category?.slug ?? empty.newToolCategory,
-      creatorName: submission.creator_name, code: submission.code, discount: submission.discount_label, sourceUrl: submission.source_url, creatorLink: submission.creator_link ?? '',
+      creatorName: submission.creator_name, code: normalizeCode(submission.code), discount: submission.discount_label, sourceUrl: submission.source_url, creatorLink: submission.creator_link ?? '',
+      note: comment ? `Commentaire du visiteur : ${comment}`.slice(0, 1000) : '',
     };
   }
   return empty;
 }
 
-export function CodeEditor({ target, tools, categories, creators, onClose, onSaved }: {
-  target: EditorTarget | null; tools: ToolOption[]; categories: Category[]; creators: string[]; onClose: () => void; onSaved?: () => void;
+/** Lien vers un code du catalogue dans la liste des codes. */
+function codeHref(code: string): string { return `/admin/codes?q=${encodeURIComponent(code)}`; }
+
+export function CodeEditor({ target, tools, categories, creators, existing = [], onClose, onSaved }: {
+  target: EditorTarget | null; tools: ToolOption[]; categories: Category[]; creators: string[];
+  /** Les codes du catalogue (archivés compris si possible), pour prévenir d'un doublon avant l'envoi. */
+  existing?: readonly ExistingCode[];
+  onClose: () => void; onSaved?: () => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const router = useRouter();
   const [values, setValues] = useState<Initial>(() => initialValues(target ?? { kind: 'create' }, tools, categories));
   const [error, setError] = useState('');
+  const [errorCode, setErrorCode] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!target) { dialog.current?.close(); return; }
     setValues(initialValues(target, tools, categories));
     setError('');
+    setErrorCode('');
     setSaving(false);
     if (!dialog.current?.open) dialog.current?.showModal();
   }, [target, tools, categories]);
@@ -65,14 +79,23 @@ export function CodeEditor({ target, tools, categories, creators, onClose, onSav
   const set = <K extends keyof Initial>(key: K) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setValues(current => ({ ...current, [key]: event.target.value }));
   const title = target.kind === 'create' ? 'Nouveau code' : target.kind === 'edit' ? `Modifier ${target.code.code}` : 'Valider la proposition';
   const isNewTool = values.toolSlug === NEW_TOOL;
+  const typedCode = normalizeCode(values.code);
+  const formatError = typedCode ? codeFormatError(typedCode) : null;
+  const duplicate = isNewTool ? undefined : findDuplicateCode(existing, values.toolSlug, values.code, target.kind === 'edit' ? target.code.id : undefined);
 
   async function send(url: string, method: string, body: unknown) {
     setSaving(true);
     setError('');
+    setErrorCode('');
     try {
       const response = await fetch(url, { method, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-      const result = await response.json().catch(() => ({})) as { error?: string };
-      if (!response.ok) { setError(result.error || 'L’enregistrement a échoué.'); setSaving(false); return; }
+      const result = await response.json().catch(() => ({})) as { error?: string; duplicateId?: string };
+      if (!response.ok) {
+        setError(result.error || 'L’enregistrement a échoué.');
+        if (result.duplicateId) setErrorCode(typedCode);
+        setSaving(false);
+        return;
+      }
       dialog.current?.close();
       onSaved?.();
       router.refresh();
@@ -94,10 +117,10 @@ export function CodeEditor({ target, tools, categories, creators, onClose, onSav
     else void send('/api/admin/codes', 'POST', body);
   }
 
-  function archive() {
+  async function archive() {
     if (target?.kind !== 'edit') return;
     const restoring = target.code.archived;
-    if (!restoring && !window.confirm('Archiver ce code ? Il disparaît du site et des statistiques. Tu pourras le restaurer depuis l’onglet Archivés.')) return;
+    if (!restoring && !(await confirmAction('Archiver ce code ? Il disparaît du site et des statistiques. Tu pourras le restaurer depuis l’onglet Archivés.', { confirmLabel: 'Archiver', danger: true }))) return;
     void send(`/api/admin/codes/${target.code.id}`, 'PATCH', { action: restoring ? 'restore' : 'archive' });
   }
 
@@ -132,7 +155,23 @@ export function CodeEditor({ target, tools, categories, creators, onClose, onSav
               <div className="field"><label htmlFor="ce-tool-site">Site officiel</label><input id="ce-tool-site" value={values.newToolWebsite} onChange={set('newToolWebsite')} required placeholder="exemple.com" maxLength={300} /></div>
             </fieldset>
           )}
-          <div className="field"><label htmlFor="ce-code">Code</label><input id="ce-code" className="mono" value={values.code} onChange={set('code')} required maxLength={120} /></div>
+          <div className="field">
+            <label htmlFor="ce-code">Code</label>
+            <input
+              id="ce-code" className="mono" value={values.code} required maxLength={MAX_CODE_LENGTH + 10} autoCapitalize="characters" spellCheck={false}
+              onChange={event => setValues(current => ({ ...current, code: event.target.value.toLocaleUpperCase('fr-FR') }))}
+              aria-invalid={Boolean(formatError || duplicate) || undefined} aria-describedby="ce-code-hint"
+            />
+            {duplicate ? (
+              <small id="ce-code-hint" className="adm-field-warn" role="status">
+                Ce code existe déjà pour cet outil{duplicate.archived ? ', dans les archives' : ''}. <a href={codeHref(duplicate.code)} target="_blank" rel="noreferrer">Voir le code</a>
+              </small>
+            ) : formatError ? (
+              <small id="ce-code-hint" className="adm-field-warn" role="status">{formatError}</small>
+            ) : (
+              <small id="ce-code-hint">Lettres, chiffres et tirets, sans espace.</small>
+            )}
+          </div>
           <div className="field"><label htmlFor="ce-discount">Réduction</label><input id="ce-discount" value={values.discount} onChange={set('discount')} required maxLength={240} placeholder="-20 %, 3 mois offerts…" /></div>
           <div className="field adm-span-2"><label htmlFor="ce-source">Lien de la source</label><input id="ce-source" type="url" value={values.sourceUrl} onChange={set('sourceUrl')} required maxLength={1000} placeholder="https://… (vidéo, post, story)" /><small>Là où le créateur donne le code. C’est la preuve qu’il est public.</small></div>
           <div className="field"><label htmlFor="ce-source-title">Titre de la source</label><input id="ce-source-title" value={values.sourceTitle} onChange={set('sourceTitle')} maxLength={300} /></div>
@@ -152,8 +191,8 @@ export function CodeEditor({ target, tools, categories, creators, onClose, onSav
           <div className="field adm-span-2"><label htmlFor="ce-note">Note interne (facultative)</label><textarea id="ce-note" rows={2} value={values.note} onChange={set('note')} maxLength={1000} /></div>
         </div>
 
-        {error && <div className="notice notice-error" role="alert">{error}</div>}
         <div className="adm-dialog-foot">
+          {error && <div className="notice notice-error adm-foot-error" role="alert">{error}{errorCode && <> <a href={codeHref(errorCode)} target="_blank" rel="noreferrer">Voir le code</a></>}</div>}
           {target.kind === 'edit' && <button type="button" className="adm-btn adm-btn-danger" onClick={archive} disabled={saving}>{target.code.archived ? 'Restaurer' : 'Archiver'}</button>}
           <span style={{ flex: 1 }} />
           <button type="button" className="adm-btn" onClick={() => dialog.current?.close()}>Annuler</button>

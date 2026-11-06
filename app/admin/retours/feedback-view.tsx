@@ -7,6 +7,7 @@ import { FEEDBACK_KIND_LABELS, FEEDBACK_STATUS_LABELS, type AdminFeedback, type 
 import { sendJson } from '@/components/admin-form-dialog';
 import { StatusDot } from '@/components/admin-card';
 import { RefreshButton } from '@/components/admin-refresh-button';
+import { parisDate } from '@/lib/paris-date';
 
 type Filter = FeedbackStatus | 'all';
 const filters: { value: Filter; label: string }[] = [
@@ -14,7 +15,7 @@ const filters: { value: Filter; label: string }[] = [
 ];
 type KindFilter = FeedbackKind | '';
 const TONE: Record<FeedbackKind, 'info' | 'ok' | 'warn'> = { remark: 'info', idea: 'ok', problem: 'warn' };
-const dateFr = (iso: string) => new Date(iso).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
+const dateFr = (iso: string) => parisDate(iso, { dateStyle: 'medium', timeStyle: 'short' });
 
 export function FeedbackView({ items }: { items: AdminFeedback[] }) {
   const router = useRouter();
@@ -41,7 +42,7 @@ export function FeedbackView({ items }: { items: AdminFeedback[] }) {
       <div className="container">
         <div className="adm-head">
           <div>
-            <span className="eyebrow">Modération</span>
+            <span className="eyebrow">Pilotage</span>
             <h1>Retours des visiteurs</h1>
             <p>Les avis envoyés depuis la page <a href="/feedback" target="_blank" rel="noopener noreferrer">Ton avis</a> : remarques, idées et problèmes. Lis-les, réponds par e-mail quand une adresse est donnée, puis marque-les traités.</p>
           </div>

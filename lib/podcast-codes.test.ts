@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { domainOf, findPromoCodes, scanPromoCodes } from './podcast-codes';
+import { domainOf, findPromoCodes, notAToolName, scanPromoCodes } from './podcast-codes';
 
 const tools = [
   { id: 't-nord', name: 'NordVPN' },
@@ -77,8 +77,26 @@ describe('scanPromoCodes', () => {
     expect(scanPromoCodes('NordVPN, le VPN\n-60 % avec le code CARNE', [{ id: 't-nord', name: 'NordVPN' }]).found).toMatchObject([{ toolId: 't-nord' }]);
   });
 
+  it('ne prend pas une étiquette ni une plateforme de paiement pour un outil', () => {
+    expect(scanPromoCodes('Avantages : avec le code PODCAST20, -20 % sur la formation', tools).unknown).toEqual([]);
+    expect(scanPromoCodes('Ma formation : https://ana.thrivecart.com/formation code ANA30', tools).unknown).toEqual([]);
+    expect(scanPromoCodes('La boutique sur systeme.io, code BOUTIQUE10', tools).unknown).toEqual([]);
+    expect(notAToolName('Avantages')).toBe(true);
+    expect(notAToolName('Thrivecart')).toBe(true);
+    expect(notAToolName('Gradium')).toBe(false);
+  });
+
   it('ne garde rien sans indice sur l’outil', () => {
     expect(scanPromoCodes('utilisez le code MERCI', tools).unknown).toEqual([]);
+  });
+});
+
+describe('faux codes', () => {
+  it('ignore une année, une clé de licence et un titre en capitales', () => {
+    expect(findPromoCodes('NordVPN promo code 2026 : -70 %', tools)).toEqual([]);
+    expect(findPromoCodes('NordVPN code 3M3K9/5R92S/ZDH5Y/NA944', tools)).toEqual([]);
+    expect(findPromoCodes('Notion + Claude Code is SOMETHING ELSE!', tools)).toEqual([]);
+    expect(findPromoCodes('NordVPN : code NORD20 pour -20 %', tools).map(found => found.code)).toEqual(['NORD20']);
   });
 });
 

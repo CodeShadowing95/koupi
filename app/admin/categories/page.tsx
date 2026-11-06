@@ -4,6 +4,8 @@ import { listCategoriesAdmin, listFamilies } from '@/lib/catalog-admin';
 import { aiSpendSince, startOfMonthUtc } from '@/lib/verification-store';
 import { CategoriesView } from './categories-view';
 
+export const metadata = { title: 'Catégories · Admin Merkod' };
+
 export const dynamic = 'force-dynamic';
 
 export default async function Page() {

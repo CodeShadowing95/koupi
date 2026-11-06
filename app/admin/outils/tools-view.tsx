@@ -17,6 +17,7 @@ import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer'
 import { FetchLogosButton, RefreshLogoButton } from './logos-button';
 import { ToolCodeSearch } from './tool-code-search';
 import { RefreshButton } from '@/components/admin-refresh-button';
+import { confirmAction } from '@/components/admin-ask';
 
 type Filter = 'all' | 'published' | 'empty' | 'archived';
 const filters: { value: Filter; label: string }[] = [
@@ -50,7 +51,7 @@ export function ToolsView({ tools, categories, missingLogos, youtubeReady }: { t
     if (params.get('category')) setCategory(params.get('category') ?? '');
     const name = params.get('new');
     if (name !== null) {
-      setForm({ name: name.trim().slice(0, 120), categorySlug: categories[0]?.slug ?? '', website: '', description: '', priority: 3 });
+      setForm({ name: name.trim().slice(0, 120), categorySlug: '', website: '', description: '', priority: 3 });
       setEditing('new');
       params.delete('new');
       window.history.replaceState(null, '', `${window.location.pathname}${params.size ? `?${params}` : ''}`);
@@ -60,7 +61,7 @@ export function ToolsView({ tools, categories, missingLogos, youtubeReady }: { t
   const [editing, setEditing] = useState<AdminTool | 'new' | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = tools.find(tool => tool.id === selectedId) ?? null;
-  const [form, setForm] = useState<Form>({ name: '', categorySlug: categories[0]?.slug ?? '', website: '', description: '', priority: 3 });
+  const [form, setForm] = useState<Form>({ name: '', categorySlug: '', website: '', description: '', priority: 3 });
   const filtered = tools.filter(tool => matches(tool, filter) && (!category || tool.categorySlug === category) && matchesSearch([tool.name, tool.category, tool.website, tool.description], query));
   const sort = useAdminSort(filtered, sortFields, 'name');
   const visible = sort.items;
@@ -69,13 +70,13 @@ export function ToolsView({ tools, categories, missingLogos, youtubeReady }: { t
 
   function open(target: AdminTool | 'new') {
     setForm(target === 'new'
-      ? { name: '', categorySlug: categories[0]?.slug ?? '', website: '', description: '', priority: 3 }
+      ? { name: '', categorySlug: '', website: '', description: '', priority: 3 }
       : { name: target.name, categorySlug: target.categorySlug, website: target.website, description: target.description ?? '', priority: target.priority });
     setEditing(target);
   }
   const set = (key: keyof Form) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setForm(value => ({ ...value, [key]: key === 'priority' ? Number(event.target.value) : event.target.value }));
   async function archive(tool: AdminTool) {
-    if (!tool.archived && !window.confirm(`Archiver ${tool.name} ? L’outil et ses codes disparaissent du site. Tu pourras le restaurer.`)) return;
+    if (!tool.archived && !(await confirmAction(`Archiver ${tool.name} ? L’outil et ses codes disparaissent du site. Tu pourras le restaurer.`, { confirmLabel: 'Archiver', danger: true }))) return;
     const error = await sendJson(`/api/admin/tools/${tool.id}`, 'PATCH', { archived: !tool.archived });
     if (error) window.alert(error);
     setEditing(null);

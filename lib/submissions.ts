@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto';
-import { and, count, desc, eq, gte, inArray, lt } from 'drizzle-orm';
+import { and, count, desc, eq, gte, inArray, lt, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
-import { moderationLogs, submissions, type Submission } from '@/db/schema';
+import { codes, moderationLogs, submissions, tools, type Submission } from '@/db/schema';
+import { normalizeCode } from './code-format';
 
 export type SubmissionInput = {
   toolName: string; creatorName: string; code: string; discountLabel: string; sourceUrl: string;
@@ -32,13 +33,23 @@ export function hashIp(ip: string, salt: string): string {
   return createHash('sha256').update(`${salt}:${ip}`).digest('hex');
 }
 
-// Enregistre une proposition. Si le même couple outil + code est déjà en attente ou validé, elle est marquée doublon.
+/** Le catalogue a déjà ce code pour l'outil de ce nom (casse ignorée, archivés compris). */
+export async function inCatalog(db: Db, toolName: string, code: string): Promise<boolean> {
+  const [row] = await db.select({ id: codes.id }).from(codes).innerJoin(tools, eq(codes.toolId, tools.id))
+    .where(and(sql`lower(${tools.name}) = lower(${toolName.trim()})`, sql`upper(${codes.code}) = ${normalizeCode(code)}`))
+    .limit(1);
+  return Boolean(row);
+}
+
+// Enregistre une proposition. Elle est marquée doublon si le même couple outil + code est déjà en attente ou validé,
+// ou s'il est déjà au catalogue.
 export async function createSubmission(db: Db, input: SubmissionInput, ipHash: string): Promise<{ status: Submission['status'] }> {
   const fingerprint = fingerprintOf(input.toolName, input.code);
   const duplicate = await db.select({ id: submissions.id }).from(submissions)
     .where(and(eq(submissions.fingerprint, fingerprint), inArray(submissions.status, ['new', 'approved'])))
     .limit(1);
-  const status = duplicate.length > 0 ? 'duplicate' : 'new';
+  const catalogued = duplicate.length === 0 && await inCatalog(db, input.toolName, input.code);
+  const status = duplicate.length > 0 || catalogued ? 'duplicate' : 'new';
   await db.insert(submissions).values({
     toolName: input.toolName,
     creatorName: input.creatorName,
@@ -52,7 +63,7 @@ export async function createSubmission(db: Db, input: SubmissionInput, ipHash: s
     ipHash,
     fingerprint,
     status,
-    adminNote: status === 'duplicate' ? 'Proposition similaire déjà présente.' : null,
+    adminNote: catalogued ? 'Ce code est déjà au catalogue.' : status === 'duplicate' ? 'Proposition similaire déjà présente.' : null,
   });
   return { status };
 }

@@ -2,10 +2,11 @@
 // Fonctions pures : l'API (app/api/admin/notifications) construit la liste, le navigateur retient ce qui a été vu.
 import type { Code } from './data';
 import { flaggedCodes, RETEST_DAYS, staleCodes } from './admin-stats';
+import { parisDate } from './paris-date';
 
 export type NotificationTone = 'bad' | 'warn' | 'info';
-/** Onglet du panneau : propositions de visiteurs, codes signalés, rappels de tests. */
-export type NotificationKind = 'proposal' | 'flag' | 'reminder';
+/** Onglet du panneau : propositions de visiteurs, codes signalés, messages (demandes des créateurs, avis des visiteurs), rappels de tests. */
+export type NotificationKind = 'proposal' | 'flag' | 'message' | 'reminder';
 export type AdminNotification = {
   /** Identifiant stable : une notification vue ne revient comme « nouvelle » que si son contenu change (ex. le nombre de codes). */
   id: string;
@@ -24,13 +25,13 @@ export type AdminNotification = {
   proposalId?: string;
 };
 
-export const NOTIFICATION_TABS = ['all', 'proposal', 'flag', 'reminder'] as const;
+export const NOTIFICATION_TABS = ['all', 'proposal', 'flag', 'message', 'reminder'] as const;
 export type NotificationTab = typeof NOTIFICATION_TABS[number];
-export const NOTIFICATION_TAB_LABELS: Record<NotificationTab, string> = { all: 'Tout', proposal: 'Propositions', flag: 'Signalés', reminder: 'Rappels' };
+export const NOTIFICATION_TAB_LABELS: Record<NotificationTab, string> = { all: 'Tout', proposal: 'Propositions', flag: 'Signalés', message: 'Messages', reminder: 'Rappels' };
 
 /** Nombre de notifications par onglet. */
 export function countByTab(items: AdminNotification[]): Record<NotificationTab, number> {
-  const counts: Record<NotificationTab, number> = { all: items.length, proposal: 0, flag: 0, reminder: 0 };
+  const counts: Record<NotificationTab, number> = { all: items.length, proposal: 0, flag: 0, message: 0, reminder: 0 };
   for (const item of items) counts[item.kind] += 1;
   return counts;
 }
@@ -40,6 +41,19 @@ const make = (item: Omit<AdminNotification, 'title'>): AdminNotification => ({ .
 export const NOTIFICATIONS_SEEN_KEY = 'koupi-admin-notifications-seen';
 const MAX_PROPOSALS = 10;
 const MAX_FLAGS = 5;
+const MAX_MESSAGES = 5;
+const FEEDBACK_LABELS: Record<NotificationFeedback['kind'], string> = { remark: 'Remarque', idea: 'Idée', problem: 'Problème' };
+const EXCERPT = 90;
+
+/** Demande envoyée depuis la page d'un créateur : « C'est ma page » (claim) ou « Page incorrecte » (report). */
+export type NotificationRequest = { id: string; kind: 'claim' | 'report'; creatorName: string; createdAt: Date | string };
+/** Avis d'un visiteur pas encore lu. */
+export type NotificationFeedback = { id: string; kind: 'remark' | 'idea' | 'problem'; message: string; createdAt: Date | string };
+
+const newestFirst = <T extends { createdAt: Date | string }>(items: T[]) => items
+  .map(item => ({ ...item, at: new Date(item.createdAt).toISOString() }))
+  .sort((a, b) => b.at.localeCompare(a.at));
+const excerpt = (text: string) => { const flat = text.replace(/\s+/g, ' ').trim(); return flat.length > EXCERPT ? `${flat.slice(0, EXCERPT - 1).trimEnd()}…` : flat; };
 
 const plural = (count: number, word: string) => `${count} ${word}${count > 1 ? 's' : ''}`;
 const q = (value: string) => encodeURIComponent(value);
@@ -47,6 +61,10 @@ const q = (value: string) => encodeURIComponent(value);
 export function buildNotifications(input: {
   proposals: { id: string; code: string; toolName: string; creatorName: string; createdAt: Date | string }[];
   codes: Code[];
+  /** Demandes des créateurs à traiter (statut « new »). */
+  requests?: NotificationRequest[];
+  /** Avis des visiteurs pas encore lus (statut « new »). */
+  feedback?: NotificationFeedback[];
 }, now = new Date()): AdminNotification[] {
   const list: AdminNotification[] = input.proposals
     .map(item => ({ ...item, at: new Date(item.createdAt).toISOString() }))
@@ -56,6 +74,15 @@ export function buildNotifications(input: {
       id: `proposal-${item.id}`, tone: 'info', kind: 'proposal', subject: item.code, text: `proposé pour ${item.toolName}`,
       detail: `Crédité à ${item.creatorName}`, href: `/admin/propositions?q=${q(item.code)}`, at: item.at, proposalId: item.id,
     }));
+  for (const item of newestFirst(input.requests ?? []).slice(0, MAX_MESSAGES)) list.push(make({
+    id: `request-${item.id}`, tone: item.kind === 'report' ? 'warn' : 'info', kind: 'message', subject: item.creatorName,
+    text: item.kind === 'claim' ? ': quelqu’un dit être le créateur' : ': page signalée comme incorrecte',
+    detail: item.kind === 'claim' ? 'Demande « C’est ma page »' : 'Demande « Page incorrecte »', href: '/admin/createurs/demandes', at: item.at,
+  }));
+  for (const item of newestFirst(input.feedback ?? []).slice(0, MAX_MESSAGES)) list.push(make({
+    id: `feedback-${item.id}`, tone: item.kind === 'problem' ? 'warn' : 'info', kind: 'message', subject: FEEDBACK_LABELS[item.kind],
+    text: 'd’un visiteur', detail: excerpt(item.message), href: '/admin/retours', at: item.at,
+  }));
   for (const code of flaggedCodes(input.codes, now).slice(0, MAX_FLAGS)) list.push(make({
     id: `flag-${code.id}-${code.votes}`, tone: 'bad', kind: 'flag', subject: code.code, text: 'signalé par les visiteurs',
     detail: `${code.tool} · ${plural(code.votes, 'vote')}, ${code.success} % de réussite`, href: `/admin/codes?q=${q(code.code)}`, at: null,
@@ -103,5 +130,5 @@ export function timeAgo(at: string, now = new Date()): string {
   const days = Math.floor(hours / 24);
   if (days === 1) return 'hier';
   if (days < 7) return `il y a ${days} j`;
-  return new Date(at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  return parisDate(at, { day: 'numeric', month: 'short' });
 }

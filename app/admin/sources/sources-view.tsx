@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { StatusDot, type Tone } from '@/components/admin-card';
 import { InfoTip } from '@/components/admin-info-tip';
+import { confirmAction } from '@/components/admin-ask';
 import type { CodeOrigin } from '@/lib/code-origin';
 import type { RunRow, SourceActivity } from '@/lib/source-runs';
 import {
@@ -55,7 +56,7 @@ function RunNow({ label, url, body, confirm, disabled, title }: { label: string;
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
   async function run() {
-    if (confirm && !window.confirm(confirm)) return;
+    if (confirm && !(await confirmAction(confirm, { confirmLabel: 'Lancer' }))) return;
     setBusy(true);
     setMessage(null);
     try {
@@ -64,7 +65,9 @@ function RunNow({ label, url, body, confirm, disabled, title }: { label: string;
       if (!response.ok) setMessage({ tone: 'error', text: data.error ?? 'Le passage a échoué.' });
       else {
         const found = Array.isArray(data.found) ? data.found.length : 0;
-        setMessage({ tone: 'ok', text: found ? `${plural(found, 'nouveau code', 'nouveaux codes')} en attente dans Vérifications.` : 'Passage terminé : aucun nouveau code.' });
+        const left = typeof data.remaining === 'number' && data.remaining > 0
+          ? ` ${plural(data.remaining, 'chaîne reste', 'chaînes restent')} à lire : relance pour continuer.` : '';
+        setMessage({ tone: 'ok', text: `${found ? `${plural(found, 'nouveau code', 'nouveaux codes')} en attente dans Vérifications.` : 'Passage terminé : aucun nouveau code.'}${left}` });
         router.refresh();
       }
     } catch {

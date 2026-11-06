@@ -66,6 +66,13 @@ export function formatUsd(micros: number): string {
   return `${dollars.toLocaleString('fr-FR', { minimumFractionDigits: digits, maximumFractionDigits: digits })} $`;
 }
 
+/** Dépense facturée en dollars, affichée en euros comme le plafond : « 8,33 € ». */
+export function formatEur(usdMicros: number, usdPerEur: number): string {
+  const euros = usdMicros / 1_000_000 / (usdPerEur > 0 ? usdPerEur : 1);
+  const digits = euros > 0 && euros < 0.01 ? 4 : 2;
+  return `${euros.toLocaleString('fr-FR', { minimumFractionDigits: digits, maximumFractionDigits: digits })} €`;
+}
+
 /** Découpe un extrait pour surligner le code : les morceaux où match vaut true sont le code. */
 export function highlightCode(excerpt: string, code: string): { text: string; match: boolean }[] {
   if (!code) return [{ text: excerpt, match: false }];

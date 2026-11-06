@@ -54,12 +54,13 @@ function SeReperer() {
     <Section id="menu" title="Le menu de gauche">
       <p>Le menu est rangé par grandes tâches, de haut en bas :</p>
       <Legend rows={[
-        { term: 'Pilotage', meaning: <><b>Accueil</b> (ce qu’il y a à faire aujourd’hui), <b>Statistiques</b> (les chiffres en détail, avec <b>Consommation</b> en sous-menu : le quota YouTube et la dépense IA) et <b>Retours</b> (les avis des visiteurs).</> },
+        { term: 'Pilotage', meaning: <><b>Accueil</b> (ce qu’il y a à faire aujourd’hui), <b>Statistiques</b> (les chiffres en détail, en trois onglets, dont <b>Consommation</b> : le quota YouTube et la dépense IA) et <b>Retours</b> (les avis des visiteurs).</> },
         { term: 'Catalogue', meaning: <><b>Codes</b> (tout le catalogue), avec en sous-menus <b>Propositions</b> (les codes envoyés par les visiteurs), <b>Vérifications</b> (les dossiers préparés avec un score), <b>Sources</b> (d’où viennent les codes, ce qu’elles rapportent et coûtent) et <b>Podcasts suivis</b>. Puis <b>Créateurs</b> (avec <b>Demandes</b>) et <b>Outils</b> (avec <b>Catégories</b>).</> },
         { term: 'Aide et réglages', meaning: <>Ce <b>guide</b> et l’espace <b>Administration</b>.</> },
       ]} />
       <p>Un clic sur le nom ouvre la page. La <b>flèche</b> à droite déplie ses sous-menus ; ils restent ouverts quand tu es sur l’une de leurs pages. Un nombre orange veut dire « des éléments t’attendent » ; menu replié, un <b>point orange</b> près de la flèche dit qu’un sous-menu en a. <b>Voir le site</b> et <b>Se déconnecter</b> restent toujours en bas, sans défiler.</p>
       <p>Juste au-dessus, la jauge de <b>consommation</b> montre sur deux lignes le quota YouTube du jour et le plafond IA du mois ; elle passe à l’orange à 70 %, au rouge à 90 %, et se met à jour chaque minute. Un clic ouvre l’onglet Consommation de Statistiques.</p>
+      <p>Chaque page porte son nom dans l’onglet du navigateur (« Codes · Admin Merkod ») : tu reconnais tes onglets d’un coup d’œil. Le petit titre au-dessus du nom de la page reprend le groupe du menu (Pilotage, Catalogue).</p>
       <p>En haut des listes (Propositions, Codes, Vérifications, Outils, Créateurs, Demandes, Retours), <b>Actualiser</b> relit la liste sans recharger la page ni perdre tes filtres.</p>
     </Section>
     <Section id="recherche" title="Tout trouver avec ⌘K">
@@ -77,6 +78,7 @@ function SeReperer() {
       <Legend rows={[
         { term: 'Propositions', meaning: <>Chaque <b>nouvelle proposition</b> d’un visiteur, avec le moment où elle est arrivée. <b>Refuser</b> la rejette tout de suite ; <b>Examiner</b> ouvre la file pour la valider.</> },
         { term: 'Signalés', meaning: <>Les <b>codes signalés</b> : les visiteurs votent qu’ils ne marchent pas (marqués d’un « ! » rouge). À tester en priorité.</> },
+        { term: 'Messages', meaning: <>Les <b>demandes des créateurs</b> à traiter (« C’est ma page », « Page incorrecte ») et les <b>avis des visiteurs</b> pas encore lus, les 5 plus récents de chaque. Ils mènent à <Link href="/admin/createurs/demandes">Demandes</Link> et à <Link href="/admin/retours">Retours</Link>. Dans le menu, <b>Demandes</b> et <b>Retours</b> portent aussi une pastille avec leur nombre.</> },
         { term: 'Rappels', meaning: <>Les codes <b>à tester</b> et <b>à retester</b>.</> },
       ]} />
       <p>Les onglets du haut filtrent par type, avec leur nombre. Un point bleu marque ce qui n’est pas lu : cliquer sur une notification t’amène à l’élément et la marque comme lue, et <b>Tout marquer comme lu</b> les marque toutes. Un rappel ne redevient non lu que si quelque chose change (un nombre de codes différent, par exemple).</p>
@@ -120,6 +122,7 @@ function SeReperer() {
         <div className="gd-row"><FakeIcon icon="check" tone="ok" /><FakeIcon icon="cross" tone="bad" /><FakeIcon icon="edit" /><FakeIcon icon="external" /></div>
       </Demo>
       <p>Pour fermer : la croix, la touche <Key>Échap</Key>, ou un clic à côté du panneau.</p>
+      <p>Avant une action qui retire ou coupe quelque chose (archiver, retirer un compte, mettre le site en pause…), une petite fenêtre te demande de confirmer : la question en titre, ce qui va se passer dessous. Le bouton <b>rouge</b> signale ce qui retire quelque chose ; <b>Annuler</b> ou <Key>Échap</Key> ne change rien.</p>
     </Section>
     <Section id="theme" title="Clair ou sombre">
       <p>L’admin suit le thème de ton ordinateur. Tu peux le forcer avec le bouton soleil/lune en haut de la page. Le choix est gardé dans ce navigateur.</p>
@@ -184,15 +187,15 @@ function Propositions() {
       </Demo>
       <Legend rows={[
         { term: 'Valider…', meaning: <>Ouvre le formulaire du code, pré-rempli. Corrige ce qui doit l’être (orthographe de l’outil, réduction claire comme « -20 % » ou « 3 mois offerts »), choisis le statut, puis <b>Valider et créer le code</b>. La proposition passe en « Validée » et le code entre dans le catalogue.</> },
-        { term: 'Doublon', meaning: 'Le même code existe déjà pour cet outil. Merkod en détecte certains tout seul (onglet « Doublons »), mais pas tous : vérifie avec ⌘K.' },
-        { term: 'Refuser', meaning: 'Pas de source, code inventé, offre officielle de la marque, spam. Tu peux écrire une courte note de refus : elle reste dans l’historique.' },
+        { term: 'Doublon', meaning: 'Le même code existe déjà pour cet outil. Merkod range tout seul dans l’onglet « Doublons » une proposition déjà envoyée ou déjà au catalogue, casse ignorée. Pour une proposition plus ancienne, le formulaire de validation te prévient et refuse de créer le code une deuxième fois.' },
+        { term: 'Refuser', meaning: 'Pas de source, code inventé, offre officielle de la marque, spam. Une fenêtre te propose d’écrire une courte note de refus (facultative) : elle reste dans l’historique. Annuler ne refuse pas la proposition.' },
       ]} />
       <Callout tone="tip" title="Quel statut choisir en validant ?">
         Si tu as vu le code dans la source mais pas essayé : <b>À tester</b>. Si tu l’as essayé et qu’il marche : <b>Vérifié</b>. S’il manque une info : <b>En attente</b>, il restera caché.
       </Callout>
     </Section>
     <Section id="outil-inconnu" title="Si l’outil n’existe pas encore">
-      <p>Dans le formulaire, la liste « Outil » propose <b>+ Nouvel outil</b>. Donne son nom, sa catégorie et son site officiel : l’outil est créé en même temps que le code.</p>
+      <p>Dans le formulaire, la liste « Outil » propose <b>+ Nouvel outil</b>. Donne son nom, sa catégorie et son site officiel : l’outil est créé en même temps que le code. Si le visiteur a choisi une catégorie, elle est déjà remplie ; sinon, choisis-la toi-même. Son commentaire est repris dans la note interne.</p>
       <Callout tone="warn">Avant de créer un outil, cherche-le dans la liste avec une autre orthographe (« Nord VPN » ou « NordVPN »). Deux fiches pour le même outil, c’est deux pages à moitié vides.</Callout>
     </Section>
     <Section id="filtres" title="Retrouver une ancienne proposition">
@@ -246,6 +249,7 @@ function Codes() {
     <Section id="ajouter" title="Ajouter ou modifier un code">
       <p>Le bouton <b>Nouveau code</b> ouvre le formulaire. Les champs importants :</p>
       <Legend rows={[
+        { term: 'Code', meaning: 'Lettres, chiffres et tirets, sans espace, 40 caractères au plus. Il est rangé en majuscules : « merci20 » devient « MERCI20 ». Si l’outil a déjà ce code, même archivé, le formulaire te prévient avec un lien et refuse d’en créer un deuxième.' },
         { term: 'Lien de la source', meaning: 'Obligatoire. La vidéo, l’épisode ou le post où le créateur donne le code.' },
         { term: 'Réduction', meaning: 'Court et concret : « -20 % », « 3 mois offerts », « 50 € offerts ».' },
         { term: 'Lien du créateur', meaning: 'Facultatif. Son lien d’affiliation, ouvert tel quel quand le visiteur clique.' },
@@ -284,6 +288,7 @@ function Verifications() {
         { term: <StatusDot tone="muted">Pas analysé</StatusDot>, meaning: 'Aucune analyse pour l’instant. Lance-la.' },
       ]} />
       <p>La file met devant les dossiers analysés, du plus sûr au moins sûr : tu valides vite ce qui est clair, puis tu prends le temps sur le reste.</p>
+      <p>Tout code part de 30 points (la ligne « Point de départ »), et la somme des lignes donne le score. Un code qui n’est qu’un nombre (« 2026 ») ou qui ressemble à une clé de licence perd 50 points : il n’est jamais classé clair. Quand l’IA lit la source sans y voir ce code, il perd encore 20 points.</p>
     </Section>
     <Section id="decider" title="Tes trois décisions">
       <Legend rows={[
@@ -314,8 +319,9 @@ function Verifications() {
     </Section>
     <Section id="ia" title="L’IA, son coût et ses limites">
       <p>Le bandeau du haut dit si l’IA est <b>active</b>, <b>en attente d’activation</b> (pas encore de clé) ou si le <b>plafond du mois</b> est atteint. Sans IA, les contrôles automatiques marchent quand même.</p>
-      <p>Quand elle est active, un petit modèle rapide lit chaque description. Un modèle plus fin relit seulement les dossiers douteux, ou quand tu cliques sur <b>Relire avec Opus</b>. La jauge montre la dépense du mois face au plafond.</p>
-      <Callout tone="warn">L’IA ne décide jamais du score : elle aide à repérer les codes dans un texte. Un code qu’elle croit voir mais qui n’est pas mot pour mot dans la source est écarté.</Callout>
+      <p>Quand elle est active, un petit modèle rapide lit chaque description. Un modèle plus fin relit seulement les dossiers douteux, ou quand tu cliques sur <b>Relire avec Opus</b>. La jauge montre la dépense du mois face au plafond, en euros (survole le montant pour le voir en dollars).</p>
+      <p>Les dossiers s’affichent par pages de 24, comme les autres listes ; <Key>J</Key> et <Key>K</Key> passent d’une page à l’autre quand tu arrives au bout. Le message qui confirme une décision s’affiche en bas de l’écran, pour rester visible même loin du haut de la liste.</p>
+      <Callout tone="warn">L’IA ne décide jamais seule : elle aide à repérer les codes dans un texte, et ne peut que retirer des points quand elle ne voit pas le code. Un code qu’elle croit voir mais qui n’est pas mot pour mot dans la source est écarté, tout comme une année ou une clé de licence.</Callout>
       <Callout tone="tip">Seuls les textes publics (titre et description) sont envoyés à l’IA. Aucune donnée de visiteur : la promesse « zéro pistage » tient.</Callout>
     </Section>
   </>;
@@ -371,6 +377,7 @@ function Podcasts() {
     </Section>
     <Section id="outils-a-ajouter" title="Les outils à ajouter">
       <p>Beaucoup de sponsors de podcasts sont des outils que Merkod ne suit pas encore (« code GDIY sur gradium.ai »). Plutôt que de perdre ces codes, Merkod les garde dans l’onglet <b>Outils à ajouter</b>, avec le nom deviné de l’outil, son site quand un lien est cité, le code, la réduction, l’extrait des notes et l’épisode.</p>
+      <p>Merkod ne prend pas pour un outil une étiquette qui ouvre la ligne (« Avantages : avec le code… », « Offre : … »), ni une plateforme de paiement (Thrivecart, systeme.io, Gumroad, Kajabi, Podia…) : elle encaisse la formation ou le livre du créateur, ce n’est pas l’outil en promotion. Dans le classement d’Apple, un podcast listé deux fois (même nom, même auteur) n’apparaît qu’une fois, et une pochette qui ne charge pas laisse place aux initiales du podcast.</p>
       <Steps>
         <Step title="Vérifie l’outil">Le nom est deviné sans IA, d’après le lien voisin (gradium.ai devient « Gradium ») ou le mot qui ouvre la ligne (« Cuure : … »). Ouvre le site et l’épisode pour t’assurer que c’est bien un outil en ligne qui a sa place dans Merkod.</Step>
         <Step title="Fais-le analyser par l’IA (facultatif)"><b>Analyser avec l’IA</b> lit la page d’accueil du site et te donne un résumé de ce que fait l’outil, s’il s’agit bien d’un outil en ligne, et la catégorie où le ranger. Quand aucune catégorie ne convient, l’IA propose d’en créer une. Le bouton est grisé tant que l’IA n’est pas activée ; chaque analyse compte dans le plafond du mois.</Step>
@@ -393,7 +400,7 @@ function Outils() {
       <Steps>
         <Step title="Vérifie qu’il n’existe pas déjà">Tape son nom dans la recherche, avec et sans espace.</Step>
         <Step title="Clique sur « Nouvel outil »">Donne son nom exact, tel que la marque l’écrit.</Step>
-        <Step title="Choisis la catégorie">Le menu se filtre quand tu tapes. Si aucune ne convient, crée-la d’abord dans Catégories.</Step>
+        <Step title="Choisis la catégorie">Elle est vide au départ, et l’enregistrement attend ton choix. Le menu se filtre quand tu tapes. Si aucune ne convient, crée-la d’abord dans Catégories.</Step>
         <Step title="Site officiel">Le domaine suffit : « exemple.com ». Il sert au logo et au lien.</Step>
         <Step title="Description (facultative)">Une phrase pour la fiche. Vide, le site écrit « Les codes promo donnés par les créateurs pour … ».</Step>
       </Steps>
@@ -472,14 +479,14 @@ function Createurs() {
       <Legend rows={[
         { term: <StatusDot tone="muted">{CREATOR_LEVEL_LABELS.spotted}</StatusDot>, meaning: 'Merkod connaît son nom, mais personne n’a encore contrôlé ses comptes. C’est le niveau de départ.' },
         { term: <StatusDot tone="ok">{CREATOR_LEVEL_LABELS.checked}</StatusDot>, meaning: `Tu as contrôlé un de ses comptes et il a au moins ${MIN_SUBSCRIBERS} abonnés (ou, pour un podcast, au moins ${MIN_RATINGS} notes sur Apple Podcasts), ou ce compte a le badge certifié du réseau.` },
-        { term: <StatusDot tone="info">{CREATOR_LEVEL_LABELS.verified}</StatusDot>, meaning: 'Le créateur a prouvé lui-même qu’un compte est à lui, avec un code dans sa bio (voir plus bas).' },
+        { term: <StatusDot tone="info">{CREATOR_LEVEL_LABELS.verified}</StatusDot>, meaning: 'Le créateur a prouvé lui-même, avec un code dans sa bio (voir plus bas), qu’un compte « Contrôlé par Merkod » est à lui. La preuve sur un compte sous le seuil d’audience ne compte pas.' },
       ]} />
       <p>Le filtre <b>À contrôler</b> liste les créateurs déjà sur le site mais encore repérés : commence par eux.</p>
       <p>Sur le site, un créateur contrôlé ou vérifié porte une coche verte à côté de son nom, et la mention <b>✓ Contrôlé par Merkod</b> (ou <b>✓ Créateur vérifié</b>) sur sa page. Un créateur repéré n’a aucune marque.</p>
     </Section>
     <Section id="comptes" title="Relier et contrôler un compte">
       <Steps>
-        <Step title="Relie sa chaîne">Dans le panneau du créateur, <b>Relier un compte</b>, choisis YouTube et colle le lien de la chaîne (youtube.com/@pseudo). Merkod lit son identifiant, son nom et ses abonnés. Pour TikTok, Instagram et les autres, recopie le pseudo, le lien et les abonnés affichés sur le profil.</Step>
+        <Step title="Relie sa chaîne">Dans le panneau du créateur, <b>Relier un compte</b>, choisis YouTube et colle le lien de la chaîne (youtube.com/@pseudo). Merkod lit son identifiant, son nom et ses abonnés. Pour TikTok, Instagram, X, Twitch et Snapchat, écris le pseudo <i>ou</i> colle le lien du profil : l’autre se remplit tout seul. Recopie aussi les abonnés affichés sur le profil.</Step>
         <Step title="Contrôle-le">Ouvre le compte : il est actif, il publie sous ce nom, ce n’est pas une copie. Coche alors <b>J’ai contrôlé ce compte</b>.</Step>
         <Step title="Coche le badge s’il y en a un">Si la chaîne affiche la coche grise de compte certifié, coche <b>Badge certifié du réseau</b>. Ce badge suffit pour passer « Contrôlé par Merkod ».</Step>
       </Steps>
@@ -491,13 +498,13 @@ function Createurs() {
     </Section>
     <Section id="suivre" title="Suivre les vidéos d’une chaîne">
       <p>Un créateur qui a déjà donné un code en redonnera. Coche <b>Suivre ses vidéos</b> sur son compte YouTube : chaque nuit, Merkod lit les nouvelles vidéos de la chaîne et cherche des codes dans leur description, comme pour les podcasts. Les codes trouvés arrivent « En attente » dans Vérifications, crédités à ce créateur. La case n’apparaît que pour une chaîne lue par Merkod (avec son identifiant) ; décoche-la pour mettre la chaîne en pause, elle garde sa date de lecture.</p>
-      <p><b>Suivre les chaînes</b>, en haut de la page, suit d’un coup les chaînes reliées de tous les créateurs qui ont au moins un code. Une chaîne que tu as mise en pause reste en pause. <b>Lire les chaînes suivies</b> lance la lecture tout de suite, sans attendre la nuit.</p>
+      <p><b>Suivre les chaînes</b>, en haut de la page, suit d’un coup les chaînes reliées de tous les créateurs qui ont au moins un code. Une chaîne que tu as mise en pause reste en pause. <b>Lire les chaînes suivies</b> lance la lecture tout de suite, sans attendre la nuit. Une lecture s’arrête d’elle-même au bout de 4 minutes, pour ne pas être coupée par l’hébergeur : le message dit combien de chaînes restent, reclique pour continuer (ou laisse la nuit s’en charger). Une vidéo illisible est notée et n’arrête plus les autres.</p>
       <Callout tone="why">Lire une chaîne coûte environ 1 unité du quota YouTube, contre 100 pour une recherche : 100 chaînes suivies coûtent moins qu’une seule recherche. Les vidéos déjà lues (par une recherche ou une lecture précédente) sont écartées. La première lecture remonte 45 jours, les suivantes reprennent depuis la dernière.</Callout>
     </Section>
     <Section id="preuve" title="Faire prouver un compte par la bio">
       <p>Seul le vrai propriétaire d’un compte peut modifier sa bio. C’est la preuve la plus simple : tu donnes un code au créateur, il l’ajoute à la bio du compte, et Merkod le retrouve. Le créateur passe alors <b>Créateur vérifié</b>, et ce compte porte une coche bleue sur sa page.</p>
       <Steps>
-        <Step title="Contrôle le compte d’abord">Coche <b>J’ai contrôlé ce compte</b> après avoir vérifié que c’est la vraie chaîne du créateur. Sans ce contrôle, Merkod refuse de donner un code.</Step>
+        <Step title="Contrôle le compte d’abord">Coche <b>J’ai contrôlé ce compte</b> après avoir vérifié que c’est la vraie chaîne du créateur. Le compte doit aussi être « Contrôlé par Merkod » : au moins {MIN_SUBSCRIBERS} abonnés (ou {MIN_RATINGS} notes pour un podcast), ou le badge certifié du réseau. Sinon, <b>Donner un code</b> reste grisé et Merkod refuse la preuve.</Step>
         <Step title="Donne un code">Dans le panneau du créateur, sous le compte, <b>Donner un code</b>. Merkod crée un code du type MERKOD-7F3K2Q, valable 14 jours.</Step>
         <Step title="Envoie-le">« Copier le message » prépare un e-mail prêt à envoyer, avec le code et la marche à suivre. Envoie-le à l’adresse laissée dans sa demande.</Step>
         <Step title="Retrouve le code">YouTube : <b>Lire la bio</b> lit la description de la chaîne (1 unité de quota). Si le code y est, c’est fait. Autres réseaux : ouvre le profil toi-même et clique <b>J’ai vu le code dans la bio</b>.</Step>
@@ -524,7 +531,7 @@ function Createurs() {
       <p>Depuis la connexion des créateurs, « C’est ta page ? » mène à la page <b>Pour les créateurs</b> : la personne voit les chiffres de la page, laisse son e-mail et reçoit un lien pour se connecter. La revendication arrive ici en même temps, avec le compte principal de la page comme « compte annoncé ».</p>
       <Steps>
         <Step title="Fais prouver le compte">Contrôle le compte, puis donne un code à mettre dans la bio (voir « Faire prouver un compte par la bio »).</Step>
-        <Step title="Donne l’accès">Une fois le compte prouvé, <b>Donner l’accès à son espace</b> sur la revendication. À sa prochaine visite, la personne voit ses codes et leurs copies du mois. Merkod refuse tant qu’aucun compte du créateur n’est prouvé.</Step>
+        <Step title="Donne l’accès">Une fois le compte prouvé, <b>Donner l’accès à son espace</b> sur la revendication. À sa prochaine visite, la personne voit ses codes et leurs copies du mois. Tant qu’aucun compte « Contrôlé par Merkod » du créateur n’est prouvé, le bouton reste grisé : survole-le pour voir pourquoi.</Step>
         <Step title="Retire-le si besoin">« Retirer l’accès » la remet dans un espace vide, sans toucher à la page.</Step>
       </Steps>
       <Callout tone="warn">Une revendication ne prouve rien à elle seule : n’importe qui peut écrire « je suis MrBeast ». Ne change jamais le niveau d’un créateur sur la seule foi d’un e-mail : demande-lui la preuve par la bio.</Callout>
@@ -558,6 +565,7 @@ function Categories() {
       <Callout tone="tip">Moins de catégories bien remplies valent mieux que beaucoup de catégories vides.</Callout>
     </Section>
     <Section id="chercher" title="Chercher des codes pour une catégorie">
+      <p>La tâche de l’accueil « Trouver des codes pour … catégories vides » cite les cinq premières et ouvre cette page déjà filtrée sur <b>Vides sur le site</b>.</p>
       <p><b>Chercher des codes</b>, en haut de la page, prend les outils des catégories vides (priorité 1 d’abord) et cherche sur YouTube « <i>outil</i> code promo » parmi les vidéos de l’année. Dans le panneau d’une catégorie, le même bouton cherche ses outils, ceux qui ont le moins de codes d’abord, même si elle a déjà des codes, puis « <i>catégorie</i> code promo » pour repérer des outils qu’on n’a pas encore.</p>
       <p><b>Chaque recherche fait du neuf.</b> Pour un même outil, Merkod change de formulation à chaque fois : « code promo », puis « code réduction », « promo code » et « discount code ». Une formulation déjà essayée ne ramène que les vidéos publiées depuis. Les vidéos déjà lues sont écartées sans être relues, et le compte rendu le dit : nouvelles chaînes, chaînes déjà connues (un créateur qu’on a, ou une vidéo déjà lue), vidéos écartées. Une chaîne nouvelle avec un code, c’est un créateur à ajouter et à suivre.</p>
       <p>Les descriptions des vidéos sont lues comme les notes des podcasts. <b>Rien n’est publié</b> : chaque code trouvé arrive « En attente » dans Vérifications, crédité à la chaîne qui l’a donné, et un code pour un outil absent du catalogue va dans <b>Podcasts › Outils à ajouter</b>.</p>
@@ -654,7 +662,7 @@ function Indicateurs() {
       <p>Pour trouver et vérifier les codes, Merkod appelle des services extérieurs. L’onglet <b>Consommation</b> de Statistiques dit où tu en es (l’ancienne adresse /admin/consommation y mène toujours) :</p>
       <Legend rows={[
         { term: 'YouTube', meaning: <>10 000 unités gratuites par jour. Lire une vidéo ou une chaîne coûte 1 unité, une recherche 100. Le compteur repart de zéro vers 9 h, heure de Paris. YouTube ne donne pas ce chiffre : c’est Merkod qui compte chacun de ses appels.</> },
-        { term: 'IA', meaning: <>La dépense du mois face au plafond (10 € par défaut). Une fois atteint, l’IA s’arrête jusqu’au 1er du mois suivant.</> },
+        { term: 'IA', meaning: <>La dépense du mois face au plafond (10 € par défaut), en euros comme le plafond. L’API est facturée en dollars : le montant en dollars est rappelé à côté. Une fois le plafond atteint, l’IA s’arrête jusqu’au 1er du mois suivant.</> },
       ]} />
       <Callout tone="tip">Au-dessus de 70 %, évite les grosses recherches par catégorie pour la journée : la lecture des vidéos proposées par les visiteurs a besoin du reste du quota.</Callout>
     </Section>
@@ -700,7 +708,7 @@ function Routine() {
         <div><dt>Source</dt><dd>La vidéo, l’épisode ou le post où le créateur donne le code. La preuve.</dd></div>
         <div><dt>Code mort</dt><dd>Code expiré ou désactivé. L’ennemi numéro 1 de la confiance.</dd></div>
         <div><dt>Doublon</dt><dd>Le même code, pour le même outil, déjà dans le catalogue.</dd></div>
-        <div><dt>Couverture</dt><dd>Part des outils qui ont au moins un code visible.</dd></div>
+        <div><dt>Couverture</dt><dd>Part des outils qui ont au moins un code visible. Dans Statistiques, le graphique « Couverture par catégorie » montre les 10 premières catégories ; « Voir les … catégories » les affiche toutes.</dd></div>
         <div><dt>Taux de conversion</dt><dd>Part des visiteurs qui font l’action voulue : copier un code, aller sur l’outil.</dd></div>
         <div><dt>Modération</dt><dd>Décider ce qui est publié et ce qui ne l’est pas.</dd></div>
         <div><dt>B2B</dt><dd>« Business to business » : l’offre future de Merkod pour les marques.</dd></div>
@@ -722,7 +730,7 @@ function Administration() {
     <Section id="pages" title="Couper une page">
       <p>Chaque page publique a son interrupteur. Une page coupée répond « page introuvable » (erreur 404), elle et tout ce qui est en dessous : couper « Pages de catégorie » coupe chaque page de catégorie (les pastilles de la page Codes restent). Elle disparaît en même temps du menu, du pied de page et de la recherche ; ailleurs, ses liens deviennent du texte simple et ses boutons disparaissent.</p>
       <Legend rows={SITE_PAGES.filter(page => !page.locked).map(page => ({ term: page.label, meaning: page.effect }))} />
-      <p>Le changement s’applique en quelques secondes, sans redéploiement. Rallumer la page la remet en ligne de la même façon.</p>
+      <p>Sur téléphone, chaque page devient une carte avec son interrupteur à droite du nom. Le changement s’applique en quelques secondes, sans redéploiement. Rallumer la page la remet en ligne de la même façon.</p>
       <Callout tone="rule">L’accueil, les mentions légales et la page confidentialité restent <b>toujours en ligne</b> : l’accueil est l’entrée du site, les deux autres sont obligatoires. Elles sont listées sans interrupteur.</Callout>
     </Section>
     <Section id="comptes" title="Gérer les comptes créateurs">

@@ -4,6 +4,8 @@ import { verificationQueue } from '@/lib/verification-queue';
 import { aiSpendSince, startOfMonthUtc } from '@/lib/verification-store';
 import { VerificationsView } from './verifications-view';
 
+export const metadata = { title: 'Vérifications · Admin Merkod' };
+
 export const dynamic = 'force-dynamic';
 
 // File des codes à décider, avec leur dernière analyse, l'état de l'IA et la dépense du mois.
@@ -14,7 +16,7 @@ export default async function Page() {
   return (
     <VerificationsView
       queue={queue}
-      ai={{ status: aiStatusOf(config, spent), spentUsdMicros: spent, budgetUsdMicros: config.monthlyBudgetUsdMicros, model: config.model, reviewModel: config.reviewModel }}
+      ai={{ status: aiStatusOf(config, spent), spentUsdMicros: spent, budgetUsdMicros: config.monthlyBudgetUsdMicros, usdPerEur: config.usdPerEur, model: config.model, reviewModel: config.reviewModel }}
       youtubeReady={Boolean(process.env.YOUTUBE_API_KEY)}
     />
   );

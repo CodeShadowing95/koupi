@@ -19,11 +19,11 @@ function fakeResponse(text: string, extra: Partial<Anthropic.Beta.BetaMessage> =
 describe('aiConfigFrom', () => {
   it('reste inactive sans clé et applique les valeurs par défaut', () => {
     const config = aiConfigFrom({});
-    expect(config).toEqual({ apiKey: null, model: 'claude-haiku-5-5', reviewModel: 'claude-opus-5-5', monthlyBudgetUsdMicros: 12_000_000 });
+    expect(config).toEqual({ apiKey: null, model: 'claude-haiku-5-5', reviewModel: 'claude-opus-5-5', monthlyBudgetUsdMicros: 12_000_000, usdPerEur: 1.2 });
   });
   it('lit la clé, le modèle et le plafond', () => {
     const config = aiConfigFrom({ ANTHROPIC_API_KEY: ' sk ', AI_MODEL: 'claude-sonnet-5-5', AI_REVIEW_MODEL: 'claude-fable-5-1', AI_MONTHLY_BUDGET_EUR: '20', AI_USD_PER_EUR: '1' });
-    expect(config).toEqual({ apiKey: 'sk', model: 'claude-sonnet-5-5', reviewModel: 'claude-fable-5-1', monthlyBudgetUsdMicros: 20_000_000 });
+    expect(config).toEqual({ apiKey: 'sk', model: 'claude-sonnet-5-5', reviewModel: 'claude-fable-5-1', monthlyBudgetUsdMicros: 20_000_000, usdPerEur: 1 });
   });
   it('ignore un plafond invalide', () => {
     expect(aiConfigFrom({ AI_MONTHLY_BUDGET_EUR: 'abc' }).monthlyBudgetUsdMicros).toBe(12_000_000);
@@ -77,6 +77,14 @@ describe('keepVerbatimCodes', () => {
     expect(keepVerbatimCodes(null, description)).toEqual([]);
     expect(keepVerbatimCodes({ codes: 'x' }, description)).toEqual([]);
     expect(keepVerbatimCodes({ codes: [{ code: 42 }] }, description)).toEqual([]);
+  });
+});
+
+describe('keepVerbatimCodes et faux codes', () => {
+  it('écarte une année et une clé de licence même présentes dans le texte', () => {
+    const text = 'Bitdefender promo code 2026, clé 3M3K9/5R92S/ZDH5Y/NA944, code BITDEF20';
+    const codes = keepVerbatimCodes({ codes: ['2026', '3M3K9/5R92S/ZDH5Y/NA944', 'BITDEF20'].map(code => ({ code, tool: 'Bitdefender', discount: '', conditions: '', expires_on: '' })) }, text);
+    expect(codes.map(item => item.code)).toEqual(['BITDEF20']);
   });
 });
 

@@ -2,6 +2,8 @@ import { getDb } from '@/db';
 import { listRuns, sourceActivity, sourceInventory, yieldByOrigin } from '@/lib/source-runs';
 import { SourcesView } from './sources-view';
 
+export const metadata = { title: 'Sources · Admin Merkod' };
+
 export const dynamic = 'force-dynamic';
 
 // D'où viennent les codes : chaque source (recherche YouTube, chaînes et podcasts suivis, visiteurs, ajouts à la main),

@@ -118,6 +118,16 @@ describe('runVerification', () => {
     expect(check).toMatchObject({ model: 'claude-opus-5-5', costUsdMicros: 8200 });
   });
 
+  it('retire des points quand l’IA ne retrouve pas le code', async () => {
+    const config = aiConfigFrom({ ANTHROPIC_API_KEY: 'k' });
+    const seen = vi.fn(async (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => aiResponse(params.model, ['ANA10']));
+    const clear = await runVerification(ctx.db, ctx.codeId, { readSource: reader('Merci NordVPN, code ANA10'), ai: { config, create: seen } });
+    const missed = vi.fn(async (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => aiResponse(params.model, []));
+    const doubtful = await runVerification(ctx.db, ctx.codeId, { readSource: reader('Merci NordVPN, code ANA10'), ai: { config, create: missed } });
+    expect(doubtful!.score).toBe(clear!.score - 20);
+    expect(doubtful?.reasons).toContainEqual({ points: -20, label: 'L’IA ne retrouve pas ce code dans la description.' });
+  });
+
   it('relit directement avec Opus à la demande', async () => {
     const create = vi.fn(async (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => aiResponse(params.model, ['ANA10']));
     const config = aiConfigFrom({ ANTHROPIC_API_KEY: 'k' });
@@ -148,10 +158,11 @@ describe('runVerification', () => {
   });
 
   it('repère un doublon', async () => {
-    await createCode(ctx.db, {
-      toolSlug: 'nordvpn', creatorName: 'Bob', code: 'ana10', discount: '-10 %', sourceUrl: 'https://youtube.com/watch?v=other1234',
-      sourceTitle: '', creatorLink: null, note: null, status: 'verified',
-    });
+    // L'admin refuse un deuxième ANA10 pour NordVPN ; un doublon peut encore venir d'une recherche automatique, écrit ici directement en base.
+    const [tool] = await ctx.db.select({ id: schema.tools.id }).from(schema.tools).where(eq(schema.tools.slug, 'nordvpn'));
+    await ctx.db.insert(schema.creators).values({ slug: 'bob', name: 'Bob' });
+    const [bob] = await ctx.db.select({ id: schema.creators.id }).from(schema.creators).where(eq(schema.creators.slug, 'bob'));
+    await ctx.db.insert(schema.codes).values({ toolId: tool.id, creatorId: bob.id, code: 'ana10', discount: '-10 %', sourceUrl: 'https://youtube.com/watch?v=other1234', status: 'verified' });
     const check = await runVerification(ctx.db, ctx.codeId, { readSource: reader('code ANA10') });
     expect(check?.reasons.map(r => r.label)).toContain('Un code identique existe déjà.');
   });
