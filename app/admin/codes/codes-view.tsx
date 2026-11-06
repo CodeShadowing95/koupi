@@ -15,6 +15,7 @@ import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
 import { RefreshButton } from '@/components/admin-refresh-button';
 import { CODE_ORIGINS, CODE_ORIGIN_LABELS, isCodeOrigin, type CodeOrigin } from '@/lib/code-origin';
+import { calendarDay, parisDate } from '@/lib/paris-date';
 
 const statusLabel: Record<Code['status'], { label: string; className: string }> = {
   verified: { label: 'Vérifié', className: 'adm-pill adm-pill-ok' },
@@ -36,9 +37,9 @@ const matchesFilter = (code: Code, filter: Filter, stale: Set<string>) => {
   return filter === 'all' || code.status === filter;
 };
 const statusTone: Record<Code['status'], Tone> = { verified: 'ok', to_test: 'warn', pending: 'muted', rejected: 'bad' };
-const shortTested = (iso: string | null) => iso ? `testé le ${new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}` : 'jamais testé';
+const shortTested = (iso: string | null) => iso ? `testé le ${parisDate(iso, { day: 'numeric', month: 'short' })}` : 'jamais testé';
 const cardMeta = (code: Code, copies: number) => `${code.creator}${copies > 0 ? ` · ${copies} copie${copies > 1 ? 's' : ''}` : ''} · ${code.votes} vote${code.votes > 1 ? 's' : ''}${code.votes > 0 ? ` · ${code.success} %` : ''} · ${shortTested(code.lastTestedAt)}`;
-const testedLabel = (iso: string | null) => iso ? `Testé le ${new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}` : 'Jamais testé';
+const testedLabel = (iso: string | null) => iso ? `Testé le ${parisDate(iso, { day: 'numeric', month: 'short', year: 'numeric' })}` : 'Jamais testé';
 type WithCopies = Code & { copies: number };
 const sortFields: SortField<WithCopies>[] = [
   { key: 'created', label: 'Date d’ajout', value: code => code.createdAt },
@@ -191,9 +192,9 @@ export function CodesView({ codes: rows, tools, categories, copies }: { codes: C
             <DetailList items={[
               { label: 'Votes', value: selected.votes > 0 ? `${selected.votes} vote${selected.votes > 1 ? 's' : ''} · ${selected.success} % de réussite` : 'Aucun vote' },
               { label: 'Dernier test', value: testedLabel(selected.lastTestedAt) + (stale.has(selected.id) ? ' · à retester' : '') },
-              { label: 'Testé au paiement', value: selected.paymentTestedAt && new Date(selected.paymentTestedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) },
-              { label: 'Valable jusqu’au', value: selected.expiresOn && `${new Date(`${selected.expiresOn}T12:00:00Z`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}${expiryOf(selected.expiresOn).state === 'expired' ? ' · date passée' : ''}` },
-              { label: 'Ajouté le', value: new Date(selected.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) },
+              { label: 'Testé au paiement', value: selected.paymentTestedAt && parisDate(selected.paymentTestedAt, { day: 'numeric', month: 'long', year: 'numeric' }) },
+              { label: 'Valable jusqu’au', value: selected.expiresOn && `${calendarDay(selected.expiresOn, { day: 'numeric', month: 'long', year: 'numeric' })}${expiryOf(selected.expiresOn).state === 'expired' ? ' · date passée' : ''}` },
+              { label: 'Ajouté le', value: parisDate(selected.createdAt, { day: 'numeric', month: 'long', year: 'numeric' }) },
             ]} />
             {selected.note && <p className="adm-detail-quote">Note : {selected.note}</p>}
           </>}

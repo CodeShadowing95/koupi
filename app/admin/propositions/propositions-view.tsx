@@ -13,6 +13,7 @@ import { CopyCode, IconLink, StatusDot, type Tone } from '@/components/admin-car
 import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
 import { RefreshButton } from '@/components/admin-refresh-button';
+import { parisDate } from '@/lib/paris-date';
 type Submission = { id: string; tool_name: string; creator_name: string; code: string; discount_label: string; source_url: string; creator_link: string | null; comment: string | null; submitter_email: string | null; status: string; admin_note: string | null; created_at: string; category: string | null; created_code_id: string | null };
 const sortFields: SortField<Submission>[] = [
   { key: 'received', label: 'Date de réception', value: item => item.created_at },
@@ -117,7 +118,7 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
                     <td className="adm-cell-wrap">{item.tool_name}</td>
                     <td className="adm-cell-wrap">{item.discount_label}</td>
                     <td className="adm-cell-wrap">{item.creator_name}</td>
-                    <td className="adm-cell-muted adm-cell-nowrap">{new Date(item.created_at).toLocaleDateString('fr-FR')}</td>
+                    <td className="adm-cell-muted adm-cell-nowrap">{parisDate(item.created_at, { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
                     <td className="adm-cell-muted adm-cell-clip" title={item.submitter_email ?? undefined}>{item.submitter_email || '—'}</td>
                     <td className="adm-cell-muted adm-cell-wrap">{item.comment || '—'}</td>
                     <td><span className={statusPill[item.status] || 'adm-pill'}>{statusName[item.status] || item.status}</span></td>
@@ -132,7 +133,7 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
           <div className="adm-grid adm-page-enter" key={`grid-${current.page}`}>
             {current.items.map(item => (
               <article className="adm-card" key={item.id} data-open onClick={openOnClick(() => setSelectedId(item.id))}>
-                <div className="adm-card-row"><button type="button" className="mono adm-open" title={`Voir le détail de ${item.code}`} onClick={() => setSelectedId(item.id)}>{item.code}</button><CopyCode code={item.code} /><span className="adm-card-date">{new Date(item.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}</span><StatusDot tone={statusTone[item.status] ?? 'muted'}>{statusName[item.status] || item.status}</StatusDot></div>
+                <div className="adm-card-row"><button type="button" className="mono adm-open" title={`Voir le détail de ${item.code}`} onClick={() => setSelectedId(item.id)}>{item.code}</button><CopyCode code={item.code} /><span className="adm-card-date">{parisDate(item.created_at, { day: '2-digit', month: '2-digit' })}</span><StatusDot tone={statusTone[item.status] ?? 'muted'}>{statusName[item.status] || item.status}</StatusDot></div>
                 <p className="adm-card-line" title={`${item.tool_name} · ${item.discount_label} · ${item.creator_name}`}>{item.tool_name} <span>· {item.discount_label} · {item.creator_name}</span></p>
                 <p className="adm-card-sub is-quote" title={[item.comment, item.submitter_email].filter(Boolean).join(' · ') || undefined}>{item.comment ? `« ${item.comment} »` : 'Sans commentaire'}</p>
                 <div className="adm-card-foot">
@@ -158,7 +159,7 @@ export function PropositionsView({ categories, tools, creators }: { categories: 
               { label: 'Créateur', value: selected.creator_name },
               { label: 'Source', value: <a href={selected.source_url} target="_blank" rel="noopener noreferrer">Ouvrir la source ↗</a> },
               { label: 'Lien du créateur', value: selected.creator_link && <a href={selected.creator_link} target="_blank" rel="noopener noreferrer">Ouvrir ↗</a> },
-              { label: 'Reçue le', value: new Date(selected.created_at).toLocaleString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) },
+              { label: 'Reçue le', value: parisDate(selected.created_at, { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) },
               { label: 'E-mail', value: selected.submitter_email && <a href={`mailto:${selected.submitter_email}`}>{selected.submitter_email}</a> },
               { label: 'Note de décision', value: selected.admin_note },
             ]} />
