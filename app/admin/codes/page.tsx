@@ -4,6 +4,8 @@ import { toolOptions } from '@/lib/codes-admin';
 import { copiesByCodeThisMonth } from '@/lib/creator-directory';
 import { CodesView } from './codes-view';
 
+export const metadata = { title: 'Codes · Admin Merkod' };
+
 export const dynamic = 'force-dynamic';
 
 // Lecture directe (sans cache) : l'admin voit tout de suite ses changements, archives comprises.

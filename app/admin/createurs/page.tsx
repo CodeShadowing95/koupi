@@ -10,6 +10,8 @@ import { creatorsWithoutImage } from '@/lib/stored-images';
 import { channelWatches } from '@/lib/youtube-channel-read';
 import { CreatorsView } from './creators-view';
 
+export const metadata = { title: 'Créateurs · Admin Merkod' };
+
 export const dynamic = 'force-dynamic';
 
 export default async function Page() {

@@ -31,7 +31,7 @@ export function CreatorSignInLanding({ token }: { token: string }) {
     <div className="k-panel k-panel-glow k-fc-landing-card" role={error ? 'alert' : 'status'}>
       {error ? (
         <>
-          <h1>Lien expiré</h1>
+          <h1>{token ? 'Lien expiré' : 'Lien incomplet'}</h1>
           <p>{error}</p>
           <Link className="k-btn k-btn-primary" href={routes.forCreators()}>Recevoir un nouveau lien</Link>
         </>

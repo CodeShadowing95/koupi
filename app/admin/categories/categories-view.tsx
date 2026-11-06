@@ -138,7 +138,7 @@ export function CategoriesView({ categories: all, families, search }: { categori
                 <span className="adm-card-meta">{category.family ?? 'Sans famille'}</span>
                 <span className="adm-track" role="img" aria-label={`${category.covered} outils couverts sur ${category.tools}`}><span style={{ width: `${rate(category)}%` }} /></span>
                 <div className="adm-card-foot">
-                  <span className="adm-card-meta">{category.covered} / {category.tools} outil{category.tools > 1 ? 's' : ''} couvert{category.covered > 1 ? 's' : ''}</span>
+                  <span className="adm-card-meta">{category.covered} / {category.tools} outil{category.tools > 1 ? 's' : ''} couvert{category.tools > 1 ? 's' : ''}</span>
                   <IconLink icon="list" label="Voir les outils" href={`/admin/outils?category=${encodeURIComponent(category.slug)}`} />
                   <IconButton icon="edit" label="Modifier" onClick={() => open(category)} />
                 </div>

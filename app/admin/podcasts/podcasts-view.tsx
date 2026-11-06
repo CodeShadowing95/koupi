@@ -63,6 +63,8 @@ export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, sug
   const [report, setReport] = useState<PodcastReadReport | null>(null);
   const followed = new Set(podcasts.map(podcast => podcast.feedId));
   const [panel, setPanel] = useState<Panel>(initialTab ?? (podcasts.length ? 'list' : 'add'));
+  // Une erreur de recherche ou de classement ne suit pas l'admin dans un autre onglet.
+  const openPanel = (next: Panel) => { setPanel(next); setError(''); };
   const [filter, setFilter] = useState<Filter>('all');
   const [listQuery, setListQuery] = useState('');
   const [view, setView] = useAdminView();
@@ -176,7 +178,7 @@ export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, sug
       <div className="container">
         <div className="adm-head">
           <div>
-            <span className="eyebrow">Modération</span>
+            <span className="eyebrow">Catalogue</span>
             <h1>Podcasts suivis</h1>
             <p>Les podcasts dont Merkod lit les nouveaux épisodes pour trouver des codes promo. Chaque code trouvé arrive dans Vérifications, où tu décides. Suivre un podcast crée aussi son créateur.</p>
           </div>
@@ -188,7 +190,7 @@ export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, sug
           <div className="notice adm-pod-report" role="status">
             <p>{report.podcasts} podcast{report.podcasts > 1 ? 's' : ''} lu{report.podcasts > 1 ? 's' : ''}, {report.episodes} épisode{report.episodes > 1 ? 's' : ''} récent{report.episodes > 1 ? 's' : ''}{report.aiRead > 0 ? `, dont ${report.aiRead} relu${report.aiRead > 1 ? 's' : ''} par l’IA` : ''}. {report.found.length === 0 ? 'Aucun nouveau code trouvé.' : `${report.found.length} nouveau${report.found.length > 1 ? 'x' : ''} code${report.found.length > 1 ? 's' : ''} en attente :`}</p>
             {report.found.length > 0 && <ul>{report.found.map(item => <li key={`${item.podcast}-${item.tool}-${item.code}`}><b className="mono">{item.code}</b> pour {item.tool} <span className="muted">({item.podcast})</span></li>)}</ul>}
-            {report.suggested.length > 0 && <p>{report.suggested.length} code{report.suggested.length > 1 ? 's' : ''} pour des outils absents du catalogue : {report.suggested.map(item => `${item.code} (${item.tool})`).join(', ')}. <button type="button" className="adm-link-btn" onClick={() => setPanel('tools')}>Voir les outils à ajouter</button></p>}
+            {report.suggested.length > 0 && <p>{report.suggested.length} code{report.suggested.length > 1 ? 's' : ''} pour des outils absents du catalogue : {report.suggested.map(item => `${item.code} (${item.tool})`).join(', ')}. <button type="button" className="adm-link-btn" onClick={() => openPanel('tools')}>Voir les outils à ajouter</button></p>}
             {report.failed.length > 0 && <p>Pas de réponse d’Apple pour : {report.failed.join(', ')}. Ils seront relus la prochaine fois.</p>}
             <div className="adm-pod-report-actions">
               {report.found.length > 0 && <Link href="/admin/verifications" className="adm-btn adm-btn-pri">Ouvrir les vérifications</Link>}
@@ -198,10 +200,10 @@ export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, sug
         )}
 
         <div className="adm-pod-panels" role="tablist" aria-label="Podcasts">
-          <button type="button" role="tab" id="pod-tab-list" aria-controls="pod-panel-list" aria-selected={panel === 'list'} className="adm-pod-panel-tab" onClick={() => setPanel('list')}>Suivis <span className="adm-tab-n">{podcasts.length}</span></button>
-          <button type="button" role="tab" id="pod-tab-add" aria-controls="pod-panel-add" aria-selected={panel === 'add'} className="adm-pod-panel-tab" onClick={() => setPanel('add')}>+ Ajouter un podcast</button>
-          <button type="button" role="tab" id="pod-tab-candidates" aria-controls="pod-panel-candidates" aria-selected={panel === 'candidates'} className="adm-pod-panel-tab" onClick={() => setPanel('candidates')}>Candidats {candidates.some(item => item.status === 'new') && <span className="adm-tab-n">{candidates.filter(item => item.status === 'new').length}</span>}</button>
-          <button type="button" role="tab" id="pod-tab-tools" aria-controls="pod-panel-tools" aria-selected={panel === 'tools'} className="adm-pod-panel-tab" onClick={() => setPanel('tools')}>Outils à ajouter {suggestions.length > 0 && <span className="adm-tab-n">{suggestions.length}</span>}</button>
+          <button type="button" role="tab" id="pod-tab-list" aria-controls="pod-panel-list" aria-selected={panel === 'list'} className="adm-pod-panel-tab" onClick={() => openPanel('list')}>Suivis <span className="adm-tab-n">{podcasts.length}</span></button>
+          <button type="button" role="tab" id="pod-tab-add" aria-controls="pod-panel-add" aria-selected={panel === 'add'} className="adm-pod-panel-tab" onClick={() => openPanel('add')}>+ Ajouter un podcast</button>
+          <button type="button" role="tab" id="pod-tab-candidates" aria-controls="pod-panel-candidates" aria-selected={panel === 'candidates'} className="adm-pod-panel-tab" onClick={() => openPanel('candidates')}>Candidats {candidates.some(item => item.status === 'new') && <span className="adm-tab-n">{candidates.filter(item => item.status === 'new').length}</span>}</button>
+          <button type="button" role="tab" id="pod-tab-tools" aria-controls="pod-panel-tools" aria-selected={panel === 'tools'} className="adm-pod-panel-tab" onClick={() => openPanel('tools')}>Outils à ajouter {suggestions.length > 0 && <span className="adm-tab-n">{suggestions.length}</span>}</button>
         </div>
 
         {error && <div className="notice notice-error" role="alert">{error}</div>}
@@ -248,7 +250,7 @@ export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, sug
         ) : (
           <section id="pod-panel-list" role="tabpanel" aria-labelledby="pod-tab-list">
             {podcasts.length === 0 ? (
-              <div className="adm-empty">Aucun podcast suivi pour l’instant. <button type="button" className="adm-btn" onClick={() => setPanel('add')}>Ajouter un podcast</button></div>
+              <div className="adm-empty">Aucun podcast suivi pour l’instant. <button type="button" className="adm-btn" onClick={() => openPanel('add')}>Ajouter un podcast</button></div>
             ) : <>
               <div className="adm-tabs" role="group" aria-label="Filtre">
                 {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label} <span className="adm-tab-n">{countOf(item.value)}</span></button>)}

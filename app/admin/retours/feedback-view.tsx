@@ -42,7 +42,7 @@ export function FeedbackView({ items }: { items: AdminFeedback[] }) {
       <div className="container">
         <div className="adm-head">
           <div>
-            <span className="eyebrow">Modération</span>
+            <span className="eyebrow">Pilotage</span>
             <h1>Retours des visiteurs</h1>
             <p>Les avis envoyés depuis la page <a href="/feedback" target="_blank" rel="noopener noreferrer">Ton avis</a> : remarques, idées et problèmes. Lis-les, réponds par e-mail quand une adresse est donnée, puis marque-les traités.</p>
           </div>

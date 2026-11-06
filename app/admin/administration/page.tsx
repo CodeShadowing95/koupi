@@ -3,6 +3,8 @@ import { listCreatorUsers } from '@/lib/creator-users-admin';
 import { listAuditLog, loadSiteState } from '@/lib/site-settings';
 import { AdministrationView } from './administration-view';
 
+export const metadata = { title: 'Administration · Admin Merkod' };
+
 export const dynamic = 'force-dynamic';
 
 // Espace Administration (super admin) : pages du site, mode maintenance, comptes créateurs et journal des gestes faits ici.

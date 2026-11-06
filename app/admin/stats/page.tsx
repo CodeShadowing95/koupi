@@ -8,6 +8,8 @@ import { StatsTabs } from './stats-tabs';
 import { StatsView } from './stats-view';
 import { UsageTab } from './usage-tab';
 
+export const metadata = { title: 'Statistiques · Admin Merkod' };
+
 export const dynamic = 'force-dynamic';
 
 // Statistiques en trois onglets (?tab=) : catalogue et audience, sources et outils, consommation des API.

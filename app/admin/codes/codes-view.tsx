@@ -104,7 +104,7 @@ export function CodesView({ codes: rows, tools, categories, copies }: { codes: C
       <div className="container">
         <div className="adm-head">
           <div>
-            <span className="eyebrow">Modération</span>
+            <span className="eyebrow">Catalogue</span>
             <h1>Codes</h1>
             <p>Vérifie la source, complète la réduction, puis publie uniquement les codes fiables. Seuls les codes vérifiés et à tester sont visibles sur le site.</p>
           </div>
