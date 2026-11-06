@@ -11,6 +11,7 @@ import { AdminNotifications } from '@/components/admin-notifications';
 import { AdminCouponTear } from '@/components/admin-coupon-tear';
 import { UsageGauge } from '@/components/admin-usage-gauge';
 import { AdminIcon } from '@/components/admin-icons';
+import { parisDate } from '@/lib/paris-date';
 
 /** count : nombre à traiter (pastille). children : sous-menus, dépliés par la flèche à droite de l'item. */
 type Item = { href: string; label: string; icon: React.ReactNode; count?: number; countLabel?: string; children?: Item[] };
@@ -163,7 +164,7 @@ export function AdminShell({ children, toTest = 0, newFeedback = 0 }: { children
     );
   }
   const current = Object.keys(titles).filter(href => isActive(pathname, href)).sort((a, b) => b.length - a.length)[0];
-  const today = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const today = parisDate(new Date(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   return (
     <>
     <div className="adm-shell" data-menu={menuOpen ? 'open' : undefined}>

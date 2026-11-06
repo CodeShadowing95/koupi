@@ -11,6 +11,7 @@ import { RETEST_DAYS } from '@/lib/admin-stats';
 import { RefreshButton } from '@/components/admin-refresh-button';
 import { CODE_ORIGIN_LABELS } from '@/lib/code-origin';
 import { USAGE_CHANGED } from '@/components/admin-usage-gauge';
+import { calendarDay, parisDate } from '@/lib/paris-date';
 
 type Ai = { status: AiStatus; spentUsdMicros: number; budgetUsdMicros: number; model: string; reviewModel: string };
 type Filter = 'all' | Verdict | 'retest';
@@ -26,9 +27,8 @@ const verdictClass: Record<Verdict, string> = { clear: 'is-ok', doubt: 'is-warn'
 const statusLabel: Record<QueueItem['status'], string> = { pending: 'En attente', to_test: 'À tester', verified: 'Vérifié' };
 const isRetest = (item: QueueItem) => item.status === 'verified';
 const matchesFilter = (item: QueueItem, filter: Filter) => filter === 'retest' ? isRetest(item) : !isRetest(item) && (filter === 'all' || verdictOf(item.check) === filter);
-const shortDay = (day: string) => new Date(`${day}T12:00:00Z`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
-// Heure de Paris, côté serveur comme dans le navigateur : sinon le texte diffère au chargement et React refait la page.
-const dateTime = (iso: string) => new Date(iso).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' });
+const shortDay = (day: string) => calendarDay(day, { day: 'numeric', month: 'short', year: 'numeric' });
+const dateTime = (iso: string) => parisDate(iso, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
 type Decision = 'verify' | 'payment_test' | 'reject';
 const decisionDone: Record<Decision, string> = { verify: 'validé', payment_test: 'validé et testé au paiement', reject: 'rejeté' };

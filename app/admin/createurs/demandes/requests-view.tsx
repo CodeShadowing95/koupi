@@ -7,6 +7,7 @@ import type { AdminCreatorRequest, CreatorRequestStatus } from '@/lib/creator-re
 import { sendJson } from '@/components/admin-form-dialog';
 import { StatusDot } from '@/components/admin-card';
 import { RefreshButton } from '@/components/admin-refresh-button';
+import { parisDate } from '@/lib/paris-date';
 
 type Filter = CreatorRequestStatus | 'all';
 const filters: { value: Filter; label: string }[] = [
@@ -14,7 +15,7 @@ const filters: { value: Filter; label: string }[] = [
 ];
 const KIND = { claim: { label: 'C’est ma page', tone: 'info' as const }, report: { label: 'Page incorrecte', tone: 'warn' as const } };
 const STATUS = { new: 'À traiter', done: 'Traitée', dismissed: 'Écartée' };
-const dateFr = (iso: string) => new Date(iso).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
+const dateFr = (iso: string) => parisDate(iso, { dateStyle: 'medium', timeStyle: 'short' });
 
 function replyLink(request: AdminCreatorRequest) {
   if (!request.email) return null;

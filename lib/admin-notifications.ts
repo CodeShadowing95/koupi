@@ -2,6 +2,7 @@
 // Fonctions pures : l'API (app/api/admin/notifications) construit la liste, le navigateur retient ce qui a été vu.
 import type { Code } from './data';
 import { flaggedCodes, RETEST_DAYS, staleCodes } from './admin-stats';
+import { parisDate } from './paris-date';
 
 export type NotificationTone = 'bad' | 'warn' | 'info';
 /** Onglet du panneau : propositions de visiteurs, codes signalés, rappels de tests. */
@@ -103,5 +104,5 @@ export function timeAgo(at: string, now = new Date()): string {
   const days = Math.floor(hours / 24);
   if (days === 1) return 'hier';
   if (days < 7) return `il y a ${days} j`;
-  return new Date(at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  return parisDate(at, { day: 'numeric', month: 'short' });
 }

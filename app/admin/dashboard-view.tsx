@@ -12,6 +12,7 @@ import { tipOfDay } from '@/lib/admin-tips';
 import { AdminAiTeaser } from '@/components/admin-ai-teaser';
 import { urgentAlerts, type FailedSource, type Gauge } from '@/lib/admin-urgent';
 import type { SinceVisit } from '@/lib/admin-since';
+import { parisDate } from '@/lib/paris-date';
 
 
 const actionLabel: Record<string, string> = { approved: 'validée', rejected: 'refusée', duplicate: 'marquée en doublon', new: 'remise à traiter' };
@@ -287,7 +288,7 @@ export function DashboardView({ catalog, urgent, nowIso }: { catalog: Catalog; u
                 {item.kind === 'code'
                   ? <span>Code <b className="mono">{item.code}</b>{item.tool ? ` (${item.tool})` : ''} {codeActionLabel[item.action] ?? item.action}</span>
                   : <span>Proposition {item.code ? <b className="mono">{item.code}</b> : 'supprimée'}{item.tool ? ` (${item.tool})` : ''} {actionLabel[item.nextStatus] ?? item.nextStatus}</span>}
-                <time dateTime={item.at}>{new Date(item.at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</time>
+                <time dateTime={item.at}>{parisDate(item.at, { day: 'numeric', month: 'short' })}</time>
               </div>
             )) : <p className="adm-panel-sub" style={{ paddingTop: 10, borderTop: '1px solid var(--line)' }}>{insights ? 'Aucune décision pour l’instant.' : 'Chargement…'}</p>}
             <Link href="/admin/propositions" style={{ marginTop: 10, fontSize: 13, fontWeight: 600 }}>Toutes les propositions →</Link>
