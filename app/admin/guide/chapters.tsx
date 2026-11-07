@@ -252,11 +252,12 @@ function Codes() {
         { term: 'Code', meaning: 'Lettres, chiffres, tirets et tirets bas, sans espace, avec au plus un % collé à la fin (« SOLARFLOWTECH5% »), 40 caractères au plus. Il est rangé en majuscules : « merci20 » devient « MERCI20 ». Si l’outil a déjà ce code, même archivé, le formulaire te prévient avec un lien et refuse d’en créer un deuxième.' },
         { term: 'Lien de la source', meaning: 'Obligatoire. La vidéo, l’épisode ou le post où le créateur donne le code.' },
         { term: 'Réduction', meaning: 'Court et concret : « -20 % », « 3 mois offerts », « 50 € offerts ».' },
-        { term: 'Lien du créateur', meaning: 'Facultatif. Son lien d’affiliation, ouvert tel quel quand le visiteur clique.' },
+        { term: 'Lien de l’offre', meaning: 'Le lien d’affiliation du créateur, ouvert tel quel quand le visiteur clique. Facultatif avec un code, obligatoire sans.' },
         { term: 'Valable jusqu’au', meaning: 'Facultatif. Seulement si le créateur donne une date de fin (« jusqu’au 31/12 »). Le site l’affiche, et prévient quand elle approche. La plupart des codes n’en ont pas : laisse vide.' },
         { term: 'Note interne', meaning: 'Pour toi et les autres admins. Jamais affichée sur le site.' },
       ]} />
       <p>Pour corriger un code existant, ouvre-le et clique sur <b>Modifier</b> (ou l’icône crayon).</p>
+      <Callout tone="tip">Offre sans code : certains créateurs donnent seulement un lien (« KrispCall : try.krispcall.com/tad »). Laisse le champ <b>Code</b> vide et remplis <b>Lien de l’offre</b>. Dans les listes, l’offre porte l’étiquette <b>Lien seul</b>. Sur le site, son coupon a un bouton « Profiter de l’offre » au lieu de « Copier ». Dans Vérifications, elle est prouvée quand son lien est dans la source.</Callout>
     </Section>
     <Section id="export" title="Exporter">
       <p><b>Exporter</b> télécharge tous les codes, archives comprises, en Excel ou en CSV. Utile pour un bilan ou pour préparer un message à une marque. Voir <Link href="/admin/guide/se-reperer#exporter">Exporter une liste</Link>.</p>

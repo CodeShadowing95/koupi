@@ -86,6 +86,20 @@ describe('runVerification', () => {
     expect(check).toMatchObject({ model: null, costUsdMicros: 0, extracted: null });
   });
 
+  it('prouve une offre sans code par son lien dans la source', async () => {
+    const created = await createCode(ctx.db, {
+      toolSlug: 'nordvpn', creatorName: 'Ana', code: '', discount: '-20 %', sourceUrl: URL_OK,
+      sourceTitle: '', creatorLink: 'https://nordvpn.com/ana', note: null, status: 'pending',
+    });
+    if (!created.ok) throw new Error('offre');
+    const check = await runVerification(ctx.db, created.data.id, { readSource: reader('Profitez de NordVPN : https://nordvpn.com/ana') });
+    expect(check?.score).toBe(90);
+    expect(check?.evidence).toContain('nordvpn.com/ana');
+    expect(check?.reasons.map(reason => reason.label)).toContain('Offre par lien : le lien est bien dans la source.');
+    const missing = await runVerification(ctx.db, created.data.id, { readSource: reader('Profitez de NordVPN') });
+    expect(missing?.score).toBeLessThan(90);
+  });
+
   it('baisse le score quand la source a disparu', async () => {
     const check = await runVerification(ctx.db, ctx.codeId, { readSource: reader('', false) });
     expect(check?.score).toBeLessThan(20);

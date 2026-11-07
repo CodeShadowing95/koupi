@@ -2,6 +2,8 @@
 // Page Vérifications : la file des codes à décider, chacun avec son analyse (score, raisons, extrait de la source).
 // L'admin garde la décision : Valider (source vérifiée), Testé au paiement, ou Rejeter. Raccourcis J/K, A, E, V, T, R.
 // Le crayon à côté du code le corrige quand le repérage a pris le mauvais mot ; l'analyse est alors relancée.
+import { LinkOfferTag } from '@/components/admin-link-offer-tag';
+import { shortLink } from '@/lib/offer-link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pagination, usePagination } from '@/components/admin-pagination';
 import { useRouter } from 'next/navigation';
@@ -64,6 +66,9 @@ function AiBanner({ ai, youtubeReady }: { ai: Ai; youtubeReady: boolean }) {
   );
 }
 
+/** Le nom d'une ligne dans les messages : son code, sinon son lien. */
+const nameOf = (item: QueueItem) => item.code || 'L’offre par lien';
+
 function Evidence({ excerpt, code }: { excerpt: string; code: string }) {
   return <blockquote className="adm-vf-evidence">{highlightCode(excerpt, code).map((part, index) => part.match ? <mark key={index}>{part.text}</mark> : <span key={index}>{part.text}</span>)}</blockquote>;
 }
@@ -100,7 +105,7 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
   const runOne = useCallback(async (item: QueueItem, mode: 'standard' | 'review' = 'standard') => {
     setBusy(item.id);
     const ok = await analyze(item, mode);
-    setMessage(ok ? `${item.code} : analyse terminée.` : `${item.code} : l’analyse n’a pas pu se faire. Réessaie dans un instant.`);
+    setMessage(ok ? `${nameOf(item)} : analyse terminée.` : `${nameOf(item)} : l’analyse n’a pas pu se faire. Réessaie dans un instant.`);
     setBusy('');
     router.refresh();
   }, [analyze, router]);
@@ -108,7 +113,7 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
   const decide = useCallback(async (item: QueueItem, action: Decision) => {
     setBusy(item.id);
     const response = await fetch(`/api/admin/codes/${item.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action }) }).catch(() => null);
-    setMessage(response?.ok ? `${item.code} ${decisionDone[action]}.` : 'Le changement n’a pas pu être enregistré. Réessaie.');
+    setMessage(response?.ok ? `${nameOf(item)} ${decisionDone[action]}.` : 'Le changement n’a pas pu être enregistré. Réessaie.');
     setBusy('');
     router.refresh();
   }, [router]);
@@ -241,9 +246,10 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
                       <b>{item.check ? item.check.score : '–'}</b><small>/100</small>
                     </div>
                     <div className="adm-vf-id">
-                      <div className="adm-vf-title"><span className="mono">{item.code}</span><IconButton icon="edit" label={`Corriger le code ${item.code}`} disabled={isBusy} onClick={() => openEdit(item)} /><span className={`adm-vf-verdict ${verdictClass[verdict]}`}>{VERDICT_LABELS[verdict]}</span></div>
+                      <div className="adm-vf-title">{item.code ? <span className="mono">{item.code}</span> : <LinkOfferTag />}<IconButton icon="edit" label={item.code ? `Corriger le code ${item.code}` : 'Ajouter un code à cette offre'} disabled={isBusy} onClick={() => openEdit(item)} /><span className={`adm-vf-verdict ${verdictClass[verdict]}`}>{VERDICT_LABELS[verdict]}</span></div>
                       <p>{item.tool} · {item.discount} · par {item.creator} · <span className="adm-cell-muted">{statusLabel[item.status]} · {CODE_ORIGIN_LABELS[item.origin]}</span></p>
                       <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()}>{item.sourceTitle || 'Ouvrir la source'} ↗</a>
+                      {item.offerLink && <a className="adm-vf-offer" href={item.offerLink} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()}>Lien de l’offre : {shortLink(item.offerLink)} ↗</a>}
                       {item.expiresOn && !item.expired && <span className="adm-vf-expiry">Valable jusqu’au {shortDay(item.expiresOn)}</span>}
                     </div>
                   </header>
@@ -251,7 +257,7 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
                   {item.expired && item.expiresOn && <p className="adm-vf-ai-warn">La date de fin donnée par le créateur ({shortDay(item.expiresOn)}) est passée. Essaie le code : s’il marche encore, « Valider » le confirme et retire la date passée. Sinon, rejette-le.</p>}
                   {item.check ? (
                     <div className="adm-vf-body">
-                      {item.check.evidence && <Evidence excerpt={item.check.evidence} code={item.code} />}
+                      {item.check.evidence && <Evidence excerpt={item.check.evidence} code={item.code || shortLink(item.offerLink ?? '')} />}
                       {item.check.aiCodes.length > 0 && (
                         <p className="adm-vf-fix">
                           <span>L’IA lit plutôt</span>
@@ -281,10 +287,10 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
               );
             })}
           </div>
-          <FormDialog open={editing !== null} title={`Corriger le code ${editing?.code ?? ''}`} submitLabel="Corriger et réanalyser"
+          <FormDialog open={editing !== null} title={editing?.code ? `Corriger le code ${editing.code}` : 'Ajouter un code à l’offre par lien'} submitLabel="Corriger et réanalyser"
             intro="Quand le repérage a pris le mauvais mot, écris ici le code tel qu’il est donné dans la source. L’analyse est relancée avec le bon code."
             onClose={() => setEditing(null)} onSubmit={saveCorrection}>
-            {editing?.check?.evidence && <div className="adm-span-2"><Evidence excerpt={editing.check.evidence} code={editing.code} /></div>}
+            {editing?.check?.evidence && <div className="adm-span-2"><Evidence excerpt={editing.check.evidence} code={editing.code || shortLink(editing.offerLink ?? '')} /></div>}
             <div className="field adm-span-2">
               <label htmlFor="vf-fix-code">Code promo</label>
               <input id="vf-fix-code" className="mono" value={draft.code} onChange={event => setDraft(value => ({ ...value, code: event.target.value }))} required maxLength={MAX_CODE_LENGTH} autoComplete="off" spellCheck={false} />

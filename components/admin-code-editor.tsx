@@ -77,7 +77,7 @@ export function CodeEditor({ target, tools, categories, creators, existing = [],
   if (!target) return <dialog ref={dialog} className="adm-dialog adm-drawer" onClose={closed} />;
 
   const set = <K extends keyof Initial>(key: K) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setValues(current => ({ ...current, [key]: event.target.value }));
-  const title = target.kind === 'create' ? 'Nouveau code' : target.kind === 'edit' ? `Modifier ${target.code.code}` : 'Valider la proposition';
+  const title = target.kind === 'create' ? 'Nouveau code' : target.kind === 'edit' ? `Modifier ${target.code.code || 'l’offre par lien'}` : 'Valider la proposition';
   const isNewTool = values.toolSlug === NEW_TOOL;
   const typedCode = normalizeCode(values.code);
   const formatError = typedCode ? codeFormatError(typedCode) : null;
@@ -156,9 +156,9 @@ export function CodeEditor({ target, tools, categories, creators, existing = [],
             </fieldset>
           )}
           <div className="field">
-            <label htmlFor="ce-code">Code</label>
+            <label htmlFor="ce-code">Code{values.creatorLink.trim() ? ' (facultatif avec un lien)' : ''}</label>
             <input
-              id="ce-code" className="mono" value={values.code} required maxLength={MAX_CODE_LENGTH + 10} autoCapitalize="characters" spellCheck={false}
+              id="ce-code" className="mono" value={values.code} required={!values.creatorLink.trim()} maxLength={MAX_CODE_LENGTH + 10} autoCapitalize="characters" spellCheck={false}
               onChange={event => setValues(current => ({ ...current, code: event.target.value.toLocaleUpperCase('fr-FR') }))}
               aria-invalid={Boolean(formatError || duplicate) || undefined} aria-describedby="ce-code-hint"
             />
@@ -169,14 +169,14 @@ export function CodeEditor({ target, tools, categories, creators, existing = [],
             ) : formatError ? (
               <small id="ce-code-hint" className="adm-field-warn" role="status">{formatError}</small>
             ) : (
-              <small id="ce-code-hint">Lettres, chiffres et tirets, sans espace.</small>
+              <small id="ce-code-hint">Lettres, chiffres et tirets, sans espace. Vide si le créateur donne seulement un lien.</small>
             )}
           </div>
           <div className="field"><label htmlFor="ce-discount">Réduction</label><input id="ce-discount" value={values.discount} onChange={set('discount')} required maxLength={240} placeholder="-20 %, 3 mois offerts…" /></div>
           <div className="field adm-span-2"><label htmlFor="ce-source">Lien de la source</label><input id="ce-source" type="url" value={values.sourceUrl} onChange={set('sourceUrl')} required maxLength={1000} placeholder="https://… (vidéo, post, story)" /><small>Là où le créateur donne le code. C’est la preuve qu’il est public.</small></div>
           <div className="field"><label htmlFor="ce-source-title">Titre de la source</label><input id="ce-source-title" value={values.sourceTitle} onChange={set('sourceTitle')} maxLength={300} /></div>
           <div className="field"><label htmlFor="ce-expires">Valable jusqu’au (facultatif)</label><input id="ce-expires" type="date" value={values.expiresOn} onChange={set('expiresOn')} /><small>Seulement si le créateur donne une date de fin. Le site l’affiche.</small></div>
-          <div className="field"><label htmlFor="ce-link">Lien du créateur (facultatif)</label><input id="ce-link" type="url" value={values.creatorLink} onChange={set('creatorLink')} maxLength={1000} placeholder="https://…" /><small>Son lien d’affiliation, ouvert tel quel.</small></div>
+          <div className="field"><label htmlFor="ce-link">Lien de l’offre{values.code.trim() ? ' (facultatif)' : ''}</label><input id="ce-link" type="url" value={values.creatorLink} onChange={set('creatorLink')} required={!values.code.trim()} maxLength={1000} placeholder="https://…" /><small>Le lien d’affiliation du créateur, ouvert tel quel. Seul moyen d’en profiter s’il n’y a pas de code.</small></div>
           <div className="field adm-span-2">
             <span className="adm-field-label" id="ce-status-label">Statut</span>
             <div className="adm-status-choice" role="radiogroup" aria-labelledby="ce-status-label">

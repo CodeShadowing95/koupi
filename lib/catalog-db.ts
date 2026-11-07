@@ -45,7 +45,7 @@ export async function loadCatalog(db: Db, options: { includeArchived?: boolean }
     toolSlug: tool.slug,
     creator: creator.name,
     creatorSlug: creator.slug,
-    code: code.code,
+    code: code.code ?? '',
     discount: code.discount,
     status: code.status,
     source: code.sourceUrl,

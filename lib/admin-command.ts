@@ -54,7 +54,7 @@ export function buildCommandIndex(input: {
   return [
     ...ADMIN_PAGES,
     ...input.codes.map((code): CommandItem => ({
-      kind: 'code', label: code.code, detail: `${code.tool} · ${code.creator}`, href: `/admin/codes?q=${q(code.code)}`,
+      kind: 'code', label: code.code || 'Offre par lien', detail: `${code.tool} · ${code.creator}`, href: `/admin/codes?q=${q(code.code || code.tool)}`,
       keywords: `${code.discount} ${code.archived ? 'archivé' : statusLabel[code.status]}`, status: code.archived ? 'archived' : code.status,
     })),
     ...input.tools.map((tool): CommandItem => ({ kind: 'tool', label: tool.name, detail: tool.category, href: `/admin/outils?q=${q(tool.name)}`, keywords: tool.archived ? 'archivé' : undefined, status: tool.archived ? 'archived' : undefined })),

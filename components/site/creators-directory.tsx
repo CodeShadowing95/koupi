@@ -58,6 +58,14 @@ function QuickCopy({ top }: { top: DirectoryTop }) {
     window.dispatchEvent(new CustomEvent<CopiedCode>(CODE_COPIED_EVENT, { detail: { id: top.id, code: top.code, tool: top.tool, creator: top.creator } }));
     window.setTimeout(() => { if (top.link !== '#') track('open', top.id); openCreatorLink(top.link); }, 850);
   };
+  // Offre sans code (ADR-0040) : rien à copier, le bouton ouvre le lien d'affiliation du créateur.
+  if (!top.code) return (
+    <a className="k-dir-copy is-link" href={top.link} target="_blank" rel="sponsored noopener noreferrer" onClick={() => track('open', top.id)}
+      aria-label={`Profiter de l’offre ${top.tool} avec le lien de ${top.creator} (lien d’affiliation)`}>
+      <code>Lien</code>
+      <span className="k-dir-copy-stub">Profiter</span>
+    </a>
+  );
   return (
     <button type="button" className={`k-dir-copy${copied ? ' is-copied' : ''}`} onClick={copy}
       aria-label={copied ? `Recopier le code ${top.code}` : `Copier le code ${top.code} et ouvrir ${top.tool}`}>
