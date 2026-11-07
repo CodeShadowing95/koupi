@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { isSoundEnabled, setSoundEnabled } from '@/lib/coupon-sound';
 import { routes } from '@/lib/routes';
 import { ABOUT_SECTIONS, activeSection } from '@/lib/about-sections';
+import { isCodePage } from '@/lib/back-link';
 
 // Sous 980 px, les liens passent dans un menu déroulant ouvert par le bouton burger :
 // il se ferme au changement de page, avec Échap, au clic à côté, et bloque le défilement de la page derrière.
@@ -78,6 +79,9 @@ export function SiteHeader() {
     window.addEventListener('koupi-sound-change', onSound);
     return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('koupi-sound-change', onSound); };
   }, []);
+
+  // Page du code choisi : pas de barre, la page a son bouton « Retour ».
+  if (isCodePage(pathname)) return <a className="k-skip" href="#contenu">Aller au contenu</a>;
 
   return (
     <header ref={header} className={`k-header${scrolled || open ? ' is-scrolled' : ''}${open ? ' is-menu-open' : ''}`}>

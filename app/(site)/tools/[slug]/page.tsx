@@ -13,6 +13,7 @@ import { VoteButtons } from '@/components/site/vote-buttons';
 import { CodeBadge } from '@/components/site/code-badge';
 import { CreatorMark } from '@/components/site/creator-mark';
 import { Crumbs } from '@/components/site/page-head';
+import { BackButton } from '@/components/site/back-button';
 import { episodeNumber } from '@/lib/source-label';
 import { VoteInvite } from '@/components/site/vote-invite';
 
@@ -56,7 +57,9 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
   return (
     <main className="k-page">
       <div className="k-wrap">
-        <Crumbs items={[{ label: tool.category, href: category ? routes.category(category.slug) : routes.codes }, { label: tool.name }]} />
+        {/* Page du code choisi : ni barre du haut ni fil d'Ariane affiché, juste « Retour » (le fil reste pour Google). */}
+        <Crumbs hidden items={[{ label: tool.category, href: category ? routes.category(category.slug) : routes.codes }, { label: tool.name }]} />
+        <BackButton />
         <div className="k-tool-layout">
           <section>
             <div className="k-tool-head">

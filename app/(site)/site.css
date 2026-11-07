@@ -482,6 +482,13 @@ button.k-coupon-stub{transition:transform .3s cubic-bezier(.2,.9,.3,1.3),backgro
 /* Fiche outil */
 .k-tool-layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:48px;align-items:start}
 .k-crumbs+.k-tool-layout{margin-top:28px}
+/* « Retour » de la page du code choisi, qui n'a ni barre du haut ni fil d'Ariane. */
+.k-back{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:0 16px 0 12px;border-radius:var(--r-pill);border:1px solid var(--line-2);background:var(--surface);color:var(--text-soft);font-size:var(--fs-md);font-weight:600;transition:color .2s,background .2s,border-color .2s}
+.k-back:hover{color:#fff;background:var(--surface-2);border-color:rgba(255,255,255,.28)}
+.k-back svg{transition:transform .2s}
+.k-back:hover svg{transform:translateX(-3px)}
+.k-back+.k-tool-layout{margin-top:28px}
+@media (prefers-reduced-motion:reduce){.k-back,.k-back svg{transition:none}.k-back:hover svg{transform:none}}
 .k-tool-kicker{display:flex;align-items:center;gap:14px}
 .k-tool-others{display:flex;flex-direction:column;gap:20px;margin-top:64px}
 .k-tool-others h2{font-size:var(--fs-4xl)}
