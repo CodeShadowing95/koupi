@@ -54,6 +54,12 @@ describe('code annoncé après le nom de l’outil', () => {
 });
 
 describe('scanPromoCodes', () => {
+  it('ne prend pas un mot dans une adresse web pour un code annoncé', () => {
+    const { found, unknown } = scanPromoCodes('Soldes : https://www.example.com/codeSUMMER24 et example.com/couponWINTER25', tools);
+    expect(found).toEqual([]);
+    expect(unknown).toEqual([]);
+  });
+
   const gdiy = [
     'Je vous ai négocié un code promo : -10% avec le code GDIY sur https://gradium.ai/',
     'Un grand MERCI à nos sponsors :',
