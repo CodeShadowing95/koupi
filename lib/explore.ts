@@ -124,6 +124,11 @@ export function exploreTitle(state: ExploreState, names: { family: (slug: string
   return SHELVES.find(item => item.value === state.shelf)?.label ?? SHELVES[0].label;
 }
 
+/** Total des votes donnés sur les codes affichés, pour le bandeau « Dis-le en un pouce ». */
+export function totalVotes(codes: Pick<Code, 'votes'>[]): number {
+  return codes.reduce((sum, code) => sum + Math.max(0, code.votes || 0), 0);
+}
+
 /** Message « Copie, essaie, reviens voter » en tête de page : montré tant qu'il n'a pas été fermé. */
 export const EXPLORE_INTRO_KEY = 'merkod-explore-intro';
 
