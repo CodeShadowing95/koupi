@@ -15,12 +15,10 @@ import type { AdminPodcast } from '@/lib/podcasts-admin';
 import { compareYield, isQuiet, QUIET_DAYS, yieldScore } from '@/lib/podcast-yield';
 import { TOP_GENRES, type PodcastFeed } from '@/lib/apple-podcasts';
 import type { PodcastReadReport } from '@/lib/podcast-read';
-import type { AdminToolSuggestion } from '@/lib/tool-suggestions';
 import { openOnClick } from '@/components/admin-drawer';
 import type { AdminCandidate } from '@/lib/podcast-candidates';
 import { CandidatesPanel } from './candidates-panel';
 import { PodcastDrawer } from './podcast-drawer';
-import { ToolSuggestionsPanel, type AiAvailability, type CatalogToolOption, type CategoryOption } from './tool-suggestions-panel';
 import { confirmAction } from '@/components/admin-ask';
 
 type Filter = 'all' | 'active' | 'paused' | 'never' | 'codes' | 'quiet';
@@ -44,11 +42,13 @@ const sortFields: SortField<AdminPodcast>[] = [
 const dayFormat = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Paris' });
 const day = (iso: string) => dayFormat.format(new Date(iso));
 
-type Panel = 'list' | 'add' | 'candidates' | 'tools';
+type Panel = 'list' | 'add' | 'candidates';
+/** Les outils absents du catalogue ont leur page sous Outils. */
+const TOOLS_TO_ADD = '/admin/outils/a-ajouter';
 
-export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, suggestions, categories, tools, ai, initialTab, candidates }: {
+export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, initialTab, candidates }: {
   podcasts: AdminPodcast[]; nowIso: string; images: Record<string, string>; starters: string[]; candidates: AdminCandidate[];
-  suggestions: AdminToolSuggestion[]; categories: CategoryOption[]; tools: CatalogToolOption[]; ai: AiAvailability; initialTab?: Panel;
+  initialTab?: Panel;
 }) {
   const router = useRouter();
   const now = new Date(nowIso);
@@ -191,7 +191,7 @@ export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, sug
           <div className="notice adm-pod-report" role="status">
             <p>{report.podcasts} podcast{report.podcasts > 1 ? 's' : ''} lu{report.podcasts > 1 ? 's' : ''}, {report.episodes} épisode{report.episodes > 1 ? 's' : ''} récent{report.episodes > 1 ? 's' : ''}{report.aiRead > 0 ? `, dont ${report.aiRead} relu${report.aiRead > 1 ? 's' : ''} par l’IA` : ''}. {report.found.length === 0 ? 'Aucun nouveau code trouvé.' : `${report.found.length} nouveau${report.found.length > 1 ? 'x' : ''} code${report.found.length > 1 ? 's' : ''} en attente :`}</p>
             {report.found.length > 0 && <ul>{report.found.map(item => <li key={`${item.podcast}-${item.tool}-${item.code}`}><b className="mono">{item.code}</b> pour {item.tool} <span className="muted">({item.podcast})</span></li>)}</ul>}
-            {report.suggested.length > 0 && <p>{report.suggested.length} code{report.suggested.length > 1 ? 's' : ''} pour des outils absents du catalogue : {report.suggested.map(item => `${item.code} (${item.tool})`).join(', ')}. <button type="button" className="adm-link-btn" onClick={() => openPanel('tools')}>Voir les outils à ajouter</button></p>}
+            {report.suggested.length > 0 && <p>{report.suggested.length} code{report.suggested.length > 1 ? 's' : ''} pour des outils absents du catalogue : {report.suggested.map(item => `${item.code} (${item.tool})`).join(', ')}. <button type="button" className="adm-link-btn" onClick={() => router.push(TOOLS_TO_ADD)}>Voir les outils à ajouter</button></p>}
             {report.failed.length > 0 && <p>Pas de réponse d’Apple pour : {report.failed.join(', ')}. Ils seront relus la prochaine fois.</p>}
             <div className="adm-pod-report-actions">
               {report.found.length > 0 && <Link href="/admin/verifications" className="adm-btn adm-btn-pri">Ouvrir les vérifications</Link>}
@@ -204,12 +204,11 @@ export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, sug
           <button type="button" role="tab" id="pod-tab-list" aria-controls="pod-panel-list" aria-selected={panel === 'list'} className="adm-pod-panel-tab" onClick={() => openPanel('list')}>Suivis <span className="adm-tab-n">{podcasts.length}</span></button>
           <button type="button" role="tab" id="pod-tab-add" aria-controls="pod-panel-add" aria-selected={panel === 'add'} className="adm-pod-panel-tab" onClick={() => openPanel('add')}>+ Ajouter un podcast</button>
           <button type="button" role="tab" id="pod-tab-candidates" aria-controls="pod-panel-candidates" aria-selected={panel === 'candidates'} className="adm-pod-panel-tab" onClick={() => openPanel('candidates')}>Candidats {candidates.some(item => item.status === 'new') && <span className="adm-tab-n">{candidates.filter(item => item.status === 'new').length}</span>}</button>
-          <button type="button" role="tab" id="pod-tab-tools" aria-controls="pod-panel-tools" aria-selected={panel === 'tools'} className="adm-pod-panel-tab" onClick={() => openPanel('tools')}>Outils à ajouter {suggestions.length > 0 && <span className="adm-tab-n">{suggestions.length}</span>}</button>
         </div>
 
         {error && <div className="notice notice-error" role="alert">{error}</div>}
 
-        {panel === 'tools' ? <ToolSuggestionsPanel suggestions={suggestions} categories={categories} tools={tools} ai={ai} /> : panel === 'candidates' ? <CandidatesPanel candidates={candidates} /> : panel === 'add' ? (
+        {panel === 'candidates' ? <CandidatesPanel candidates={candidates} /> : panel === 'add' ? (
           <section className="adm-pod-search" id="pod-panel-add" role="tabpanel" aria-labelledby="pod-tab-add">
             <p className="muted">Cherche un podcast dans l’annuaire Apple Podcasts, ou parcours un classement, puis clique sur <b>Suivre</b>. Il rejoint l’onglet Suivis.</p>
             <form className="adm-toolbar" onSubmit={event => { event.preventDefault(); void search(query); }}>
@@ -317,7 +316,7 @@ export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, sug
           </section>
         )}
         <PodcastDrawer podcast={selected} image={selected ? images[selected.feedId] : undefined} onClose={() => setSelectedId(null)}
-          onShowTools={() => { setSelectedId(null); setPanel('tools'); }}
+          onShowTools={() => router.push(TOOLS_TO_ADD)}
           state={selected && state(selected)} actions={selected && actions(selected)} />
       </div>
     </main>

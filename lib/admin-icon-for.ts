@@ -9,6 +9,7 @@ const sections: [prefix: string, icon: PageIcon][] = [
   ['/admin/verifications', 'shield'],
   ['/admin/sources', 'radar'],
   ['/admin/podcasts', 'mic'],
+  ['/admin/outils/a-ajouter', 'inbox'],
   ['/admin/outils', 'tool'],
   ['/admin/createurs', 'users'],
   ['/admin/categories', 'folder'],

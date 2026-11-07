@@ -41,7 +41,7 @@ export function CodeSearchReport({ result, onClose }: { result: CodeSearchResult
       <p>Recherche pour {result.scope} : {plural(result.searches, 'recherche')} YouTube{variantsLabel(result.variants)}, {plural(result.videos, 'nouvelle vidéo lue', 'nouvelles vidéos lues')}{result.aiRead > 0 ? `, dont ${result.aiRead} relue${result.aiRead > 1 ? 's' : ''} par l’IA` : ''}, environ {result.units} unités du quota du jour (10 000).</p>
       <p>{newsLabel(result)} {result.found.length === 0 ? 'Aucun nouveau code trouvé.' : `${plural(result.found.length, 'nouveau code', 'nouveaux codes')} en attente :`}</p>
       {result.found.length > 0 && <ul>{result.found.map(item => <li key={`${item.tool}-${item.code}`}><b className="mono">{item.code}</b> pour {item.tool} <span className="muted">({item.creator})</span></li>)}</ul>}
-      {result.suggested.length > 0 && <p>{plural(result.suggested.length, 'code')} pour des outils absents du catalogue : {result.suggested.map(item => `${item.code} (${item.tool})`).join(', ')}. <a href="/admin/podcasts?tab=outils">Voir les outils à ajouter</a></p>}
+      {result.suggested.length > 0 && <p>{plural(result.suggested.length, 'code')} pour des outils absents du catalogue : {result.suggested.map(item => `${item.code} (${item.tool})`).join(', ')}. <a href="/admin/outils/a-ajouter">Voir les outils à ajouter</a></p>}
       {result.remaining > 0 && <p>{plural(result.remaining, 'outil')} pas encore cherché{result.remaining > 1 ? 's' : ''} : relance demain pour garder du quota.</p>}
       {result.failed.length > 0 && <p>YouTube n’a pas répondu pour : {result.failed.join(', ')}.</p>}
       <div className="adm-pod-report-actions">
