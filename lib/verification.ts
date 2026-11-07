@@ -75,7 +75,11 @@ function escapeRegExp(value: string): string {
 }
 
 // Une adresse web, avec ou sans « https:// » (« try.krispcall.com/tad », « www.site.com »).
-const URL_PATTERN = /(?:https?:\/\/|www\.)[^\s<>"'«»]+|(?<![\p{L}\p{N}@.-])(?:[a-z0-9-]+\.)+[a-z]{2,}\/[^\s<>"'«»]*/giu;
+// Une adresse e-mail compte aussi : « wesroth@smoothmedia.co » n'est pas le code WESROTH.
+const URL_PATTERN = /(?:https?:\/\/|www\.)[^\s<>"'«»]+|(?<![\p{L}\p{N}@.-])(?:[a-z0-9-]+\.)+[a-z]{2,}\/[^\s<>"'«»]*|[\p{L}\p{N}._%+-]+@(?:[\p{L}\p{N}-]+\.)+[\p{L}]{2,}/giu;
+
+/** Un minutage collé derrière le mot (« Cowork13:18 », « Red04:35 ») : sommaire d'épisode dont les retours à la ligne ont sauté. */
+export const GLUED_TIMESTAMP = /^:\d{2}(?!\d)/;
 
 /** Les morceaux du texte qui sont des adresses web, en positions [début, fin[. */
 export function urlSpans(text: string): Array<[number, number]> {
@@ -95,7 +99,9 @@ export function findCodeInText(code: string, text: string): CodeMatch {
   if (!needle || !text) return { found: false, excerpt: null };
   const pattern = new RegExp(`(?<![\\p{L}\\p{N}])${escapeRegExp(needle)}(?![\\p{L}\\p{N}])`, 'giu');
   const spans = urlSpans(text);
-  const match = [...text.matchAll(pattern)].find(found => !insideUrl(spans, found.index ?? 0));
+  // Ni dans un lien ou une adresse e-mail, ni collé à un minutage (« Cowork13:18 » est un titre de chapitre).
+  const match = [...text.matchAll(pattern)].find(found => !insideUrl(spans, found.index ?? 0)
+    && !GLUED_TIMESTAMP.test(text.slice((found.index ?? 0) + found[0].length)));
   if (!match) return { found: false, excerpt: null };
   const index = match.index ?? 0;
   const start = Math.max(0, index - EXCERPT_RADIUS);

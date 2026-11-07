@@ -7,7 +7,7 @@ import { aiStatusOf, extractCodes, needsSecondReading, type AiConfig, type Extra
 import { isValidDay } from './code-expiry';
 import { creatorLevelFor } from './creator-level';
 import { aiSpendSince, recordVerificationCheck, startOfMonthUtc } from './verification-store';
-import { AI_MISS_POINTS, clip, findCodeInText, implausibleCode, scoreVerification, sourceKindOf, spamSignals } from './verification';
+import { AI_MISS_POINTS, CLEAR_SCORE, clip, findCodeInText, implausibleCode, scoreVerification, sourceKindOf, spamSignals } from './verification';
 import { domainOf, scanPromoCodes } from './podcast-codes';
 import { forVideo, mergeAiCodes } from './podcast-ai';
 import { addPendingCode } from './podcast-read';
@@ -169,8 +169,10 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
       // Elle lit souvent le vrai code à côté (« LWS » repéré, « CQ410 » écrit) : on le montre pour que l'admin corrige.
       const others = [...new Set(ai.extraction.codes.map(found => found.code.trim()).filter(Boolean))].slice(0, 3);
       const what = linkOffer ? 'cette offre' : 'ce code';
-      reasons.push({ points: AI_MISS_POINTS, label: others.length ? `L’IA ne retrouve pas ${what} dans la description. Elle y lit plutôt : ${others.join(', ')}.` : `L’IA ne retrouve pas ${what} dans la description.` });
-      score = Math.max(0, score + AI_MISS_POINTS);
+      // Quand l'IA ne voit pas le code, le dossier n'est jamais « clair » : il passe au moins « À regarder de près ».
+      const next = Math.max(0, Math.min(score + AI_MISS_POINTS, CLEAR_SCORE - 1));
+      reasons.push({ points: next - score, label: others.length ? `L’IA ne retrouve pas ${what} dans la description. Elle y lit plutôt : ${others.join(', ')}.` : `L’IA ne retrouve pas ${what} dans la description.` });
+      score = next;
     }
     // Lien de l'offre écrit à côté du code : l'IA pré-remplit le champ s'il est vide. L'admin peut le corriger.
     if (seen?.link && !code.creatorLink) {

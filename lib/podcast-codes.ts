@@ -3,7 +3,7 @@
 // Rien n'est publié : chaque code trouvé arrive « En attente » dans Vérifications, où l'admin décide.
 // Un code sans outil du catalogue devient une suggestion d'outil à ajouter, avec le nom deviné du lien voisin.
 
-import { clip, implausibleCode, insideUrl, urlSpans } from './verification';
+import { GLUED_TIMESTAMP, clip, implausibleCode, insideUrl, urlSpans } from './verification';
 
 /** domain : domaine du site officiel (nordvpn.com), pour reconnaître un lien vers l'outil. */
 export type CatalogTool = { id: string; name: string; domain?: string | null };
@@ -141,6 +141,8 @@ export function scanPromoCodes(text: string, tools: CatalogTool[]): { found: Fou
       if (insideUrl(links, match.index ?? 0)) continue;
       let code = match[1];
       let end = (match.index ?? 0) + match[0].length;
+      // « Claude Code Cowork13:18 » : le titre d'un chapitre collé à son minutage, pas un code.
+      if (GLUED_TIMESTAMP.test(line.slice(end))) continue;
       if (toolNames.has(code.toLowerCase())) {
         const next = line.slice(end).match(/^\s*[:\-–—]?\s*[«"“'‘[(]?\s*([A-Za-z0-9][A-Za-z0-9_-]{2,29})/u);
         if (!next || toolNames.has(next[1].toLowerCase())) continue;
