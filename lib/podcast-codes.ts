@@ -30,9 +30,9 @@ function toolPositions(text: string, tools: CatalogTool[]): { toolId: string; in
     // (AI, Qi…) se lit à la casse près, sinon « ai » dans « je vous ai » le trouverait.
     const pattern = new RegExp(`(?<![\\p{L}\\p{N}./@])${escape(name)}(?![\\p{L}\\p{N}])`, name.length <= 3 ? 'gu' : 'giu');
     for (const match of text.matchAll(pattern)) found.push({ toolId: tool.id, index: match.index ?? 0 });
-    // Le site de l'outil cité (« sur nordvpn.com/podcast ») vaut son nom.
+    // Le site de l'outil cité (« sur nordvpn.com/podcast », « https://www.planethoster.com/… ») vaut son nom.
     if (tool.domain) {
-      const site = new RegExp(`(?<![\\p{L}\\p{N}.-])${escape(tool.domain)}(?![\\p{L}\\p{N}-])`, 'giu');
+      const site = new RegExp(`(?<![\\p{L}\\p{N}.-])(?:(?:www|fr|en|m)\\.)?${escape(tool.domain)}(?![\\p{L}\\p{N}-])`, 'giu');
       for (const match of text.matchAll(site)) found.push({ toolId: tool.id, index: match.index ?? 0 });
     }
   }
