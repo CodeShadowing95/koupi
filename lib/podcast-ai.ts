@@ -1,5 +1,6 @@
-// Lecture des notes d'un épisode par l'IA, quand elle est active (ADR-0025). Elle complète le repérage sans IA
-// (lib/podcast-codes.ts) : codes mal formulés, réduction et date de fin. Chaque code rendu par l'IA figure mot
+// Lecture des notes d'un épisode par l'IA, quand elle est active (ADR-0025). L'IA est le lecteur principal : son outil
+// et sa réduction priment. Le repérage sans IA (lib/podcast-codes.ts) reste le filet quand elle est coupée, et ajoute
+// les codes qu'elle n'a pas vus (l'analyse leur retire alors des points). Chaque code rendu par l'IA figure mot
 // pour mot dans les notes (keepVerbatimCodes) ; rien n'est publié, tout passe par Vérifications.
 import type { ExtractedCode } from './ai-extract';
 import { clip } from './verification';
@@ -20,8 +21,8 @@ export function forVideo<T extends { discount: string }>(items: T[]): T[] {
 }
 
 /**
- * Ajoute aux codes repérés sans IA ceux que l'IA a lus. Un code déjà repéré garde son outil, mais prend la réduction
- * de l'IA si la sienne manquait, et sa date de fin ; si l'IA nomme un autre outil, c'est elle qu'on suit. L'outil nommé par l'IA est cherché dans le catalogue
+ * Ajoute aux codes repérés sans IA ceux que l'IA a lus. Pour un code lu des deux côtés, l'IA prime : son outil,
+ * sa réduction (quand elle en donne une) et sa date de fin. L'outil nommé par l'IA est cherché dans le catalogue
  * (nom, ou site cité près du code) ; sinon le code devient un outil à ajouter.
  */
 export function mergeAiCodes(scan: { found: FoundCode[]; unknown: UnknownToolCode[] }, ai: ExtractedCode[], tools: CatalogTool[]): { found: MergedCode[]; unknown: MergedUnknown[] } {
@@ -41,7 +42,8 @@ export function mergeAiCodes(scan: { found: FoundCode[]; unknown: UnknownToolCod
     }
     const known = [...found, ...unknown].find(entry => entry.code.toLowerCase() === key);
     if (known) {
-      if (known.discount === NO_DISCOUNT && item.discount) known.discount = clip(item.discount, 240);
+      // L'IA lit la phrase : sa réduction vaut mieux qu'un pourcentage pris sur la ligne par le repérage.
+      if (item.discount.trim()) known.discount = clip(item.discount.trim(), 240);
       Object.assign(known, extra(item));
       continue;
     }

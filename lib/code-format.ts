@@ -1,10 +1,11 @@
-// Format d'un code promo du catalogue : lettres, chiffres et tirets, sans espace, 40 caractères au plus, en majuscules.
+// Format d'un code promo du catalogue : lettres, chiffres, tirets et tirets bas, sans espace, 40 caractères au plus, en majuscules.
+// Un % collé à la fin est accepté (« SOLARFLOWTECH5% ») : certains créateurs l'écrivent dans le code.
 // Le serveur range toujours le code en majuscules : « digitiz » et « DIGITIZ » sont le même code.
 
 export const MAX_CODE_LENGTH = 40;
-const CODE_PATTERN = /^[A-Z0-9](?:[A-Z0-9-]*[A-Z0-9])?$/;
+const CODE_PATTERN = /^[A-Z0-9](?:[A-Z0-9_-]*[A-Z0-9])?%?$/;
 
-export const CODE_FORMAT_ERROR = `Le code ne peut contenir que des lettres, des chiffres et des tirets, sans espace (${MAX_CODE_LENGTH} caractères au plus).`;
+export const CODE_FORMAT_ERROR = `Le code ne peut contenir que des lettres, des chiffres, des tirets et des tirets bas, sans espace, avec au plus un % à la fin (${MAX_CODE_LENGTH} caractères au plus).`;
 
 /** Le code tel qu'il est rangé : sans espace autour, en majuscules. */
 export function normalizeCode(raw: string): string {
