@@ -9,6 +9,7 @@ describe('pageForPath', () => {
     expect(pageForPath('/creators/ana')?.key).toBe('creators');
     expect(pageForPath('/creator/sign-in')?.key).toBe('creator-space');
     expect(pageForPath('/api/submissions')?.key).toBe('submit');
+    expect(pageForPath('/explore')?.key).toBe('codes');
     expect(pageForPath('/codesx')).toBeNull();
     expect(pageForPath('/admin')).toBeNull();
   });
