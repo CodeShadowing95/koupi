@@ -126,6 +126,9 @@ describe('runVerification', () => {
     const doubtful = await runVerification(ctx.db, ctx.codeId, { readSource: reader('Merci NordVPN, code ANA10'), ai: { config, create: missed } });
     expect(doubtful!.score).toBe(clear!.score - 20);
     expect(doubtful?.reasons).toContainEqual({ points: -20, label: 'L’IA ne retrouve pas ce code dans la description.' });
+    const other = vi.fn(async (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => aiResponse(params.model, ['CQ410']));
+    const corrected = await runVerification(ctx.db, ctx.codeId, { readSource: reader('ANA10 · Code promo NordVPN : CQ410'), ai: { config, create: other } });
+    expect(corrected?.reasons).toContainEqual({ points: -20, label: 'L’IA ne retrouve pas ce code dans la description. Elle y lit plutôt : CQ410.' });
   });
 
   it('relit directement avec Opus à la demande', async () => {

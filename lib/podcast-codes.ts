@@ -116,10 +116,19 @@ export function scanPromoCodes(text: string, tools: CatalogTool[]): { found: Fou
   const results: FoundCode[] = [];
   const unknown: UnknownToolCode[] = [];
   const seen = new Set<string>();
+  // « Code promo LWS : CQ410 » : le mot après « code promo » est le nom de l'outil, le code vient après.
+  const toolNames = new Set(tools.flatMap(tool => [tool.name.trim().toLowerCase(), tool.domain?.split('.')[0] ?? ''].filter(Boolean)));
   lines.forEach((line, lineIndex) => {
     for (const match of line.matchAll(CODE_PATTERN)) {
-      const code = match[1];
-      if (!looksLikeCode(code, line.slice((match.index ?? 0) + match[0].length))) continue;
+      let code = match[1];
+      let end = (match.index ?? 0) + match[0].length;
+      if (toolNames.has(code.toLowerCase())) {
+        const next = line.slice(end).match(/^\s*[:\-–—]?\s*[«"“'‘[(]?\s*([A-Za-z0-9][A-Za-z0-9_-]{2,29})/u);
+        if (!next || toolNames.has(next[1].toLowerCase())) continue;
+        code = next[1];
+        end += next[0].length;
+      }
+      if (!looksLikeCode(code, line.slice(end))) continue;
       const at = match.index ?? 0;
       // L'outil le plus proche sur la ligne ; sinon le dernier nommé sur la ligne d'avant.
       const here = toolPositions(line, tools).sort((a, b) => Math.abs(a.index - at) - Math.abs(b.index - at));

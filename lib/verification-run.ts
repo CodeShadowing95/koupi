@@ -2,7 +2,7 @@
 // Le résultat est gardé dans verification_checks ; l'admin décide ensuite dans la page Vérifications.
 import { and, eq, isNull, ne, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
-import { codes, type VerificationCheckRow, type VerificationReason } from '@/db/schema';
+import { codes, tools, type VerificationCheckRow, type VerificationReason } from '@/db/schema';
 import { aiStatusOf, extractCodes, needsSecondReading, type AiConfig, type Extraction } from './ai-extract';
 import { isValidDay } from './code-expiry';
 import { creatorLevelFor } from './creator-level';
@@ -82,6 +82,8 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
     .where(and(eq(codes.toolId, code.toolId), ne(codes.id, code.id), isNull(codes.archivedAt), sql`lower(${codes.code}) = lower(${code.code})`))
     .limit(1);
 
+  const [tool] = await db.select({ name: tools.name }).from(tools).where(eq(tools.id, code.toolId)).limit(1);
+
   let source: SourceRead | null = null;
   try { source = await deps.readSource(code.sourceUrl); } catch { source = null; }
   const match = source?.online ? findCodeInText(code.code, source.description) : null;
@@ -93,7 +95,7 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
     toolKnown: true,
     duplicate: Boolean(duplicate),
     spam: spamSignals({ sourceUrl: code.sourceUrl, code: code.code }),
-    implausible: implausibleCode(code.code),
+    implausible: implausibleCode(code.code, tool?.name),
     votesUp: code.votesUp,
     votesDown: code.votesDown,
   });
@@ -109,7 +111,9 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
     // le dossier n'est plus clair. Le score reste calculé ici, l'IA ne fait que retirer des points.
     if (seen) reasons.push({ points: 0, label: 'L’IA retrouve ce code dans la description.' });
     else {
-      reasons.push({ points: AI_MISS_POINTS, label: 'L’IA ne retrouve pas ce code dans la description.' });
+      // Elle lit souvent le vrai code à côté (« LWS » repéré, « CQ410 » écrit) : on le montre pour que l'admin corrige.
+      const others = [...new Set(ai.extraction.codes.map(found => found.code.trim()).filter(Boolean))].slice(0, 3);
+      reasons.push({ points: AI_MISS_POINTS, label: others.length ? `L’IA ne retrouve pas ce code dans la description. Elle y lit plutôt : ${others.join(', ')}.` : 'L’IA ne retrouve pas ce code dans la description.' });
       score = Math.max(0, score + AI_MISS_POINTS);
     }
     // Date de fin écrite par le créateur : l'IA pré-remplit le champ s'il est vide. L'admin peut la corriger.
