@@ -3,7 +3,7 @@
 // Une page coupée répond 404 (elle et ses sous-pages), disparaît des menus et ses liens deviennent du texte simple.
 
 export const PAGE_KEYS = [
-  'home', 'codes', 'categories', 'tools', 'creators', 'search', 'submit',
+  'home', 'about', 'codes', 'categories', 'tools', 'creators', 'search', 'submit',
   'feedback', 'transparency', 'for-creators', 'creator-space', 'legal', 'privacy',
 ] as const;
 export type PageKey = (typeof PAGE_KEYS)[number];
@@ -22,8 +22,9 @@ export type SitePage = {
 };
 
 export const SITE_PAGES: SitePage[] = [
-  { key: 'home', label: 'Accueil', paths: ['/'], locked: 'Point d’entrée du site', effect: '—' },
-  { key: 'codes', label: 'Codes', paths: ['/codes', '/explore'], effect: 'Lien « Codes promo » du menu et « Tous les codes » du pied de page ; la page Explorer aussi' },
+  { key: 'home', label: 'Accueil (Explorer)', paths: ['/'], locked: 'Point d’entrée du site', effect: '—' },
+  { key: 'about', label: 'Présentation', paths: ['/about'], effect: 'Lien « Présentation » de la colonne et du pied de page' },
+  { key: 'codes', label: 'Codes', paths: ['/codes'], effect: 'Lien « Codes promo » du menu et « Tous les codes » du pied de page' },
   { key: 'categories', label: 'Pages de catégorie', paths: ['/categories'], effect: 'Catégorie cliquable sur les fiches outils (les pastilles de la page Codes restent)' },
   { key: 'tools', label: 'Fiches outils', paths: ['/tools'], effect: 'Les coupons et la recherche ne mènent plus à une fiche' },
   { key: 'creators', label: 'Créateurs', paths: ['/creators'], effect: 'Lien du menu, noms des créateurs cliquables sur les coupons' },

@@ -224,6 +224,15 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
           </>}
         </nav>
 
+        {/* L'ancienne page d'accueil : pourquoi faire confiance à Merkod, pour les curieux et les créateurs. */}
+        {!isOff(routes.about) && (
+          <Link className="k-ex-item k-ex-about" href={routes.about}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7.5h.01" /></svg>
+            <span className="k-ex-item-label">Présentation de Merkod</span>
+            <span className="k-ex-item-short" aria-hidden="true">Merkod</span>
+          </Link>
+        )}
+
         <footer className="k-ex-side-foot">
           <ul>
             <SiteLinkItem href={routes.codes}>Page Codes classique</SiteLinkItem>

@@ -11,7 +11,7 @@ import { CreatorAvatar } from '@/components/site/creator-avatar';
 
 export type OrbitCreator = { name: string; slug: string; codes: number; tool: string; discount: string };
 
-export function CreatorsOrbit({ creators, total }: { creators: OrbitCreator[]; total: number }) {
+export function CreatorsOrbit({ id, creators, total }: { id?: string; creators: OrbitCreator[]; total: number }) {
   const root = useRef<HTMLElement>(null);
 
   useGSAP(() => {
@@ -36,7 +36,7 @@ export function CreatorsOrbit({ creators, total }: { creators: OrbitCreator[]; t
   if (creators.length === 0) return null;
 
   return (
-    <section className="k-section k-orbit-wrap" ref={root} aria-labelledby="k-orbit-title">
+    <section className="k-section k-orbit-wrap" id={id} ref={root} aria-labelledby="k-orbit-title">
       <div className="k-wrap k-orbit-grid">
         <div className="k-orbit-copy" data-reveal>
           <span className="k-eyebrow">Ils ont donné le code</span>
