@@ -4,7 +4,6 @@ import { gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
 import { isPublic, type Code, type Tool } from '@/lib/data';
 import { plural } from '@/lib/ui';
 import { routes } from '@/lib/routes';
-import { SearchDialog } from './search-dialog';
 import Link from '@/components/site/site-pages';
 import { ToolSeal } from './tool-logo';
 import { toolLogo, withLogosFirst } from '@/lib/tool-logos';
@@ -197,7 +196,13 @@ export function Hero({ codes, tools }: { codes: Code[]; tools: Tool[] }) {
             <span className="k-line"><span>prends le code.</span></span>
           </h1>
           <p className="k-hero-copy" data-hero-fade>Merkod réunit les codes promo donnés en vidéo ou en podcast, proposés par <strong>n’importe qui</strong> : un visiteur, un fan ou le créateur lui-même. Vérifié à la main, crédité au créateur. Pas de compte, pas de pub.</p>
-          <div className="k-hero-search" data-hero-fade><SearchDialog tools={tools} /></div>
+          {/* Sur la Présentation, le hero renvoie vers la page principale, où se trouvent la recherche et tous les codes. */}
+          <div className="k-hero-actions" data-hero-fade>
+            <Link className="k-btn k-btn-primary" href={routes.home}>
+              Trouver un code
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </Link>
+          </div>
           <div className="k-trust" data-hero-fade>
             <span><Check />Le code reste celui du créateur</span>
             <span><Check />Testé et daté</span>

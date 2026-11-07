@@ -1,6 +1,9 @@
 // Adresses des pages publiques (en anglais). Le texte affiché, lui, reste en français.
 export const routes = {
+  /** Page principale : la page Explorer (colonne de rayons, recherche, grille de coupons). */
   home: '/',
+  /** Présentation de Merkod (l'ancienne page d'accueil) : la règle pro-créateurs, comment ça marche. */
+  about: '/about',
   codes: '/codes',
   categories: '/categories',
   category: (slug: string) => `/categories/${slug}`,
