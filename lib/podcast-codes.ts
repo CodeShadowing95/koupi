@@ -3,7 +3,7 @@
 // Rien n'est publié : chaque code trouvé arrive « En attente » dans Vérifications, où l'admin décide.
 // Un code sans outil du catalogue devient une suggestion d'outil à ajouter, avec le nom deviné du lien voisin.
 
-import { clip, implausibleCode } from './verification';
+import { clip, implausibleCode, insideUrl, urlSpans } from './verification';
 
 /** domain : domaine du site officiel (nordvpn.com), pour reconnaître un lien vers l'outil. */
 export type CatalogTool = { id: string; name: string; domain?: string | null };
@@ -131,7 +131,10 @@ export function scanPromoCodes(text: string, tools: CatalogTool[]): { found: Fou
   // « Code promo LWS : CQ410 » : le mot après « code promo » est le nom de l'outil, le code vient après.
   const toolNames = new Set(tools.flatMap(tool => [tool.name.trim().toLowerCase(), tool.domain?.split('.')[0] ?? ''].filter(Boolean)));
   lines.forEach((line, lineIndex) => {
+    const links = urlSpans(line);
     for (const match of line.matchAll(CODE_PATTERN)) {
+      // « site.com/code/abc » : un mot dans une adresse web n'est pas un code annoncé.
+      if (insideUrl(links, match.index ?? 0)) continue;
       let code = match[1];
       let end = (match.index ?? 0) + match[0].length;
       if (toolNames.has(code.toLowerCase())) {
