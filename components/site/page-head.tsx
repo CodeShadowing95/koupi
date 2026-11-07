@@ -9,12 +9,13 @@ export type Crumb = { label: string; href?: string };
 
 /** Fil d'Ariane du site public : commence toujours par l'accueil, la dernière étape est la page en cours.
  * Le même fil est donné à Google en données structurées (BreadcrumbList). */
-export function Crumbs({ items }: { items: Crumb[] }) {
+/** hidden : seules les données structurées restent (pour Google), le fil n'est pas affiché. */
+export function Crumbs({ items, hidden = false }: { items: Crumb[]; hidden?: boolean }) {
   const all: Crumb[] = [{ label: 'Accueil', href: routes.home }, ...items];
   return (
     <>
     <JsonLd data={breadcrumbLd(all, siteUrl())} />
-    <nav className="k-crumbs" aria-label="Fil d'Ariane">
+    {!hidden && <nav className="k-crumbs" aria-label="Fil d'Ariane">
       {all.map((item, index) => {
         const last = index === all.length - 1;
         return (
@@ -24,7 +25,7 @@ export function Crumbs({ items }: { items: Crumb[] }) {
           </span>
         );
       })}
-    </nav>
+    </nav>}
     </>
   );
 }
