@@ -1302,7 +1302,6 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 /* Outils à ajouter (page Podcasts) */
 @media (max-width:640px){.adm-pod-panels{flex-wrap:wrap;width:auto}.adm-pod-panel-tab{flex:1 1 auto;justify-content:center}}
 .adm-pod-panel-tab{white-space:nowrap}
-.adm-sugg-intro{margin:0 0 14px;font-size:14px}
 .adm-sugg .adm-card-row{align-items:flex-start}
 .adm-sugg-tool{display:flex;flex-direction:column;gap:2px;min-width:0}
 .adm-sugg-tool b,.adm-sugg-tool a{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
