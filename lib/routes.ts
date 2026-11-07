@@ -2,6 +2,8 @@
 export const routes = {
   home: '/',
   codes: '/codes',
+  /** Page Explorer : colonne de rayons, recherche en haut et grille de coupons. */
+  explore: '/explore',
   categories: '/categories',
   category: (slug: string) => `/categories/${slug}`,
   tool: (slug: string) => `/tools/${slug}`,
