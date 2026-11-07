@@ -89,6 +89,8 @@
 .k-ex-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:26px 0 22px}
 .k-ex-head h1{font-size:var(--fs-3xl);letter-spacing:-.03em}
 .k-ex-head-end{display:flex;align-items:center;gap:12px;flex:none}
+/* Clair / sombre : les icônes suffisent (soleil, lune) ; le nom reste dans l'infobulle et pour les lecteurs d'écran. */
+.k-ex-views.is-icons button{padding:0 10px}
 .k-ex-count{flex:none;padding:4px 12px;border-radius:var(--r-pill);border:1px solid var(--line);font-family:var(--mono);font-size:var(--fs-xs);font-weight:700;color:var(--text-soft)}
 .k-ex-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px 22px}
 .k-ex-grid>li{min-width:0}

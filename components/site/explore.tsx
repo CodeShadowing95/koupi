@@ -308,14 +308,12 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
               <p className="k-ex-count" aria-live="polite">{results.length} {results.length > 1 ? 'codes' : 'code'}</p>
               {/* Cartes détaillées ou simples : juste au-dessus des coupons qu'il change. */}
               {/* Coupons clairs (papier crème) ou sombres (« ticket de nuit »). */}
-              <div className="k-board-views k-ex-views" role="group" aria-label="Teinte des coupons">
+              <div className="k-board-views k-ex-views is-icons" role="group" aria-label="Teinte des coupons">
                 <button type="button" aria-pressed={tone === 'light'} onClick={() => switchTone('light')} aria-label="Coupons clairs" title="Clairs : papier crème">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
-                  <span>Clairs</span>
                 </button>
                 <button type="button" aria-pressed={tone === 'night'} onClick={() => switchTone('night')} aria-label="Coupons sombres" title="Sombres : ticket de nuit">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" /></svg>
-                  <span>Sombres</span>
                 </button>
               </div>
               <div className="k-board-views k-ex-views" role="group" aria-label="Affichage des cartes">
