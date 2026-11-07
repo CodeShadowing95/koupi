@@ -2,6 +2,16 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.11.0](https://github.com/CodeShadowing95/koupi/compare/v0.10.0...v0.11.0) (2026-11-07)
+
+### Nouveautés
+
+- **admin:** Add an option to read affiliate links (#248) ([6c5aabf](https://github.com/CodeShadowing95/koupi/commit/6c5aabfdf95adcf26b7c62e3be38ee08fb6737c5))
+
+### Corrections
+
+- **verifications:** Ignore words glued to a timestamp or inside an email (#247) ([514b2c8](https://github.com/CodeShadowing95/koupi/commit/514b2c8b4f4bcb6538db7d67b5234fe948daa892))
+
 ## [0.10.0](https://github.com/CodeShadowing95/koupi/compare/v0.9.0...v0.10.0) (2026-11-07)
 
 ### Nouveautés
