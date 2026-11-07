@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import { aiConfigFrom } from './ai-extract';
+import { CLEAR_SCORE } from './verification';
 import { createCode } from './codes-admin';
 import { runVerification, youtubeReader, youtubeVideoId, type SourceReader } from './verification-run';
 
@@ -140,14 +141,18 @@ describe('runVerification', () => {
     const clear = await runVerification(ctx.db, ctx.codeId, { readSource: reader('Merci NordVPN, code ANA10'), ai: { config, create: seen } });
     const missed = vi.fn(async (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => aiResponse(params.model, []));
     const doubtful = await runVerification(ctx.db, ctx.codeId, { readSource: reader('Merci NordVPN, code ANA10'), ai: { config, create: missed } });
-    expect(doubtful!.score).toBe(clear!.score - 20);
-    expect(doubtful?.reasons).toContainEqual({ points: -20, label: 'L’IA ne retrouve pas ce code dans la description.' });
+    // 90 − 20 resterait « clair » : le dossier descend juste sous le seuil, et la raison dit de combien.
+    expect(clear!.score).toBe(90);
+    expect(doubtful!.score).toBe(CLEAR_SCORE - 1);
+    expect(doubtful?.reasons).toContainEqual({ points: CLEAR_SCORE - 1 - 90, label: 'L’IA ne retrouve pas ce code dans la description.' });
     const other = vi.fn(async (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => aiResponse(params.model, ['CQ410']));
     const corrected = await runVerification(ctx.db, ctx.codeId, { readSource: reader('ANA10 · Code promo NordVPN : CQ410'), ai: { config, create: other } });
-    expect(corrected?.reasons).toContainEqual({ points: -20, label: 'L’IA ne retrouve pas ce code dans la description. Elle y lit plutôt : CQ410.' });
+    expect(corrected?.reasons).toContainEqual({ points: expect.any(Number), label: 'L’IA ne retrouve pas ce code dans la description. Elle y lit plutôt : CQ410.' });
+    expect(corrected!.score).toBeLessThan(CLEAR_SCORE);
   });
 
   it('ajoute au code le lien de l’offre lu par l’IA, et met en attente une offre par lien voisine', async () => {
+    await ctx.db.insert(schema.siteSettings).values({ key: 'offer-links', enabled: true });
     await ctx.db.insert(schema.tools).values({ slug: 'krispcall', name: 'KrispCall', categorySlug: 'vpn', website: 'https://krispcall.com' });
     const text = 'Merci NordVPN, code ANA10 sur https://nordvpn.com/ana\nKrispCall : -20 % avec https://try.krispcall.com/tad';
     const create = vi.fn(async (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => aiResponse(params.model, [
@@ -161,6 +166,23 @@ describe('runVerification', () => {
     const rows = await ctx.db.select().from(schema.codes);
     expect(rows.find(row => row.id === ctx.codeId)?.creatorLink).toBe('https://nordvpn.com/ana');
     expect(rows.find(row => row.code === null)).toMatchObject({ creatorLink: 'https://try.krispcall.com/tad', discount: '-20 %', status: 'pending' });
+  });
+
+  it('sans l’option des liens, ne demande pas de lien à l’IA et n’ajoute ni lien ni offre par lien', async () => {
+    await ctx.db.insert(schema.tools).values({ slug: 'krispcall', name: 'KrispCall', categorySlug: 'vpn', website: 'https://krispcall.com' });
+    const text = 'Merci NordVPN, code ANA10 sur https://nordvpn.com/ana\nKrispCall : -20 % avec https://try.krispcall.com/tad';
+    const create = vi.fn(async (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => aiResponse(params.model, [
+      { code: 'ANA10', link: 'https://nordvpn.com/ana' },
+      { code: '', link: 'https://try.krispcall.com/tad', tool: 'KrispCall', discount: '-20 %' },
+    ]));
+    const check = await runVerification(ctx.db, ctx.codeId, { readSource: reader(text), ai: { config: aiConfigFrom({ ANTHROPIC_API_KEY: 'k' }), create } });
+    expect(JSON.stringify(create.mock.calls[0][0].output_config)).not.toContain('"link"');
+    const labels = check?.reasons.map(reason => reason.label) ?? [];
+    expect(labels).toContain('L’IA retrouve ce code dans la description.');
+    expect(labels.some(label => label.includes('lien de l’offre') || label.includes('offre par lien'))).toBe(false);
+    const rows = await ctx.db.select().from(schema.codes);
+    expect(rows.find(row => row.id === ctx.codeId)?.creatorLink ?? null).toBeNull();
+    expect(rows.some(row => row.code === null)).toBe(false);
   });
 
   it('relit directement avec Opus à la demande', async () => {

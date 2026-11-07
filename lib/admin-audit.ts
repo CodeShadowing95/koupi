@@ -4,6 +4,8 @@ const LABELS: Record<string, string> = {
   page_off: 'Page coupée :',
   page_on: 'Page remise en ligne :',
   maintenance_on: 'Mode maintenance activé :',
+  offer_links_on: 'Option activée :',
+  offer_links_off: 'Option coupée :',
   maintenance_off: 'Mode maintenance arrêté :',
   creator_disabled: 'Compte créateur désactivé :',
   creator_enabled: 'Compte créateur réactivé :',

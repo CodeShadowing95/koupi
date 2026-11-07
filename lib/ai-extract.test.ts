@@ -93,13 +93,23 @@ describe('keepVerbatimCodes', () => {
       { code: '', link: 'https://invente.com/x', tool: 'Invente', discount: '-10 %', conditions: '', expires_on: '' },
       { code: 'ANA10', link: 'https://qonto.com/r/ana', tool: 'Qonto', discount: '', conditions: '', expires_on: '' },
       { code: '', link: 'https://try.krispcall.com/tad', tool: 'KrispCall', discount: '-20 %', conditions: '', expires_on: '' },
-    ] }, notes);
+    ] }, notes, { links: true });
     expect(codes.map(c => [c.code, c.link])).toEqual([['', 'https://try.krispcall.com/tad'], ['ANA10', 'https://qonto.com/r/ana']]);
     expect(codes[0].evidence).toContain('try.krispcall.com/tad');
   });
 
+  it('sans l’option des liens, ne garde que les codes, sans leur lien', () => {
+    const notes = '- KrispCall : -20 % avec https://try.krispcall.com/tad\n- Qonto, code ANA10 : https://qonto.com/r/ana';
+    const raw = { codes: [
+      { code: '', link: 'https://try.krispcall.com/tad', tool: 'KrispCall', discount: '-20 %', conditions: '', expires_on: '' },
+      { code: 'ANA10', link: 'https://qonto.com/r/ana', tool: 'Qonto', discount: '', conditions: '', expires_on: '' },
+    ] };
+    expect(keepVerbatimCodes(raw, notes).map(c => [c.code, c.link])).toEqual([['ANA10', '']]);
+    expect(keepVerbatimCodes(raw, notes, { links: false }).map(c => [c.code, c.link])).toEqual([['ANA10', '']]);
+  });
+
   it('garde un code sans le lien quand l’IA invente le lien', () => {
-    const codes = keepVerbatimCodes({ codes: [{ code: 'NORD20', link: 'https://nordvpn.com/invente', tool: 'NordVPN', discount: '', conditions: '', expires_on: '' }] }, description);
+    const codes = keepVerbatimCodes({ codes: [{ code: 'NORD20', link: 'https://nordvpn.com/invente', tool: 'NordVPN', discount: '', conditions: '', expires_on: '' }] }, description, { links: true });
     expect(codes.map(c => [c.code, c.link])).toEqual([['NORD20', '']]);
   });
 });
@@ -128,6 +138,16 @@ describe('extractCodes', () => {
     expect(JSON.stringify(params.messages)).toContain('<description>');
     expect(params.output_config?.format?.type).toBe('json_schema');
     expect(params.fallbacks).toBeUndefined();
+  });
+  it('ne demande les liens à l’IA que si l’option est allumée', async () => {
+    const create = vi.fn(async (_params: Anthropic.Beta.MessageCreateParamsNonStreaming) => fakeResponse('{"codes":[]}'));
+    await extractCodes(create, DEFAULT_AI_MODEL, { title: 't', description });
+    await extractCodes(create, DEFAULT_AI_MODEL, { title: 't', description }, { links: true });
+    const [off, on] = create.mock.calls.map(call => call[0]);
+    expect(JSON.stringify(off.output_config)).not.toContain('"link"');
+    expect(String(off.system)).not.toContain('link :');
+    expect(JSON.stringify(on.output_config)).toContain('"link"');
+    expect(String(on.system)).toContain('link :');
   });
   it('demande le repli automatique seulement aux modèles qui l’acceptent', async () => {
     const create = vi.fn(async (_params: Anthropic.Beta.MessageCreateParamsNonStreaming) => fakeResponse('{"codes":[]}', { model: DEFAULT_REVIEW_MODEL }));

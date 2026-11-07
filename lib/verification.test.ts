@@ -64,6 +64,19 @@ describe('findCodeInText', () => {
     expect(findCodeInText('NORD-VPN+', 'utilisez NORD-VPN+ au paiement').found).toBe(true);
   });
 
+  it('ignore un mot collé à un minutage du sommaire, ou pris dans une adresse e-mail', () => {
+    const notes = 'all yearly plans. Use my code or link when signing up.TIMELINE00:00 OpenAI Code Red04:35 Hostinger (sponsor)11:12 Claude Code Cowork13:18 Google';
+    expect(findCodeInText('Red04', notes).found).toBe(false);
+    expect(findCodeInText('Cowork13', notes).found).toBe(false);
+    const contact = 'Brand inquiries: wesroth@smoothmedia.co\nHostinger : code WESROTH pour 10 %';
+    const match = findCodeInText('WESROTH', contact);
+    expect(match.excerpt).toContain('code WESROTH');
+    expect(match.excerpt?.startsWith('Brand')).toBe(true);
+    expect(findCodeInText('WESROTH', 'Brand inquiries: wesroth@smoothmedia.co').found).toBe(false);
+    // Un code suivi de « : » et d'une réduction reste un code.
+    expect(findCodeInText('NORD20', 'code NORD20: -20 %').found).toBe(true);
+  });
+
   it('ignore un mot qui n’apparaît que dans une adresse web (identifiant d’affiliation)', () => {
     const krisp = '- KrispCall: Agentic Cloud Telephony - https://try.krispcall.com/tad\n- Sans protocole : try.krispcall.com/tad';
     expect(findCodeInText('tad', krisp).found).toBe(false);

@@ -277,7 +277,7 @@ function Verifications() {
         <Step title="Chercher le code">Le code doit figurer <b>mot pour mot</b> dans la description. Si oui, l’extrait apparaît avec le code surligné : c’est ta preuve.</Step>
         <Step title="Faire les contrôles">Source en ligne, doublon, signes de spam, votes des visiteurs, et <b>niveau du créateur</b> : +15 s’il est « Contrôlé par Merkod », +20 s’il est vérifié. Le niveau se règle dans <Link href="/admin/createurs">Créateurs</Link>.</Step>
         <Step title="Repérer la date de fin">Si la description donne une date (« jusqu’au 31/12 ») et que le code n’en a pas, l’IA remplit le champ <b>Valable jusqu’au</b>. Tu peux la corriger dans Codes.</Step>
-        <Step title="Repérer le lien de l’offre">Si le créateur donne un lien pour profiter de l’offre (« -20 % avec try.krispcall.com/tad ») et que le code n’en a pas, l’IA remplit <b>Lien de l’offre</b>. Une offre donnée seulement par un lien, sans code, est relevée elle aussi, mais seulement si le lien est écrit dans la description avec une réduction annoncée. Les liens vers les réseaux du créateur (sa chaîne, son Instagram, son Discord…) sont toujours écartés.</Step>
+        <Step title="Repérer le lien de l’offre">Seulement quand l’option <b>Liens d’affiliation</b> est allumée dans <Link href="/admin/administration">Administration</Link>. Si le créateur donne un lien pour profiter de l’offre (« -20 % avec try.krispcall.com/tad ») et que le code n’en a pas, l’IA remplit <b>Lien de l’offre</b>. Une offre donnée seulement par un lien, sans code, est relevée elle aussi, mais seulement si le lien est écrit dans la description avec une réduction annoncée. Les liens vers les réseaux du créateur (sa chaîne, son Instagram, son Discord…) sont toujours écartés.</Step>
         <Step title="Ajouter les autres codes de la source">Une description donne souvent plusieurs codes, un par outil. Ceux des outils du catalogue qui ne sont pas encore chez nous arrivent <b>En attente</b> dans cette page (pas encore analysés), ceux des outils absents vont dans <b>Outils à ajouter</b>. Une ligne de la carte le dit. Un autre code pour le <b>même</b> outil n’est pas ajouté : c’est sans doute le bon, reprends-le avec le crayon.</Step>
         <Step title="Calculer le score">Chaque contrôle ajoute ou retire des points. Les raisons sont listées sous l’extrait, avec leurs points.</Step>
       </Steps>
@@ -291,7 +291,7 @@ function Verifications() {
         { term: <StatusDot tone="muted">Pas analysé</StatusDot>, meaning: 'Aucune analyse pour l’instant. Lance-la.' },
       ]} />
       <p>La file met devant les dossiers analysés, du plus sûr au moins sûr : tu valides vite ce qui est clair, puis tu prends le temps sur le reste.</p>
-      <p>Tout code part de 30 points (la ligne « Point de départ »), et la somme des lignes donne le score. Un code qui n’est qu’un nombre (« 2026 »), qui ressemble à une clé de licence ou qui n’est que le nom de l’outil (« LWS » pour LWS) perd 50 points : il n’est jamais classé clair. Quand l’IA lit la source sans y voir ce code, il perd encore 20 points.</p>
+      <p>Tout code part de 30 points (la ligne « Point de départ »), et la somme des lignes donne le score. Un code qui n’est qu’un nombre (« 2026 »), qui ressemble à une clé de licence ou qui n’est que le nom de l’outil (« LWS » pour LWS) perd 50 points : il n’est jamais classé clair. Quand l’IA lit la source sans y voir ce code, il perd encore 20 points, et au moins assez pour ne plus être « clair » : un dossier où l’IA n’est pas d’accord se regarde toujours de près. Un mot collé à un minutage du sommaire (« Cowork13:18 ») ou pris dans une adresse e-mail (« wesroth@… ») ne compte pas comme le code écrit dans la source.</p>
     </Section>
     <Section id="decider" title="Tes trois décisions">
       <Legend rows={[
@@ -752,6 +752,11 @@ function Administration() {
       <p>Toi, connecté à l’admin, tu continues de voir le site normalement : pratique pour vérifier une mise à jour avant de rouvrir. Les propositions et les votes sont refusés pendant la pause ; la tâche de nuit, elle, continue.</p>
       <Callout tone="warn">Pense à rouvrir : tant que l’interrupteur est sur « En pause », plus aucun visiteur ne voit un code.</Callout>
     </Section>
+    <Section id="liens" title="Relever ou non les liens d’affiliation">
+      <p>L’interrupteur <b>Liens d’affiliation</b> décide de ce que l’IA garde quand elle lit une vidéo, un épisode ou une source à vérifier. Il est <b>coupé</b> au départ : l’IA ne relève que les <b>codes promo</b>, et les liens d’affiliation des descriptions sont ignorés.</p>
+      <p>Allumé, l’IA relève aussi le lien de chaque offre : elle remplit <b>Lien de l’offre</b> à côté d’un code, et garde les offres données seulement par un lien (étiquette <b>Lien seul</b>), si une réduction est écrite. Elles arrivent en attente dans Vérifications, comme les codes.</p>
+      <p>Le réglage vaut pour les prochaines lectures : chaînes suivies, podcasts, recherches par catégorie et analyses. Les offres déjà enregistrées restent. Une offre par lien que tu as ajoutée toi-même se vérifie toujours par son lien, et tu peux toujours remplir <b>Lien de l’offre</b> à la main sur un code.</p>
+    </Section>
     <Section id="pages" title="Couper une page">
       <p>Chaque page publique a son interrupteur. Une page coupée répond « page introuvable » (erreur 404), elle et tout ce qui est en dessous : couper « Pages de catégorie » coupe chaque page de catégorie (les pastilles de la page Codes restent). La page principale (la page Explorer, à l’adresse /) ne se coupe pas ; la « Présentation » (/about, l’ancienne page d’accueil), elle, peut être coupée. Elle disparaît en même temps du menu, du pied de page et de la recherche ; ailleurs, ses liens deviennent du texte simple et ses boutons disparaissent.</p>
       <Legend rows={SITE_PAGES.filter(page => !page.locked).map(page => ({ term: page.label, meaning: page.effect }))} />
@@ -768,7 +773,7 @@ function Administration() {
       <Callout tone="rule">Quand un créateur te demande d’effacer ses données (droit à l’effacement du RGPD), c’est <b>Supprimer</b> : tu as un mois pour le faire. S’il se reconnecte plus tard, un nouveau compte vide naît ; pour le bloquer, désactive-le plutôt.</Callout>
     </Section>
     <Section id="journal" title="Le journal">
-      <p>Chaque geste fait ici (page coupée ou rallumée, pause, réouverture, compte désactivé, réactivé ou supprimé) est noté avec sa date et son heure. Le journal garde 12 mois, puis s’efface tout seul chaque nuit. Il ne contient aucune donnée sur les visiteurs.</p>
+      <p>Chaque geste fait ici (page coupée ou rallumée, pause, réouverture, liens d’affiliation allumés ou coupés, compte désactivé, réactivé ou supprimé) est noté avec sa date et son heure. Le journal garde 12 mois, puis s’efface tout seul chaque nuit. Il ne contient aucune donnée sur les visiteurs.</p>
     </Section>
   </>;
 }
