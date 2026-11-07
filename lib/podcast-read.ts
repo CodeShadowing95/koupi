@@ -4,6 +4,7 @@ import { and, asc, eq, isNull, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { aiUsage, codeLogs, codes, toolSuggestions, tools, watchedSources } from '@/db/schema';
 import { aiStatusOf, extractCodes } from './ai-extract';
+import { offerLinksEnabled } from './site-settings';
 import { mergeAiCodes, PROMO_HINT } from './podcast-ai';
 import { aiSpendSince, startOfMonthUtc } from './verification-store';
 import { clip } from './verification';
@@ -78,11 +79,13 @@ export async function readPodcasts(db: Db, directory: PodcastDirectory, options:
   const ai = options.deps?.ai;
   const monthStart = startOfMonthUtc(now);
   // L'IA lit aussi les notes qui parlent d'une offre, tant qu'elle est active et sous le plafond du mois.
+  // Option « Liens d'affiliation » de l'espace Administration : coupée, l'IA ne relève que des codes.
+  const links = await offerLinksEnabled(db);
   async function readWithAi(title: string, description: string, ref: string) {
     if (!ai?.create || !PROMO_HINT.test(`${title}\n${description}`)) return [];
     if (aiStatusOf(ai.config, await aiSpendSince(db, monthStart)).state !== 'active') return [];
     try {
-      const extraction = await extractCodes(ai.create, ai.config.model, { title, description });
+      const extraction = await extractCodes(ai.create, ai.config.model, { title, description }, { links });
       await db.insert(aiUsage).values({ purpose: 'podcast_notes', model: extraction.model, costUsdMicros: extraction.costUsdMicros, ref: ref.slice(0, 500) });
       report.aiRead++;
       return extraction.codes;

@@ -556,7 +556,7 @@ export const siteSettings = pgTable('site_settings', {
   enabled: boolean('enabled').notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, table => [
-  check('site_settings_key_format', sql`${table.key} ~ '^(maintenance|page:[a-z-]{2,40})$'`),
+  check('site_settings_key_format', sql`${table.key} ~ '^(maintenance|offer-links|page:[a-z-]{2,40})$'`),
 ]);
 
 // Journal de l'espace Administration : un geste de l'admin par ligne (page coupée, maintenance, compte créateur…).
