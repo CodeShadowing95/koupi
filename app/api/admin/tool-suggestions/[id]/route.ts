@@ -5,7 +5,7 @@ import { parseToolInput } from '@/lib/catalog-admin';
 import { revalidateCatalog } from '@/lib/catalog-server';
 import { readJsonBody } from '@/lib/http';
 import { aiConfigFrom, anthropicCreate } from '@/lib/ai-extract';
-import { acceptToolSuggestion, analyzeToolSuggestion, ignoreToolSuggestion, type AcceptTarget } from '@/lib/tool-suggestions';
+import { MAX_DESCRIPTION, acceptToolSuggestion, analyzeToolSuggestion, ignoreToolSuggestion, type AcceptTarget } from '@/lib/tool-suggestions';
 import { runVerification } from '@/lib/verification-run';
 import { verificationDeps } from '@/lib/verification-deps';
 
@@ -13,7 +13,8 @@ export const maxDuration = 60;
 
 // Outil à ajouter :
 // { action: 'ignore' } la met de côté pour de bon ;
-// { action: 'analyze', website? } fait lire le site par l'IA (résumé, catégorie proposée, ADR-0024) ;
+// { action: 'analyze', website?, description? } fait lire le site par l'IA (résumé, catégorie proposée, ADR-0024),
+// ou la description collée par l'admin quand le site refuse les robots ;
 // { action: 'add', newTool: { name, categorySlug, website, priority? }, newCategory? } crée l'outil (et sa catégorie) ;
 // { action: 'add', toolSlug } la relie à un outil déjà au catalogue.
 // Les codes créés arrivent en attente et leur dossier de vérification est préparé.
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (!(await isAdminRequest(request))) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   const { id } = await params;
   if (!UUID_PATTERN.test(id)) return NextResponse.json({ error: 'Suggestion invalide.' }, { status: 400 });
-  const parsed = await readJsonBody(request, 4_000);
+  const parsed = await readJsonBody(request, 12_000);
   if (!parsed.ok) return NextResponse.json({ error: 'Requête invalide.' }, { status: parsed.status });
   const body = parsed.data;
   try {
@@ -32,7 +33,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (body.action === 'analyze') {
       const config = aiConfigFrom(process.env);
       const website = typeof body.website === 'string' ? body.website.slice(0, 300) : undefined;
-      const result = await analyzeToolSuggestion(db, id, { ai: { config, create: config.apiKey ? anthropicCreate(config.apiKey) : null } }, website);
+      const description = typeof body.description === 'string' ? body.description.slice(0, MAX_DESCRIPTION) : undefined;
+      const result = await analyzeToolSuggestion(db, id, { ai: { config, create: config.apiKey ? anthropicCreate(config.apiKey) : null } }, { website, description });
       return result.ok ? NextResponse.json({ ok: true, analysis: result.data }) : NextResponse.json({ error: result.error }, { status: 400 });
     }
     if (body.action !== 'add') return NextResponse.json({ error: 'Requête invalide.' }, { status: 400 });
