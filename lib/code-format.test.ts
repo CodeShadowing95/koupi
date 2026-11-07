@@ -18,7 +18,11 @@ describe('codeFormatError', () => {
   });
 
   it('refuse espaces, balises et autres signes', () => {
-    for (const code of ['MERCI 20', '<SCRIPT>ALERT(1)</SCRIPT>', 'CODE_20', 'CODE.20', 'CODÉ', '3M3K9/5R92S']) expect(codeFormatError(code)).toBe(CODE_FORMAT_ERROR);
+    for (const code of ['MERCI 20', '<SCRIPT>ALERT(1)</SCRIPT>', 'CODE.20', 'CODÉ', '3M3K9/5R92S', '%MERCI', 'MER%CI', 'MERCI%%', '_MERCI', 'MERCI_']) expect(codeFormatError(code)).toBe(CODE_FORMAT_ERROR);
+  });
+
+  it('accepte un tiret bas au milieu et un % collé à la fin', () => {
+    for (const code of ['SUNETHIC_SOLARFLOW', 'SOLARFLOWTECH5%', 'A%']) expect(codeFormatError(code)).toBeNull();
   });
 
   it('refuse un tiret au début ou à la fin', () => {

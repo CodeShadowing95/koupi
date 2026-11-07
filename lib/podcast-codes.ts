@@ -10,7 +10,7 @@ export type CatalogTool = { id: string; name: string; domain?: string | null };
 export type FoundCode = { toolId: string; code: string; discount: string; evidence: string };
 export type UnknownToolCode = { name: string; domain: string | null; code: string; discount: string; evidence: string };
 
-const CODE_PATTERN = /\b(?:promo\s*code|code\s*promo|code\s*de\s*r[ée]duction|coupon|code)\s*(?::|est|is)?\s*[«"“'‘]?\s*([A-Za-z0-9][A-Za-z0-9_-]{2,29})/giu;
+const CODE_PATTERN = /\b(?:promo\s*code|code\s*promo|code\s*de\s*r[ée]duction|coupon|code)\s*(?::|est|is)?\s*[«"“'‘]?\s*([A-Za-z0-9][A-Za-z0-9_-]{2,29}%?)(?![\p{L}\p{N}%])/giu;
 const DISCOUNT_PATTERN = /-?\s?\d+(?:[.,]\d+)?\s?(?:%|€|\$|euros?)|\d+\s(?:mois|semaines?|jours?)\s(?:offerts?|gratuits?)|\d+\s(?:months?|weeks?|days?)\sfree/iu;
 
 // Mots qui suivent « code » sans être un code.
@@ -65,10 +65,15 @@ export function catalogToolIn(text: string, tools: CatalogTool[]): string | null
   return toolPositions(text, tools).sort((a, b) => a.index - b.index)[0]?.toolId ?? null;
 }
 
+/** « fr.indevolt.com » devient « indevolt.com » : le sous-domaine de langue n'est pas le site de l'outil. */
+function siteDomain(domain: string): string {
+  return domain.toLowerCase().replace(/^(?:fr|en|de|es|it|nl|pt|uk|us|eu|m)\.(?=[^.]+\.[^.]+$)/, '');
+}
+
 /** Premier site d'outil cité dans un texte (hors raccourcisseurs, réseaux et hébergeurs), sinon null. */
 export function toolDomainIn(text: string): string | null {
   for (const match of text.matchAll(DOMAIN_PATTERN)) {
-    const domain = match[1].toLowerCase();
+    const domain = siteDomain(match[1]);
     if (!NOT_TOOL_DOMAINS.test(domain) && !PAYMENT_DOMAINS.test(domain)) return domain;
   }
   return null;
@@ -78,7 +83,7 @@ export function toolDomainIn(text: string): string | null {
 function guessTool(line: string, previous: string | undefined): { name: string; domain: string | null } | null {
   for (const text of [line, previous ?? '']) {
     for (const match of text.matchAll(DOMAIN_PATTERN)) {
-      const domain = match[1].toLowerCase();
+      const domain = siteDomain(match[1]);
       if (PAYMENT_DOMAINS.test(domain)) return null;
       if (NOT_TOOL_DOMAINS.test(domain)) continue;
       const label = domain.split('.').slice(-2)[0];
@@ -93,7 +98,11 @@ function guessTool(line: string, previous: string | undefined): { name: string; 
   return null;
 }
 
-function looksLikeCode(candidate: string, after = ''): boolean {
+/**
+ * labelled : le code suit une étiquette nette (« Code promo : ») et finit la ligne. Il est alors accepté même
+ * en minuscules sans chiffre (« Code promo : solarflowtech »), ce qui serait sinon un mot de phrase.
+ */
+function looksLikeCode(candidate: string, after = '', labelled = false): boolean {
   if (NOT_CODES.has(candidate.toLowerCase())) return false;
   // Un nombre seul (« code 2026 ») ou une clé de licence n'est pas un code promo.
   if (implausibleCode(candidate)) return false;
@@ -101,6 +110,9 @@ function looksLikeCode(candidate: string, after = ''): boolean {
   if (/^\/[A-Za-z0-9]/.test(after)) return false;
   // Un mot en capitales suivi d'un autre mot en capitales est un titre qui crie (« Claude Code is SOMETHING ELSE! »), pas un code.
   if (/^[A-Za-z]+$/.test(candidate) && /^\s+[A-Z]{2,}\b/.test(after)) return false;
+  // Un % n'est gardé que collé à un code qui contient une lettre (« SOLARFLOWTECH5% », pas « 20% »).
+  if (candidate.endsWith('%') && !/\p{L}/u.test(candidate)) return false;
+  if (labelled) return true;
   // Un code s'écrit en majuscules ou contient un chiffre ; un mot en minuscules est sans doute du texte.
   return /[0-9]/.test(candidate) || candidate === candidate.toUpperCase();
 }
@@ -128,7 +140,9 @@ export function scanPromoCodes(text: string, tools: CatalogTool[]): { found: Fou
         code = next[1];
         end += next[0].length;
       }
-      if (!looksLikeCode(code, line.slice(end))) continue;
+      // « ➡️ Code promo : solarflowtech » : une étiquette avec deux-points, puis le code seul jusqu'au bout de la ligne.
+      const labelled = match[0].includes(':') && /^[\s»"”'’)\].!]*$/u.test(line.slice(end));
+      if (!looksLikeCode(code, line.slice(end), labelled)) continue;
       const at = match.index ?? 0;
       // L'outil le plus proche sur la ligne ; sinon le dernier nommé sur la ligne d'avant.
       const here = toolPositions(line, tools).sort((a, b) => Math.abs(a.index - at) - Math.abs(b.index - at));
@@ -136,7 +150,8 @@ export function scanPromoCodes(text: string, tools: CatalogTool[]): { found: Fou
       // Une ligne qui nomme son propre outil (« Gradium : … », un lien) ne reprend pas celui de la ligne d'avant.
       const ownGuess = here[0] ? null : guessTool(line, undefined);
       const tool = here[0] ?? (ownGuess ? undefined : before[0]);
-      const discount = line.match(DISCOUNT_PATTERN)?.[0].trim() ?? (lineIndex > 0 ? lines[lineIndex - 1].match(DISCOUNT_PATTERN)?.[0].trim() : undefined) ?? 'Voir l’épisode';
+      // Le code lui-même ne donne pas la réduction : « SOLARFLOWTECH5% » ne veut pas dire 5 %.
+      const discount = line.replace(code, ' ').match(DISCOUNT_PATTERN)?.[0].trim() ?? (lineIndex > 0 ? lines[lineIndex - 1].match(DISCOUNT_PATTERN)?.[0].trim() : undefined) ?? 'Voir l’épisode';
       // La ligne d'avant donne souvent le nom de l'outil (« Cuure : cuure.com » puis « (code DOIT) ») : on la garde comme preuve.
       const evidence = clip(lineIndex > 0 && !here[0] && !ownGuess ? `${lines[lineIndex - 1]}\n${line}` : line, 300);
       if (!tool) {

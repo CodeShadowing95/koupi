@@ -170,3 +170,36 @@ describe('runVerification', () => {
     expect(check?.reasons.map(r => r.label)).toContain('Un code identique existe déjà.');
   });
 });
+
+describe('autres codes de la même source', () => {
+  it('ajoute en attente ceux des outils du catalogue et propose les autres, une seule fois', async () => {
+    const { db, codeId } = await setup();
+    await db.insert(schema.tools).values({ slug: 'surfshark', name: 'Surfshark', categorySlug: 'vpn', website: 'https://surfshark.com' });
+    const description = [
+      'NordVPN : https://nordvpn.com/ana', 'Code promo : ANA10',
+      'Surfshark : https://surfshark.com/ana', 'Code promo : anashark',
+      'Aferiy : https://fr.aferiy.com/?ref=ANA', 'Code promo : ana_power',
+      'NordVPN, autre lien : https://nordvpn.com/x', 'Code promo : NORD20',
+    ].join('\n');
+    const check = await runVerification(db, codeId, { readSource: reader(description) });
+    const labels = check!.reasons.map(reason => reason.label);
+    expect(labels).toContain('La source donne aussi anashark (Surfshark) : ajouté en attente dans Vérifications.');
+    expect(labels).toContain('Codes pour des outils absents du catalogue : ana_power (aferiy.com), dans les outils à ajouter.');
+    const all = await db.select().from(schema.codes);
+    // NORD20 est pour le même outil que ANA10 : il n'est pas ajouté, c'est au crayon de le reprendre.
+    expect(all.map(row => row.code).sort()).toEqual(['ANA10', 'anashark']);
+    const [added] = all.filter(row => row.code === 'anashark');
+    expect(added).toMatchObject({ status: 'pending', sourceUrl: URL_OK, discount: 'Voir la vidéo', origin: 'youtube_search' });
+    expect(await db.select().from(schema.toolSuggestions)).toMatchObject([{ domain: 'aferiy.com', code: 'ana_power', sourceUrl: URL_OK }]);
+
+    const again = await runVerification(db, codeId, { readSource: reader(description) });
+    expect(again!.reasons.some(reason => reason.label.startsWith('La source donne aussi'))).toBe(false);
+    expect(await db.select().from(schema.codes)).toHaveLength(2);
+  });
+
+  it('n’ajoute rien quand la source est hors ligne', async () => {
+    const { db, codeId } = await setup();
+    await runVerification(db, codeId, { readSource: reader('Code promo : anashark sur https://surfshark.com', false) });
+    expect(await db.select().from(schema.codes)).toHaveLength(1);
+  });
+});

@@ -26,7 +26,7 @@ describe('validation du formulaire', () => {
   it('range le code en majuscules et refuse un code mal formé', () => {
     const body = { toolSlug: 'nordvpn', creatorName: 'Ana', discount: '-10 %', sourceUrl: 'https://youtube.com/watch?v=a' };
     expect(parseCodeInput({ ...body, code: '  merci-20 ' })).toMatchObject({ ok: true, data: { code: 'MERCI-20' } });
-    for (const code of ['<script>alert(1)</script>', 'MERCI 20', 'A'.repeat(41)]) expect(parseCodeInput({ ...body, code })).toMatchObject({ ok: false, error: expect.stringContaining('lettres, des chiffres et des tirets') });
+    for (const code of ['<script>alert(1)</script>', 'MERCI 20', 'A'.repeat(41)]) expect(parseCodeInput({ ...body, code })).toMatchObject({ ok: false, error: expect.stringContaining('lettres, des chiffres, des tirets') });
     expect(parseCodeInput({ ...body, code: ' ' })).toEqual({ ok: false, error: 'Indique le code.' });
   });
 

@@ -249,7 +249,7 @@ function Codes() {
     <Section id="ajouter" title="Ajouter ou modifier un code">
       <p>Le bouton <b>Nouveau code</b> ouvre le formulaire. Les champs importants :</p>
       <Legend rows={[
-        { term: 'Code', meaning: 'Lettres, chiffres et tirets, sans espace, 40 caractères au plus. Il est rangé en majuscules : « merci20 » devient « MERCI20 ». Si l’outil a déjà ce code, même archivé, le formulaire te prévient avec un lien et refuse d’en créer un deuxième.' },
+        { term: 'Code', meaning: 'Lettres, chiffres, tirets et tirets bas, sans espace, avec au plus un % collé à la fin (« SOLARFLOWTECH5% »), 40 caractères au plus. Il est rangé en majuscules : « merci20 » devient « MERCI20 ». Si l’outil a déjà ce code, même archivé, le formulaire te prévient avec un lien et refuse d’en créer un deuxième.' },
         { term: 'Lien de la source', meaning: 'Obligatoire. La vidéo, l’épisode ou le post où le créateur donne le code.' },
         { term: 'Réduction', meaning: 'Court et concret : « -20 % », « 3 mois offerts », « 50 € offerts ».' },
         { term: 'Lien du créateur', meaning: 'Facultatif. Son lien d’affiliation, ouvert tel quel quand le visiteur clique.' },
@@ -276,6 +276,7 @@ function Verifications() {
         <Step title="Chercher le code">Le code doit figurer <b>mot pour mot</b> dans la description. Si oui, l’extrait apparaît avec le code surligné : c’est ta preuve.</Step>
         <Step title="Faire les contrôles">Source en ligne, doublon, signes de spam, votes des visiteurs, et <b>niveau du créateur</b> : +15 s’il est « Contrôlé par Merkod », +20 s’il est vérifié. Le niveau se règle dans <Link href="/admin/createurs">Créateurs</Link>.</Step>
         <Step title="Repérer la date de fin">Si la description donne une date (« jusqu’au 31/12 ») et que le code n’en a pas, l’IA remplit le champ <b>Valable jusqu’au</b>. Tu peux la corriger dans Codes.</Step>
+        <Step title="Ajouter les autres codes de la source">Une description donne souvent plusieurs codes, un par outil. Ceux des outils du catalogue qui ne sont pas encore chez nous arrivent <b>En attente</b> dans cette page (pas encore analysés), ceux des outils absents vont dans <b>Outils à ajouter</b>. Une ligne de la carte le dit. Un autre code pour le <b>même</b> outil n’est pas ajouté : c’est sans doute le bon, reprends-le avec le crayon.</Step>
         <Step title="Calculer le score">Chaque contrôle ajoute ou retire des points. Les raisons sont listées sous l’extrait, avec leurs points.</Step>
       </Steps>
       <p>Le bouton <b>Analyser</b> lance l’analyse d’un code ; <b>Analyser les codes non analysés</b> les fait tous, l’un après l’autre.</p>
@@ -379,7 +380,7 @@ function Podcasts() {
       <Steps>
         <Step title="Chaque nuit">Merkod lit les épisodes récents de chaque podcast actif dans Apple Podcasts : ceux des {FIRST_READ_DAYS} derniers jours la première fois, puis ceux sortis depuis la lecture précédente.</Step>
         <Step title="Repérer les codes">Dans les notes de chaque épisode, Merkod cherche un code annoncé par « code », « code promo » ou « coupon », et un <b>outil du catalogue</b> nommé (ou son site cité) sur la même ligne ou celle d’avant. Si l’outil n’est pas au catalogue, le code est gardé dans l’onglet <b>Outils à ajouter</b>.</Step>
-        <Step title="L’IA, quand elle est active">Quand l’IA est activée, elle lit aussi les notes des nouveaux épisodes qui parlent d’une offre. Elle retrouve les codes mal formulés, la réduction exacte et la date de fin, et rattache chaque code au bon outil. Elle ne garde que les codes écrits mot pour mot dans les notes. Un épisode déjà lu n’est pas relu, et chaque lecture compte dans le plafond du mois. Sans IA, le repérage ci-dessus continue seul.</Step>
+        <Step title="L’IA, quand elle est active">Quand l’IA est activée, elle lit aussi les notes des nouveaux épisodes qui parlent d’une offre. C’est elle qui lit en premier : elle retrouve les codes mal formulés, la réduction exacte et la date de fin, et rattache chaque code au bon outil ; son outil et sa réduction priment sur le repérage. Elle ne garde que les codes écrits mot pour mot dans les notes. Un épisode déjà lu n’est pas relu, et chaque lecture compte dans le plafond du mois. Sans IA, le repérage ci-dessus continue seul.</Step>
         <Step title="L’envoyer en vérification">Chaque nouveau code est ajouté <b>En attente</b> (invisible sur le site), crédité au créateur du podcast, avec l’épisode comme source. Son dossier est analysé aussitôt et t’attend dans <Link href="/admin/verifications">Vérifications</Link>. Un code déjà connu pour cet outil n’est jamais recréé.</Step>
       </Steps>
       <p><b>Lire les épisodes maintenant</b>, en haut de la page, lance la lecture sans attendre la nuit ; <b>Lire</b>, sur une ligne, lit ce seul podcast, même en pause. Un résumé dit combien de codes ont été trouvés.</p>
