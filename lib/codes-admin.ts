@@ -159,6 +159,25 @@ export async function updateCode(db: Db, id: string, input: CodeInput): Promise<
   return { ok: true, data: { id } };
 }
 
+/**
+ * Correction rapide depuis Vérifications : l'admin remplace le code (et la réduction) quand le repérage
+ * a pris le mauvais mot. Le reste du code ne bouge pas ; la correction est inscrite dans code_logs.
+ */
+export async function correctCode(db: Db, id: string, body: Record<string, unknown>): Promise<SaveResult<{ code: string; discount: string }>> {
+  const code = normalizeCode(text(body.code, 120));
+  const codeError = codeFormatError(code);
+  if (codeError) return { ok: false, error: codeError };
+  const current = await currentCode(db, id);
+  if (!current) return { ok: false, error: 'Code introuvable.' };
+  const discount = text(body.discount, 240) || current.discount;
+  const duplicate = await findCatalogDuplicate(db, current.toolId, code, id);
+  if (duplicate) return duplicateError(code, duplicate);
+  await db.update(codes).set({ code, discount, updatedAt: new Date() }).where(eq(codes.id, id));
+  const changes = [current.code !== code ? `code ${current.code} → ${code}` : null, current.discount !== discount ? 'réduction modifiée' : null].filter(Boolean);
+  await db.insert(codeLogs).values({ codeId: id, action: 'edit', previousStatus: current.status, nextStatus: current.status, note: changes.length ? `Corrigé depuis Vérifications : ${changes.join(', ')}.` : null });
+  return { ok: true, data: { code, discount } };
+}
+
 export const CODE_QUICK_ACTIONS = ['verify', 'payment_test', 'reject', 'to_test', 'pending', 'archive', 'restore'] as const;
 export type CodeQuickAction = typeof CODE_QUICK_ACTIONS[number];
 export function isQuickAction(value: unknown): value is CodeQuickAction { return (CODE_QUICK_ACTIONS as readonly unknown[]).includes(value); }

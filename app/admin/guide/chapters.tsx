@@ -288,7 +288,7 @@ function Verifications() {
         { term: <StatusDot tone="muted">Pas analysé</StatusDot>, meaning: 'Aucune analyse pour l’instant. Lance-la.' },
       ]} />
       <p>La file met devant les dossiers analysés, du plus sûr au moins sûr : tu valides vite ce qui est clair, puis tu prends le temps sur le reste.</p>
-      <p>Tout code part de 30 points (la ligne « Point de départ »), et la somme des lignes donne le score. Un code qui n’est qu’un nombre (« 2026 ») ou qui ressemble à une clé de licence perd 50 points : il n’est jamais classé clair. Quand l’IA lit la source sans y voir ce code, il perd encore 20 points.</p>
+      <p>Tout code part de 30 points (la ligne « Point de départ »), et la somme des lignes donne le score. Un code qui n’est qu’un nombre (« 2026 »), qui ressemble à une clé de licence ou qui n’est que le nom de l’outil (« LWS » pour LWS) perd 50 points : il n’est jamais classé clair. Quand l’IA lit la source sans y voir ce code, il perd encore 20 points.</p>
     </Section>
     <Section id="decider" title="Tes trois décisions">
       <Legend rows={[
@@ -298,10 +298,20 @@ function Verifications() {
       ]} />
       <Callout tone="why">« Vérifié » (la source est vérifiée) prouve que le code existe vraiment. « Testé au paiement » prouve qu’il marche aujourd’hui. Les deux rassurent le visiteur, mais pas de la même façon.</Callout>
     </Section>
+    <Section id="corriger" title="Corriger un code mal repéré">
+      <p>Le repérage automatique peut prendre le mauvais mot : dans « Code promo LWS : CQ410 », le vrai code est CQ410. Quand l’IA lit un autre code que celui du dossier, la carte le dit (« L’IA lit plutôt CQ410 ») avec un bouton <b>utiliser</b>.</p>
+      <Steps>
+        <Step title="Ouvrir la correction">Clique le <b>crayon</b> à côté du code, le bouton <b>utiliser</b> d’un code lu par l’IA, ou appuie sur <Key>E</Key>.</Step>
+        <Step title="Écrire le bon code">Recopie le code tel qu’il est donné dans la source, et corrige la réduction si besoin. L’extrait de la source est rappelé en haut de la fenêtre.</Step>
+        <Step title="Corriger et réanalyser">Le code est remplacé (le reste ne bouge pas) et l’analyse repart aussitôt avec le bon code. La correction est notée dans l’historique du code.</Step>
+      </Steps>
+      <Callout tone="tip">Un code déjà au catalogue pour cet outil est refusé, comme dans Codes. Pour changer l’outil, le créateur ou la source, passe par la fiche du code dans <Link href="/admin/codes">Codes</Link>.</Callout>
+    </Section>
     <Section id="clavier" title="Aller vite au clavier">
       <Legend rows={[
         { term: <><Key>J</Key> <Key>K</Key></>, meaning: 'Dossier suivant, dossier précédent.' },
         { term: <Key>A</Key>, meaning: 'Analyser le dossier en cours.' },
+        { term: <Key>E</Key>, meaning: 'Corriger le code du dossier en cours.' },
         { term: <Key>V</Key>, meaning: 'Valider.' },
         { term: <Key>T</Key>, meaning: 'Testé au paiement.' },
         { term: <Key>R</Key>, meaning: 'Rejeter.' },

@@ -10,6 +10,8 @@ export type QueueCheck = {
   model: string | null;
   costUsdMicros: number;
   createdAt: string;
+  /** Codes que l'IA a lus dans la source, autres que le code actuel : l'admin peut en reprendre un d'un clic. */
+  aiCodes: string[];
 };
 
 export type QueueItem = {
