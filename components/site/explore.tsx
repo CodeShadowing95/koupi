@@ -322,7 +322,7 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
                 {visible.map(code => (
                   <li key={code.id} className="k-ex-cell">
                     <BoardingCoupon code={code} link={code.creatorLink || toolSite.get(code.toolSlug) || '#'} category={toolCategory.get(code.toolSlug) || undefined}
-                      light={cards === 'simple'} votes={cards === 'simple'} />
+                      light={cards === 'simple'} votes={cards === 'simple'} votesTop />
                   </li>
                 ))}
               </ul>

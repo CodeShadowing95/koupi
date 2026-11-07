@@ -92,9 +92,19 @@
 .k-ex-count{flex:none;padding:4px 12px;border-radius:var(--r-pill);border:1px solid var(--line);font-family:var(--mono);font-size:var(--fs-xs);font-weight:700;color:var(--text-soft)}
 .k-ex-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px 22px}
 .k-ex-grid>li{min-width:0}
-.k-ex-grid.is-simple{gap:20px 18px}
-@container k-ex (max-width:940px){.k-ex-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@container k-ex (max-width:580px){.k-ex-grid{grid-template-columns:minmax(0,1fr)}}
+.k-ex-grid.is-simple{grid-template-columns:repeat(4,minmax(0,1fr));gap:20px 16px}
+/* Vue simple : 4 cartes par ligne, les pouces en haut à droite ; la réduction descend au-dessus du talon. */
+.k-ex-grid.is-simple .k-pass-main{padding:16px 16px 14px}
+.k-ex-grid.is-simple .k-pass-head{align-items:flex-start;gap:10px}
+.k-ex-grid.is-simple .k-pass-head .k-tool-logo{width:36px;height:36px}
+.k-ex-grid.is-simple .k-pass-title strong{font-size:var(--fs-lg)}
+.k-ex-grid.is-simple .k-pass-discount{margin-top:auto;font-size:var(--fs-xl)}
+.k-ex-grid.is-simple .k-pass-stub{padding:13px 16px}
+.k-ex-grid.is-simple .k-pass-thumbs{flex:none}
+.k-ex-grid.is-simple .k-pass-title{flex:1 1 0}
+@container k-ex (max-width:1000px){.k-ex-grid.is-simple{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@container k-ex (max-width:940px){.k-ex-grid,.k-ex-grid.is-simple{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container k-ex (max-width:580px){.k-ex-grid,.k-ex-grid.is-simple{grid-template-columns:minmax(0,1fr)}}
 .k-ex-more{display:flex;justify-content:center;margin-top:36px}
 .k-ex-empty{max-width:560px;margin:40px auto;padding:32px;border-radius:var(--r-2xl);border:1px dashed var(--line-2);text-align:center;color:var(--text-soft)}
 .k-ex-empty-title{margin-bottom:8px;font-family:var(--display);font-size:var(--fs-xl);font-weight:800;color:#fff}

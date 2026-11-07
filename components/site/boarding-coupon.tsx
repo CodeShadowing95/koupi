@@ -38,11 +38,12 @@ function shortDate(iso: string) {
  * compact : carte de la page créateur, mêmes infos que la vue liste plus les pouces (sans « Donné par » ni réussite, votes et date).
  * light : version allégée de l'accueil (logo et sceau, outil, créateur, réduction, talon), sans votes, chiffres ni source.
  * votes : ajoute les pouces à la version allégée, à droite de la réduction (rangées de la page Codes).
+ * votesTop : avec votes, les pouces montent en haut à droite, à côté du nom de l'outil (vue simple de la page Explorer).
  * linkTool : le papier du coupon (nom de l'outil compris) mène à sa fiche, sauf sur la fiche elle-même.
  */
-type Props = { code: Code; category?: string; link: string; compact?: boolean; light?: boolean; votes?: boolean; linkTool?: boolean };
+type Props = { code: Code; category?: string; link: string; compact?: boolean; light?: boolean; votes?: boolean; votesTop?: boolean; linkTool?: boolean };
 
-export function BoardingCoupon({ code, category, link, compact = false, light = false, votes = false, linkTool = true }: Props) {
+export function BoardingCoupon({ code, category, link, compact = false, light = false, votes = false, votesTop = false, linkTool = true }: Props) {
   const [torn, setTorn] = useState(false);
   const [failed, setFailed] = useState(false);
   const badge = codeBadge(code, { withDate: false });
@@ -83,10 +84,10 @@ export function BoardingCoupon({ code, category, link, compact = false, light = 
               ? <small className="k-pass-light-by">par {code.creator}<CreatorMark level={code.creatorLevel} compact /></small>
               : category && <small>{category}</small>}
           </span>
-          {!light && <CodeThumbs code={code} />}
+          {(!light || (votes && votesTop)) && <CodeThumbs code={code} />}
         </header>
 
-        {light && votes
+        {light && votes && !votesTop
           ? <div className="k-pass-light-foot"><p className="k-pass-discount">{code.discount}</p><CodeThumbs code={code} /></div>
           : compact || light
           ? <p className="k-pass-discount">{code.discount}</p>
