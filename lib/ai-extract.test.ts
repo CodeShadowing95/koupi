@@ -110,6 +110,12 @@ describe('keepVerbatimCodes et faux codes', () => {
     const codes = keepVerbatimCodes({ codes: ['2026', '3M3K9/5R92S/ZDH5Y/NA944', 'BITDEF20'].map(code => ({ code, tool: 'Bitdefender', discount: '', conditions: '', expires_on: '' })) }, text);
     expect(codes.map(item => item.code)).toEqual(['BITDEF20']);
   });
+
+  it('écarte un identifiant d’affiliation lu dans un lien (try.krispcall.com/tad)', () => {
+    const text = '- KrispCall: Agentic Cloud Telephony - https://try.krispcall.com/tad\n- Gradium : code GRADIUM20';
+    const codes = keepVerbatimCodes({ codes: [{ code: 'tad', tool: 'KrispCall' }, { code: 'GRADIUM20', tool: 'Gradium' }] }, text);
+    expect(codes.map(item => item.code)).toEqual(['GRADIUM20']);
+  });
 });
 
 describe('extractCodes', () => {
