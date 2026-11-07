@@ -54,6 +54,12 @@ describe('code annoncé après le nom de l’outil', () => {
 });
 
 describe('scanPromoCodes', () => {
+  it('ne prend pas un titre de chapitre collé à son minutage pour un code', () => {
+    const notes = 'Hostinger: use my code or link.TIMELINE00:00 OpenAI Code Red04:35 Hostinger (sponsor)11:12 Claude Code Cowork13:18 Google';
+    const { found, unknown } = scanPromoCodes(notes, tools);
+    expect([...found, ...unknown].map(item => item.code)).toEqual([]);
+  });
+
   it('ne prend pas un mot dans une adresse web pour un code annoncé', () => {
     const { found, unknown } = scanPromoCodes('Soldes : https://www.example.com/codeSUMMER24 et example.com/couponWINTER25', tools);
     expect(found).toEqual([]);

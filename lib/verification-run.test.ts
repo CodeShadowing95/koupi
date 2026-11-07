@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import { aiConfigFrom } from './ai-extract';
+import { CLEAR_SCORE } from './verification';
 import { createCode } from './codes-admin';
 import { runVerification, youtubeReader, youtubeVideoId, type SourceReader } from './verification-run';
 
@@ -140,11 +141,14 @@ describe('runVerification', () => {
     const clear = await runVerification(ctx.db, ctx.codeId, { readSource: reader('Merci NordVPN, code ANA10'), ai: { config, create: seen } });
     const missed = vi.fn(async (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => aiResponse(params.model, []));
     const doubtful = await runVerification(ctx.db, ctx.codeId, { readSource: reader('Merci NordVPN, code ANA10'), ai: { config, create: missed } });
-    expect(doubtful!.score).toBe(clear!.score - 20);
-    expect(doubtful?.reasons).toContainEqual({ points: -20, label: 'L’IA ne retrouve pas ce code dans la description.' });
+    // 90 − 20 resterait « clair » : le dossier descend juste sous le seuil, et la raison dit de combien.
+    expect(clear!.score).toBe(90);
+    expect(doubtful!.score).toBe(CLEAR_SCORE - 1);
+    expect(doubtful?.reasons).toContainEqual({ points: CLEAR_SCORE - 1 - 90, label: 'L’IA ne retrouve pas ce code dans la description.' });
     const other = vi.fn(async (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => aiResponse(params.model, ['CQ410']));
     const corrected = await runVerification(ctx.db, ctx.codeId, { readSource: reader('ANA10 · Code promo NordVPN : CQ410'), ai: { config, create: other } });
-    expect(corrected?.reasons).toContainEqual({ points: -20, label: 'L’IA ne retrouve pas ce code dans la description. Elle y lit plutôt : CQ410.' });
+    expect(corrected?.reasons).toContainEqual({ points: expect.any(Number), label: 'L’IA ne retrouve pas ce code dans la description. Elle y lit plutôt : CQ410.' });
+    expect(corrected!.score).toBeLessThan(CLEAR_SCORE);
   });
 
   it('ajoute au code le lien de l’offre lu par l’IA, et met en attente une offre par lien voisine', async () => {
