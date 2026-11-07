@@ -27,7 +27,7 @@ export function aiCodesOf(extracted: unknown, current: string): string[] {
 
 export async function verificationQueue(db: Db): Promise<QueueItem[]> {
   const rows = await db.select({
-    id: codes.id, code: codes.code, discount: codes.discount, status: codes.status,
+    id: codes.id, code: sql<string>`coalesce(${codes.code}, '')`, offerLink: codes.creatorLink, discount: codes.discount, status: codes.status,
     tool: tools.name, creator: creators.name, sourceUrl: codes.sourceUrl, sourceTitle: codes.sourceTitle,
     votesUp: codes.votesUp, votesDown: codes.votesDown, createdAt: codes.createdAt, expiresOn: codes.expiresOn, origin: codes.origin,
     expired: sql<boolean>`coalesce(${codes.expiresOn} < current_date and (${codes.lastTestedAt} is null or ${codes.lastTestedAt}::date <= ${codes.expiresOn}), false)`,

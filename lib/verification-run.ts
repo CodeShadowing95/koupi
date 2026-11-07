@@ -13,6 +13,7 @@ import { forVideo, mergeAiCodes } from './podcast-ai';
 import { addPendingCode } from './podcast-read';
 import { suggestionOrigin, type CodeOrigin } from './code-origin';
 import { youtubeFetch } from './api-usage';
+import { findLinkInText, isLinkOffer, offerName } from './offer-link';
 
 export type SourceRead = { online: boolean; title: string; description: string };
 /** Lit le texte d'une source. null : source impossible à lire (plateforme non prise en charge, clé absente). */
@@ -92,7 +93,8 @@ export async function addSiblingCodes(db: Db, code: CodeRow, source: SourceRead,
   const video = sourceKindOf(code.sourceUrl) === 'youtube';
   const found = video ? forVideo(merged.found) : merged.found;
   const unknown = video ? forVideo(merged.unknown) : merged.unknown;
-  const same = (value: string) => value.trim().toLowerCase() === code.code.trim().toLowerCase();
+  const same = (value: string) => value.trim().toLowerCase() === (code.code ?? '').trim().toLowerCase();
+  const name = offerName(code.code, code.creatorLink);
   const origin = AUTO_ORIGINS.includes(code.origin as CodeOrigin) ? code.origin as CodeOrigin : suggestionOrigin(code.sourceUrl);
   const added: string[] = [];
   const suggested: string[] = [];
@@ -100,8 +102,8 @@ export async function addSiblingCodes(db: Db, code: CodeRow, source: SourceRead,
     if (item.toolId === code.toolId || same(item.code)) continue;
     const id = await addPendingCode(db, {
       toolId: item.toolId, creatorId: code.creatorId, code: item.code, discount: item.discount, sourceUrl: code.sourceUrl, sourceTitle: code.sourceTitle,
-      note: `Trouvé dans la même source que ${code.code} : « ${item.evidence} »`, expiresOn: item.expiresOn, origin,
-    }, `Analyse de ${code.code}`);
+      note: `Trouvé dans la même source que ${name} : « ${item.evidence} »`, expiresOn: item.expiresOn, origin,
+    }, `Analyse de ${name}`);
     if (id) added.push(`${item.code} (${toolName.get(item.toolId) ?? 'outil'})`);
   }
   for (const item of unknown) {
@@ -120,15 +122,19 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
   const [code] = await db.select().from(codes).where(eq(codes.id, codeId)).limit(1);
   if (!code) return null;
 
+  // Offre par lien (sans code, ADR-0040) : c'est le lien qui la nomme, pour les doublons comme pour la preuve.
+  const linkOffer = isLinkOffer(code) && Boolean(code.creatorLink);
   const [duplicate] = await db.select({ id: codes.id }).from(codes)
-    .where(and(eq(codes.toolId, code.toolId), ne(codes.id, code.id), isNull(codes.archivedAt), sql`lower(${codes.code}) = lower(${code.code})`))
+    .where(and(eq(codes.toolId, code.toolId), ne(codes.id, code.id), isNull(codes.archivedAt), linkOffer
+      ? and(isNull(codes.code), sql`lower(${codes.creatorLink}) = lower(${code.creatorLink})`)
+      : sql`lower(${codes.code}) = lower(${code.code})`))
     .limit(1);
 
   const [tool] = await db.select({ name: tools.name }).from(tools).where(eq(tools.id, code.toolId)).limit(1);
 
   let source: SourceRead | null = null;
   try { source = await deps.readSource(code.sourceUrl); } catch { source = null; }
-  const match = source?.online ? findCodeInText(code.code, source.description) : null;
+  const match = !source?.online ? null : linkOffer ? findLinkInText(code.creatorLink ?? '', source.description) : findCodeInText(code.code ?? '', source.description);
 
   const result = scoreVerification({
     sourceOnline: source ? source.online : null,
@@ -136,8 +142,8 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
     creatorLevel: await creatorLevelFor(db, code.creatorId),
     toolKnown: true,
     duplicate: Boolean(duplicate),
-    spam: spamSignals({ sourceUrl: code.sourceUrl, code: code.code }),
-    implausible: implausibleCode(code.code, tool?.name),
+    spam: spamSignals({ sourceUrl: code.sourceUrl, code: code.code ?? '' }),
+    implausible: linkOffer ? null : implausibleCode(code.code ?? '', tool?.name),
     votesUp: code.votesUp,
     votesDown: code.votesDown,
   });
@@ -147,8 +153,10 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
   if (!source) reasons.push({ points: 0, label: 'Cette source ne peut pas encore être lue automatiquement : ouvre-la toi-même.' });
   const ai = source?.online ? await runAi(db, deps, mode, source, result.score) : { extraction: null, calls: [], note: null };
   if (ai.note) reasons.push(ai.note);
-  if (ai.extraction) {
-    const seen = ai.extraction.codes.find(found => found.code.toLowerCase() === code.code.toLowerCase());
+  if (linkOffer && match) reasons.push({ points: 0, label: match.found ? 'Offre par lien : le lien est bien dans la source.' : 'Offre par lien : le lien n’est pas dans la source.' });
+  // L'IA ne relève que des codes pour l'instant : une offre par lien n'est pas comparée à sa lecture.
+  if (ai.extraction && !linkOffer) {
+    const seen = ai.extraction.codes.find(found => found.code.toLowerCase() === (code.code ?? '').toLowerCase());
     // L'IA lit la phrase entière : quand elle ne voit pas de code là où notre repérage en voit un (« 2026 », un mot du titre),
     // le dossier n'est plus clair. Le score reste calculé ici, l'IA ne fait que retirer des points.
     if (seen) reasons.push({ points: 0, label: 'L’IA retrouve ce code dans la description.' });

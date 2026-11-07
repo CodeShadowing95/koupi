@@ -27,7 +27,7 @@ describe('validation du formulaire', () => {
     const body = { toolSlug: 'nordvpn', creatorName: 'Ana', discount: '-10 %', sourceUrl: 'https://youtube.com/watch?v=a' };
     expect(parseCodeInput({ ...body, code: '  merci-20 ' })).toMatchObject({ ok: true, data: { code: 'MERCI-20' } });
     for (const code of ['<script>alert(1)</script>', 'MERCI 20', 'A'.repeat(41)]) expect(parseCodeInput({ ...body, code })).toMatchObject({ ok: false, error: expect.stringContaining('lettres, des chiffres, des tirets') });
-    expect(parseCodeInput({ ...body, code: ' ' })).toEqual({ ok: false, error: 'Indique le code.' });
+    expect(parseCodeInput({ ...body, code: ' ' })).toEqual({ ok: false, error: 'Indique le code, ou le lien de l’offre s’il n’y a pas de code.' });
   });
 
   it('dit ce qui manque pour un nouvel outil', () => {
@@ -52,6 +52,27 @@ describe('validation du formulaire', () => {
 describe('actions de l’admin', () => {
   let db: Db;
   beforeEach(async () => { db = await freshDb(); });
+
+  it('enregistre une offre donnée seulement par un lien, sans code, et refuse son doublon', async () => {
+    const parsed = parseCodeInput({ toolSlug: 'nordvpn', creatorName: 'Ana', code: '', discount: '-20 %', sourceUrl: 'https://youtube.com/watch?v=a', creatorLink: 'https://nordvpn.com/ana' });
+    expect(parsed).toMatchObject({ ok: true, data: { code: '', creatorLink: 'https://nordvpn.com/ana' } });
+    if (!parsed.ok) return;
+    const created = await createCode(db, parsed.data);
+    expect(created.ok).toBe(true);
+    const [row] = await db.select().from(schema.codes);
+    expect(row.code).toBeNull();
+    const catalog = await loadCatalog(db);
+    expect(catalog.codes[0]).toMatchObject({ code: '', creatorLink: 'https://nordvpn.com/ana' });
+    // Le même lien sans code pour le même outil fait doublon ; un vrai code à côté reste possible.
+    expect(await createCode(db, { ...parsed.data, creatorLink: 'https://NordVPN.com/ana' })).toMatchObject({ ok: false, error: 'Cette offre par lien existe déjà pour cet outil.' });
+    expect((await createCode(db, { ...parsed.data, code: 'ANA20' })).ok).toBe(true);
+  });
+
+  it('refuse en base une offre sans code ni lien', async () => {
+    const [creator] = await db.insert(schema.creators).values({ slug: 'ana', name: 'Ana' }).returning();
+    const [tool] = await db.select().from(schema.tools);
+    await expect(db.insert(schema.codes).values({ toolId: tool.id, creatorId: creator.id, code: null, discount: '-20 %', sourceUrl: 'https://youtube.com/watch?v=a' })).rejects.toThrow();
+  });
 
   it('crée un code, son créateur, et l’inscrit au journal', async () => {
     const result = await createCode(db, base);

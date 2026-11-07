@@ -84,8 +84,8 @@ export function buildNotifications(input: {
     text: 'd’un visiteur', detail: excerpt(item.message), href: '/admin/retours', at: item.at,
   }));
   for (const code of flaggedCodes(input.codes, now).slice(0, MAX_FLAGS)) list.push(make({
-    id: `flag-${code.id}-${code.votes}`, tone: 'bad', kind: 'flag', subject: code.code, text: 'signalé par les visiteurs',
-    detail: `${code.tool} · ${plural(code.votes, 'vote')}, ${code.success} % de réussite`, href: `/admin/codes?q=${q(code.code)}`, at: null,
+    id: `flag-${code.id}-${code.votes}`, tone: 'bad', kind: 'flag', subject: code.code || 'Offre par lien', text: 'signalé par les visiteurs',
+    detail: `${code.tool} · ${plural(code.votes, 'vote')}, ${code.success} % de réussite`, href: `/admin/codes?q=${q(code.code || code.tool)}`, at: null,
   }));
   const stale = staleCodes(input.codes, now).length;
   if (stale) list.push(make({

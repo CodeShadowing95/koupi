@@ -132,9 +132,9 @@ export function todos(catalog: CatalogInput, pendingSubmissions: number | null, 
   });
   for (const code of stats.flagged.slice(0, 2)) list.push({
     id: `flag-${code.id}`, tone: 'bad',
-    title: `Revoir ${code.code} (${code.tool}) : ${code.votes} votes, ${code.success} % de réussite`,
+    title: `Revoir ${code.code || 'l’offre par lien'} (${code.tool}) : ${code.votes} votes, ${code.success} % de réussite`,
     why: 'Les visiteurs signalent qu’il ne marche pas. Teste-le : s’il est mort, passe-le en Rejeté.',
-    cta: 'Voir le code', href: `/admin/codes?q=${encodeURIComponent(code.code)}`,
+    cta: 'Voir le code', href: `/admin/codes?q=${encodeURIComponent(code.code || code.tool)}`,
   });
   const stale = staleCodes(catalog.codes, now);
   if (stale.length) list.push({

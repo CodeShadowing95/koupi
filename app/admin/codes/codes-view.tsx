@@ -1,4 +1,5 @@
 'use client';
+import { LinkOfferTag } from '@/components/admin-link-offer-tag';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Category, Code } from '@/lib/data';
@@ -139,7 +140,7 @@ export function CodesView({ codes: rows, tools, categories, copies }: { codes: C
               <tbody>
                 {current.items.map(code => (
                   <tr key={code.id} data-open onClick={openOnClick(() => setSelectedId(code.id))}>
-                    <td className="mono"><span className="adm-code-cell"><button type="button" className="adm-open" title={`Voir le détail de ${code.code}`} onClick={() => setSelectedId(code.id)}>{code.code}</button><CopyCode code={code.code} /></span></td>
+                    <td className="mono"><span className="adm-code-cell"><button type="button" className="adm-open" title={`Voir le détail de ${code.code || 'l’offre par lien'}`} onClick={() => setSelectedId(code.id)}>{code.code || <LinkOfferTag />}</button>{code.code && <CopyCode code={code.code} />}</span></td>
                     <td className="adm-cell-nowrap"><ToolSiteLink name={code.tool} website={siteOf.get(code.toolSlug)} /></td>
                     <td className="adm-cell-wrap">{code.discount}</td>
                     <td className="adm-cell-wrap">{code.creator}</td>
@@ -158,7 +159,7 @@ export function CodesView({ codes: rows, tools, categories, copies }: { codes: C
           <div className="adm-grid adm-page-enter" key={`grid-${current.page}`}>
             {current.items.map(code => (
               <article className="adm-card" key={code.id} data-open onClick={openOnClick(() => setSelectedId(code.id))}>
-                <div className="adm-card-row"><button type="button" className="mono adm-open" title={`Voir le détail de ${code.code}`} onClick={() => setSelectedId(code.id)}>{code.code}</button><CopyCode code={code.code} /><StatusDot tone={statusTone[code.status]}>{statusLabel[code.status].label}</StatusDot></div>
+                <div className="adm-card-row"><button type="button" className="mono adm-open" title={`Voir le détail de ${code.code || 'l’offre par lien'}`} onClick={() => setSelectedId(code.id)}>{code.code || <LinkOfferTag />}</button>{code.code && <CopyCode code={code.code} />}<StatusDot tone={statusTone[code.status]}>{statusLabel[code.status].label}</StatusDot></div>
                 <p className="adm-card-line" title={`${code.tool} · ${code.discount}`}><ToolSiteLink name={code.tool} website={siteOf.get(code.toolSlug)} /> <span>· {code.discount}</span></p>
                 <div className="adm-card-foot">
                   <span className="adm-card-meta" title={[cardMeta(code, code.copies), code.note && `Note : ${code.note}`].filter(Boolean).join('\n')}>{cardMeta(code, code.copies)}</span>
@@ -171,8 +172,8 @@ export function CodesView({ codes: rows, tools, categories, copies }: { codes: C
           </div>
         )}
         <Pagination current={current} onChange={goTo} label="codes" size={size} onSizeChange={changeSize} />
-        <AdminDrawer open={selected !== null} onClose={() => setSelectedId(null)} label={`Détail du code ${selected?.code ?? ''}`} eyebrow={selected?.archived ? 'Code archivé' : 'Code'}
-          title={selected && <span className="adm-code-cell"><span className="mono">{selected.code}</span><CopyCode code={selected.code} /></span>}
+        <AdminDrawer open={selected !== null} onClose={() => setSelectedId(null)} label={`Détail du code ${selected?.code || 'par lien'}`} eyebrow={selected?.archived ? 'Code archivé' : 'Code'}
+          title={selected && <span className="adm-code-cell">{selected.code ? <><span className="mono">{selected.code}</span><CopyCode code={selected.code} /></> : <LinkOfferTag />}</span>}
           aside={selected && <StatusDot tone={statusTone[selected.status]}>{statusLabel[selected.status].label}</StatusDot>}
           actions={selected && <>{actions(selected)}<span style={{ flex: 1 }} /><button type="button" className="adm-btn adm-btn-pri" onClick={() => setEditing({ kind: 'edit', code: selected })}>Modifier</button></>}>
           {selected && <>
@@ -186,7 +187,7 @@ export function CodesView({ codes: rows, tools, categories, copies }: { codes: C
             <DetailList items={[
               { label: 'Trouvé par', value: selected.origin && CODE_ORIGIN_LABELS[selected.origin] },
               { label: 'Source', value: <a href={selected.source} target="_blank" rel="noopener noreferrer">{selected.sourceTitle || 'Ouvrir la source'} ↗</a> },
-              { label: 'Lien du créateur', value: selected.creatorLink && <a href={selected.creatorLink} target="_blank" rel="noopener noreferrer">Ouvrir ↗</a> },
+              { label: 'Lien de l’offre', value: selected.creatorLink && <a href={selected.creatorLink} target="_blank" rel="noopener noreferrer">Ouvrir ↗</a> },
             ]} />
             <span className="eyebrow">Tests et dates</span>
             <DetailList items={[

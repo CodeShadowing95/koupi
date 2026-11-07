@@ -75,7 +75,7 @@ export async function adminInsights(db: Db, period: Period, now = new Date()): P
     db.select({ id: moderationLogs.id, action: moderationLogs.action, nextStatus: moderationLogs.nextStatus, at: moderationLogs.createdAt, code: submissions.code, tool: submissions.toolName })
       .from(moderationLogs).leftJoin(submissions, eq(moderationLogs.submissionId, submissions.id))
       .orderBy(desc(moderationLogs.createdAt)).limit(6),
-    db.select({ id: codeLogs.id, action: codeLogs.action, nextStatus: codeLogs.nextStatus, at: codeLogs.createdAt, code: codes.code, tool: tools.name })
+    db.select({ id: codeLogs.id, action: codeLogs.action, nextStatus: codeLogs.nextStatus, at: codeLogs.createdAt, code: sql<string>`coalesce(${codes.code}, 'offre par lien')`, tool: tools.name })
       .from(codeLogs).innerJoin(codes, eq(codeLogs.codeId, codes.id)).innerJoin(tools, eq(codes.toolId, tools.id))
       .orderBy(desc(codeLogs.createdAt)).limit(6),
     countOpenCreatorRequests(db),
