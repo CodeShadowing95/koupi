@@ -7,8 +7,8 @@ export const ABOUT_SECTIONS = [
   { id: 'principe', label: 'Le principe' },
   { id: 'createurs-credites', label: 'Les créateurs' },
   { id: 'regle', label: 'La règle' },
-  { id: 'contribuer', label: 'Contribuer' },
   { id: 'espace-createurs', label: 'Tu es créateur ?', accent: true },
+  { id: 'contribuer', label: 'Contribuer' },
 ] as const satisfies readonly AboutSection[];
 
 export type AboutSectionId = (typeof ABOUT_SECTIONS)[number]['id'];

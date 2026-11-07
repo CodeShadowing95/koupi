@@ -7,9 +7,10 @@ describe('sections de la page Présentation', () => {
     expect(new Set(ids).size).toBe(ids.length);
     for (const id of ids) expect(id).toMatch(/^[a-z]+(-[a-z]+)*$/);
   });
-  it('met en avant la section créateurs, en dernier', () => {
+  it('met en avant la section créateurs, placée avant « Contribuer »', () => {
+    const ids = ABOUT_SECTIONS.map(section => section.id);
     expect(ABOUT_SECTIONS.filter(section => 'accent' in section).map(section => section.id)).toEqual(['espace-createurs']);
-    expect(ABOUT_SECTIONS.at(-1)?.id).toBe('espace-createurs');
+    expect(ids.indexOf('espace-createurs')).toBe(ids.indexOf('contribuer') - 1);
   });
   it('souligne la dernière section passée sous la ligne de lecture', () => {
     const tops = [{ id: 'a', top: -900 }, { id: 'b', top: 40 }, { id: 'c', top: 700 }];

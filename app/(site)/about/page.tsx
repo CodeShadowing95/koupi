@@ -98,6 +98,8 @@ export default async function About() {
         </div>
       </section>
 
+      {studioExample && <CreatorStudio id={anchor('espace-createurs')} example={studioExample} copies={copies} creators={creators.size} />}
+
       <section className="k-section is-tight" id={anchor('contribuer')}>
         <div className="k-wrap">
           <div className="k-cta" data-reveal>
@@ -117,7 +119,6 @@ export default async function About() {
         </div>
       </section>
 
-      {studioExample && <CreatorStudio id={anchor('espace-createurs')} example={studioExample} copies={copies} creators={creators.size} />}
 
       <section className="k-section is-tight">
         <div className="k-wrap">

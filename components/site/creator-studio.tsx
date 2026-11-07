@@ -29,10 +29,6 @@ export function CreatorStudio({ id, example, copies, creators }: { id: string; e
         .fromTo('.k-studio-stamp', { scale: 2.6, autoAlpha: 0, rotation: 6 }, { scale: 1, autoAlpha: 1, rotation: -9, duration: 0.45, ease: 'back.out(3)' })
         .from('.k-studio-bubble', { scale: 0, autoAlpha: 0, transformOrigin: '100% 100%', duration: 0.6, ease: 'elastic.out(1,0.55)' }, '-=0.1')
         .from('.k-studio-arrow', { autoAlpha: 0, x: -20, duration: 0.4, ease: 'power2.out' }, 0.9);
-      gsap.fromTo('.k-studio-title-hl', { backgroundSize: '0% 42%' }, {
-        backgroundSize: '100% 42%', duration: 0.9, ease: 'power2.inOut',
-        scrollTrigger: { trigger: '.k-studio-title', start: 'top 80%', once: true },
-      });
       gsap.from('.k-studio-perk', { y: 30, autoAlpha: 0, stagger: 0.1, duration: 0.6, ease: 'power3.out', scrollTrigger: { trigger: '.k-studio-perks', start: 'top 85%', once: true } });
     });
   }, { scope: root });
