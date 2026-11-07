@@ -190,3 +190,11 @@ describe('description à plusieurs outils, codes sous le lien', () => {
     expect(scanPromoCodes('NordVPN : nordvpn.com, code : 20%', []).unknown).toEqual([]);
   });
 });
+
+describe('site de l’outil écrit avec www', () => {
+  it('rattache le code à l’outil du catalogue même quand le lien commence par www.', () => {
+    const { found, unknown } = scanPromoCodes('https://www.planethoster.com/goph-yapo -10% de réduction avec le Code Promo : PHA-10ECO', [{ id: 't-ph', name: 'PlanetHoster', domain: 'planethoster.com' }]);
+    expect(found).toMatchObject([{ toolId: 't-ph', code: 'PHA-10ECO', discount: '-10%' }]);
+    expect(unknown).toEqual([]);
+  });
+});

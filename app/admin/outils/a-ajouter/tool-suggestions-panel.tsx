@@ -2,6 +2,7 @@
 // Outils à ajouter : codes lus dans les podcasts et les vidéos YouTube pour des outils absents du catalogue. L'admin ajoute l'outil
 // (ou le relie à un outil déjà suivi sous un autre nom) et le code part en attente dans Vérifications, ou ignore.
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { IconButton } from '@/components/admin-card';
 import { FormDialog, sendJson } from '@/components/admin-form-dialog';
@@ -15,6 +16,7 @@ export type CategoryOption = { slug: string; name: string };
 export type CatalogToolOption = { slug: string; name: string; category: string };
 
 type Mode = 'new' | 'existing';
+const isVideo = (url: string) => /^https?:\/\/(?:www\.|m\.)?(?:youtube\.com|youtu\.be)\//i.test(url);
 /** Valeur de la liste des catégories qui ouvre le champ « nouvelle catégorie ». */
 const NEW_CATEGORY = '__new';
 const emptyForm = { name: '', categorySlug: '', newCategory: '', website: '', toolSlug: '', description: '' };
@@ -43,10 +45,21 @@ export function ToolSuggestionsPanel({ suggestions, categories, tools, ai }: { s
   };
 
   function open(item: AdminToolSuggestion) {
-    setMode('new');
+    // L'outil existe déjà (même nom ou même site) : le formulaire s'ouvre sur « Déjà dans le catalogue », outil choisi.
+    const known = item.existing && !item.existing.archived ? item.existing : null;
+    setMode(known ? 'existing' : 'new');
     setAiError('');
-    setForm({ ...emptyForm, name: item.name, website: item.domain ? `https://${item.domain}` : '', ...fromAnalysis(item.analysis) });
+    setForm({ ...emptyForm, name: item.name, website: item.domain ? `https://${item.domain}` : '', ...fromAnalysis(item.analysis), ...(known ? { toolSlug: known.slug } : {}) });
     setAdding(item);
+  }
+  // Un clic : les codes de cette suggestion (et des autres du même outil) partent en attente sur l'outil existant.
+  async function link(item: AdminToolSuggestion, slug: string) {
+    setBusy(item.id);
+    setError('');
+    const failure = await sendJson(`/api/admin/tool-suggestions/${item.id}`, 'POST', { action: 'add', toolSlug: slug });
+    setBusy(null);
+    if (failure) setError(failure);
+    else router.refresh();
   }
   // Lecture du site par l'IA : depuis la carte (domaine trouvé) ou depuis le formulaire (site corrigé).
   async function analyze(item: AdminToolSuggestion, website?: string, description?: string): Promise<string | null> {
@@ -121,11 +134,16 @@ export function ToolSuggestionsPanel({ suggestions, categories, tools, ai }: { s
                 </div>
                 <p className="adm-card-sub">{item.discount}</p>
                 <p className="adm-sugg-evidence">« {item.evidence} »</p>
-                {item.analysis && analysisBlock(item.analysis)}
-                <p className="adm-card-sub"><a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" title={item.sourceTitle}>{item.podcastTitle ?? 'Podcast'} · {item.sourceTitle} ↗</a></p>
+                {item.existing && (item.existing.archived
+                  ? <p className="adm-sugg-known">{item.existing.name} est déjà dans le catalogue, mais archivé. Restaure-le dans <Link href="/admin/outils">Outils</Link> pour y relier ce code.</p>
+                  : <p className="adm-sugg-known"><b>{item.existing.name}</b> est déjà dans le catalogue : relie simplement le code.</p>)}
+                {!item.existing && item.analysis && analysisBlock(item.analysis)}
+                <p className="adm-card-sub"><a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" title={item.sourceTitle}>{item.podcastTitle ?? (isVideo(item.sourceUrl) ? 'Vidéo YouTube' : 'Podcast')} · {item.sourceTitle} ↗</a></p>
                 <div className="adm-card-foot">
-                  <button type="button" className="adm-btn adm-btn-pri" disabled={busy !== null} onClick={() => open(item)}>Ajouter l’outil</button>
-                  {aiButton(item)}
+                  {item.existing && !item.existing.archived
+                    ? <button type="button" className="adm-btn adm-btn-pri" disabled={busy !== null} title={`Le code ${item.code} part en attente dans Vérifications, sur ${item.existing.name}`} onClick={() => link(item, item.existing!.slug)}>{busy === item.id ? 'Liaison…' : `Relier à ${item.existing.name}`}</button>
+                    : <button type="button" className="adm-btn adm-btn-pri" disabled={busy !== null || Boolean(item.existing?.archived)} onClick={() => open(item)}>Ajouter l’outil</button>}
+                  {!item.existing && aiButton(item)}
                   <span className="adm-card-push"><IconButton icon="cross" tone="bad" label={`Ignorer le code ${item.code} de ${item.name}`} disabled={busy !== null} onClick={() => ignore(item)} /></span>
                 </div>
               </article>
