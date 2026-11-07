@@ -55,10 +55,10 @@ function SeReperer() {
       <p>Le menu est rangé par grandes tâches, de haut en bas :</p>
       <Legend rows={[
         { term: 'Pilotage', meaning: <><b>Accueil</b> (ce qu’il y a à faire aujourd’hui), <b>Statistiques</b> (les chiffres en détail, en quatre onglets, dont <b>Consommation</b> : le quota YouTube et la dépense IA, et <b>Vitesse</b> : la vitesse ressentie par les visiteurs) et <b>Retours</b> (les avis des visiteurs).</> },
-        { term: 'Catalogue', meaning: <><b>Codes</b> (tout le catalogue), avec en sous-menus <b>Propositions</b> (les codes envoyés par les visiteurs), <b>Vérifications</b> (les dossiers préparés avec un score), <b>Sources</b> (d’où viennent les codes, ce qu’elles rapportent et coûtent) et <b>Podcasts suivis</b>. Puis <b>Créateurs</b> (avec <b>Demandes</b>) et <b>Outils</b> (avec <b>Catégories</b>).</> },
+        { term: 'Catalogue', meaning: <><b>Codes</b> (tout le catalogue), avec en sous-menus <b>Propositions</b> (les codes envoyés par les visiteurs), <b>Vérifications</b> (les dossiers préparés avec un score), <b>Sources</b> (d’où viennent les codes, ce qu’elles rapportent et coûtent) et <b>Podcasts suivis</b>. Puis <b>Créateurs</b> (avec <b>Demandes</b>) et <b>Outils</b> (avec <b>Outils à ajouter</b> et <b>Catégories</b>).</> },
         { term: 'Aide et réglages', meaning: <>Ce <b>guide</b> et l’espace <b>Administration</b>.</> },
       ]} />
-      <p>Un clic sur le nom ouvre la page. La <b>flèche</b> à droite déplie ses sous-menus ; ils restent ouverts quand tu es sur l’une de leurs pages. Un nombre orange veut dire « des éléments t’attendent » ; menu replié, un <b>point orange</b> près de la flèche dit qu’un sous-menu en a. <b>Voir le site</b> et <b>Se déconnecter</b> restent toujours en bas, sans défiler.</p>
+      <p>Un clic sur le nom ouvre la page. La <b>flèche</b> à droite déplie ses sous-menus ; ils restent ouverts quand tu es sur l’une de leurs pages. Un nombre orange veut dire « des éléments t’attendent » : codes à tester (Codes), propositions à valider, codes en attente de ta décision (Vérifications), outils à ajouter, nouveaux podcasts candidats, avis et demandes. Il se met à jour dès qu’une analyse, une lecture ou une recherche apporte du nouveau. Menu replié, un <b>point orange</b> près de la flèche dit qu’un sous-menu en a. <b>Voir le site</b> et <b>Se déconnecter</b> restent toujours en bas, sans défiler.</p>
       <p>Juste au-dessus, la jauge de <b>consommation</b> montre sur deux lignes le quota YouTube du jour et le plafond IA du mois ; elle passe à l’orange à 70 %, au rouge à 90 %, et se met à jour chaque minute. Un clic ouvre l’onglet Consommation de Statistiques.</p>
       <p>Chaque page porte son nom dans l’onglet du navigateur (« Codes · Admin Merkod ») : tu reconnais tes onglets d’un coup d’œil. Le petit titre au-dessus du nom de la page reprend le groupe du menu (Pilotage, Catalogue).</p>
       <p>En haut des listes (Propositions, Codes, Vérifications, Outils, Créateurs, Demandes, Retours), <b>Actualiser</b> relit la liste sans recharger la page ni perdre tes filtres.</p>
@@ -249,7 +249,7 @@ function Codes() {
     <Section id="ajouter" title="Ajouter ou modifier un code">
       <p>Le bouton <b>Nouveau code</b> ouvre le formulaire. Les champs importants :</p>
       <Legend rows={[
-        { term: 'Code', meaning: 'Lettres, chiffres et tirets, sans espace, 40 caractères au plus. Il est rangé en majuscules : « merci20 » devient « MERCI20 ». Si l’outil a déjà ce code, même archivé, le formulaire te prévient avec un lien et refuse d’en créer un deuxième.' },
+        { term: 'Code', meaning: 'Lettres, chiffres, tirets et tirets bas, sans espace, avec au plus un % collé à la fin (« SOLARFLOWTECH5% »), 40 caractères au plus. Il est rangé en majuscules : « merci20 » devient « MERCI20 ». Si l’outil a déjà ce code, même archivé, le formulaire te prévient avec un lien et refuse d’en créer un deuxième.' },
         { term: 'Lien de la source', meaning: 'Obligatoire. La vidéo, l’épisode ou le post où le créateur donne le code.' },
         { term: 'Réduction', meaning: 'Court et concret : « -20 % », « 3 mois offerts », « 50 € offerts ».' },
         { term: 'Lien du créateur', meaning: 'Facultatif. Son lien d’affiliation, ouvert tel quel quand le visiteur clique.' },
@@ -276,6 +276,7 @@ function Verifications() {
         <Step title="Chercher le code">Le code doit figurer <b>mot pour mot</b> dans la description. Si oui, l’extrait apparaît avec le code surligné : c’est ta preuve.</Step>
         <Step title="Faire les contrôles">Source en ligne, doublon, signes de spam, votes des visiteurs, et <b>niveau du créateur</b> : +15 s’il est « Contrôlé par Merkod », +20 s’il est vérifié. Le niveau se règle dans <Link href="/admin/createurs">Créateurs</Link>.</Step>
         <Step title="Repérer la date de fin">Si la description donne une date (« jusqu’au 31/12 ») et que le code n’en a pas, l’IA remplit le champ <b>Valable jusqu’au</b>. Tu peux la corriger dans Codes.</Step>
+        <Step title="Ajouter les autres codes de la source">Une description donne souvent plusieurs codes, un par outil. Ceux des outils du catalogue qui ne sont pas encore chez nous arrivent <b>En attente</b> dans cette page (pas encore analysés), ceux des outils absents vont dans <b>Outils à ajouter</b>. Une ligne de la carte le dit. Un autre code pour le <b>même</b> outil n’est pas ajouté : c’est sans doute le bon, reprends-le avec le crayon.</Step>
         <Step title="Calculer le score">Chaque contrôle ajoute ou retire des points. Les raisons sont listées sous l’extrait, avec leurs points.</Step>
       </Steps>
       <p>Le bouton <b>Analyser</b> lance l’analyse d’un code ; <b>Analyser les codes non analysés</b> les fait tous, l’un après l’autre.</p>
@@ -288,7 +289,7 @@ function Verifications() {
         { term: <StatusDot tone="muted">Pas analysé</StatusDot>, meaning: 'Aucune analyse pour l’instant. Lance-la.' },
       ]} />
       <p>La file met devant les dossiers analysés, du plus sûr au moins sûr : tu valides vite ce qui est clair, puis tu prends le temps sur le reste.</p>
-      <p>Tout code part de 30 points (la ligne « Point de départ »), et la somme des lignes donne le score. Un code qui n’est qu’un nombre (« 2026 ») ou qui ressemble à une clé de licence perd 50 points : il n’est jamais classé clair. Quand l’IA lit la source sans y voir ce code, il perd encore 20 points.</p>
+      <p>Tout code part de 30 points (la ligne « Point de départ »), et la somme des lignes donne le score. Un code qui n’est qu’un nombre (« 2026 »), qui ressemble à une clé de licence ou qui n’est que le nom de l’outil (« LWS » pour LWS) perd 50 points : il n’est jamais classé clair. Quand l’IA lit la source sans y voir ce code, il perd encore 20 points.</p>
     </Section>
     <Section id="decider" title="Tes trois décisions">
       <Legend rows={[
@@ -298,10 +299,20 @@ function Verifications() {
       ]} />
       <Callout tone="why">« Vérifié » (la source est vérifiée) prouve que le code existe vraiment. « Testé au paiement » prouve qu’il marche aujourd’hui. Les deux rassurent le visiteur, mais pas de la même façon.</Callout>
     </Section>
+    <Section id="corriger" title="Corriger un code mal repéré">
+      <p>Le repérage automatique peut prendre le mauvais mot : dans « Code promo LWS : CQ410 », le vrai code est CQ410. Quand l’IA lit un autre code que celui du dossier, la carte le dit (« L’IA lit plutôt CQ410 ») avec un bouton <b>utiliser</b>.</p>
+      <Steps>
+        <Step title="Ouvrir la correction">Clique le <b>crayon</b> à côté du code, le bouton <b>utiliser</b> d’un code lu par l’IA, ou appuie sur <Key>E</Key>.</Step>
+        <Step title="Écrire le bon code">Recopie le code tel qu’il est donné dans la source, et corrige la réduction si besoin. L’extrait de la source est rappelé en haut de la fenêtre.</Step>
+        <Step title="Corriger et réanalyser">Le code est remplacé (le reste ne bouge pas) et l’analyse repart aussitôt avec le bon code. La correction est notée dans l’historique du code.</Step>
+      </Steps>
+      <Callout tone="tip">Un code déjà au catalogue pour cet outil est refusé, comme dans Codes. Pour changer l’outil, le créateur ou la source, passe par la fiche du code dans <Link href="/admin/codes">Codes</Link>.</Callout>
+    </Section>
     <Section id="clavier" title="Aller vite au clavier">
       <Legend rows={[
         { term: <><Key>J</Key> <Key>K</Key></>, meaning: 'Dossier suivant, dossier précédent.' },
         { term: <Key>A</Key>, meaning: 'Analyser le dossier en cours.' },
+        { term: <Key>E</Key>, meaning: 'Corriger le code du dossier en cours.' },
         { term: <Key>V</Key>, meaning: 'Valider.' },
         { term: <Key>T</Key>, meaning: 'Testé au paiement.' },
         { term: <Key>R</Key>, meaning: 'Rejeter.' },
@@ -335,7 +346,7 @@ function Podcasts() {
     </Section>
     <Section id="ajouter" title="Ajouter un podcast">
       <Steps>
-        <Step title="Cherche-le">La page a quatre onglets : <b>Suivis</b> (ta liste), <b>+ Ajouter un podcast</b>, <b>Candidats</b> et <b>Outils à ajouter</b> (voir plus bas). Dans le deuxième, tape le nom du podcast puis <b>Chercher</b>. Merkod interroge l’annuaire d’Apple Podcasts, gratuit et sans clé. Les noms sous le champ sont les podcasts conseillés pour démarrer : un clic lance la recherche.</Step>
+        <Step title="Cherche-le">La page a trois onglets : <b>Suivis</b> (ta liste), <b>+ Ajouter un podcast</b> et <b>Candidats</b>. Les codes d’outils absents du catalogue ont leur page, <b>Outils › Outils à ajouter</b> (voir plus bas). Dans le deuxième, tape le nom du podcast puis <b>Chercher</b>. Merkod interroge l’annuaire d’Apple Podcasts, gratuit et sans clé. Les noms sous le champ sont les podcasts conseillés pour démarrer : un clic lance la recherche.</Step>
         <Step title="Ou découvre-en">Sous la recherche, <b>Découvrir, classement Apple</b> propose cinq genres où les sponsors donnent souvent des codes d’outils : Entrepreneuriat, Affaires, Technologies, Investissement et Marketing. Un clic affiche les 50 podcasts les plus écoutés en France dans ce genre, avec leur rang, sans ceux que tu suis déjà.</Step>
         <Step title="Vérifie que c’est le bon">L’auteur, le genre et le nombre d’épisodes aident à éviter les homonymes. <b>Écouter</b> ouvre sa page Apple Podcasts.</Step>
         <Step title="Clique sur Suivre">Le podcast rejoint l’onglet Suivis. Merkod crée aussi son <b>créateur</b> (au nom du podcast) et y relie un compte « Podcast » : les codes trouvés seront crédités à ce créateur. Tu peux le renommer ou lui relier ses autres réseaux dans <Link href="/admin/createurs">Créateurs</Link>.</Step>
@@ -368,15 +379,15 @@ function Podcasts() {
     <Section id="lecture" title="La lecture des épisodes">
       <Steps>
         <Step title="Chaque nuit">Merkod lit les épisodes récents de chaque podcast actif dans Apple Podcasts : ceux des {FIRST_READ_DAYS} derniers jours la première fois, puis ceux sortis depuis la lecture précédente.</Step>
-        <Step title="Repérer les codes">Dans les notes de chaque épisode, Merkod cherche un code annoncé par « code », « code promo » ou « coupon », et un <b>outil du catalogue</b> nommé (ou son site cité) sur la même ligne ou celle d’avant. Si l’outil n’est pas au catalogue, le code est gardé dans l’onglet <b>Outils à ajouter</b>.</Step>
-        <Step title="L’IA, quand elle est active">Quand l’IA est activée, elle lit aussi les notes des nouveaux épisodes qui parlent d’une offre. Elle retrouve les codes mal formulés, la réduction exacte et la date de fin, et rattache chaque code au bon outil. Elle ne garde que les codes écrits mot pour mot dans les notes. Un épisode déjà lu n’est pas relu, et chaque lecture compte dans le plafond du mois. Sans IA, le repérage ci-dessus continue seul.</Step>
+        <Step title="Repérer les codes">Dans les notes de chaque épisode, Merkod cherche un code annoncé par « code », « code promo » ou « coupon », et un <b>outil du catalogue</b> nommé (ou son site cité) sur la même ligne ou celle d’avant. Si l’outil n’est pas au catalogue, le code est gardé dans <b>Outils › Outils à ajouter</b>.</Step>
+        <Step title="L’IA, quand elle est active">Quand l’IA est activée, elle lit aussi les notes des nouveaux épisodes qui parlent d’une offre. C’est elle qui lit en premier : elle retrouve les codes mal formulés, la réduction exacte et la date de fin, et rattache chaque code au bon outil ; son outil et sa réduction priment sur le repérage. Elle ne garde que les codes écrits mot pour mot dans les notes. Un épisode déjà lu n’est pas relu, et chaque lecture compte dans le plafond du mois. Sans IA, le repérage ci-dessus continue seul.</Step>
         <Step title="L’envoyer en vérification">Chaque nouveau code est ajouté <b>En attente</b> (invisible sur le site), crédité au créateur du podcast, avec l’épisode comme source. Son dossier est analysé aussitôt et t’attend dans <Link href="/admin/verifications">Vérifications</Link>. Un code déjà connu pour cet outil n’est jamais recréé.</Step>
       </Steps>
       <p><b>Lire les épisodes maintenant</b>, en haut de la page, lance la lecture sans attendre la nuit ; <b>Lire</b>, sur une ligne, lit ce seul podcast, même en pause. Un résumé dit combien de codes ont été trouvés.</p>
       <Callout tone="warn">La réduction est reprise de la ligne du code quand elle y figure (« -20 % », « 3 mois offerts »), sinon elle vaut « Voir l’épisode ». Corrige-la dans <Link href="/admin/codes">Codes</Link> avant de valider.</Callout>
     </Section>
     <Section id="outils-a-ajouter" title="Les outils à ajouter">
-      <p>Beaucoup de sponsors de podcasts sont des outils que Merkod ne suit pas encore (« code GDIY sur gradium.ai »). Plutôt que de perdre ces codes, Merkod les garde dans l’onglet <b>Outils à ajouter</b>, avec le nom deviné de l’outil, son site quand un lien est cité, le code, la réduction, l’extrait des notes et l’épisode.</p>
+      <p>Beaucoup de sponsors de podcasts sont des outils que Merkod ne suit pas encore (« code GDIY sur gradium.ai »). Plutôt que de perdre ces codes, Merkod les garde dans la page <Link href="/admin/outils/a-ajouter">Outils à ajouter</Link>, sous Outils dans le menu (les vidéos YouTube et les analyses y envoient aussi les leurs), avec le nom deviné de l’outil, son site quand un lien est cité, le code, la réduction, l’extrait des notes et l’épisode.</p>
       <p>Merkod ne prend pas pour un outil une étiquette qui ouvre la ligne (« Avantages : avec le code… », « Offre : … »), ni une plateforme de paiement (Thrivecart, systeme.io, Gumroad, Kajabi, Podia…) : elle encaisse la formation ou le livre du créateur, ce n’est pas l’outil en promotion. Dans le classement d’Apple, un podcast listé deux fois (même nom, même auteur) n’apparaît qu’une fois, et une pochette qui ne charge pas laisse place aux initiales du podcast.</p>
       <Steps>
         <Step title="Vérifie l’outil">Le nom est deviné sans IA, d’après le lien voisin (gradium.ai devient « Gradium ») ou le mot qui ouvre la ligne (« Cuure : … »). Ouvre le site et l’épisode pour t’assurer que c’est bien un outil en ligne qui a sa place dans Merkod.</Step>
@@ -413,7 +424,7 @@ function Outils() {
     </Section>
     <Section id="chercher" title="Chercher des codes pour un outil">
       <p>Dans le panneau d’un outil, <b>Chercher des codes</b> cherche sur YouTube « <i>outil</i> code promo » parmi les vidéos de l’année, pour cet outil seul, même s’il a déjà des codes. La fois suivante, la recherche change de formulation (« code réduction », « promo code »…) et écarte les vidéos déjà lues : chaque clic ramène du neuf. C’est une recherche, soit environ 100 unités du quota du jour (sur 10 000).</p>
-      <p>Le compte rendu s’affiche dans le panneau : vidéos lues, unités utilisées, codes trouvés. Comme pour les catégories, <b>rien n’est publié</b> : les codes arrivent « En attente » dans <Link href="/admin/verifications">Vérifications</Link>, et ceux d’outils absents du catalogue vont dans <b>Podcasts › Outils à ajouter</b>. Le bouton est grisé sans clé YouTube, ou si l’outil est archivé.</p>
+      <p>Le compte rendu s’affiche dans le panneau : vidéos lues, unités utilisées, codes trouvés. Comme pour les catégories, <b>rien n’est publié</b> : les codes arrivent « En attente » dans <Link href="/admin/verifications">Vérifications</Link>, et ceux d’outils absents du catalogue vont dans <b>Outils › Outils à ajouter</b>. Le bouton est grisé sans clé YouTube, ou si l’outil est archivé.</p>
       <Callout tone="tip">Utilise-le pour un outil très copié qui n’a qu’un ou deux créateurs : d’autres chaînes en parlent sûrement. Pour plusieurs outils d’un coup, passe par la page <Link href="/admin/categories">Catégories</Link>.</Callout>
     </Section>
     <Section id="priorite" title="La priorité, de 1 à 5">
@@ -569,7 +580,7 @@ function Categories() {
       <p>La tâche de l’accueil « Trouver des codes pour … catégories vides » cite les cinq premières et ouvre cette page déjà filtrée sur <b>Vides sur le site</b>.</p>
       <p><b>Chercher des codes</b>, en haut de la page, prend les outils des catégories vides (priorité 1 d’abord) et cherche sur YouTube « <i>outil</i> code promo » parmi les vidéos de l’année. Dans le panneau d’une catégorie, le même bouton cherche ses outils, ceux qui ont le moins de codes d’abord, même si elle a déjà des codes, puis « <i>catégorie</i> code promo » pour repérer des outils qu’on n’a pas encore.</p>
       <p><b>Chaque recherche fait du neuf.</b> Pour un même outil, Merkod change de formulation à chaque fois : « code promo », puis « code réduction », « promo code » et « discount code ». Une formulation déjà essayée ne ramène que les vidéos publiées depuis. Les vidéos déjà lues sont écartées sans être relues, et le compte rendu le dit : nouvelles chaînes, chaînes déjà connues (un créateur qu’on a, ou une vidéo déjà lue), vidéos écartées. Une chaîne nouvelle avec un code, c’est un créateur à ajouter et à suivre.</p>
-      <p>Les descriptions des vidéos sont lues comme les notes des podcasts. <b>Rien n’est publié</b> : chaque code trouvé arrive « En attente » dans Vérifications, crédité à la chaîne qui l’a donné, et un code pour un outil absent du catalogue va dans <b>Podcasts › Outils à ajouter</b>.</p>
+      <p>Les descriptions des vidéos sont lues comme les notes des podcasts. <b>Rien n’est publié</b> : chaque code trouvé arrive « En attente » dans Vérifications, crédité à la chaîne qui l’a donné, et un code pour un outil absent du catalogue va dans <b>Outils › Outils à ajouter</b>.</p>
       <Demo caption="L’état de la recherche, sous le titre de la page.">
         <div className="gd-row"><StatusDot tone="ok">Recherche YouTube prête</StatusDot><StatusDot tone="muted">IA en attente d’activation : lecture sans IA</StatusDot></div>
       </Demo>
@@ -602,7 +613,7 @@ function Sources() {
     </Section>
     <Section id="lancer" title="Lancer une source à la main">
       <p>Les chaînes et les podcasts sont lus chaque nuit tout seuls. <b>Lire maintenant</b> les lit tout de suite ; <b>Chercher pour les catégories vides</b> lance la recherche YouTube. Avant de lancer, Merkod te dit ce que ça va coûter : environ une unité par chaîne suivie, et jusqu’à 2 000 unités pour une recherche, sur 10 000 par jour.</p>
-      <Callout tone="tip">Pour chercher sur une seule catégorie ou un seul outil, passe par leur page : les liens <b>Par catégorie</b> et <b>Par outil</b> y mènent. Les codes d’outils absents du catalogue vont dans <Link href="/admin/podcasts?tab=outils">Outils à ajouter</Link>, lié depuis la page.</Callout>
+      <Callout tone="tip">Pour chercher sur une seule catégorie ou un seul outil, passe par leur page : les liens <b>Par catégorie</b> et <b>Par outil</b> y mènent. Les codes d’outils absents du catalogue vont dans <Link href="/admin/outils/a-ajouter">Outils à ajouter</Link>, lié depuis la page.</Callout>
     </Section>
     <Section id="journal" title="Le journal des passages">
       <p>En bas de la page, chaque passage est noté, la nuit comme à la main : quand, quelle source, qui l’a lancé (<b>La nuit</b> ou <b>Toi</b>), ce qui a été lu, combien de vidéos ou d’épisodes, les codes trouvés (et ceux hors catalogue), les unités dépensées et l’état. Un passage raté affiche l’erreur : c’est là qu’on voit qu’une tâche de nuit ne tourne plus.</p>

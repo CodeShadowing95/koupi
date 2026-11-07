@@ -18,6 +18,13 @@ export function sortQueue(items: QueueItem[]): QueueItem[] {
   });
 }
 
+/** Les codes lus par l'IA (au plus 3, sans doublon), sans le code actuel. */
+export function aiCodesOf(extracted: unknown, current: string): string[] {
+  const found = (extracted as { codes?: { code?: unknown }[] } | null)?.codes ?? [];
+  const codes = found.map(item => typeof item?.code === 'string' ? item.code.trim().toUpperCase() : '').filter(code => code && code !== current.toUpperCase());
+  return [...new Set(codes)].slice(0, 3);
+}
+
 export async function verificationQueue(db: Db): Promise<QueueItem[]> {
   const rows = await db.select({
     id: codes.id, code: codes.code, discount: codes.discount, status: codes.status,
@@ -40,11 +47,13 @@ export async function verificationQueue(db: Db): Promise<QueueItem[]> {
     .where(inArray(verificationChecks.codeId, rows.map(row => row.id)))
     .orderBy(desc(verificationChecks.createdAt));
   const latest = new Map<string, QueueCheck>();
+  const codeOf = new Map(rows.map(row => [row.id, row.code.toUpperCase()]));
   for (const check of checks) {
     if (!check.codeId || latest.has(check.codeId)) continue;
     latest.set(check.codeId, {
       score: check.score, reasons: check.reasons, evidence: check.evidence, model: check.model,
       costUsdMicros: check.costUsdMicros, createdAt: check.createdAt.toISOString(),
+      aiCodes: aiCodesOf(check.extracted, codeOf.get(check.codeId) ?? ''),
     });
   }
 

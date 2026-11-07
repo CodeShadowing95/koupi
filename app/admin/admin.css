@@ -1159,6 +1159,10 @@ html:has(> body > .ct){overflow:hidden}
 .adm-vf-id{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
 .adm-vf-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .adm-vf-title .mono{font-weight:700;font-size:16px;color:var(--blue)}
+.adm-vf-fix{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:8px 0 0;font-size:13px;color:var(--muted)}
+.adm-vf-chip{display:inline-flex;align-items:center;gap:4px;min-height:28px;padding:2px 10px;border:1px solid var(--line-strong);border-radius:999px;background:var(--card);color:var(--ink);font-size:13px;cursor:pointer}
+.adm-vf-chip:hover:not(:disabled),.adm-vf-chip[aria-pressed="true"]{border-color:var(--blue);color:var(--blue)}
+.adm-vf-chip .mono{font-weight:700}
 .adm-vf-verdict{font-size:12px;font-weight:700;padding:1px 8px;border-radius:999px;background:var(--blue-soft);color:var(--ink-soft)}
 .adm-vf-verdict.is-ok{background:var(--ok-bg);color:var(--ok)}
 .adm-vf-verdict.is-warn{background:var(--warn-bg);color:var(--warn)}
@@ -1302,7 +1306,6 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 /* Outils à ajouter (page Podcasts) */
 @media (max-width:640px){.adm-pod-panels{flex-wrap:wrap;width:auto}.adm-pod-panel-tab{flex:1 1 auto;justify-content:center}}
 .adm-pod-panel-tab{white-space:nowrap}
-.adm-sugg-intro{margin:0 0 14px;font-size:14px}
 .adm-sugg .adm-card-row{align-items:flex-start}
 .adm-sugg-tool{display:flex;flex-direction:column;gap:2px;min-width:0}
 .adm-sugg-tool b,.adm-sugg-tool a{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

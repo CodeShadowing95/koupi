@@ -99,11 +99,13 @@ export function clip(text: string, max: number): string {
 }
 
 /**
- * Raison pour laquelle un « code » n'en est sûrement pas un, sinon null : un nombre seul (« 2026 », une année)
- * ou une clé de licence (« 3M3K9/5R92S/ZDH5Y/NA944 »), qui n'est pas une réduction et vient souvent d'un site de clés piratées.
+ * Raison pour laquelle un « code » n'en est sûrement pas un, sinon null : un nombre seul (« 2026 », une année),
+ * le nom de l'outil lui-même (« Code promo LWS : CQ410 » lu « LWS ») ou une clé de licence (« 3M3K9/5R92S/ZDH5Y/NA944 »), qui n'est pas une réduction et vient souvent d'un site de clés piratées.
  */
-export function implausibleCode(code: string): string | null {
+export function implausibleCode(code: string, toolName?: string | null): string | null {
   const value = code.trim();
+  const letters = (text: string) => text.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+  if (toolName && letters(value) && letters(value) === letters(toolName)) return 'Le code est le nom de l’outil : le repérage a sans doute pris le mauvais mot.';
   if (/^\d+$/.test(value)) return 'Le code n’est qu’un nombre (une année ?), pas un code promo.';
   if (/^[A-Z0-9]{4,6}(?:[-/][A-Z0-9]{4,6}){2,}$/i.test(value)) return 'Le code ressemble à une clé de licence, pas à un code promo.';
   return null;

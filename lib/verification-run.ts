@@ -2,12 +2,16 @@
 // Le résultat est gardé dans verification_checks ; l'admin décide ensuite dans la page Vérifications.
 import { and, eq, isNull, ne, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
-import { codes, type VerificationCheckRow, type VerificationReason } from '@/db/schema';
-import { aiStatusOf, extractCodes, needsSecondReading, type AiConfig, type Extraction } from './ai-extract';
+import { codes, toolSuggestions, tools, type CodeRow, type VerificationCheckRow, type VerificationReason } from '@/db/schema';
+import { aiStatusOf, extractCodes, needsSecondReading, type AiConfig, type ExtractedCode, type Extraction } from './ai-extract';
 import { isValidDay } from './code-expiry';
 import { creatorLevelFor } from './creator-level';
 import { aiSpendSince, recordVerificationCheck, startOfMonthUtc } from './verification-store';
-import { AI_MISS_POINTS, findCodeInText, implausibleCode, scoreVerification, spamSignals } from './verification';
+import { AI_MISS_POINTS, clip, findCodeInText, implausibleCode, scoreVerification, sourceKindOf, spamSignals } from './verification';
+import { domainOf, scanPromoCodes } from './podcast-codes';
+import { forVideo, mergeAiCodes } from './podcast-ai';
+import { addPendingCode } from './podcast-read';
+import { suggestionOrigin, type CodeOrigin } from './code-origin';
 import { youtubeFetch } from './api-usage';
 
 export type SourceRead = { online: boolean; title: string; description: string };
@@ -73,6 +77,44 @@ async function runAi(db: Db, deps: RunDeps, mode: RunMode, source: SourceRead, s
   return { extraction, calls, note: null };
 }
 
+const AUTO_ORIGINS: CodeOrigin[] = ['youtube_search', 'youtube_channel', 'podcast'];
+
+/**
+ * Les autres codes que donne la même source (« Aferiy : solarflowtech6 » à côté du code analysé) : ceux des outils du
+ * catalogue sont ajoutés en attente, les autres vont dans les outils à ajouter. Rien n'est publié : l'admin décide.
+ * Un autre code pour le même outil n'est pas ajouté : c'est sans doute le bon code, à reprendre avec le crayon.
+ */
+export async function addSiblingCodes(db: Db, code: CodeRow, source: SourceRead, aiCodes: ExtractedCode[]): Promise<{ added: string[]; suggested: string[] }> {
+  const catalog = (await db.select({ id: tools.id, name: tools.name, website: tools.website }).from(tools).where(isNull(tools.archivedAt)))
+    .map(tool => ({ id: tool.id, name: tool.name, domain: domainOf(tool.website) }));
+  const toolName = new Map(catalog.map(tool => [tool.id, tool.name]));
+  const merged = mergeAiCodes(scanPromoCodes(`${source.title}\n${source.description}`, catalog), aiCodes, catalog);
+  const video = sourceKindOf(code.sourceUrl) === 'youtube';
+  const found = video ? forVideo(merged.found) : merged.found;
+  const unknown = video ? forVideo(merged.unknown) : merged.unknown;
+  const same = (value: string) => value.trim().toLowerCase() === code.code.trim().toLowerCase();
+  const origin = AUTO_ORIGINS.includes(code.origin as CodeOrigin) ? code.origin as CodeOrigin : suggestionOrigin(code.sourceUrl);
+  const added: string[] = [];
+  const suggested: string[] = [];
+  for (const item of found) {
+    if (item.toolId === code.toolId || same(item.code)) continue;
+    const id = await addPendingCode(db, {
+      toolId: item.toolId, creatorId: code.creatorId, code: item.code, discount: item.discount, sourceUrl: code.sourceUrl, sourceTitle: code.sourceTitle,
+      note: `Trouvé dans la même source que ${code.code} : « ${item.evidence} »`, expiresOn: item.expiresOn, origin,
+    }, `Analyse de ${code.code}`);
+    if (id) added.push(`${item.code} (${toolName.get(item.toolId) ?? 'outil'})`);
+  }
+  for (const item of unknown) {
+    if (same(item.code)) continue;
+    const inserted = await db.insert(toolSuggestions).values({
+      name: clip(item.name, 120), domain: item.domain, code: item.code, discount: item.discount, evidence: item.evidence,
+      sourceUrl: code.sourceUrl, sourceTitle: clip(code.sourceTitle, 300), creatorId: code.creatorId,
+    }).onConflictDoNothing().returning({ id: toolSuggestions.id });
+    if (inserted.length) suggested.push(`${item.code} (${item.domain ?? item.name})`);
+  }
+  return { added, suggested };
+}
+
 /** Analyse un code et enregistre le résultat. null si le code n'existe pas. */
 export async function runVerification(db: Db, codeId: string, deps: RunDeps, mode: RunMode = 'standard'): Promise<VerificationCheckRow | null> {
   const [code] = await db.select().from(codes).where(eq(codes.id, codeId)).limit(1);
@@ -81,6 +123,8 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
   const [duplicate] = await db.select({ id: codes.id }).from(codes)
     .where(and(eq(codes.toolId, code.toolId), ne(codes.id, code.id), isNull(codes.archivedAt), sql`lower(${codes.code}) = lower(${code.code})`))
     .limit(1);
+
+  const [tool] = await db.select({ name: tools.name }).from(tools).where(eq(tools.id, code.toolId)).limit(1);
 
   let source: SourceRead | null = null;
   try { source = await deps.readSource(code.sourceUrl); } catch { source = null; }
@@ -93,7 +137,7 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
     toolKnown: true,
     duplicate: Boolean(duplicate),
     spam: spamSignals({ sourceUrl: code.sourceUrl, code: code.code }),
-    implausible: implausibleCode(code.code),
+    implausible: implausibleCode(code.code, tool?.name),
     votesUp: code.votesUp,
     votesDown: code.votesDown,
   });
@@ -109,7 +153,9 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
     // le dossier n'est plus clair. Le score reste calculé ici, l'IA ne fait que retirer des points.
     if (seen) reasons.push({ points: 0, label: 'L’IA retrouve ce code dans la description.' });
     else {
-      reasons.push({ points: AI_MISS_POINTS, label: 'L’IA ne retrouve pas ce code dans la description.' });
+      // Elle lit souvent le vrai code à côté (« LWS » repéré, « CQ410 » écrit) : on le montre pour que l'admin corrige.
+      const others = [...new Set(ai.extraction.codes.map(found => found.code.trim()).filter(Boolean))].slice(0, 3);
+      reasons.push({ points: AI_MISS_POINTS, label: others.length ? `L’IA ne retrouve pas ce code dans la description. Elle y lit plutôt : ${others.join(', ')}.` : 'L’IA ne retrouve pas ce code dans la description.' });
       score = Math.max(0, score + AI_MISS_POINTS);
     }
     // Date de fin écrite par le créateur : l'IA pré-remplit le champ s'il est vide. L'admin peut la corriger.
@@ -117,6 +163,13 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
       await db.update(codes).set({ expiresOn: seen.expiresOn, updatedAt: new Date() }).where(eq(codes.id, code.id));
       reasons.push({ points: 0, label: `L’IA a trouvé une date de fin (${seen.expiresOn}) et l’a ajoutée au code.` });
     }
+  }
+
+  if (source?.online) {
+    // Une source qui ne s'enregistre pas (texte refusé par la base…) ne doit pas faire échouer l'analyse du code.
+    const siblings = await addSiblingCodes(db, code, source, ai.extraction?.codes ?? []).catch(error => { console.error('sibling codes failed', error); return null; });
+    if (siblings?.added.length) reasons.push({ points: 0, label: `La source donne aussi ${siblings.added.join(', ')} : ajouté${siblings.added.length > 1 ? 's' : ''} en attente dans Vérifications.` });
+    if (siblings?.suggested.length) reasons.push({ points: 0, label: `Codes pour des outils absents du catalogue : ${siblings.suggested.join(', ')}, dans les outils à ajouter.` });
   }
 
   const last = ai.calls.at(-1);

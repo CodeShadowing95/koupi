@@ -7,7 +7,7 @@ import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import { applyCodeAction, createCode, type CodeInput } from './codes-admin';
 import { formatEur, formatUsd, highlightCode, modelLabel, verdictOf, type QueueItem } from './verification-display';
-import { sortQueue, verificationQueue } from './verification-queue';
+import { aiCodesOf, sortQueue, verificationQueue } from './verification-queue';
 import { recordVerificationCheck } from './verification-store';
 
 async function freshDb() {
@@ -31,7 +31,7 @@ async function add(db: Db, input: Partial<CodeInput>) {
 
 const item = (id: string, createdAt: string, score: number | null): QueueItem => ({
   id, code: id, discount: '', status: 'pending', tool: 't', creator: 'c', sourceUrl: '', sourceTitle: '', origin: 'manual', votesUp: 0, votesDown: 0, createdAt, expiresOn: null, expired: false,
-  check: score === null ? null : { score, reasons: [], evidence: null, model: null, costUsdMicros: 0, createdAt },
+  check: score === null ? null : { score, reasons: [], evidence: null, model: null, costUsdMicros: 0, createdAt, aiCodes: [] },
 });
 
 describe('verdictOf', () => {
@@ -118,5 +118,14 @@ describe('verificationQueue', () => {
 
   it('rend une file vide sans requête de plus', async () => {
     expect(await verificationQueue(await freshDb())).toEqual([]);
+  });
+});
+
+describe('aiCodesOf', () => {
+  it('garde les codes lus par l’IA, sans le code actuel ni doublon, trois au plus', () => {
+    const extracted = { codes: [{ code: 'lws' }, { code: 'CQ410' }, { code: 'cq410' }, { code: ' A1 ' }, { code: 'B2' }, { code: 'C3' }], calls: [] };
+    expect(aiCodesOf(extracted, 'LWS')).toEqual(['CQ410', 'A1', 'B2']);
+    expect(aiCodesOf(null, 'LWS')).toEqual([]);
+    expect(aiCodesOf({ codes: [{ code: 3 }] }, 'X')).toEqual([]);
   });
 });

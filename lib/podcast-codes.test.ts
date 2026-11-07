@@ -41,6 +41,18 @@ describe('findPromoCodes', () => {
   });
 });
 
+describe('code annoncé après le nom de l’outil', () => {
+  const catalog = [...tools, { id: 't-lws', name: 'LWS', domain: 'lws.fr' }];
+  it('prend le code qui suit le nom de l’outil, pas le nom', () => {
+    expect(findPromoCodes('Code Promo LWS : CQ410 pour votre hébergement', catalog).map(found => [found.toolId, found.code])).toEqual([['t-lws', 'CQ410']]);
+    expect(findPromoCodes('code promo NordVPN « NORD20 »', catalog).map(found => found.code)).toEqual(['NORD20']);
+    expect(findPromoCodes('Accéder à l’offre officielle LWS avec réduction [Code Promo CQ410]', catalog).map(found => found.code)).toEqual(['CQ410']);
+  });
+  it('ne garde rien quand seul le nom de l’outil suit « code promo »', () => {
+    expect(findPromoCodes('Le meilleur code promo LWS du moment', catalog)).toEqual([]);
+  });
+});
+
 describe('scanPromoCodes', () => {
   const gdiy = [
     'Je vous ai négocié un code promo : -10% avec le code GDIY sur https://gradium.ai/',
@@ -105,5 +117,76 @@ describe('domainOf', () => {
     expect(domainOf('https://www.NordVPN.com/fr')).toBe('nordvpn.com');
     expect(domainOf('gradium.ai')).toBe('gradium.ai');
     expect(domainOf('pas une url')).toBeNull();
+  });
+});
+
+// Vraie description d'une vidéo SolarFlowTech (octobre 2026) : un outil par ligne, le code sur la ligne d'en dessous.
+const SOLARFLOWTECH = `Le solaire Plug & Play est-il menacé en France ? Entre NF C 15-100, démarches Enedis et réponse du Gouvernement, je décrypte ce qui change et les nuances à connaître avant de tirer des conclusions. ☀️🔌
+
+🛠️ Matériel cité / recommandé dans cette vidéo : 
+🔥 SUNETHIC : https://www.sunethic.fr/?ref=SOLARFLO...
+➡️ Code promo : solarflow5
+
+🍻 Soutenir la chaîne
+• M’offrir une bière & du saucisson : https://buymeacoffee.com/solarflowtech
+• Demandes de devis : https://www.viteundevis.com/in/?pid=2099
+(Lien sponsorisé : aucun surcoût pour vous, et ça aide la chaîne — merci !)
+
+⚡️ ÉNERGIE SOLAIRE & BATTERIES NOMADES
+🔥INDEVOLT : https://fr.indevolt.com
+➡️ Code de Réduction : SOLARFLOWTECH5%
+🔥 ECOFLOW Stream : https://amzn.to/46YhhBc
+🔥 AFERIY : https://fr.aferiy.com/?ref=SOLARFLOWTECH
+➡️ Code promo : solarflowtech6
+🔥 ALLPOWERS : https://iallpowers.fr/?ref=SolarflowTech
+➡️ Code promo : solarflowtech
+🔥 SUNETHIC : https://www.sunethic.fr/?ref=SOLARFLO...
+➡️ Code promo : sunethic_solarflow
+
+🤖 ROBOTS TONDEUSES & EXTÉRIEUR CONNECTÉ
+🔥 MAMMOTION : https://fr.mammotion.com/?ref=solarfl...
+🔥 Dreame : https://www.anrdoezrs.net/click-10155...
+🔥 ANTHBOT : https://anthbot.com/?ref=SOLARFLOWTECH
+➡️ Code promo : solarflowtechmower
+🔥NAVIMOW : https://tidd.ly/4q5BDkL
+
+🚲 MOBILITÉ ÉLECTRIQUE & ACCESSOIRES
+🔥 ENGWE : https://fr.engwe.com/?ref=vqpnwltr
+➡️ Code promo : solarflowtechbike
+🔥 EVERCROSS : (lien à venir)
+🔥 CARPODGO : https://www.carpodgo.com/?ref=solarfl...
+➡️ Code promo : SOLARFLOWTECH
+
+🏠 MAISON CONNECTÉE & HIGH TECH
+🔥 Thermal Master : https://thermalmaster.com/?ref=SOLARF...
+🔥 REOLINK : https://reolink.com/?aff=817
+🔥X-SENSE : https://tidd.ly/48qtO2M 
+🔥X-SENSE AMAZON : https://amzn.to/4n8ofus
+🔥 Dreame : https://www.anrdoezrs.net/click-10155...
+📣 SUIVEZ SOLARFLOWTECH
+🔗 Facebook : SolarFlowTech
+📧 solarflowtech64@gmail.com
+⚠️ Certains liens sont affiliés : ils ne changent rien pour vous mais soutiennent la chaîne.`;
+
+describe('description à plusieurs outils, codes sous le lien', () => {
+  it('trouve les 8 codes, en minuscules, avec tiret bas ou % collé', () => {
+    const { unknown } = scanPromoCodes(SOLARFLOWTECH, []);
+    expect(unknown.map(item => [item.domain, item.code])).toEqual([
+      ['sunethic.fr', 'solarflow5'], ['indevolt.com', 'SOLARFLOWTECH5%'], ['aferiy.com', 'solarflowtech6'], ['iallpowers.fr', 'solarflowtech'],
+      ['sunethic.fr', 'sunethic_solarflow'], ['anthbot.com', 'solarflowtechmower'], ['engwe.com', 'solarflowtechbike'], ['carpodgo.com', 'SOLARFLOWTECH'],
+    ]);
+    // Le % du code n'est pas une réduction.
+    expect(unknown.find(item => item.code === 'SOLARFLOWTECH5%')?.discount).toBe('Voir l’épisode');
+  });
+
+  it('rattache les codes aux outils du catalogue', () => {
+    const { found } = scanPromoCodes(SOLARFLOWTECH, [{ id: 't-sun', name: 'Sunethic', domain: 'sunethic.fr' }, { id: 't-engwe', name: 'Engwe', domain: 'engwe.com' }]);
+    expect(found.map(item => [item.toolId, item.code])).toEqual([['t-sun', 'solarflow5'], ['t-sun', 'sunethic_solarflow'], ['t-engwe', 'solarflowtechbike']]);
+  });
+
+  it('ne prend toujours pas un mot de phrase en minuscules pour un code', () => {
+    expect(scanPromoCodes('Utilise le code promo pour avoir la réduction sur nordvpn.com', []).unknown).toEqual([]);
+    expect(scanPromoCodes('Le code promo : merci beaucoup à tous sur nordvpn.com', []).unknown).toEqual([]);
+    expect(scanPromoCodes('NordVPN : nordvpn.com, code : 20%', []).unknown).toEqual([]);
   });
 });

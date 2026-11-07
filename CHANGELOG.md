@@ -2,6 +2,15 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.9.0](https://github.com/CodeShadowing95/koupi/compare/v0.8.1...v0.9.0) (2026-11-07)
+
+### Nouveautés
+
+- **verifications:** Let the AI lead code reading and add sibling codes (#237) ([cb6861b](https://github.com/CodeShadowing95/koupi/commit/cb6861bd71e6fb137e8c38e47e207e1b0c161b78))
+- **admin:** Show waiting badges in the menu and move tools to add under Outils (#238) ([64ede71](https://github.com/CodeShadowing95/koupi/commit/64ede716d120d18e401d01c183bb2b004b01e96c))
+- **verifications:** Fix and correct codes spotted under the tool name (#236) ([0addc5c](https://github.com/CodeShadowing95/koupi/commit/0addc5ca3c31be5989f171662121be6fb0aca949))
+- **tools:** Replace the header and breadcrumbs with a back button (#235) ([2672061](https://github.com/CodeShadowing95/koupi/commit/2672061486ee98a1ed38582a5a03249514892831))
+
 ## [0.8.1](https://github.com/CodeShadowing95/koupi/compare/v0.8.0...v0.8.1) (2026-11-07)
 
 Maintenance uniquement, aucun changement visible.

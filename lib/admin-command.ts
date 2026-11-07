@@ -34,6 +34,7 @@ export const ADMIN_PAGES: CommandItem[] = [
   { kind: 'page', label: 'Demandes créateurs', detail: 'C’est ma page, page incorrecte', href: '/admin/createurs/demandes', keywords: 'revendication revendiquer signalement reclamation createur' },
   { kind: 'page', label: 'Retours', detail: 'Avis des visiteurs', href: '/admin/retours', keywords: 'avis feedback remarques idees problemes suggestions' },
   { kind: 'page', label: 'Outils', detail: 'Catalogue', href: '/admin/outils' },
+  { kind: 'page', label: 'Outils à ajouter', detail: 'Codes trouvés pour des outils absents du catalogue', href: '/admin/outils/a-ajouter', keywords: 'suggestions outils manquants nouveaux ajouter' },
   { kind: 'page', label: 'Créateurs', detail: 'Catalogue', href: '/admin/createurs' },
   { kind: 'page', label: 'Catégories', detail: 'Catalogue', href: '/admin/categories' },
   { kind: 'page', label: 'Guide de l’admin', detail: 'Apprendre', href: '/admin/guide', keywords: 'aide routine' },

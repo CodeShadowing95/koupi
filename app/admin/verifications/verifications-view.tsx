@@ -1,6 +1,7 @@
 'use client';
 // Page Vérifications : la file des codes à décider, chacun avec son analyse (score, raisons, extrait de la source).
-// L'admin garde la décision : Valider (source vérifiée), Testé au paiement, ou Rejeter. Raccourcis J/K, A, V, T, R.
+// L'admin garde la décision : Valider (source vérifiée), Testé au paiement, ou Rejeter. Raccourcis J/K, A, E, V, T, R.
+// Le crayon à côté du code le corrige quand le repérage a pris le mauvais mot ; l'analyse est alors relancée.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pagination, usePagination } from '@/components/admin-pagination';
 import { useRouter } from 'next/navigation';
@@ -13,6 +14,9 @@ import { RefreshButton } from '@/components/admin-refresh-button';
 import { CODE_ORIGIN_LABELS } from '@/lib/code-origin';
 import { USAGE_CHANGED } from '@/components/admin-usage-gauge';
 import { calendarDay, parisDate } from '@/lib/paris-date';
+import { IconButton } from '@/components/admin-card';
+import { FormDialog, sendJson } from '@/components/admin-form-dialog';
+import { MAX_CODE_LENGTH } from '@/lib/code-format';
 
 type Ai = { status: AiStatus; spentUsdMicros: number; budgetUsdMicros: number; usdPerEur: number; model: string; reviewModel: string };
 type Filter = 'all' | Verdict | 'retest';
@@ -74,6 +78,9 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
   const [batch, setBatch] = useState<{ done: number; total: number } | null>(null);
   const stopBatch = useRef(false);
   const cards = useRef<(HTMLElement | null)[]>([]);
+  const [editing, setEditing] = useState<QueueItem | null>(null);
+  const [draft, setDraft] = useState({ code: '', discount: '' });
+  const openEdit = useCallback((item: QueueItem) => { setDraft({ code: item.code, discount: item.discount }); setEditing(item); }, []);
 
   const countOf = (value: Filter) => queue.filter(item => matchesFilter(item, value)).length;
   const visible = queue.filter(item => matchesFilter(item, filter)
@@ -105,6 +112,15 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
     setBusy('');
     router.refresh();
   }, [router]);
+
+  async function saveCorrection(): Promise<string | null> {
+    if (!editing) return null;
+    const failure = await sendJson(`/api/admin/codes/${editing.id}`, 'PATCH', { correct: draft });
+    if (failure) return failure;
+    // Le code a changé : l'ancienne analyse ne vaut plus, on relit la source avec le bon code.
+    void runOne({ ...editing, code: draft.code.trim().toUpperCase() });
+    return null;
+  }
 
   async function retestNow() {
     setBusy('retest');
@@ -150,6 +166,7 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
       if (!current || busy || batch) return;
       const actions: Record<string, () => void> = {
         a: () => runOne(current),
+        e: () => openEdit(current),
         v: () => decide(current, 'verify'),
         t: () => decide(current, 'payment_test'),
         r: () => decide(current, 'reject'),
@@ -158,7 +175,7 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [visible.length, selected, current, busy, batch, runOne, decide, size, page.page, goTo]);
+  }, [visible.length, selected, current, busy, batch, runOne, decide, openEdit, size, page.page, goTo]);
 
   useEffect(() => { setSelected(0); }, [filter, query]);
   // Le message s'efface seul après 8 secondes.
@@ -194,7 +211,7 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
           <label htmlFor="vf-search" className="sr-only">Rechercher un code</label>
           <input id="vf-search" className="adm-search" type="search" placeholder="Rechercher un code, un outil, un créateur…" value={query} onChange={event => setQuery(event.target.value)} />
           <span className="adm-count">{visible.length} sur {countOf(filter)}</span>
-          <span className="adm-vf-keys" aria-label="Raccourcis clavier"><Key>J</Key><Key>K</Key> naviguer · <Key>A</Key> analyser · <Key>V</Key> valider · <Key>T</Key> testé au paiement · <Key>R</Key> rejeter</span>
+          <span className="adm-vf-keys" aria-label="Raccourcis clavier"><Key>J</Key><Key>K</Key> naviguer · <Key>A</Key> analyser · <Key>E</Key> corriger · <Key>V</Key> valider · <Key>T</Key> testé au paiement · <Key>R</Key> rejeter</span>
         </div>
         {filter === 'retest' && (
           <div className="adm-hint adm-vf-retest-hint">
@@ -224,7 +241,7 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
                       <b>{item.check ? item.check.score : '–'}</b><small>/100</small>
                     </div>
                     <div className="adm-vf-id">
-                      <div className="adm-vf-title"><span className="mono">{item.code}</span><span className={`adm-vf-verdict ${verdictClass[verdict]}`}>{VERDICT_LABELS[verdict]}</span></div>
+                      <div className="adm-vf-title"><span className="mono">{item.code}</span><IconButton icon="edit" label={`Corriger le code ${item.code}`} disabled={isBusy} onClick={() => openEdit(item)} /><span className={`adm-vf-verdict ${verdictClass[verdict]}`}>{VERDICT_LABELS[verdict]}</span></div>
                       <p>{item.tool} · {item.discount} · par {item.creator} · <span className="adm-cell-muted">{statusLabel[item.status]} · {CODE_ORIGIN_LABELS[item.origin]}</span></p>
                       <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()}>{item.sourceTitle || 'Ouvrir la source'} ↗</a>
                       {item.expiresOn && !item.expired && <span className="adm-vf-expiry">Valable jusqu’au {shortDay(item.expiresOn)}</span>}
@@ -235,6 +252,12 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
                   {item.check ? (
                     <div className="adm-vf-body">
                       {item.check.evidence && <Evidence excerpt={item.check.evidence} code={item.code} />}
+                      {item.check.aiCodes.length > 0 && (
+                        <p className="adm-vf-fix">
+                          <span>L’IA lit plutôt</span>
+                          {item.check.aiCodes.map(code => <button key={code} type="button" className="adm-vf-chip" disabled={isBusy} title={`Corriger le code en ${code}`} onClick={event => { event.stopPropagation(); setDraft({ code, discount: item.discount }); setEditing(item); }}><span className="mono">{code}</span> · utiliser</button>)}
+                        </p>
+                      )}
                       <ul className="adm-vf-reasons">
                         {item.check.reasons.map((reason, reasonIndex) => (
                           <li key={reasonIndex}><span className={reason.points > 0 ? 'is-ok' : reason.points < 0 ? 'is-bad' : 'is-none'}>{reason.points > 0 ? `+${reason.points}` : reason.points < 0 ? reason.points : '·'}</span>{reason.label}</li>
@@ -258,6 +281,25 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
               );
             })}
           </div>
+          <FormDialog open={editing !== null} title={`Corriger le code ${editing?.code ?? ''}`} submitLabel="Corriger et réanalyser"
+            intro="Quand le repérage a pris le mauvais mot, écris ici le code tel qu’il est donné dans la source. L’analyse est relancée avec le bon code."
+            onClose={() => setEditing(null)} onSubmit={saveCorrection}>
+            {editing?.check?.evidence && <div className="adm-span-2"><Evidence excerpt={editing.check.evidence} code={editing.code} /></div>}
+            <div className="field adm-span-2">
+              <label htmlFor="vf-fix-code">Code promo</label>
+              <input id="vf-fix-code" className="mono" value={draft.code} onChange={event => setDraft(value => ({ ...value, code: event.target.value }))} required maxLength={MAX_CODE_LENGTH} autoComplete="off" spellCheck={false} />
+              {editing?.check && editing.check.aiCodes.length > 0 && (
+                <span className="adm-vf-fix">
+                  <span>Lu par l’IA :</span>
+                  {editing.check.aiCodes.map(code => <button key={code} type="button" className="adm-vf-chip" aria-pressed={draft.code.trim().toUpperCase() === code} onClick={() => setDraft(value => ({ ...value, code }))}><span className="mono">{code}</span></button>)}
+                </span>
+              )}
+            </div>
+            <div className="field adm-span-2">
+              <label htmlFor="vf-fix-discount">Réduction</label>
+              <input id="vf-fix-discount" value={draft.discount} onChange={event => setDraft(value => ({ ...value, discount: event.target.value }))} required maxLength={240} placeholder="Ex. -20 % la première année" />
+            </div>
+          </FormDialog>
           <Pagination current={page} onChange={next => { goTo(next); setSelected((next - 1) * size); }} label="codes" size={size} onSizeChange={changeSize} />
           </>
         )}

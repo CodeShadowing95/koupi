@@ -133,7 +133,8 @@ export function keepVerbatimCodes(raw: unknown, description: string): ExtractedC
     const code = text(item?.code, 120);
     if (!code || seen.has(code.toLowerCase())) continue;
     // Un code se tape d'un bloc : une phrase comme « 10-30% off merch » (espaces, pourcentage) n'en est pas un.
-    if (/[\s%]/.test(code)) continue;
+    // Seule exception : un % collé à la fin d'un code qui contient une lettre (« SOLARFLOWTECH5% »).
+    if (/\s/.test(code) || (code.includes('%') && !/^[\p{L}\p{N}_-]*\p{L}[\p{L}\p{N}_-]*%$/u.test(code))) continue;
     // Une année ou une clé de licence n'est pas un code promo, même si l'IA en rend une.
     if (implausibleCode(code)) continue;
     const match = findCodeInText(code, description);
