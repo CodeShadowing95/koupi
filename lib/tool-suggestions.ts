@@ -103,6 +103,11 @@ export async function openToolSuggestionCount(db: Db): Promise<number> {
 }
 
 
+/** Description collée par l'admin : assez longue pour dire ce que fait l'outil, coupée pour garder l'appel bon marché. */
+export const MIN_DESCRIPTION = 30;
+export const MAX_DESCRIPTION = 4000;
+const PASTE_HINT = 'Copie ce que fait l’outil (sur son site ou sur Google), colle-le dans « Ce que fait l’outil » et relance l’analyse.';
+
 export type AnalyzeDeps = {
   ai: { config: AiConfig; create: Parameters<typeof analyzeTool>[0] | null };
   readSite?: (url: string) => ReturnType<typeof readSite>;
@@ -112,20 +117,30 @@ export type AnalyzeDeps = {
 /**
  * Fait lire le site d'une suggestion par l'IA (ADR-0024) : résumé et catégorie proposée, gardés sur la suggestion.
  * website : le site à lire quand l'admin l'a corrigé, sinon le domaine trouvé dans les notes.
+ * description : ce que fait l'outil, collé par l'admin (site qui refuse les robots, page vide) : l'IA lit ce texte
+ * à la place du site.
  */
-export async function analyzeToolSuggestion(db: Db, id: string, deps: AnalyzeDeps, website?: string): Promise<Parsed<ToolAnalysis>> {
+export async function analyzeToolSuggestion(db: Db, id: string, deps: AnalyzeDeps, { website, description }: { website?: string; description?: string } = {}): Promise<Parsed<ToolAnalysis>> {
   const [suggestion] = await db.select().from(toolSuggestions).where(and(eq(toolSuggestions.id, id), eq(toolSuggestions.status, 'open'))).limit(1);
   if (!suggestion) return { ok: false, error: 'Suggestion introuvable ou déjà traitée.' };
   const now = deps.now ?? new Date();
   const status = aiStatusOf(deps.ai.config, await aiSpendSince(db, startOfMonthUtc(now)));
   if (status.state !== 'active' || !deps.ai.create) return { ok: false, error: status.state === 'budget_reached' ? 'Le plafond de l’IA est atteint pour ce mois.' : 'L’IA n’est pas encore activée.' };
   const target = website?.trim() || suggestion.domain;
-  if (!target) return { ok: false, error: 'Indique d’abord le site de l’outil.' };
+  const pasted = (description ?? '').replace(/\s+/g, ' ').trim().slice(0, MAX_DESCRIPTION);
+  if (pasted && pasted.length < MIN_DESCRIPTION) return { ok: false, error: `La description est trop courte : colle au moins une phrase sur ce que fait l’outil (${MIN_DESCRIPTION} caractères).` };
 
-  const site = await (deps.readSite ?? readSite)(target);
-  if (!site.ok) return site;
+  let page: SitePage;
+  if (pasted) {
+    page = { url: target || 'non indiquée', title: '', description: '', text: pasted };
+  } else {
+    if (!target) return { ok: false, error: 'Indique d’abord le site de l’outil, ou colle sa description.' };
+    const site = await (deps.readSite ?? readSite)(target);
+    if (!site.ok) return { ok: false, error: `${site.error} ${PASTE_HINT}` };
+    page = site.page;
+  }
   const list = await db.select({ slug: categories.slug, name: categories.name }).from(categories).orderBy(asc(categories.name));
-  const result = await analyzeTool(deps.ai.create, deps.ai.config.model, { name: suggestion.name, page: site.page as SitePage, categories: list });
+  const result = await analyzeTool(deps.ai.create, deps.ai.config.model, { name: suggestion.name, page, categories: list, pasted: Boolean(pasted) });
   await db.update(toolSuggestions).set({
     analysisCostUsdMicros: sql`${toolSuggestions.analysisCostUsdMicros} + ${result.costUsdMicros}`,
     analyzedAt: now,
