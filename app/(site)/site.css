@@ -226,6 +226,7 @@ button.k-coupon-stub{transition:transform .3s cubic-bezier(.2,.9,.3,1.3),backgro
 .k-search{position:relative;z-index:30;width:100%;max-width:580px}
 /* Le bloc du hero est animé (transform) : il lui faut son propre z-index pour que les suggestions passent au-dessus des liens « Populaires ». */
 .k-hero-search{position:relative;z-index:5;width:100%}
+.k-hero-actions{position:relative;z-index:5;display:flex;flex-wrap:wrap;gap:12px}
 .k-search-box{position:relative;display:flex;align-items:center;gap:4px;padding:6px 6px 6px 18px;border-radius:var(--r-xl);background:rgba(13,15,43,.85);border:1px solid var(--line-2);
   box-shadow:0 20px 60px -20px rgba(42,59,214,.6);transition:border-color .2s,box-shadow .2s}
 .k-search-box::before{content:"";position:absolute;inset:-1px;border-radius:var(--r-xl);padding:1px;pointer-events:none;
@@ -309,6 +310,9 @@ button.k-coupon-stub{transition:transform .3s cubic-bezier(.2,.9,.3,1.3),backgro
 .k-cta p{font-size:var(--fs-lg);color:var(--text-soft);margin-top:16px;max-width:520px}
 .k-cta h2{margin-top:14px}
 .k-cta-actions{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+/* Bloc « Tu es créateur ? » de la Présentation : plus sobre que l'appel « Proposer un code », lueur bleue seule. */
+.k-cta.k-cta-creators{padding:52px 56px;background:radial-gradient(520px circle at 100% 0%,rgba(110,125,255,.38),transparent 62%),var(--bg-2)}
+.k-cta.k-cta-creators h2{font-size:clamp(30px,3.4vw,44px)}
 
 /* Pied de page */
 .k-footer{position:relative;z-index:1;border-top:1px solid var(--line);margin-top:40px;padding:56px 0 36px}
@@ -634,6 +638,7 @@ button.k-coupon-stub{transition:transform .3s cubic-bezier(.2,.9,.3,1.3),backgro
   .k-ticket-main{border-radius:var(--r-xl) var(--r-xl) 0 0;-webkit-mask:radial-gradient(circle at 50% 100%,#0000 4px,#000 4.5px) bottom/15px 100% repeat-x;mask:radial-gradient(circle at 50% 100%,#0000 4px,#000 4.5px) bottom/15px 100% repeat-x}
   .k-ticket-stub{border-radius:0 0 var(--r-xl) var(--r-xl);transform-origin:0 0;-webkit-mask:radial-gradient(circle at 50% 0,#0000 4px,#000 4.5px) top/15px 100% repeat-x;mask:radial-gradient(circle at 50% 0,#0000 4px,#000 4.5px) top/15px 100% repeat-x}
   .k-cta{padding:44px 26px}
+  .k-cta.k-cta-creators{padding:40px 26px}
   .k-footer-in{grid-template-columns:1fr}
   .k-coupon-stub{min-width:108px;padding:12px}
   .k-coupon-code{font-size:var(--fs-base)}

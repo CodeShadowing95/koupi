@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { routes } from './routes';
 import { readFileSync } from 'node:fs';
-import { categoryRedirects, legacyRedirects } from './legacy-redirects.mjs';
+import { categoryRedirects, legacyRedirects, movedRedirects } from './legacy-redirects.mjs';
 import { parseCsv, slugify } from '../scripts/build-catalog.mjs';
 
 describe('routes', () => {
@@ -22,6 +22,10 @@ describe('routes', () => {
       expect(redirect.destination).not.toMatch(/outils|createurs|recherche|proposer|trousseau|transparence|mentions|confidentialite/);
     }
     expect(legacyRedirects).toHaveLength(9);
+  });
+
+  it('envoie l’ancienne adresse de la page Explorer sur la page principale', () => {
+    expect(movedRedirects).toEqual([{ source: '/explore', destination: '/' }]);
   });
 
   it('redirige chaque ancienne catégorie vers une catégorie qui existe dans data/', () => {

@@ -36,7 +36,10 @@
 .k-ex-item[aria-current="page"] .k-ex-item-count{color:var(--coral)}
 .k-ex-group.is-creators .k-av-xs{width:24px;height:24px}
 .k-ex-more-dots{display:inline-flex;align-items:center;justify-content:center;width:24px;flex:none;color:var(--muted);font-weight:800;letter-spacing:.05em}
-.k-ex-side-foot{margin-top:auto;padding:14px 12px 0;border-top:1px solid var(--line);font-size:var(--fs-xs);color:var(--muted)}
+/* La colonne pousse « Présentation de Merkod » et les petits liens tout en bas. */
+.k-ex-nav{flex:1 0 auto}
+.k-ex-about{flex:none;margin-top:10px}
+.k-ex-side-foot{margin-top:6px;padding:14px 12px 0;border-top:1px solid var(--line);font-size:var(--fs-xs);color:var(--muted)}
 .k-ex-side-foot ul{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-wrap:wrap;gap:4px 12px}
 .k-ex-side-foot a:hover{color:#fff}
 .k-ex-side-foot p a{color:var(--text-soft)}
