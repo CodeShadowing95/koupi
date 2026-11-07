@@ -29,10 +29,10 @@ export async function podcastHistory(db: Db, directory: PodcastDirectory, id: st
 
   // Codes et suggestions dont la source est un épisode de ce podcast.
   const pattern = `^https://podcasts\\.apple\\.com/.*/id${podcast.externalId}\\?`;
-  const codeRows = await db.select({ id: codes.id, code: codes.code, status: codes.status, archivedAt: codes.archivedAt, sourceUrl: codes.sourceUrl, tool: tools.name })
+  const codeRows = await db.select({ id: codes.id, code: sql<string>`coalesce(${codes.code}, '')`, status: codes.status, archivedAt: codes.archivedAt, sourceUrl: codes.sourceUrl, tool: tools.name })
     .from(codes).innerJoin(tools, eq(tools.id, codes.toolId))
     .where(sql`${codes.sourceUrl} ~ ${pattern}`);
-  const suggestionRows = await db.select({ id: toolSuggestions.id, name: toolSuggestions.name, code: toolSuggestions.code, status: toolSuggestions.status, sourceUrl: toolSuggestions.sourceUrl, codeId: toolSuggestions.codeId })
+  const suggestionRows = await db.select({ id: toolSuggestions.id, name: toolSuggestions.name, code: sql<string>`coalesce(${toolSuggestions.code}, 'lien')`, status: toolSuggestions.status, sourceUrl: toolSuggestions.sourceUrl, codeId: toolSuggestions.codeId })
     .from(toolSuggestions).where(sql`${toolSuggestions.sourceUrl} ~ ${pattern}`);
 
   const episodeOf = (url: string) => appleEpisodeRef(url)?.episodeId ?? null;

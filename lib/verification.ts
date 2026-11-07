@@ -74,16 +74,32 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+// Une adresse web, avec ou sans « https:// » (« try.krispcall.com/tad », « www.site.com »).
+const URL_PATTERN = /(?:https?:\/\/|www\.)[^\s<>"'«»]+|(?<![\p{L}\p{N}@.-])(?:[a-z0-9-]+\.)+[a-z]{2,}\/[^\s<>"'«»]*/giu;
+
+/** Les morceaux du texte qui sont des adresses web, en positions [début, fin[. */
+export function urlSpans(text: string): Array<[number, number]> {
+  return [...text.matchAll(URL_PATTERN)].map(match => [match.index ?? 0, (match.index ?? 0) + match[0].length]);
+}
+
+/** Vrai si la position tombe dans une adresse web : « tad » dans try.krispcall.com/tad est un identifiant d'affiliation, pas un code. */
+export function insideUrl(spans: Array<[number, number]>, index: number): boolean {
+  return spans.some(([start, end]) => index >= start && index < end);
+}
+
 // Cherche le code tel quel dans le texte de la source, sans tenir compte de la casse,
 // et seulement en mot entier (« MERKOD10 » ne compte pas dans « MERKOD100 »). Renvoie l'extrait qui sert de preuve.
+// Un mot qui n'apparaît que dans une adresse web ne compte pas : un code se tape, il ne se lit pas dans un lien.
 export function findCodeInText(code: string, text: string): CodeMatch {
   const needle = code.trim();
   if (!needle || !text) return { found: false, excerpt: null };
-  const pattern = new RegExp(`(?<![\\p{L}\\p{N}])${escapeRegExp(needle)}(?![\\p{L}\\p{N}])`, 'iu');
-  const match = pattern.exec(text);
+  const pattern = new RegExp(`(?<![\\p{L}\\p{N}])${escapeRegExp(needle)}(?![\\p{L}\\p{N}])`, 'giu');
+  const spans = urlSpans(text);
+  const match = [...text.matchAll(pattern)].find(found => !insideUrl(spans, found.index ?? 0));
   if (!match) return { found: false, excerpt: null };
-  const start = Math.max(0, match.index - EXCERPT_RADIUS);
-  const end = Math.min(text.length, match.index + match[0].length + EXCERPT_RADIUS);
+  const index = match.index ?? 0;
+  const start = Math.max(0, index - EXCERPT_RADIUS);
+  const end = Math.min(text.length, index + match[0].length + EXCERPT_RADIUS);
   const excerpt = `${start > 0 ? '…' : ''}${wellFormed(text.slice(start, end)).replace(/\s+/g, ' ').trim()}${end < text.length ? '…' : ''}`;
   return { found: true, excerpt };
 }

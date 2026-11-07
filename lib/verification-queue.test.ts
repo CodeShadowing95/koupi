@@ -30,7 +30,7 @@ async function add(db: Db, input: Partial<CodeInput>) {
 }
 
 const item = (id: string, createdAt: string, score: number | null): QueueItem => ({
-  id, code: id, discount: '', status: 'pending', tool: 't', creator: 'c', sourceUrl: '', sourceTitle: '', origin: 'manual', votesUp: 0, votesDown: 0, createdAt, expiresOn: null, expired: false,
+  id, code: id, offerLink: null, discount: '', status: 'pending', tool: 't', creator: 'c', sourceUrl: '', sourceTitle: '', origin: 'manual', votesUp: 0, votesDown: 0, createdAt, expiresOn: null, expired: false,
   check: score === null ? null : { score, reasons: [], evidence: null, model: null, costUsdMicros: 0, createdAt, aiCodes: [] },
 });
 

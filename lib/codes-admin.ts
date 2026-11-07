@@ -14,6 +14,7 @@ export type CodeInput = {
   toolSlug?: string;
   newTool?: NewTool;
   creatorName: string;
+  /** '' pour une offre donnée seulement par un lien : creatorLink est alors obligatoire (ADR-0040). */
   code: string;
   discount: string;
   sourceUrl: string;
@@ -50,11 +51,13 @@ export function parseCodeInput(body: Record<string, unknown>): Parsed<CodeInput>
   const creatorName = text(body.creatorName, 160), code = normalizeCode(text(body.code, 120)), discount = text(body.discount, 240);
   const sourceUrl = text(body.sourceUrl, 1000), sourceTitle = text(body.sourceTitle, 300), creatorLink = text(body.creatorLink, 1000);
   if (!creatorName || !slugify(creatorName)) return { ok: false, error: 'Indique le créateur.' };
-  const codeError = codeFormatError(code);
+  // Sans code, l'offre se prend par son lien : il devient obligatoire.
+  if (!code && !creatorLink) return { ok: false, error: 'Indique le code, ou le lien de l’offre s’il n’y a pas de code.' };
+  const codeError = code ? codeFormatError(code) : null;
   if (codeError) return { ok: false, error: codeError };
   if (!discount) return { ok: false, error: 'Indique la réduction.' };
   if (!validUrl(sourceUrl)) return { ok: false, error: 'Le lien source doit être une adresse web valide.' };
-  if (creatorLink && !validUrl(creatorLink)) return { ok: false, error: 'Le lien du créateur doit être une adresse web valide.' };
+  if (creatorLink && !validUrl(creatorLink)) return { ok: false, error: 'Le lien de l’offre doit être une adresse web valide.' };
   const expiresOn = text(body.expiresOn, 10);
   if (expiresOn && !isValidDay(expiresOn)) return { ok: false, error: 'La date de fin doit être une date valide.' };
   const status = body.status ?? 'to_test';
@@ -93,16 +96,24 @@ function testedAt(status: CodeStatus, previous: CodeStatus | null, current: Date
   return (status === 'verified' || status === 'rejected') && status !== previous ? new Date() : current;
 }
 
-/** Le code de cet outil qui a déjà ce code (casse ignorée, archivés compris), en dehors de celui qu'on modifie. */
-export async function findCatalogDuplicate(db: Db, toolId: string, code: string, exceptId?: string): Promise<{ id: string; archived: boolean } | null> {
-  const conditions = [eq(codes.toolId, toolId), sql`upper(${codes.code}) = ${normalizeCode(code)}`];
+/**
+ * Le code de cet outil qui a déjà ce code (casse ignorée, archivés compris), en dehors de celui qu'on modifie.
+ * Pour une offre sans code, c'est le même lien de l'offre sans code qui fait doublon.
+ */
+export async function findCatalogDuplicate(db: Db, toolId: string, code: string, exceptId?: string, link?: string | null): Promise<{ id: string; archived: boolean } | null> {
+  if (!code && !link) return null;
+  const conditions = [eq(codes.toolId, toolId), code
+    ? sql`upper(${codes.code}) = ${normalizeCode(code)}`
+    : and(isNull(codes.code), sql`lower(${codes.creatorLink}) = lower(${link ?? ''})`)!];
   if (exceptId) conditions.push(ne(codes.id, exceptId));
   const [row] = await db.select({ id: codes.id, archivedAt: codes.archivedAt }).from(codes).where(and(...conditions)).limit(1);
   return row ? { id: row.id, archived: Boolean(row.archivedAt) } : null;
 }
 
 function duplicateError(code: string, duplicate: { id: string; archived: boolean }): SaveResult<never> {
-  const error = duplicate.archived
+  const error = !code
+    ? duplicate.archived ? 'Cette offre par lien existe déjà pour cet outil, dans les archives. Restaure-la plutôt que d’en créer une deuxième.' : 'Cette offre par lien existe déjà pour cet outil.'
+    : duplicate.archived
     ? `Le code ${normalizeCode(code)} existe déjà pour cet outil, dans les archives. Restaure-le plutôt que d’en créer un deuxième.`
     : `Le code ${normalizeCode(code)} existe déjà pour cet outil.`;
   return { ok: false, error, duplicateId: duplicate.id };
@@ -111,7 +122,7 @@ function duplicateError(code: string, duplicate: { id: string; archived: boolean
 export async function createCode(db: Db, input: CodeInput, options: { submissionId?: string } = {}): Promise<SaveResult<{ id: string }>> {
   const tool = await resolveTool(db, input);
   if (!tool.ok) return tool;
-  const duplicate = await findCatalogDuplicate(db, tool.data, input.code);
+  const duplicate = await findCatalogDuplicate(db, tool.data, input.code, undefined, input.creatorLink);
   if (duplicate) return duplicateError(input.code, duplicate);
   if (options.submissionId) {
     const [submission] = await db.select({ status: submissions.status, createdCodeId: submissions.createdCodeId }).from(submissions).where(eq(submissions.id, options.submissionId)).limit(1);
@@ -120,7 +131,7 @@ export async function createCode(db: Db, input: CodeInput, options: { submission
   }
   const creatorId = await resolveCreator(db, input.creatorName);
   const [created] = await db.insert(codes).values({
-    toolId: tool.data, creatorId, code: input.code, discount: input.discount, sourceUrl: input.sourceUrl, sourceTitle: input.sourceTitle,
+    toolId: tool.data, creatorId, code: input.code || null, discount: input.discount, sourceUrl: input.sourceUrl, sourceTitle: input.sourceTitle,
     creatorLink: input.creatorLink, status: input.status, note: input.note, submissionId: options.submissionId ?? null, expiresOn: input.expiresOn ?? null,
     origin: options.submissionId ? 'submission' : 'manual',
     lastTestedAt: testedAt(input.status, null, null),
@@ -146,11 +157,11 @@ export async function updateCode(db: Db, id: string, input: CodeInput): Promise<
   if (!current) return { ok: false, error: 'Code introuvable.' };
   const tool = await resolveTool(db, input);
   if (!tool.ok) return tool;
-  const duplicate = await findCatalogDuplicate(db, tool.data, input.code, id);
+  const duplicate = await findCatalogDuplicate(db, tool.data, input.code, id, input.creatorLink);
   if (duplicate) return duplicateError(input.code, duplicate);
   const creatorId = await resolveCreator(db, input.creatorName);
   await db.update(codes).set({
-    toolId: tool.data, creatorId, code: input.code, discount: input.discount, sourceUrl: input.sourceUrl, sourceTitle: input.sourceTitle,
+    toolId: tool.data, creatorId, code: input.code || null, discount: input.discount, sourceUrl: input.sourceUrl, sourceTitle: input.sourceTitle,
     creatorLink: input.creatorLink, status: input.status, note: input.note, updatedAt: new Date(),
     lastTestedAt: testedAt(input.status, current.status, current.lastTestedAt),
     ...(input.expiresOn !== undefined ? { expiresOn: input.expiresOn } : {}),

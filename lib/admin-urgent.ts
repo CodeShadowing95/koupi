@@ -31,7 +31,7 @@ export function urgentAlerts({ codes, failedSources, gauges, now }: {
     alerts.push({
       id: 'expiring', tone: first.daysLeft === 0 ? 'bad' : 'warn',
       title: expiring.length === 1 ? `1 code expire d’ici ${EXPIRY_WARNING_DAYS} jours` : `${expiring.length} codes expirent d’ici ${EXPIRY_WARNING_DAYS} jours`,
-      detail: `Le premier : ${first.code.code} (${first.code.tool}) ${when}. Cherche un nouveau code chez le même créateur, ou archive-le à sa date de fin.`,
+      detail: `Le premier : ${first.code.code || 'l’offre par lien'} (${first.code.tool}) ${when}. Cherche un nouveau code chez le même créateur, ou archive-le à sa date de fin.`,
       href: '/admin/codes?status=expiring', cta: 'Voir les codes',
     });
   }

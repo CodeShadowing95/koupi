@@ -95,7 +95,7 @@ export default async function CreatorSpace() {
               <div role="row" className="k-cs-row is-head"><span role="columnheader">Code</span><span role="columnheader">Outil</span><span role="columnheader">État</span><span role="columnheader">Copies ce mois-ci</span></div>
               {rows.map(({ code, copies: n }) => (
                 <div role="row" className="k-cs-row" key={code.id}>
-                  <span role="cell" className="k-cs-code">{code.code}</span>
+                  <span role="cell" className="k-cs-code">{code.code || 'Lien seul'}</span>
                   <span role="cell"><Link href={routes.tool(code.toolSlug)}>{code.tool}</Link> <small>{code.discount}</small></span>
                   <span role="cell" className="k-cs-state"><CodeState code={code} /></span>
                   <span role="cell" className="k-cs-n">{formatCopies(n)}</span>

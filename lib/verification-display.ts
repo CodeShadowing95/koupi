@@ -16,7 +16,10 @@ export type QueueCheck = {
 
 export type QueueItem = {
   id: string;
+  /** '' pour une offre sans code, donnée par son lien (offerLink). */
   code: string;
+  /** Lien de l'offre (affiliation) du créateur, null s'il n'y en a pas. */
+  offerLink: string | null;
   discount: string;
   /** verified : un retest dont l'analyse n'est plus claire (onglet « Retests »). */
   status: 'pending' | 'to_test' | 'verified';

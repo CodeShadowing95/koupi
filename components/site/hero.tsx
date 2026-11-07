@@ -63,7 +63,9 @@ function HeroCoupon({ slot, code, toolSlug, website }: { slot: number; code: Cod
   );
 }
 
-export function Hero({ codes, tools }: { codes: Code[]; tools: Tool[] }) {
+export function Hero({ codes: all, tools }: { codes: Code[]; tools: Tool[] }) {
+  // Le coupon du haut se copie : les offres sans code (lien seul, ADR-0040) n'y vont pas.
+  const codes = all.filter(code => code.code);
   const root = useRef<HTMLElement>(null);
   // Quatre coupons, un par outil, de préférence des outils dont on a le logo. Ils remplacent l'ancienne ligne « Populaires ».
   const onePerTool = codes.filter((code, index, all) => code.status === 'verified' && all.findIndex(other => other.status === 'verified' && other.tool === code.tool) === index);

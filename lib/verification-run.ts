@@ -13,6 +13,7 @@ import { forVideo, mergeAiCodes } from './podcast-ai';
 import { addPendingCode } from './podcast-read';
 import { suggestionOrigin, type CodeOrigin } from './code-origin';
 import { youtubeFetch } from './api-usage';
+import { findLinkInText, isLinkOffer, offerName, shortLink } from './offer-link';
 
 export type SourceRead = { online: boolean; title: string; description: string };
 /** Lit le texte d'une source. null : source impossible à lire (plateforme non prise en charge, clé absente). */
@@ -92,25 +93,29 @@ export async function addSiblingCodes(db: Db, code: CodeRow, source: SourceRead,
   const video = sourceKindOf(code.sourceUrl) === 'youtube';
   const found = video ? forVideo(merged.found) : merged.found;
   const unknown = video ? forVideo(merged.unknown) : merged.unknown;
-  const same = (value: string) => value.trim().toLowerCase() === code.code.trim().toLowerCase();
+  // Le code analysé lui-même : même code, ou même lien pour une offre sans code.
+  const same = (item: { code: string; link?: string }) => item.code
+    ? item.code.trim().toLowerCase() === (code.code ?? '').trim().toLowerCase()
+    : Boolean(code.creatorLink && item.link && shortLink(item.link) === shortLink(code.creatorLink));
+  const name = offerName(code.code, code.creatorLink);
   const origin = AUTO_ORIGINS.includes(code.origin as CodeOrigin) ? code.origin as CodeOrigin : suggestionOrigin(code.sourceUrl);
   const added: string[] = [];
   const suggested: string[] = [];
   for (const item of found) {
-    if (item.toolId === code.toolId || same(item.code)) continue;
+    if (item.toolId === code.toolId || same(item)) continue;
     const id = await addPendingCode(db, {
-      toolId: item.toolId, creatorId: code.creatorId, code: item.code, discount: item.discount, sourceUrl: code.sourceUrl, sourceTitle: code.sourceTitle,
-      note: `Trouvé dans la même source que ${code.code} : « ${item.evidence} »`, expiresOn: item.expiresOn, origin,
-    }, `Analyse de ${code.code}`);
-    if (id) added.push(`${item.code} (${toolName.get(item.toolId) ?? 'outil'})`);
+      toolId: item.toolId, creatorId: code.creatorId, code: item.code, link: item.link, discount: item.discount, sourceUrl: code.sourceUrl, sourceTitle: code.sourceTitle,
+      note: `Trouvé dans la même source que ${name} : « ${item.evidence} »`, expiresOn: item.expiresOn, origin,
+    }, `Analyse de ${name}`);
+    if (id) added.push(`${item.code || 'une offre par lien'} (${toolName.get(item.toolId) ?? 'outil'})`);
   }
   for (const item of unknown) {
-    if (same(item.code)) continue;
+    if (same(item)) continue;
     const inserted = await db.insert(toolSuggestions).values({
-      name: clip(item.name, 120), domain: item.domain, code: item.code, discount: item.discount, evidence: item.evidence,
+      name: clip(item.name, 120), domain: item.domain, code: item.code || null, link: item.link || null, discount: item.discount, evidence: item.evidence,
       sourceUrl: code.sourceUrl, sourceTitle: clip(code.sourceTitle, 300), creatorId: code.creatorId,
     }).onConflictDoNothing().returning({ id: toolSuggestions.id });
-    if (inserted.length) suggested.push(`${item.code} (${item.domain ?? item.name})`);
+    if (inserted.length) suggested.push(`${item.code || 'une offre par lien'} (${item.domain ?? item.name})`);
   }
   return { added, suggested };
 }
@@ -120,15 +125,19 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
   const [code] = await db.select().from(codes).where(eq(codes.id, codeId)).limit(1);
   if (!code) return null;
 
+  // Offre par lien (sans code, ADR-0040) : c'est le lien qui la nomme, pour les doublons comme pour la preuve.
+  const linkOffer = isLinkOffer(code) && Boolean(code.creatorLink);
   const [duplicate] = await db.select({ id: codes.id }).from(codes)
-    .where(and(eq(codes.toolId, code.toolId), ne(codes.id, code.id), isNull(codes.archivedAt), sql`lower(${codes.code}) = lower(${code.code})`))
+    .where(and(eq(codes.toolId, code.toolId), ne(codes.id, code.id), isNull(codes.archivedAt), linkOffer
+      ? and(isNull(codes.code), sql`lower(${codes.creatorLink}) = lower(${code.creatorLink})`)
+      : sql`lower(${codes.code}) = lower(${code.code})`))
     .limit(1);
 
   const [tool] = await db.select({ name: tools.name }).from(tools).where(eq(tools.id, code.toolId)).limit(1);
 
   let source: SourceRead | null = null;
   try { source = await deps.readSource(code.sourceUrl); } catch { source = null; }
-  const match = source?.online ? findCodeInText(code.code, source.description) : null;
+  const match = !source?.online ? null : linkOffer ? findLinkInText(code.creatorLink ?? '', source.description) : findCodeInText(code.code ?? '', source.description);
 
   const result = scoreVerification({
     sourceOnline: source ? source.online : null,
@@ -136,8 +145,8 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
     creatorLevel: await creatorLevelFor(db, code.creatorId),
     toolKnown: true,
     duplicate: Boolean(duplicate),
-    spam: spamSignals({ sourceUrl: code.sourceUrl, code: code.code }),
-    implausible: implausibleCode(code.code, tool?.name),
+    spam: spamSignals({ sourceUrl: code.sourceUrl, code: code.code ?? '' }),
+    implausible: linkOffer ? null : implausibleCode(code.code ?? '', tool?.name),
     votesUp: code.votesUp,
     votesDown: code.votesDown,
   });
@@ -147,16 +156,26 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
   if (!source) reasons.push({ points: 0, label: 'Cette source ne peut pas encore être lue automatiquement : ouvre-la toi-même.' });
   const ai = source?.online ? await runAi(db, deps, mode, source, result.score) : { extraction: null, calls: [], note: null };
   if (ai.note) reasons.push(ai.note);
+  if (linkOffer && match) reasons.push({ points: 0, label: match.found ? 'Offre par lien : le lien est bien dans la source.' : 'Offre par lien : le lien n’est pas dans la source.' });
   if (ai.extraction) {
-    const seen = ai.extraction.codes.find(found => found.code.toLowerCase() === code.code.toLowerCase());
+    // Une offre sans code se retrouve par son lien (ADR-0040).
+    const seen = linkOffer
+      ? ai.extraction.codes.find(found => found.link && shortLink(found.link) === shortLink(code.creatorLink ?? ''))
+      : ai.extraction.codes.find(found => found.code.toLowerCase() === (code.code ?? '').toLowerCase());
     // L'IA lit la phrase entière : quand elle ne voit pas de code là où notre repérage en voit un (« 2026 », un mot du titre),
     // le dossier n'est plus clair. Le score reste calculé ici, l'IA ne fait que retirer des points.
-    if (seen) reasons.push({ points: 0, label: 'L’IA retrouve ce code dans la description.' });
+    if (seen) reasons.push({ points: 0, label: linkOffer ? 'L’IA retrouve cette offre et son lien dans la description.' : 'L’IA retrouve ce code dans la description.' });
     else {
       // Elle lit souvent le vrai code à côté (« LWS » repéré, « CQ410 » écrit) : on le montre pour que l'admin corrige.
       const others = [...new Set(ai.extraction.codes.map(found => found.code.trim()).filter(Boolean))].slice(0, 3);
-      reasons.push({ points: AI_MISS_POINTS, label: others.length ? `L’IA ne retrouve pas ce code dans la description. Elle y lit plutôt : ${others.join(', ')}.` : 'L’IA ne retrouve pas ce code dans la description.' });
+      const what = linkOffer ? 'cette offre' : 'ce code';
+      reasons.push({ points: AI_MISS_POINTS, label: others.length ? `L’IA ne retrouve pas ${what} dans la description. Elle y lit plutôt : ${others.join(', ')}.` : `L’IA ne retrouve pas ${what} dans la description.` });
       score = Math.max(0, score + AI_MISS_POINTS);
+    }
+    // Lien de l'offre écrit à côté du code : l'IA pré-remplit le champ s'il est vide. L'admin peut le corriger.
+    if (seen?.link && !code.creatorLink) {
+      await db.update(codes).set({ creatorLink: seen.link, updatedAt: new Date() }).where(eq(codes.id, code.id));
+      reasons.push({ points: 0, label: `L’IA a trouvé le lien de l’offre (${shortLink(seen.link)}) et l’a ajouté au code.` });
     }
     // Date de fin écrite par le créateur : l'IA pré-remplit le champ s'il est vide. L'admin peut la corriger.
     if (seen?.expiresOn && !code.expiresOn && isValidDay(seen.expiresOn)) {

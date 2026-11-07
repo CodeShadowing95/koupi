@@ -36,6 +36,26 @@ describe('tool suggestions', () => {
     expect(await openToolSuggestionCount(db)).toBe(1);
   });
 
+  it('repère un outil déjà au catalogue par son site ou son nom, actif avant archivé', async () => {
+    await db.insert(schema.tools).values([
+      { slug: 'planethoster', name: 'PlanetHoster', categorySlug: 'ia', website: 'https://www.planethoster.com/fr' },
+      { slug: 'old-tool', name: 'Old Tool', categorySlug: 'ia', website: 'https://old.tool', archivedAt: new Date() },
+    ]);
+    await db.insert(schema.toolSuggestions).values([
+      suggestion('PHA-10ECO', { name: 'Planethoster', domain: 'planethoster.com' }),
+      suggestion('CUURE10', { name: 'cuure', domain: null }),
+      suggestion('OLD10', { name: 'Old-Tool', domain: null }),
+      suggestion('GDIY'),
+    ]);
+    const byCode = Object.fromEntries((await listToolSuggestions(db)).map(item => [item.code, item.existing]));
+    expect(byCode).toEqual({
+      'PHA-10ECO': { slug: 'planethoster', name: 'PlanetHoster', archived: false },
+      CUURE10: { slug: 'cuure', name: 'Cuure', archived: false },
+      OLD10: { slug: 'old-tool', name: 'Old Tool', archived: true },
+      GDIY: null,
+    });
+  });
+
   it('ajoute le nouvel outil et met en attente les codes de toutes ses suggestions', async () => {
     const [first] = await db.insert(schema.toolSuggestions).values([
       suggestion('GDIY', { podcastId, creatorId }), suggestion('MATTHIEU', { podcastId, creatorId }), suggestion('AUTRE', { name: 'Other', domain: 'other.io' }),
@@ -48,6 +68,18 @@ describe('tool suggestions', () => {
     expect(await openToolSuggestionCount(db)).toBe(1);
     const [added] = (await db.select().from(schema.toolSuggestions)).filter(row => row.id === first.id);
     expect(added).toMatchObject({ status: 'added', codeId: expect.any(String), toolId: expect.any(String) });
+  });
+
+  it('crée une offre sans code avec son lien depuis une suggestion par lien', async () => {
+    const [row] = await db.insert(schema.toolSuggestions).values(suggestion('', { code: null, link: 'https://try.gradium.ai/ana', podcastId, creatorId })).returning();
+    // Le même lien pour le même outil ne crée pas une deuxième suggestion.
+    await db.insert(schema.toolSuggestions).values(suggestion('', { code: null, link: 'https://try.gradium.ai/ana' })).onConflictDoNothing();
+    expect(await openToolSuggestionCount(db)).toBe(1);
+    expect((await listToolSuggestions(db))[0]).toMatchObject({ code: '', link: 'https://try.gradium.ai/ana' });
+    const result = await acceptToolSuggestion(db, row.id, { newTool: { name: 'Gradium', categorySlug: 'ia', website: 'https://gradium.ai', description: null, priority: 3 } });
+    expect(result.ok && result.data.codeIds).toHaveLength(1);
+    const [code] = await db.select().from(schema.codes);
+    expect(code).toMatchObject({ code: null, creatorLink: 'https://try.gradium.ai/ana', status: 'pending', discount: '-10 %' });
   });
 
   it('relie une suggestion à un outil déjà au catalogue sans recréer un code connu', async () => {

@@ -72,7 +72,7 @@ export async function audienceStats(db: Db, period: AudiencePeriod, now = new Da
 
   const ids = [...byCode.keys()].filter(id => /^[0-9a-f-]{36}$/i.test(id));
   const names = ids.length
-    ? await db.select({ id: codes.id, code: codes.code, tool: tools.name }).from(codes).innerJoin(tools, eq(codes.toolId, tools.id)).where(inArray(codes.id, ids))
+    ? await db.select({ id: codes.id, code: sql<string>`coalesce(${codes.code}, 'Lien seul')`, tool: tools.name }).from(codes).innerJoin(tools, eq(codes.toolId, tools.id)).where(inArray(codes.id, ids))
     : [];
   const topCodes = names.map(row => ({ code: row.code, tool: row.tool, copies: byCode.get(row.id)?.copies ?? 0 }))
     .filter(row => row.copies > 0).sort((a, b) => b.copies - a.copies).slice(0, 8);

@@ -76,7 +76,8 @@ export function buildDirectory(catalog: { codes: Code[]; tools: Tool[] }, facts:
   return [...bySlug].map(([slug, unranked]) => {
     const fact = facts[slug];
     const own = rankCodes(unranked);
-    const best = own[0];
+    // Le code à copier d'un clic : un vrai code d'abord, une offre par lien seulement s'il n'a que ça (ADR-0040).
+    const best = own.find(code => code.code) ?? own[0];
     const logos = [...new Map(own.map(code => [code.toolSlug, { slug: code.toolSlug, name: code.tool }])).values()];
     // Ses réseaux : ses comptes reliés, et à défaut ceux d'où viennent ses codes (une vidéo YouTube, un post Instagram…).
     const fromSources = own.map(code => sourcePlatform(code.source)).filter((platform): platform is CreatorPlatform => Boolean(platform) && platform !== 'other');

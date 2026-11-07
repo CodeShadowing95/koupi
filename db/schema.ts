@@ -127,10 +127,11 @@ export const codes = pgTable('codes', {
   /** Identifiant du code dans les fichiers de data/ (import initial), vide pour les codes créés dans l'admin. */
   importKey: text('import_key').unique(),
   toolId: uuid('tool_id').notNull().references(() => tools.id),
-  code: text('code').notNull(),
+  /** Le code à taper, vide pour une offre donnée seulement par un lien (creator_link obligatoire alors, ADR-0040). */
+  code: text('code'),
   discount: text('discount').notNull(),
   creatorId: uuid('creator_id').notNull().references(() => creators.id),
-  /** Lien d'affiliation du créateur pour ce code, ouvert tel quel. */
+  /** Lien de l'offre (affiliation) du créateur, ouvert tel quel. Seul moyen d'en profiter quand il n'y a pas de code. */
   creatorLink: text('creator_link'),
   sourceUrl: text('source_url').notNull(),
   sourceTitle: text('source_title').notNull().default(''),
@@ -153,7 +154,8 @@ export const codes = pgTable('codes', {
   index('codes_tool_idx').on(table.toolId),
   index('codes_creator_idx').on(table.creatorId),
   index('codes_status_idx').on(table.status),
-  check('codes_code_len', sql`char_length(trim(${table.code})) between 1 and 120`),
+  check('codes_code_len', sql`${table.code} is null or char_length(trim(${table.code})) between 1 and 120`),
+  check('codes_code_or_link', sql`${table.code} is not null or ${table.creatorLink} is not null`),
   check('codes_discount_len', sql`char_length(trim(${table.discount})) between 1 and 240`),
   check('codes_source_url_http', sql`${table.sourceUrl} ~* '^https?://'`),
   check('codes_creator_link_http', sql`${table.creatorLink} is null or ${table.creatorLink} ~* '^https?://'`),
@@ -327,7 +329,10 @@ export const toolSuggestions = pgTable('tool_suggestions', {
   name: text('name').notNull(),
   /** Domaine trouvé à côté du code (gradium.ai), en minuscules. */
   domain: text('domain'),
-  code: text('code').notNull(),
+  /** Vide pour une offre donnée seulement par un lien (link obligatoire alors, ADR-0040). */
+  code: text('code'),
+  /** Lien de l'offre (affiliation) écrit dans la source, vide s'il n'y en a pas. */
+  link: text('link'),
   discount: text('discount').notNull(),
   evidence: text('evidence').notNull().default(''),
   sourceUrl: text('source_url').notNull(),
@@ -345,10 +350,12 @@ export const toolSuggestions = pgTable('tool_suggestions', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   resolvedAt: timestamp('resolved_at', { withTimezone: true }),
 }, table => [
-  uniqueIndex('tool_suggestions_tool_code_idx').on(sql`lower(coalesce(${table.domain}, ${table.name}))`, sql`lower(${table.code})`),
+  uniqueIndex('tool_suggestions_tool_code_idx').on(sql`lower(coalesce(${table.domain}, ${table.name}))`, sql`lower(coalesce(${table.code}, ${table.link}))`),
   index('tool_suggestions_status_idx').on(table.status),
   check('tool_suggestions_name_len', sql`char_length(trim(${table.name})) between 1 and 120`),
-  check('tool_suggestions_code_len', sql`char_length(trim(${table.code})) between 1 and 120`),
+  check('tool_suggestions_code_len', sql`${table.code} is null or char_length(trim(${table.code})) between 1 and 120`),
+  check('tool_suggestions_code_or_link', sql`${table.code} is not null or ${table.link} is not null`),
+  check('tool_suggestions_link_http', sql`${table.link} is null or ${table.link} ~* '^https?://'`),
   check('tool_suggestions_discount_len', sql`char_length(trim(${table.discount})) between 1 and 240`),
   check('tool_suggestions_domain_format', sql`${table.domain} is null or ${table.domain} ~ '^[a-z0-9-]+(\\.[a-z0-9-]+)+$'`),
   check('tool_suggestions_source_http', sql`${table.sourceUrl} ~* '^https?://'`),

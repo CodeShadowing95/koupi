@@ -1185,6 +1185,7 @@ html:has(> body > .ct){overflow:hidden}
 @media(prefers-reduced-motion:reduce){.adm-vf-card{transition:none}}
 .adm-vf-retest-hint{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .adm-vf-expiry{font-size:12px;color:var(--muted)}
+.adm-vf-offer{display:block;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
 
 /* Comptes d'un créateur (panneau de la page Créateurs) */
 .adm-ca{display:flex;flex-direction:column;gap:10px}
@@ -1311,6 +1312,9 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-sugg-tool b,.adm-sugg-tool a{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .adm-sugg-tool a{font-size:12px}
 .adm-sugg-code{flex:none;margin-left:auto;padding:3px 8px;border:1px dashed var(--line-strong);border-radius:7px;font-size:13px;font-weight:700;letter-spacing:.04em}
+.adm-sugg-link{display:inline-block;font-size:12px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
+.adm-sugg .adm-link-offer{margin-left:auto}
+.adm-sugg-known{margin:0;padding:8px 10px;border-radius:8px;background:var(--blue-soft);color:var(--ink);font-size:13px}
 .adm-sugg-evidence{margin:0;font-size:12px;font-style:italic;color:var(--ink-soft);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
 .adm-sugg-analysis{display:flex;flex-direction:column;gap:4px;padding:8px 10px;border-radius:9px;background:var(--paper);font-size:12px;overflow-wrap:anywhere}
 .adm-sugg-analysis p{margin:0}
@@ -1544,3 +1548,7 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
   .adm-pages-table td:first-child{grid-row:1}
   .adm-pages-table td:last-child{grid-column:2;grid-row:1 / span 2;align-self:start}
 }
+
+/* Offre sans code, donnée par un lien d'affiliation (ADR-0040). */
+.adm-link-offer { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 999px; background: var(--blue-soft); color: var(--blue); font-weight: 600; font-size: 12px; line-height: 1.6; white-space: nowrap; }
+.adm-link-offer::before { content: '🔗'; font-size: 11px; }

@@ -123,6 +123,17 @@ export function BoardingCoupon({ code, category, link, compact = false, light = 
         )}
       </div>
 
+      {!code.code ? (
+        // Offre sans code (ADR-0040) : le talon ouvre le lien d'affiliation du créateur, marqué comme tel.
+        <a className="k-pass-stub is-link" href={link} target="_blank" rel="sponsored noopener noreferrer" onClick={() => track('open', code.id)}
+          aria-label={`Profiter de l’offre ${code.tool} avec le lien de ${code.creator} (lien d’affiliation)`}>
+          <span className="k-pass-stub-code">
+            <small>Sans code · lien d’affiliation</small>
+            <span className="k-pass-code is-link">Lien du créateur</span>
+          </span>
+          <span className="k-pass-action">Profiter de l’offre</span>
+        </a>
+      ) : <>
       <button type="button" className="k-pass-stub" onClick={tear} aria-label={torn ? `Recopier le code ${code.code}` : `Copier le code ${code.code} et ouvrir ${code.tool}`}>
         <span className="k-pass-stub-code">
           <small>{torn ? (failed ? 'Copie à la main' : 'Copié ✓') : 'Code promo'}</small>
@@ -131,6 +142,7 @@ export function BoardingCoupon({ code, category, link, compact = false, light = 
         <span className="k-pass-action">{torn ? 'Recopier' : 'Copier'}</span>
       </button>
       <span className="k-sr" role="status">{torn ? (failed ? `Copie le code ${code.code} à la main` : `Code ${code.code} copié`) : ''}</span>
+      </>}
     </article>
   );
 }

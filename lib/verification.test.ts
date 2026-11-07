@@ -63,6 +63,17 @@ describe('findCodeInText', () => {
   it('accepte un code avec des caractères spéciaux', () => {
     expect(findCodeInText('NORD-VPN+', 'utilisez NORD-VPN+ au paiement').found).toBe(true);
   });
+
+  it('ignore un mot qui n’apparaît que dans une adresse web (identifiant d’affiliation)', () => {
+    const krisp = '- KrispCall: Agentic Cloud Telephony - https://try.krispcall.com/tad\n- Sans protocole : try.krispcall.com/tad';
+    expect(findCodeInText('tad', krisp).found).toBe(false);
+    expect(findCodeInText('LINUS', 'surfshark.deals/linus et www.surfshark.com/linus').found).toBe(false);
+    // Le même mot écrit aussi en dehors du lien compte, et l'extrait part de cette occurrence-là.
+    const both = 'Lien : https://surfshark.deals/linus\nCode promo : LINUS pour 80 % de réduction';
+    const match = findCodeInText('LINUS', both);
+    expect(match.found).toBe(true);
+    expect(match.excerpt).toContain('Code promo : LINUS');
+  });
   it('coupe l’extrait autour du code', () => {
     const long = `${'a '.repeat(200)}CODE42${' b'.repeat(200)}`;
     const match = findCodeInText('CODE42', long);

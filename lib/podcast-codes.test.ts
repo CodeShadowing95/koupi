@@ -54,6 +54,12 @@ describe('code annoncé après le nom de l’outil', () => {
 });
 
 describe('scanPromoCodes', () => {
+  it('ne prend pas un mot dans une adresse web pour un code annoncé', () => {
+    const { found, unknown } = scanPromoCodes('Soldes : https://www.example.com/codeSUMMER24 et example.com/couponWINTER25', tools);
+    expect(found).toEqual([]);
+    expect(unknown).toEqual([]);
+  });
+
   const gdiy = [
     'Je vous ai négocié un code promo : -10% avec le code GDIY sur https://gradium.ai/',
     'Un grand MERCI à nos sponsors :',
@@ -188,5 +194,13 @@ describe('description à plusieurs outils, codes sous le lien', () => {
     expect(scanPromoCodes('Utilise le code promo pour avoir la réduction sur nordvpn.com', []).unknown).toEqual([]);
     expect(scanPromoCodes('Le code promo : merci beaucoup à tous sur nordvpn.com', []).unknown).toEqual([]);
     expect(scanPromoCodes('NordVPN : nordvpn.com, code : 20%', []).unknown).toEqual([]);
+  });
+});
+
+describe('site de l’outil écrit avec www', () => {
+  it('rattache le code à l’outil du catalogue même quand le lien commence par www.', () => {
+    const { found, unknown } = scanPromoCodes('https://www.planethoster.com/goph-yapo -10% de réduction avec le Code Promo : PHA-10ECO', [{ id: 't-ph', name: 'PlanetHoster', domain: 'planethoster.com' }]);
+    expect(found).toMatchObject([{ toolId: 't-ph', code: 'PHA-10ECO', discount: '-10%' }]);
+    expect(unknown).toEqual([]);
   });
 });

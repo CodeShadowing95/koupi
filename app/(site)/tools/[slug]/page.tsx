@@ -65,7 +65,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
             <div className="k-tool-head">
               <div className="k-tool-kicker">
                 <ToolSeal tool={tool.slug} name={tool.name} />
-                <span className="k-eyebrow">{sorted.length > 1 ? `${sorted.length} codes de créateurs` : best ? 'Le code d’un créateur' : tool.category}</span>
+                <span className="k-eyebrow">{sorted.length > 1 ? `${sorted.length} codes de créateurs` : best ? (best.code ? 'Le code d’un créateur' : 'L’offre d’un créateur') : tool.category}</span>
               </div>
               <h1>
                 Code promo {tool.name}
@@ -81,7 +81,10 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
               )}
             </div>
 
-            {best ? (
+            {best && !best.code ? (
+              // Offre sans code (ADR-0040) : pas de talon à copier, le coupon ouvre le lien du créateur.
+              <BoardingCoupon code={best} link={best.creatorLink || tool.website} linkTool={false} />
+            ) : best ? (
               <TearTicket code={best.code} codeId={best.id} link={best.creatorLink || tool.website} creator={best.creator} discount={best.discount} tool={tool.name} seal={<ToolSeal tool={tool.slug} name={tool.name} size="lg" />}>
                 <div className="k-ticket-who">
                   <CreatorAvatar name={best.creator} className="k-ticket-avatar" />
@@ -106,7 +109,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                 <div className="k-tool-check-text">
                   <strong>{votesLabel(best)}</strong>
                   {best.votes >= 3 && <div className="k-meter"><span style={{ width: `${best.success}%` }} /></div>}
-                  <a className="k-link" href={best.source} target="_blank" rel="noopener noreferrer">Voir la vidéo d&apos;où vient le code ↗</a>
+                  <a className="k-link" href={best.source} target="_blank" rel="noopener noreferrer">Voir la vidéo d&apos;où vient {best.code ? 'le code' : 'l’offre'} ↗</a>
                 </div>
                 <VoteButtons code={best} />
               </div>
