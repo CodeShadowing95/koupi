@@ -1,6 +1,6 @@
 import Link from '@/components/site/site-pages';
 import { isPublic } from '@/lib/data';
-import { getCatalog } from '@/lib/catalog-server';
+import { getCatalog, getCreatorFacts } from '@/lib/catalog-server';
 import { routes } from '@/lib/routes';
 import { Hero } from '@/components/site/hero';
 import { HowItWorks } from '@/components/site/how-it-works';
@@ -11,6 +11,8 @@ import { compactCount } from '@/lib/codes-board';
 import { featuredPool } from '@/lib/featured-codes';
 import { CreatorRotator } from '@/components/site/creator-rotator';
 import { rotationCreators } from '@/lib/creator-rotation';
+import { CreatorStudio } from '@/components/site/creator-studio';
+import type { AboutSectionId } from '@/lib/about-sections';
 import type { Metadata } from 'next';
 
 // Présentation de Merkod (l'ancienne page d'accueil). La page principale est désormais la page Explorer (/),
@@ -21,8 +23,11 @@ export const metadata: Metadata = {
   alternates: { canonical: routes.about },
 };
 
+// Les ancres de la barre du haut (lib/about-sections.ts) : un id mal tapé ici ne passe pas le typage.
+const anchor = (id: AboutSectionId) => id;
+
 export default async function About() {
-  const { codes, tools } = await getCatalog();
+  const [{ codes, tools }, facts] = await Promise.all([getCatalog(), getCreatorFacts()]);
   const live = codes.filter(isPublic);
   const featured = featuredPool(live);
   const total = compactCount(live.length);
@@ -37,16 +42,20 @@ export default async function About() {
     discount: code.discount,
   }));
   const best = [...live].sort((a, b) => b.success - a.success || b.votes - a.votes)[0];
+  // L'exemple de la section créateurs : un code fiable dont la réduction tient sur le petit coupon.
+  const studioExample = [...live].sort((a, b) => b.success - a.success || b.votes - a.votes).find(code => code.discount.length <= 10) ?? best;
+  // Copies du mois, tous créateurs confondus : le vrai compteur, pas un chiffre d'exemple.
+  const copies = Object.values(facts).reduce((sum, fact) => sum + (fact.copies ?? 0), 0);
 
   return (
     <main>
       <Hero codes={codes} tools={tools} />
 
-      <HowItWorks example={featured[0] && { tool: featured[0].tool, code: featured[0].code, discount: featured[0].discount, creator: featured[0].creator }} />
+      <HowItWorks id={anchor('principe')} example={featured[0] && { tool: featured[0].tool, code: featured[0].code, discount: featured[0].discount, creator: featured[0].creator }} />
 
-      <CreatorsOrbit creators={orbit} total={creators.size} />
+      <CreatorsOrbit id={anchor('createurs-credites')} creators={orbit} total={creators.size} />
 
-      <section className="k-section">
+      <section className="k-section" id={anchor('regle')}>
         <div className="k-wrap">
           <div className="k-section-head" data-reveal>
             <span className="k-eyebrow">La règle Merkod</span>
@@ -89,7 +98,7 @@ export default async function About() {
         </div>
       </section>
 
-      <section className="k-section is-tight">
+      <section className="k-section is-tight" id={anchor('contribuer')}>
         <div className="k-wrap">
           <div className="k-cta" data-reveal>
             <div>
@@ -108,20 +117,7 @@ export default async function About() {
         </div>
       </section>
 
-      <section className="k-section is-tight">
-        <div className="k-wrap">
-          <div className="k-cta k-cta-creators" data-reveal>
-            <div>
-              <span className="k-eyebrow">Pour les créateurs</span>
-              <h2>Tu es créateur&nbsp;?</h2>
-              <p>Tes codes sont peut-être déjà sur Merkod, crédités à ton nom. Réclame ta page, regroupe tous tes codes au même endroit et vois combien de fois ils sont copiés.</p>
-            </div>
-            <div className="k-cta-actions">
-              <Link className="k-btn k-btn-primary" href={routes.forCreators()}>Découvrir l&apos;espace créateur</Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      {studioExample && <CreatorStudio id={anchor('espace-createurs')} example={studioExample} copies={copies} creators={creators.size} />}
 
       <section className="k-section is-tight">
         <div className="k-wrap">
