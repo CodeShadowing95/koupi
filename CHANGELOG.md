@@ -2,6 +2,13 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.8.0](https://github.com/CodeShadowing95/koupi/compare/v0.7.0...v0.8.0) (2026-11-07)
+
+### Nouveautés
+
+- **about:** Rotate the orbit avatars and show example creators (#230) ([aff08e6](https://github.com/CodeShadowing95/koupi/commit/aff08e6df5fa07c328eb2fb047529bd1b4a6b2cc))
+- **home:** Make the Explorer page the main page (#228) ([173f9b8](https://github.com/CodeShadowing95/koupi/commit/173f9b8d6ab75f071d37e80f1e35bd2081c1852c))
+
 ## [0.7.0](https://github.com/CodeShadowing95/koupi/compare/v0.6.1...v0.7.0) (2026-11-06)
 
 ### Nouveautés

@@ -1,14 +1,9 @@
 import Link from '@/components/site/site-pages';
 import { isPublic } from '@/lib/data';
-import { getCatalog } from '@/lib/catalog-server';
+import { getCatalog, getCreatorFacts } from '@/lib/catalog-server';
 import { routes } from '@/lib/routes';
-import { siteLd } from '@/lib/structured-data';
-import { siteUrl } from '@/lib/seo';
-import { JsonLd } from '@/components/json-ld';
 import { Hero } from '@/components/site/hero';
-import { Marquee } from '@/components/site/marquee';
 import { HowItWorks } from '@/components/site/how-it-works';
-import { FeaturedCodes } from '@/components/site/featured-codes';
 import { Counter } from '@/components/site/counter';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { CreatorsOrbit } from '@/components/site/creators-orbit';
@@ -16,69 +11,45 @@ import { compactCount } from '@/lib/codes-board';
 import { featuredPool } from '@/lib/featured-codes';
 import { CreatorRotator } from '@/components/site/creator-rotator';
 import { rotationCreators } from '@/lib/creator-rotation';
-import { VoteInvite } from '@/components/site/vote-invite';
+import { CreatorStudio } from '@/components/site/creator-studio';
+import type { AboutSectionId } from '@/lib/about-sections';
+import type { Metadata } from 'next';
 
-export const metadata = { alternates: { canonical: routes.home } };
+// Présentation de Merkod (l'ancienne page d'accueil). La page principale est désormais la page Explorer (/),
+// où le visiteur trouve son code tout de suite ; celle-ci explique pourquoi lui faire confiance, aux curieux et aux créateurs.
+export const metadata: Metadata = {
+  title: 'Présentation · Merkod',
+  description: 'Merkod réunit les codes promo donnés par les créateurs, vérifiés à la main et toujours crédités. Pas de compte, pas de pub, et le code reste celui du créateur.',
+  alternates: { canonical: routes.about },
+};
 
-export default async function Home() {
-  const { codes, tools } = await getCatalog();
+// Les ancres de la barre du haut (lib/about-sections.ts) : un id mal tapé ici ne passe pas le typage.
+const anchor = (id: AboutSectionId) => id;
+
+export default async function About() {
+  const [{ codes, tools }, facts] = await Promise.all([getCatalog(), getCreatorFacts()]);
   const live = codes.filter(isPublic);
   const featured = featuredPool(live);
+  const total = compactCount(live.length);
   const creators = new Set(live.map(code => code.creator));
   const toolOf = (name: string) => tools.find(tool => tool.name === name);
-  // Un créateur par entrée, avec son nombre de codes visibles et un exemple de code.
-  const orbit = [...new Map(live.map(code => [code.creatorSlug, code])).values()].slice(0, 12).map(code => ({
-    name: code.creator,
-    slug: code.creatorSlug,
-    codes: live.filter(other => other.creatorSlug === code.creatorSlug).length,
-    tool: code.tool,
-    discount: code.discount,
-  }));
+  // Un créateur par entrée : le vivier dans lequel l'orbite tire ses avatars.
+  const orbit = [...new Map(live.map(code => [code.creatorSlug, { name: code.creator, slug: code.creatorSlug }])).values()];
   const best = [...live].sort((a, b) => b.success - a.success || b.votes - a.votes)[0];
+  // L'exemple de la section créateurs : un code fiable dont la réduction tient sur le petit coupon.
+  const studioExample = [...live].sort((a, b) => b.success - a.success || b.votes - a.votes).find(code => code.discount.length <= 10) ?? best;
+  // Copies du mois, tous créateurs confondus : le vrai compteur, pas un chiffre d'exemple.
+  const copies = Object.values(facts).reduce((sum, fact) => sum + (fact.copies ?? 0), 0);
 
   return (
     <main>
-      <JsonLd data={siteLd(siteUrl())} />
       <Hero codes={codes} tools={tools} />
 
-      <section className="k-section is-tight">
-        <div className="k-wrap">
-          <div className="k-section-head" data-reveal>
-            <span className="k-eyebrow">Codes du moment</span>
-            <h2>Clique sur le talon,<br />c&apos;est copié.</h2>
-            <p>Chaque code est celui d&apos;un créateur, avec la vidéo d&apos;où il vient. Monte le son.</p>
-          </div>
-          <FeaturedCodes pool={featured.map(code => ({ code, link: code.creatorLink || toolOf(code.tool)?.website || '#' }))} />
-          <div className="k-more" data-reveal>
-            <Link className="k-more-ticket" href={routes.codes} aria-label={`Voir plus de codes : ${compactCount(live.length)} codes de créateurs, avec filtres et recherche`}>
-              <span className="k-more-body" aria-hidden="true">
-                <span className="k-more-main">
-                  <small>Merkod</small>
-                  <strong>Voir plus</strong>
-                  <strong>de codes</strong>
-                  <em>{compactCount(live.length)} codes de créateurs</em>
-                </span>
-                <span className="k-more-stub">
-                  <small>Ouvrir</small>
-                  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-                </span>
-              </span>
-            </Link>
-            <span className="k-more-shadow" aria-hidden="true" />
-          </div>
-        </div>
-      </section>
+      <HowItWorks id={anchor('principe')} example={featured[0] && { tool: featured[0].tool, code: featured[0].code, discount: featured[0].discount, creator: featured[0].creator }} />
 
-      <div aria-hidden="true" className="k-bands">
-        <Marquee items={[...tools.map(tool => tool.name), ...tools.map(tool => tool.name)]} />
-        <Marquee className="k-band-2" reverse speed={330} items={[...creators, ...creators].map(name => `de ${name}`)} />
-      </div>
+      <CreatorsOrbit id={anchor('createurs-credites')} creators={orbit} total={creators.size} />
 
-      <HowItWorks example={featured[0] && { tool: featured[0].tool, code: featured[0].code, discount: featured[0].discount, creator: featured[0].creator }} />
-
-      <CreatorsOrbit creators={orbit} total={creators.size} />
-
-      <section className="k-section">
+      <section className="k-section" id={anchor('regle')}>
         <div className="k-wrap">
           <div className="k-section-head" data-reveal>
             <span className="k-eyebrow">La règle Merkod</span>
@@ -121,7 +92,9 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="k-section is-tight">
+      {studioExample && <CreatorStudio id={anchor('espace-createurs')} example={studioExample} copies={copies} creators={creators.size} />}
+
+      <section className="k-section is-tight" id={anchor('contribuer')}>
         <div className="k-wrap">
           <div className="k-cta" data-reveal>
             <div>
@@ -139,7 +112,29 @@ export default async function Home() {
           </div>
         </div>
       </section>
-      <VoteInvite trigger="copy" />
+
+
+      <section className="k-section is-tight">
+        <div className="k-wrap">
+          <div className="k-more" data-reveal>
+            <Link className="k-more-ticket" href={routes.home} aria-label={`Voir tous les codes : ${total} codes de créateurs, avec filtres et recherche`}>
+              <span className="k-more-body" aria-hidden="true">
+                <span className="k-more-main">
+                  <small>Merkod</small>
+                  <strong>Voir tous</strong>
+                  <strong>les codes</strong>
+                  <em>{total} codes de créateurs</em>
+                </span>
+                <span className="k-more-stub">
+                  <small>Ouvrir</small>
+                  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+                </span>
+              </span>
+            </Link>
+            <span className="k-more-shadow" aria-hidden="true" />
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

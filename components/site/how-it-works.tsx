@@ -19,7 +19,7 @@ const SearchIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
 );
 
-export function HowItWorks({ example }: { example?: HowItWorksExample }) {
+export function HowItWorks({ id, example }: { id?: string; example?: HowItWorksExample }) {
   const root = useRef<HTMLElement>(null);
   const tool = example?.tool ?? 'NordVPN';
   const code = example?.code ?? 'MERKOD';
@@ -68,7 +68,7 @@ export function HowItWorks({ example }: { example?: HowItWorksExample }) {
   }, { scope: root, dependencies: [tool] });
 
   return (
-    <section className="k-journey" ref={root} aria-labelledby="k-journey-title">
+    <section className="k-journey" id={id} ref={root} aria-labelledby="k-journey-title">
       <div className="k-journey-track">
         <svg className="k-journey-svg" viewBox="0 0 3000 200" preserveAspectRatio="none" aria-hidden="true">
           <path className="k-journey-line" d="M0,120 C300,20 600,200 1000,110 S1700,10 2000,120 S2700,200 3000,90" />

@@ -5,9 +5,11 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { isSoundEnabled, setSoundEnabled } from '@/lib/coupon-sound';
 import { routes } from '@/lib/routes';
+import { ABOUT_SECTIONS, activeSection } from '@/lib/about-sections';
 
 // Sous 980 px, les liens passent dans un menu déroulant ouvert par le bouton burger :
 // il se ferme au changement de page, avec Échap, au clic à côté, et bloque le défilement de la page derrière.
+// Sur la page Présentation, les liens deviennent des ancres vers ses sections, et celle qu'on lit est soulignée.
 
 const links = [
   { href: routes.codes, label: 'Codes promo' },
@@ -24,6 +26,8 @@ export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [sound, setSound] = useState(true);
   const [open, setOpen] = useState(false);
+  const onAbout = pathname === routes.about;
+  const [section, setSection] = useState<string | null>(null);
   const header = useRef<HTMLElement>(null);
   const burger = useRef<HTMLButtonElement>(null);
 
@@ -49,6 +53,22 @@ export function SiteHeader() {
     };
   }, [open]);
 
+  // Section en cours de lecture : la dernière dont le haut est passé sous la barre (un tiers de l'écran).
+  useEffect(() => {
+    if (!onAbout) { setSection(null); return; }
+    const onScroll = () => {
+      const tops = ABOUT_SECTIONS.flatMap(({ id }) => {
+        const el = document.getElementById(id);
+        return el ? [{ id, top: el.getBoundingClientRect().top }] : [];
+      });
+      setSection(activeSection(tops, window.innerHeight / 3));
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); };
+  }, [onAbout]);
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
     onScroll();
@@ -67,7 +87,9 @@ export function SiteHeader() {
           <Image src="/merkod-logo-dark.png" alt="Merkod" width={1323} height={287} priority />
         </Link>
         <nav className="k-nav" aria-label="Navigation principale">
-          {shown.map(link => (
+          {onAbout ? ABOUT_SECTIONS.map(item => (
+            <a key={item.id} className={`k-nav-link${'accent' in item ? ' is-accent' : ''}`} href={`#${item.id}`} aria-current={section === item.id ? 'location' : undefined}>{item.label}</a>
+          )) : shown.map(link => (
             <Link key={link.href} className="k-nav-link" href={hrefOf(link.href)} aria-current={pathname.startsWith(link.href) ? 'page' : undefined}>{link.label}</Link>
           ))}
           {/* Un vrai petit coupon : papier crème festonné, perforation, talon corail « % » qui se décolle au survol. */}
@@ -104,7 +126,13 @@ export function SiteHeader() {
       </div>
       <div className="k-menu" id="k-menu" data-open={open} inert={!open}>
         <nav className="k-wrap k-menu-in" aria-label="Menu">
-          {shown.map(link => (
+          {onAbout && ABOUT_SECTIONS.map(item => (
+            <a key={item.id} className={`k-menu-link${'accent' in item ? ' is-accent' : ''}`} href={`#${item.id}`} aria-current={section === item.id ? 'location' : undefined} onClick={() => setOpen(false)}>
+              {item.label}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" /></svg>
+            </a>
+          ))}
+          {!onAbout && shown.map(link => (
             <Link key={link.href} className="k-menu-link" href={hrefOf(link.href)} aria-current={pathname.startsWith(link.href) ? 'page' : undefined}
               onClick={() => setOpen(false)}>
               {link.label}
