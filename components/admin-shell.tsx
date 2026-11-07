@@ -13,6 +13,7 @@ import { AdminAskHost } from '@/components/admin-ask';
 import { UsageGauge } from '@/components/admin-usage-gauge';
 import { AdminIcon } from '@/components/admin-icons';
 import { parisDate } from '@/lib/paris-date';
+import type { NavWaiting } from '@/lib/admin-nav-counts';
 
 /** count : nombre à traiter (pastille). children : sous-menus, dépliés par la flèche à droite de l'item. */
 type Item = { href: string; label: string; icon: React.ReactNode; count?: number; countLabel?: string; children?: Item[] };
@@ -40,7 +41,7 @@ const icons = {
 
 // Menu regroupé : chaque grand espace (Codes, Créateurs, Outils, Statistiques) garde ses pages liées en sous-menus,
 // pour que tout tienne sans défiler. « Voir le site » et « Se déconnecter » restent fixés en bas.
-function navGroups(counts: { toTest?: number; pending?: number; newFeedback?: number; newRequests?: number } = {}): { label: string; items: Item[] }[] {
+function navGroups(counts: { toTest?: number; pending?: number; newFeedback?: number; newRequests?: number } & NavWaiting = {}): { label: string; items: Item[] }[] {
   return [
   { label: 'Pilotage', items: [
     { href: '/admin', label: 'Accueil', icon: icons.home },
@@ -50,14 +51,15 @@ function navGroups(counts: { toTest?: number; pending?: number; newFeedback?: nu
   { label: 'Catalogue', items: [
     { href: '/admin/codes', label: 'Codes', icon: icons.ticket, count: counts.toTest, countLabel: 'à tester', children: [
       { href: '/admin/propositions', label: 'Propositions', icon: icons.inbox, count: counts.pending, countLabel: 'à valider' },
-      { href: '/admin/verifications', label: 'Vérifications', icon: icons.shield },
+      { href: '/admin/verifications', label: 'Vérifications', icon: icons.shield, count: counts.toDecide, countLabel: 'codes en attente de ta décision' },
       { href: '/admin/sources', label: 'Sources', icon: icons.radar },
-      { href: '/admin/podcasts', label: 'Podcasts suivis', icon: icons.mic },
+      { href: '/admin/podcasts', label: 'Podcasts suivis', icon: icons.mic, count: counts.newCandidates, countLabel: 'nouveaux podcasts candidats' },
     ] },
     { href: '/admin/createurs', label: 'Créateurs', icon: icons.users, children: [
       { href: '/admin/createurs/demandes', label: 'Demandes', icon: icons.inbox, count: counts.newRequests, countLabel: 'à traiter' },
     ] },
     { href: '/admin/outils', label: 'Outils', icon: icons.tool, children: [
+      { href: '/admin/outils/a-ajouter', label: 'Outils à ajouter', icon: icons.inbox, count: counts.toolsToAdd, countLabel: 'codes pour des outils absents du catalogue' },
       { href: '/admin/categories', label: 'Catégories', icon: icons.folder },
     ] },
   ] },
@@ -128,7 +130,7 @@ function SideItem({ item, current, pathname }: { item: Item; current?: string; p
 }
 
 /** toTest : codes à tester (badge de Codes) ; newFeedback : avis pas encore lus (badge de Retours) ; newRequests : demandes des créateurs à traiter (badge de Demandes). Lus en base par le layout. */
-export function AdminShell({ children, toTest = 0, newFeedback = 0, newRequests = 0 }: { children: React.ReactNode; toTest?: number; newFeedback?: number; newRequests?: number }) {
+export function AdminShell({ children, toTest = 0, newFeedback = 0, newRequests = 0, waiting = {} }: { children: React.ReactNode; toTest?: number; newFeedback?: number; newRequests?: number; waiting?: NavWaiting }) {
   const pathname = usePathname();
   const router = useRouter();
   useStoredTheme();
@@ -141,7 +143,7 @@ export function AdminShell({ children, toTest = 0, newFeedback = 0, newRequests 
     fromLogin.current = onLogin;
   }, [pathname, router]);
   const pending = usePendingSubmissions() ?? 0;
-  const groups = navGroups({ toTest, pending, newFeedback, newRequests });
+  const groups = navGroups({ toTest, pending, newFeedback, newRequests, ...waiting });
   // Mobile : le menu latéral devient un tiroir ouvert par le bouton ☰ de la barre du haut.
   const [menuOpen, setMenuOpen] = useState(false);
   const burger = useRef<HTMLButtonElement>(null);

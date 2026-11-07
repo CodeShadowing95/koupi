@@ -1,5 +1,5 @@
 'use client';
-// Outils à ajouter : codes lus dans les podcasts pour des outils absents du catalogue. L'admin ajoute l'outil
+// Outils à ajouter : codes lus dans les podcasts et les vidéos YouTube pour des outils absents du catalogue. L'admin ajoute l'outil
 // (ou le relie à un outil déjà suivi sous un autre nom) et le code part en attente dans Vérifications, ou ignore.
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -99,8 +99,7 @@ export function ToolSuggestionsPanel({ suggestions, categories, tools, ai }: { s
   const count = adding ? sameTool(adding) : 0;
 
   return (
-    <section id="pod-panel-tools" role="tabpanel" aria-labelledby="pod-tab-tools">
-      <p className="muted adm-sugg-intro">Des codes lus dans les podcasts pour des outils qui ne sont pas encore dans le catalogue. Ajoute l’outil et le code part dans Vérifications, ou ignore-le : il ne reviendra pas.</p>
+    <section aria-label="Outils à ajouter">
       {error && <div className="notice notice-error" role="alert">{error}</div>}
       {suggestions.length === 0 ? <div className="adm-empty">Aucun outil à ajouter. Les codes d’outils inconnus trouvés à la prochaine lecture apparaîtront ici.</div> : <>
         <div className="adm-toolbar">

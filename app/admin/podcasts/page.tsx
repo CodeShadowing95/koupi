@@ -1,12 +1,8 @@
 import { getDb } from '@/db';
 import { applePodcasts } from '@/lib/apple-podcasts';
-import { aiConfigFrom, aiStatusOf } from '@/lib/ai-extract';
-import { listCategoriesAdmin } from '@/lib/catalog-admin';
-import { toolOptions } from '@/lib/codes-admin';
 import { listPodcasts, STARTER_PODCASTS } from '@/lib/podcasts-admin';
 import { listCandidates } from '@/lib/podcast-candidates';
-import { listToolSuggestions } from '@/lib/tool-suggestions';
-import { aiSpendSince, startOfMonthUtc } from '@/lib/verification-store';
+import { redirect } from 'next/navigation';
 import { PodcastsView } from './podcasts-view';
 
 export const metadata = { title: 'Podcasts suivis · Admin Merkod' };
@@ -24,13 +20,14 @@ async function imagesOf(feedIds: string[]): Promise<Record<string, string>> {
   }
 }
 
-// Podcasts que Merkod lit pour trouver des codes : recherche dans Apple Podcasts, ajout, pause, retrait,
-// et les outils absents du catalogue dont un code a été trouvé.
+// Podcasts que Merkod lit pour trouver des codes : recherche dans Apple Podcasts, ajout, pause, retrait.
+// Les outils absents du catalogue ont leur page sous Outils (/admin/outils/a-ajouter) ; l'ancien onglet y redirige.
 export default async function Page({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+  const { tab } = await searchParams;
+  if (tab === 'outils') redirect('/admin/outils/a-ajouter');
   const db = getDb();
-  const [podcasts, suggestions, categories, tools, spent, candidates, { tab }] = await Promise.all([listPodcasts(db), listToolSuggestions(db), listCategoriesAdmin(db), toolOptions(db), aiSpendSince(db, startOfMonthUtc()), listCandidates(db), searchParams]);
-  const ai = aiStatusOf(aiConfigFrom(process.env), spent);
+  const [podcasts, candidates] = await Promise.all([listPodcasts(db), listCandidates(db)]);
   const images = await imagesOf(podcasts.map(podcast => podcast.feedId));
-  return <PodcastsView podcasts={podcasts} nowIso={new Date().toISOString()} images={images} starters={[...STARTER_PODCASTS]} suggestions={suggestions}
-    categories={categories.map(category => ({ slug: category.slug, name: category.name }))} tools={tools} ai={{ active: ai.state === 'active', label: ai.label }} initialTab={tab === 'outils' ? 'tools' : tab === 'candidats' ? 'candidates' : undefined} candidates={candidates} />;
+  return <PodcastsView podcasts={podcasts} nowIso={new Date().toISOString()} images={images} starters={[...STARTER_PODCASTS]}
+    initialTab={tab === 'candidats' ? 'candidates' : undefined} candidates={candidates} />;
 }
