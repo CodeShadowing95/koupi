@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import { auditLabel, formatAuditDate } from './admin-audit';
-import { listAuditLog, loadSiteState, purgeAuditLog, setSiteSwitch } from './site-settings';
+import { listAuditLog, loadSiteState, offerLinksEnabled, purgeAuditLog, setSiteSwitch } from './site-settings';
 
 describe('site settings', () => {
   let db: Db;
@@ -31,6 +31,17 @@ describe('site settings', () => {
     await setSiteSwitch(db, { target: 'maintenance', enabled: true });
     expect((await loadSiteState(db)).maintenance).toBe(true);
     expect((await listAuditLog(db))[0]).toMatchObject({ action: 'maintenance_on', target: 'Site entier' });
+  });
+
+  it('règle l’option des liens d’affiliation, coupée par défaut', async () => {
+    expect(await offerLinksEnabled(db)).toBe(false);
+    expect((await loadSiteState(db)).offerLinks).toBe(false);
+    expect(await setSiteSwitch(db, { target: 'offer-links', enabled: true })).toEqual({ ok: true, data: { key: 'offer-links', enabled: true } });
+    expect(await offerLinksEnabled(db)).toBe(true);
+    expect((await loadSiteState(db)).offerLinks).toBe(true);
+    expect((await listAuditLog(db))[0]).toMatchObject({ action: 'offer_links_on', target: 'Liens d’affiliation' });
+    await setSiteSwitch(db, { target: 'offer-links', enabled: false });
+    expect(await offerLinksEnabled(db)).toBe(false);
   });
 
   it('refuse les pages verrouillées et les entrées invalides', async () => {

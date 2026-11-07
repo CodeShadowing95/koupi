@@ -14,6 +14,7 @@ import { addPendingCode } from './podcast-read';
 import { suggestionOrigin, type CodeOrigin } from './code-origin';
 import { youtubeFetch } from './api-usage';
 import { findLinkInText, isLinkOffer, offerName, shortLink } from './offer-link';
+import { offerLinksEnabled } from './site-settings';
 
 export type SourceRead = { online: boolean; title: string; description: string };
 /** Lit le texte d'une source. null : source impossible à lire (plateforme non prise en charge, clé absente). */
@@ -56,7 +57,7 @@ export function youtubeReader(apiKey: string | undefined, fetchFn: typeof fetch 
 
 type AiOutcome = { extraction: Extraction | null; calls: { model: string; costUsdMicros: number; codes: string[]; refused: boolean }[]; note: VerificationReason | null };
 
-async function runAi(db: Db, deps: RunDeps, mode: RunMode, source: SourceRead, score: number): Promise<AiOutcome> {
+async function runAi(db: Db, deps: RunDeps, mode: RunMode, source: SourceRead, score: number, links: boolean): Promise<AiOutcome> {
   const empty: AiOutcome = { extraction: null, calls: [], note: null };
   if (!deps.ai) return empty;
   const { config, create } = deps.ai;
@@ -66,7 +67,7 @@ async function runAi(db: Db, deps: RunDeps, mode: RunMode, source: SourceRead, s
 
   const calls: AiOutcome['calls'] = [];
   const read = async (model: string) => {
-    const extraction = await extractCodes(create, model, source);
+    const extraction = await extractCodes(create, model, source, { links });
     calls.push({ model: extraction.model, costUsdMicros: extraction.costUsdMicros, codes: extraction.codes.map(c => c.code), refused: extraction.refused });
     return extraction;
   };
@@ -154,7 +155,10 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
   const reasons = [...result.reasons];
   let score = result.score;
   if (!source) reasons.push({ points: 0, label: 'Cette source ne peut pas encore être lue automatiquement : ouvre-la toi-même.' });
-  const ai = source?.online ? await runAi(db, deps, mode, source, result.score) : { extraction: null, calls: [], note: null };
+  // Option « Liens d'affiliation » coupée : l'IA ne relève que des codes. Une offre par lien déjà enregistrée
+  // se vérifie quand même par son lien, mais rien de nouveau n'est tiré des liens (ni lien ajouté, ni offre voisine par lien).
+  const linksOn = await offerLinksEnabled(db);
+  const ai = source?.online ? await runAi(db, deps, mode, source, result.score, linksOn || linkOffer) : { extraction: null, calls: [], note: null };
   if (ai.note) reasons.push(ai.note);
   if (linkOffer && match) reasons.push({ points: 0, label: match.found ? 'Offre par lien : le lien est bien dans la source.' : 'Offre par lien : le lien n’est pas dans la source.' });
   if (ai.extraction) {
@@ -175,7 +179,7 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
       score = next;
     }
     // Lien de l'offre écrit à côté du code : l'IA pré-remplit le champ s'il est vide. L'admin peut le corriger.
-    if (seen?.link && !code.creatorLink) {
+    if (linksOn && seen?.link && !code.creatorLink) {
       await db.update(codes).set({ creatorLink: seen.link, updatedAt: new Date() }).where(eq(codes.id, code.id));
       reasons.push({ points: 0, label: `L’IA a trouvé le lien de l’offre (${shortLink(seen.link)}) et l’a ajouté au code.` });
     }
@@ -188,7 +192,8 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
 
   if (source?.online) {
     // Une source qui ne s'enregistre pas (texte refusé par la base…) ne doit pas faire échouer l'analyse du code.
-    const siblings = await addSiblingCodes(db, code, source, ai.extraction?.codes ?? []).catch(error => { console.error('sibling codes failed', error); return null; });
+    const aiCodes = (ai.extraction?.codes ?? []).filter(found => linksOn || found.code).map(found => (linksOn ? found : { ...found, link: '' }));
+    const siblings = await addSiblingCodes(db, code, source, aiCodes).catch(error => { console.error('sibling codes failed', error); return null; });
     if (siblings?.added.length) reasons.push({ points: 0, label: `La source donne aussi ${siblings.added.join(', ')} : ajouté${siblings.added.length > 1 ? 's' : ''} en attente dans Vérifications.` });
     if (siblings?.suggested.length) reasons.push({ points: 0, label: `Codes pour des outils absents du catalogue : ${siblings.suggested.join(', ')}, dans les outils à ajouter.` });
   }

@@ -6,7 +6,7 @@ import { revalidateCatalog } from '@/lib/catalog-server';
 import { setSiteSwitch } from '@/lib/site-settings';
 import { revalidateSiteState } from '@/lib/site-settings-server';
 
-// Allume ou coupe une page publique, ou met le site en pause : { target: "<clé de page>" | "maintenance", enabled }.
+// Allume ou coupe une page publique, met le site en pause ou règle les liens d’affiliation : { target: "<clé de page>" | "maintenance" | "offer-links", enabled }.
 export async function PATCH(request: NextRequest) {
   if (!(await isAdminRequest(request))) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   try {

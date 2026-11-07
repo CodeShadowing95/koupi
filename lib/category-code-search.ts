@@ -9,6 +9,7 @@ import { and, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { aiUsage, categories, creatorAccounts, toolSuggestions, tools, youtubeSearches, youtubeSeenVideos } from '@/db/schema';
 import { aiStatusOf, extractCodes } from './ai-extract';
+import { offerLinksEnabled } from './site-settings';
 import { listToolsAdmin, type AdminTool } from './catalog-admin';
 import { resolveCreator } from './codes-admin';
 import { clip } from './verification';
@@ -147,11 +148,13 @@ export async function searchCategoryCodes(db: Db, youtube: YoutubeSearch, option
     return db.select({ variant: youtubeSearches.variant, searchedAt: youtubeSearches.searchedAt }).from(youtubeSearches).where(where).orderBy(desc(youtubeSearches.searchedAt)).limit(50);
   }
 
+  // Option « Liens d'affiliation » de l'espace Administration : coupée, l'IA ne relève que des codes.
+  const links = await offerLinksEnabled(db);
   async function readWithAi(video: FoundVideo, url: string) {
     if (!ai?.create || !PROMO_HINT.test(`${video.title}\n${video.description}`)) return [];
     if (aiStatusOf(ai.config, await aiSpendSince(db, startOfMonthUtc(now))).state !== 'active') return [];
     try {
-      const extraction = await extractCodes(ai.create, ai.config.model, { title: video.title, description: video.description });
+      const extraction = await extractCodes(ai.create, ai.config.model, { title: video.title, description: video.description }, { links });
       await db.insert(aiUsage).values({ purpose: 'category_search', model: extraction.model, costUsdMicros: extraction.costUsdMicros, ref: url });
       report.aiRead++;
       return extraction.codes;

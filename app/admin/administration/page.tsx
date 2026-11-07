@@ -7,9 +7,9 @@ export const metadata = { title: 'Administration · Admin Merkod' };
 
 export const dynamic = 'force-dynamic';
 
-// Espace Administration (super admin) : pages du site, mode maintenance, comptes créateurs et journal des gestes faits ici.
+// Espace Administration (super admin) : pages du site, mode maintenance, liens d'affiliation, comptes créateurs et journal des gestes faits ici.
 export default async function Page() {
   const db = getDb();
   const [state, journal, creatorUsers] = await Promise.all([loadSiteState(db), listAuditLog(db, 100), listCreatorUsers(db)]);
-  return <AdministrationView off={state.off} maintenance={state.maintenance} rows={state.rows} journal={journal} creatorUsers={creatorUsers} />;
+  return <AdministrationView off={state.off} maintenance={state.maintenance} offerLinks={state.offerLinks} rows={state.rows} journal={journal} creatorUsers={creatorUsers} />;
 }

@@ -103,9 +103,9 @@ export const guideChapters: GuideChapter[] = [
     practice: { href: '/admin', label: 'Commencer la routine du jour' },
   },
   {
-    slug: 'administration', part: 'admin', title: 'Administrer le site', minutes: 6,
-    summary: 'Mettre le site en pause, couper ou rallumer une page publique, gérer les comptes créateurs, relire le journal.',
-    goals: ['Mettre tout le site en pause et le rouvrir', 'Couper une page et savoir ce qui disparaît avec elle', 'Savoir quelles pages restent toujours en ligne', 'Désactiver, retirer l’accès ou supprimer un compte créateur', 'Relire le journal de tes gestes'],
+    slug: 'administration', part: 'admin', title: 'Administrer le site', minutes: 7,
+    summary: 'Mettre le site en pause, couper ou rallumer une page publique, choisir si l’IA relève les liens d’affiliation, gérer les comptes créateurs, relire le journal.',
+    goals: ['Mettre tout le site en pause et le rouvrir', 'Couper une page et savoir ce qui disparaît avec elle', 'Savoir quelles pages restent toujours en ligne', 'Allumer ou couper la lecture des liens d’affiliation', 'Désactiver, retirer l’accès ou supprimer un compte créateur', 'Relire le journal de tes gestes'],
     practice: { href: '/admin/administration', label: 'Ouvrir l’administration' },
   },
 ];

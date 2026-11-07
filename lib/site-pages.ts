@@ -39,6 +39,8 @@ export const SITE_PAGES: SitePage[] = [
 ];
 
 export const MAINTENANCE_KEY = 'maintenance';
+/** Option « Liens d'affiliation » : l'IA relève aussi les liens d'offre. Coupée tant que la ligne n'existe pas (ADR-0040). */
+export const OFFER_LINKS_KEY = 'offer-links';
 export const pageSettingKey = (key: PageKey) => `page:${key}`;
 
 export function isPageKey(value: unknown): value is PageKey {

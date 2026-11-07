@@ -1,30 +1,37 @@
 // Lecture et écriture des interrupteurs du site (pages publiques, mode maintenance) et du journal de l'administration.
-import { desc, lt } from 'drizzle-orm';
+import { desc, eq, lt } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { adminAuditLog, siteSettings } from '@/db/schema';
-import { MAINTENANCE_KEY, SITE_PAGES, isPageKey, pageSettingKey, type PageKey, type SiteState } from './site-pages';
+import { MAINTENANCE_KEY, OFFER_LINKS_KEY, SITE_PAGES, isPageKey, pageSettingKey, type PageKey, type SiteState } from './site-pages';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 
 export type SiteSwitchRow = { key: string; enabled: boolean; updatedAt: string | null };
 
-/** État du site : pages coupées et maintenance. Une clé absente garde sa valeur par défaut. */
-export async function loadSiteState(db: Db): Promise<SiteState & { rows: SiteSwitchRow[] }> {
+/** État du site : pages coupées, maintenance et option des liens d'affiliation. Une clé absente garde sa valeur par défaut. */
+export async function loadSiteState(db: Db): Promise<SiteState & { offerLinks: boolean; rows: SiteSwitchRow[] }> {
   const rows = await db.select().from(siteSettings);
   const byKey = new Map(rows.map(row => [row.key, row]));
   const off = SITE_PAGES.filter(page => !page.locked && byKey.get(pageSettingKey(page.key))?.enabled === false).map(page => page.key);
   return {
     off,
     maintenance: byKey.get(MAINTENANCE_KEY)?.enabled === true,
+    offerLinks: byKey.get(OFFER_LINKS_KEY)?.enabled === true,
     rows: rows.map(row => ({ key: row.key, enabled: row.enabled, updatedAt: row.updatedAt.toISOString() })),
   };
+}
+
+/** L'IA relève-t-elle aussi les liens d'affiliation ? Non tant que l'admin n'a pas allumé l'option. */
+export async function offerLinksEnabled(db: Db): Promise<boolean> {
+  const [row] = await db.select({ enabled: siteSettings.enabled }).from(siteSettings).where(eq(siteSettings.key, OFFER_LINKS_KEY)).limit(1);
+  return row?.enabled === true;
 }
 
 export async function logAdminAction(db: Db, action: string, target: string): Promise<void> {
   await db.insert(adminAuditLog).values({ action: action.slice(0, 60), target: target.slice(0, 200) });
 }
 
-/** Allume ou coupe une page (target = clé de page) ou le mode maintenance (target = « maintenance »). */
+/** Allume ou coupe une page (target = clé de page), le mode maintenance (« maintenance ») ou les liens d'affiliation (« offer-links »). */
 export async function setSiteSwitch(db: Db, body: Record<string, unknown>, now = new Date()): Promise<Parsed<{ key: string; enabled: boolean }>> {
   if (typeof body.enabled !== 'boolean') return { ok: false, error: 'État manquant.' };
   const enabled = body.enabled;
@@ -33,6 +40,10 @@ export async function setSiteSwitch(db: Db, body: Record<string, unknown>, now =
     key = MAINTENANCE_KEY;
     action = enabled ? 'maintenance_on' : 'maintenance_off';
     target = 'Site entier';
+  } else if (body.target === OFFER_LINKS_KEY) {
+    key = OFFER_LINKS_KEY;
+    action = enabled ? 'offer_links_on' : 'offer_links_off';
+    target = 'Liens d’affiliation';
   } else if (isPageKey(body.target)) {
     const page = SITE_PAGES.find(item => item.key === body.target)!;
     if (page.locked) return { ok: false, error: `${page.label} reste toujours en ligne.` };

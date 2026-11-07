@@ -1,0 +1,2 @@
+ALTER TABLE "site_settings" DROP CONSTRAINT "site_settings_key_format";--> statement-breakpoint
+ALTER TABLE "site_settings" ADD CONSTRAINT "site_settings_key_format" CHECK ("site_settings"."key" ~ '^(maintenance|offer-links|page:[a-z-]{2,40})$');

@@ -1,14 +1,14 @@
 'use client';
-// Espace Administration : mettre le site en pause, allumer ou couper chaque page publique, gérer les comptes créateurs, relire le journal.
+// Espace Administration : mettre le site en pause, choisir si l'IA relève les liens d'affiliation, allumer ou couper chaque page publique, gérer les comptes créateurs, relire le journal.
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { SITE_PAGES, pageSettingKey, type PageKey, type SitePage } from '@/lib/site-pages';
+import { OFFER_LINKS_KEY, SITE_PAGES, pageSettingKey, type PageKey, type SitePage } from '@/lib/site-pages';
 import { auditLabel, formatAuditDate } from '@/lib/admin-audit';
 import type { AuditEntry, SiteSwitchRow } from '@/lib/site-settings';
 import type { CreatorUserAction, CreatorUserItem } from '@/lib/creator-users-admin';
 import { confirmAction } from '@/components/admin-ask';
 
-type Props = { off: PageKey[]; maintenance: boolean; rows: SiteSwitchRow[]; journal: AuditEntry[]; creatorUsers: CreatorUserItem[] };
+type Props = { off: PageKey[]; maintenance: boolean; offerLinks: boolean; rows: SiteSwitchRow[]; journal: AuditEntry[]; creatorUsers: CreatorUserItem[] };
 
 const USER_QUESTIONS: Record<CreatorUserAction, (user: CreatorUserItem) => string> = {
   disable: user => `Désactiver le compte ${user.email} ? Sa session s’arrête tout de suite et il ne pourra plus se connecter tant que tu ne le réactives pas.`,
@@ -27,15 +27,15 @@ function Switch({ on, label, disabled, onChange }: { on: boolean; label: string;
   );
 }
 
-export function AdministrationView({ off, maintenance, rows, journal, creatorUsers }: Props) {
+export function AdministrationView({ off, maintenance, offerLinks, rows, journal, creatorUsers }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState('');
   const changedAt = new Map(rows.map(row => [row.key, row.updatedAt]));
 
-  async function toggle(target: string, enabled: boolean, question: string, cutLabel: string | null) {
-    // cutLabel : le bouton d'une action qui coupe quelque chose (en rouge) ; null pour remettre en ligne.
-    if (!(await confirmAction(question, { confirmLabel: cutLabel ?? 'Remettre en ligne', danger: cutLabel !== null }))) return;
+  async function toggle(target: string, enabled: boolean, question: string, cutLabel: string | null, onLabel = 'Remettre en ligne') {
+    // cutLabel : le bouton d'une action qui coupe quelque chose (en rouge) ; null pour remettre en ligne (onLabel).
+    if (!(await confirmAction(question, { confirmLabel: cutLabel ?? onLabel, danger: cutLabel !== null }))) return;
     setBusy(target);
     setError('');
     try {
@@ -84,7 +84,7 @@ export function AdministrationView({ off, maintenance, rows, journal, creatorUse
           <div>
             <span className="eyebrow">Administration</span>
             <h1>Administration du site</h1>
-            <p>Ce que les visiteurs peuvent voir et qui peut entrer : mettre tout le site en pause, couper ou rallumer une page, gérer les comptes créateurs. Chaque geste est noté dans le journal. Rien ici ne suit les visiteurs.</p>
+            <p>Ce que les visiteurs peuvent voir et qui peut entrer : mettre tout le site en pause, couper ou rallumer une page, choisir si l’IA relève les liens d’affiliation, gérer les comptes créateurs. Chaque geste est noté dans le journal. Rien ici ne suit les visiteurs.</p>
           </div>
         </div>
 
@@ -102,6 +102,24 @@ export function AdministrationView({ off, maintenance, rows, journal, creatorUse
             <span className={`adm-maint-state${maintenance ? ' is-on' : ''}`}>{maintenance ? 'En pause' : 'En ligne'}</span>
             <Switch on={maintenance} label="Mode maintenance" disabled={busy !== null}
               onChange={() => toggle('maintenance', !maintenance, maintenance ? 'Remettre le site en ligne pour tout le monde ?' : 'Mettre tout le site en pause ? Les visiteurs verront une page d’attente jusqu’à ce que tu le remettes en ligne.', maintenance ? null : 'Mettre en pause')} />
+          </div>
+        </section>
+
+        <section className="adm-maint adm-option" aria-labelledby="offer-links-title">
+          <div>
+            <h2 id="offer-links-title">Liens d’affiliation</h2>
+            <p>{offerLinks
+              ? 'L’IA relève les codes promo et aussi les liens d’offre des créateurs (avec ou sans code). Les offres par lien arrivent en attente dans Vérifications, comme les codes.'
+              : 'L’IA ne relève que les codes promo. Les liens d’affiliation des descriptions sont ignorés. Tu peux toujours ajouter un lien d’offre à la main sur un code.'}</p>
+            {changedAt.get(OFFER_LINKS_KEY) && <small>Dernier changement {formatAuditDate(changedAt.get(OFFER_LINKS_KEY)!)}</small>}
+          </div>
+          <div className="adm-maint-action">
+            <span className="adm-maint-state">{offerLinks ? 'Activés' : 'Codes seuls'}</span>
+            <Switch on={offerLinks} label="Relever les liens d’affiliation" disabled={busy !== null}
+              onChange={() => toggle(OFFER_LINKS_KEY, !offerLinks, offerLinks
+                ? 'Ne plus relever les liens d’affiliation ? Les prochaines lectures (chaînes, podcasts, recherches, vérifications) ne garderont que les codes promo. Les offres déjà enregistrées restent.'
+                : 'Relever aussi les liens d’affiliation ? Les prochaines lectures garderont les offres par lien (avec une réduction écrite), à valider dans Vérifications.',
+              offerLinks ? 'Couper les liens' : null, 'Activer les liens')} />
           </div>
         </section>
 

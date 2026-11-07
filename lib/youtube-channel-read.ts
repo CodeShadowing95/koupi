@@ -6,6 +6,7 @@ import { and, asc, eq, inArray, isNotNull, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { aiUsage, codes, creatorAccounts, toolSuggestions, tools, watchedSources, youtubeSeenVideos } from '@/db/schema';
 import { aiStatusOf, extractCodes } from './ai-extract';
+import { offerLinksEnabled } from './site-settings';
 import { youtubeFetch } from './api-usage';
 import type { FoundVideo } from './category-code-search';
 import { resolveCreator } from './codes-admin';
@@ -155,11 +156,13 @@ export async function readYoutubeChannels(db: Db, youtube: YoutubeChannels, opti
   const toolName = new Map(catalog.map(tool => [tool.id, tool.name]));
   const ai = options.deps?.ai;
   const monthStart = startOfMonthUtc(now);
+  // Option « Liens d'affiliation » de l'espace Administration : coupée, l'IA ne relève que des codes.
+  const links = await offerLinksEnabled(db);
   async function readWithAi(video: FoundVideo, url: string) {
     if (!ai?.create || !PROMO_HINT.test(`${video.title}\n${video.description}`)) return [];
     if (aiStatusOf(ai.config, await aiSpendSince(db, monthStart)).state !== 'active') return [];
     try {
-      const extraction = await extractCodes(ai.create, ai.config.model, { title: video.title, description: video.description });
+      const extraction = await extractCodes(ai.create, ai.config.model, { title: video.title, description: video.description }, { links });
       await db.insert(aiUsage).values({ purpose: 'youtube_channel', model: extraction.model, costUsdMicros: extraction.costUsdMicros, ref: url });
       report.aiRead++;
       return extraction.codes;
