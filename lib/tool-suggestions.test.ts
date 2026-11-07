@@ -70,6 +70,18 @@ describe('tool suggestions', () => {
     expect(added).toMatchObject({ status: 'added', codeId: expect.any(String), toolId: expect.any(String) });
   });
 
+  it('crée une offre sans code avec son lien depuis une suggestion par lien', async () => {
+    const [row] = await db.insert(schema.toolSuggestions).values(suggestion('', { code: null, link: 'https://try.gradium.ai/ana', podcastId, creatorId })).returning();
+    // Le même lien pour le même outil ne crée pas une deuxième suggestion.
+    await db.insert(schema.toolSuggestions).values(suggestion('', { code: null, link: 'https://try.gradium.ai/ana' })).onConflictDoNothing();
+    expect(await openToolSuggestionCount(db)).toBe(1);
+    expect((await listToolSuggestions(db))[0]).toMatchObject({ code: '', link: 'https://try.gradium.ai/ana' });
+    const result = await acceptToolSuggestion(db, row.id, { newTool: { name: 'Gradium', categorySlug: 'ia', website: 'https://gradium.ai', description: null, priority: 3 } });
+    expect(result.ok && result.data.codeIds).toHaveLength(1);
+    const [code] = await db.select().from(schema.codes);
+    expect(code).toMatchObject({ code: null, creatorLink: 'https://try.gradium.ai/ana', status: 'pending', discount: '-10 %' });
+  });
+
   it('relie une suggestion à un outil déjà au catalogue sans recréer un code connu', async () => {
     const [tool] = await db.select().from(schema.tools);
     await db.insert(schema.codes).values({ toolId: tool.id, creatorId, code: 'DOIT', discount: '-15 %', sourceUrl: 'https://example.com', status: 'pending' });

@@ -206,20 +206,20 @@ export async function readYoutubeChannels(db: Db, youtube: YoutubeChannels, opti
       let codesForVideo = 0;
       for (const found of scan.found) {
         const codeId = await addPendingCode(db, {
-          toolId: found.toolId, creatorId, code: found.code, discount: found.discount, sourceUrl, sourceTitle: video.title,
+          toolId: found.toolId, creatorId, code: found.code, link: found.link, discount: found.discount, sourceUrl, sourceTitle: video.title,
           note: `Trouvé dans une vidéo de la chaîne suivie ${channel.title} : « ${found.evidence} »`, expiresOn: found.expiresOn, origin: 'youtube_channel',
         }, `Chaîne suivie ${channel.title}`);
         if (!codeId) continue;
         codesForVideo++;
-        report.found.push({ channel: channel.title, code: found.code, tool: toolName.get(found.toolId) ?? '' });
+        report.found.push({ channel: channel.title, code: found.code || 'lien', tool: toolName.get(found.toolId) ?? '' });
         if (options.deps) await runVerification(db, codeId, options.deps).catch(error => console.error('youtube channel verification failed', error));
       }
       for (const item of scan.unknown) {
         const inserted = await db.insert(toolSuggestions).values({
-          name: clip(item.name, 120), domain: item.domain, code: item.code, discount: item.discount, evidence: item.evidence,
+          name: clip(item.name, 120), domain: item.domain, code: item.code || null, link: item.link || null, discount: item.discount, evidence: item.evidence,
           sourceUrl, sourceTitle: clip(video.title, 300), creatorId,
         }).onConflictDoNothing().returning({ id: toolSuggestions.id });
-        if (inserted.length) report.suggested.push({ channel: channel.title, code: item.code, tool: item.domain ?? item.name });
+        if (inserted.length) report.suggested.push({ channel: channel.title, code: item.code || 'lien', tool: item.domain ?? item.name });
       }
       await db.insert(youtubeSeenVideos).values({
         videoId: video.id, channelId: video.channelId ?? channel.externalId, channelTitle: clip(video.channelTitle || channel.title, 200), toolId: null, query: CHANNEL_QUERY, codes: codesForVideo, seenAt: now,

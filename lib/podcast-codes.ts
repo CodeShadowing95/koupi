@@ -7,8 +7,9 @@ import { clip, implausibleCode } from './verification';
 
 /** domain : domaine du site officiel (nordvpn.com), pour reconnaître un lien vers l'outil. */
 export type CatalogTool = { id: string; name: string; domain?: string | null };
-export type FoundCode = { toolId: string; code: string; discount: string; evidence: string };
-export type UnknownToolCode = { name: string; domain: string | null; code: string; discount: string; evidence: string };
+/** code '' et link rempli : offre donnée seulement par un lien (ADR-0040). link : lien de l'offre écrit dans la source. */
+export type FoundCode = { toolId: string; code: string; discount: string; evidence: string; link?: string };
+export type UnknownToolCode = { name: string; domain: string | null; code: string; discount: string; evidence: string; link?: string };
 
 const CODE_PATTERN = /\b(?:promo\s*code|code\s*promo|code\s*de\s*r[ée]duction|coupon|code)\s*(?::|est|is)?\s*[«"“'‘]?\s*([A-Za-z0-9][A-Za-z0-9_-]{2,29}%?)(?![\p{L}\p{N}%])/giu;
 const DISCOUNT_PATTERN = /-?\s?\d+(?:[.,]\d+)?\s?(?:%|€|\$|euros?)|\d+\s(?:mois|semaines?|jours?)\s(?:offerts?|gratuits?)|\d+\s(?:months?|weeks?|days?)\sfree/iu;
@@ -32,7 +33,7 @@ function toolPositions(text: string, tools: CatalogTool[]): { toolId: string; in
     for (const match of text.matchAll(pattern)) found.push({ toolId: tool.id, index: match.index ?? 0 });
     // Le site de l'outil cité (« sur nordvpn.com/podcast », « https://www.planethoster.com/… ») vaut son nom.
     if (tool.domain) {
-      const site = new RegExp(`(?<![\\p{L}\\p{N}.-])(?:(?:www|fr|en|m)\\.)?${escape(tool.domain)}(?![\\p{L}\\p{N}-])`, 'giu');
+      const site = new RegExp(`(?<![\\p{L}\\p{N}.-])(?:(?:${SUBDOMAINS})\\.)?${escape(tool.domain)}(?![\\p{L}\\p{N}-])`, 'giu');
       for (const match of text.matchAll(site)) found.push({ toolId: tool.id, index: match.index ?? 0 });
     }
   }
@@ -66,8 +67,11 @@ export function catalogToolIn(text: string, tools: CatalogTool[]): string | null
 }
 
 /** « fr.indevolt.com » devient « indevolt.com » : le sous-domaine de langue n'est pas le site de l'outil. */
+/** Sous-domaines qui ne changent pas l'outil : langue, mobile, et ceux des liens d'affiliation (try.krispcall.com). */
+const SUBDOMAINS = 'www|fr|en|de|es|it|nl|pt|uk|us|eu|m|try|get|go|join|start|partners?|affiliates?|ref|links?|offers?|deals?';
+
 function siteDomain(domain: string): string {
-  return domain.toLowerCase().replace(/^(?:fr|en|de|es|it|nl|pt|uk|us|eu|m)\.(?=[^.]+\.[^.]+$)/, '');
+  return domain.toLowerCase().replace(new RegExp(`^(?:${SUBDOMAINS})\\.(?=[^.]+\\.[^.]+$)`), '');
 }
 
 /** Premier site d'outil cité dans un texte (hors raccourcisseurs, réseaux et hébergeurs), sinon null. */

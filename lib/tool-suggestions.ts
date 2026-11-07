@@ -17,7 +17,8 @@ import { domainOf } from './podcast-codes';
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 
 export type AdminToolSuggestion = {
-  id: string; name: string; domain: string | null; code: string; discount: string; evidence: string;
+  /** code '' : offre donnée seulement par son lien (link). */
+  id: string; name: string; domain: string | null; code: string; link: string | null; discount: string; evidence: string;
   sourceUrl: string; sourceTitle: string; podcastTitle: string | null; creatorName: string | null; createdAt: string;
   analysis: ToolAnalysis | null; analyzedAt: string | null;
   /** Outil du catalogue qui porte déjà ce nom ou ce site : il suffit d'y relier le code. archived : à restaurer d'abord. */
@@ -41,7 +42,7 @@ export async function listToolSuggestions(db: Db): Promise<AdminToolSuggestion[]
     return tool ? { slug: tool.slug, name: tool.name, archived: Boolean(tool.archivedAt) } : null;
   };
   return rows.map(({ row, podcastTitle, creatorName }) => ({
-    id: row.id, name: row.name, domain: row.domain, code: row.code, discount: row.discount, evidence: row.evidence,
+    id: row.id, name: row.name, domain: row.domain, code: row.code ?? '', link: row.link, discount: row.discount, evidence: row.evidence,
     sourceUrl: row.sourceUrl, sourceTitle: row.sourceTitle, podcastTitle, creatorName, createdAt: row.createdAt.toISOString(),
     analysis: row.analysis ?? null, analyzedAt: row.analyzedAt?.toISOString() ?? null,
     existing: existingFor(row.name, row.domain),
@@ -100,7 +101,7 @@ export async function acceptToolSuggestion(db: Db, id: string, target: AcceptTar
     const podcast = podcastTitle ?? 'inconnu';
     const creatorId = row.creatorId ?? await resolveCreator(db, podcast);
     const codeId = await addPodcastCode(db, {
-      toolId, creatorId, code: row.code, discount: row.discount, sourceUrl: row.sourceUrl, sourceTitle: row.sourceTitle,
+      toolId, creatorId, code: row.code ?? '', link: row.link ?? undefined, discount: row.discount, sourceUrl: row.sourceUrl, sourceTitle: row.sourceTitle,
       note: `Trouvé dans le podcast ${podcast} : « ${row.evidence} »`, podcastTitle: podcast, origin: suggestionOrigin(row.sourceUrl),
     });
     if (codeId) codeIds.push(codeId);

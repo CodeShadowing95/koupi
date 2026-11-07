@@ -1,6 +1,6 @@
 // Lecture des podcasts suivis : derniers épisodes dans Apple Podcasts, codes repérés dans leurs notes,
 // ajoutés « En attente » (jamais visibles sur le site) puis analysés pour la page Vérifications.
-import { and, asc, eq, sql } from 'drizzle-orm';
+import { and, asc, eq, isNull, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { aiUsage, codeLogs, codes, toolSuggestions, tools, watchedSources } from '@/db/schema';
 import { aiStatusOf, extractCodes } from './ai-extract';
@@ -30,7 +30,8 @@ export type PodcastReadReport = {
   aiRead: number;
 };
 
-export type PodcastCodeInput = { toolId: string; creatorId: string; code: string; discount: string; sourceUrl: string; sourceTitle: string; note: string; podcastTitle: string; expiresOn?: string;
+/** code '' avec link : offre donnée seulement par un lien (ADR-0040). link : lien de l'offre écrit dans la source. */
+export type PodcastCodeInput = { toolId: string; creatorId: string; code: string; link?: string; discount: string; sourceUrl: string; sourceTitle: string; note: string; podcastTitle: string; expiresOn?: string;
   /** Podcast par défaut ; une suggestion d'outil venue d'une vidéo garde son origine YouTube. */
   origin?: CodeOrigin };
 
@@ -42,13 +43,15 @@ export async function addPendingCode(db: Db, input: PendingCodeInput, logNote: s
   // Les règles de la table codes (codes_code_len, codes_discount_len) : un code mal lu est ignoré
   // au lieu de faire échouer tout le passage.
   const code = input.code.trim();
-  if (code.length < 1 || code.length > 120 || !/^https?:\/\//i.test(input.sourceUrl)) return null;
+  const link = input.link?.trim() && /^https?:\/\//i.test(input.link.trim()) && input.link.trim().length <= 1000 ? input.link.trim() : null;
+  if ((!code && !link) || code.length > 120 || !/^https?:\/\//i.test(input.sourceUrl)) return null;
   const discount = clip(input.discount.trim(), 240).trim() || 'Voir la source';
+  // Une offre par lien est déjà connue quand une offre sans code de cet outil a le même lien.
   const [known] = await db.select({ id: codes.id }).from(codes)
-    .where(and(eq(codes.toolId, input.toolId), sql`lower(${codes.code}) = lower(${code})`)).limit(1);
+    .where(and(eq(codes.toolId, input.toolId), code ? sql`lower(${codes.code}) = lower(${code})` : and(isNull(codes.code), sql`lower(${codes.creatorLink}) = lower(${link})`))).limit(1);
   if (known) return null;
   const [created] = await db.insert(codes).values({
-    toolId: input.toolId, creatorId: input.creatorId, code, discount, sourceUrl: input.sourceUrl,
+    toolId: input.toolId, creatorId: input.creatorId, code: code || null, creatorLink: link, discount, sourceUrl: input.sourceUrl,
     sourceTitle: input.sourceTitle.slice(0, 300), status: 'pending', note: input.note.slice(0, 1000), origin: input.origin,
     ...(input.expiresOn && /^\d{4}-\d{2}-\d{2}$/.test(input.expiresOn) ? { expiresOn: input.expiresOn } : {}),
   }).returning({ id: codes.id });
@@ -108,21 +111,21 @@ export async function readPodcasts(db: Db, directory: PodcastDirectory, options:
         podcast.lastFetchedAt && episode.publishedAt && episode.publishedAt < podcast.lastFetchedAt ? [] : await readWithAi(episode.title, episode.description, sourceUrl), catalog);
       for (const found of scan.found) {
         const codeId = await addPodcastCode(db, {
-          toolId: found.toolId, creatorId, code: found.code, discount: found.discount, sourceUrl, sourceTitle: episode.title,
+          toolId: found.toolId, creatorId, code: found.code, link: found.link, discount: found.discount, sourceUrl, sourceTitle: episode.title,
           note: `Trouvé dans le podcast ${podcast.title} : « ${found.evidence} »`, podcastTitle: podcast.title, expiresOn: found.expiresOn,
         });
         if (!codeId) continue;
-        report.found.push({ podcast: podcast.title, code: found.code, tool: toolName.get(found.toolId) ?? '' });
+        report.found.push({ podcast: podcast.title, code: found.code || 'lien', tool: toolName.get(found.toolId) ?? '' });
         // Le dossier est préparé tout de suite : score, preuve et, si elle est active, lecture par l'IA.
         if (options.deps) await runVerification(db, codeId, options.deps).catch(error => console.error('podcast code verification failed', error));
       }
       // Outil absent du catalogue : une suggestion, une seule fois par outil et par code (même ignorée).
       for (const item of scan.unknown) {
         const inserted = await db.insert(toolSuggestions).values({
-          name: item.name.slice(0, 120), domain: item.domain, code: item.code, discount: item.discount, evidence: item.evidence,
+          name: item.name.slice(0, 120), domain: item.domain, code: item.code || null, link: item.link || null, discount: item.discount, evidence: item.evidence,
           sourceUrl, sourceTitle: episode.title.slice(0, 300), podcastId: podcast.id, creatorId,
         }).onConflictDoNothing().returning({ id: toolSuggestions.id });
-        if (inserted.length) report.suggested.push({ podcast: podcast.title, code: item.code, tool: item.domain ?? item.name });
+        if (inserted.length) report.suggested.push({ podcast: podcast.title, code: item.code || 'lien', tool: item.domain ?? item.name });
       }
     }
     await db.update(watchedSources).set({ lastFetchedAt: now, ...(podcast.creatorId ? {} : { creatorId }) }).where(eq(watchedSources.id, podcast.id));

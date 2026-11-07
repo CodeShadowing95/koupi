@@ -27,10 +27,12 @@ async function setup() {
 
 const reader = (description: string, online = true): SourceReader => async () => ({ online, title: 'Vidéo', description });
 
-function aiResponse(model: string, codes: string[], expires = ''): Anthropic.Beta.BetaMessage {
+function aiResponse(model: string, codes: Array<string | { code: string; link: string; discount?: string; tool?: string }>, expires = ''): Anthropic.Beta.BetaMessage {
+  const items = codes.map(item => typeof item === 'string' ? { code: item, link: '' } : item)
+    .map(item => ({ tool: 'NordVPN', discount: '', ...item, conditions: '', expires_on: expires }));
   return {
     id: 'msg', type: 'message', role: 'assistant', model, stop_reason: 'end_turn',
-    content: [{ type: 'text', text: JSON.stringify({ codes: codes.map(code => ({ code, tool: 'NordVPN', discount: '', conditions: '', expires_on: expires })) }) }],
+    content: [{ type: 'text', text: JSON.stringify({ codes: items }) }],
     usage: { input_tokens: 1000, output_tokens: 200 },
   } as unknown as Anthropic.Beta.BetaMessage;
 }
@@ -143,6 +145,22 @@ describe('runVerification', () => {
     const other = vi.fn(async (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => aiResponse(params.model, ['CQ410']));
     const corrected = await runVerification(ctx.db, ctx.codeId, { readSource: reader('ANA10 · Code promo NordVPN : CQ410'), ai: { config, create: other } });
     expect(corrected?.reasons).toContainEqual({ points: -20, label: 'L’IA ne retrouve pas ce code dans la description. Elle y lit plutôt : CQ410.' });
+  });
+
+  it('ajoute au code le lien de l’offre lu par l’IA, et met en attente une offre par lien voisine', async () => {
+    await ctx.db.insert(schema.tools).values({ slug: 'krispcall', name: 'KrispCall', categorySlug: 'vpn', website: 'https://krispcall.com' });
+    const text = 'Merci NordVPN, code ANA10 sur https://nordvpn.com/ana\nKrispCall : -20 % avec https://try.krispcall.com/tad';
+    const create = vi.fn(async (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => aiResponse(params.model, [
+      { code: 'ANA10', link: 'https://nordvpn.com/ana' },
+      { code: '', link: 'https://try.krispcall.com/tad', tool: 'KrispCall', discount: '-20 %' },
+    ]));
+    const check = await runVerification(ctx.db, ctx.codeId, { readSource: reader(text), ai: { config: aiConfigFrom({ ANTHROPIC_API_KEY: 'k' }), create } });
+    const labels = check?.reasons.map(reason => reason.label) ?? [];
+    expect(labels).toContain('L’IA a trouvé le lien de l’offre (nordvpn.com/ana) et l’a ajouté au code.');
+    expect(labels.some(label => label.startsWith('La source donne aussi une offre par lien (KrispCall)'))).toBe(true);
+    const rows = await ctx.db.select().from(schema.codes);
+    expect(rows.find(row => row.id === ctx.codeId)?.creatorLink).toBe('https://nordvpn.com/ana');
+    expect(rows.find(row => row.code === null)).toMatchObject({ creatorLink: 'https://try.krispcall.com/tad', discount: '-20 %', status: 'pending' });
   });
 
   it('relit directement avec Opus à la demande', async () => {
