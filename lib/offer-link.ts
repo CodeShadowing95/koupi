@@ -35,3 +35,15 @@ export function findLinkInText(link: string, text: string): { found: boolean; ex
   }
   return { found: false, excerpt: null };
 }
+
+/** Réseaux du créateur et pages de soutien : un lien vers eux n'est jamais le lien d'une offre. */
+const NOT_OFFER_HOSTS = ['youtube.com', 'youtu.be', 'instagram.com', 'tiktok.com', 'twitter.com', 'x.com', 'facebook.com', 'threads.net',
+  'discord.gg', 'discord.com', 'patreon.com', 'twitch.tv', 'linkedin.com', 'linktr.ee', 'spotify.com', 'podcasts.apple.com', 'apple.co',
+  'buymeacoffee.com', 'ko-fi.com', 'tipeee.com', 'reddit.com', 'github.com', 'snapchat.com', 'pinterest.com', 'bsky.app'];
+
+/** Vrai si le lien peut être celui d'une offre : une adresse web qui ne mène pas à un réseau du créateur. */
+export function offerLinkAllowed(link: string): boolean {
+  let host: string;
+  try { host = new URL(link).hostname.toLowerCase().replace(/^www\./, ''); } catch { return false; }
+  return !NOT_OFFER_HOSTS.some(blocked => host === blocked || host.endsWith(`.${blocked}`));
+}

@@ -3,9 +3,25 @@ import type { ExtractedCode } from './ai-extract';
 import { forVideo, mergeAiCodes, PROMO_HINT } from './podcast-ai';
 
 const tools = [{ id: 't-nord', name: 'NordVPN', domain: 'nordvpn.com' }, { id: 't-qonto', name: 'Qonto', domain: 'qonto.com' }];
-const ai = (code: string, extra: Partial<ExtractedCode> = {}): ExtractedCode => ({ code, tool: '', discount: '', conditions: '', expiresOn: '', evidence: `code ${code}`, ...extra });
+const ai = (code: string, extra: Partial<ExtractedCode> = {}): ExtractedCode => ({ code, link: '', tool: '', discount: '', conditions: '', expiresOn: '', evidence: `code ${code}`, ...extra });
 
 describe('mergeAiCodes', () => {
+  it('range une offre par lien sous l’outil de son site, ou en outil à ajouter', () => {
+    const scan = { found: [], unknown: [] };
+    const merged = mergeAiCodes(scan, [
+      ai('', { link: 'https://go.nordvpn.com/ana', discount: '-70 %', evidence: 'NordVPN -70 % : https://go.nordvpn.com/ana' }),
+      ai('', { link: 'https://try.krispcall.com/tad', tool: 'KrispCall', discount: '-20 %', evidence: 'KrispCall : https://try.krispcall.com/tad' }),
+    ], tools);
+    expect(merged.found).toEqual([expect.objectContaining({ toolId: 't-nord', code: '', link: 'https://go.nordvpn.com/ana', discount: '-70 %' })]);
+    expect(merged.unknown).toEqual([expect.objectContaining({ name: 'KrispCall', domain: 'krispcall.com', code: '', link: 'https://try.krispcall.com/tad' })]);
+  });
+
+  it('ajoute le lien lu par l’IA à un code déjà repéré', () => {
+    const scan = { found: [{ toolId: 't-nord', code: 'CARNE', discount: '-70 %', evidence: 'NordVPN code CARNE' }], unknown: [] };
+    const merged = mergeAiCodes(scan, [ai('CARNE', { link: 'https://nordvpn.com/carne' })], tools);
+    expect(merged.found[0]).toMatchObject({ code: 'CARNE', link: 'https://nordvpn.com/carne' });
+  });
+
   it('complète la réduction et la date d’un code déjà repéré, sans le doubler', () => {
     const scan = { found: [{ toolId: 't-nord', code: 'CARNE', discount: 'Voir l’épisode', evidence: 'NordVPN code CARNE' }], unknown: [] };
     const merged = mergeAiCodes(scan, [ai('carne', { tool: 'NordVPN', discount: '-60 % sur 2 ans', expiresOn: '2026-12-31' })], tools);

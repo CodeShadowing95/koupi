@@ -329,7 +329,10 @@ export const toolSuggestions = pgTable('tool_suggestions', {
   name: text('name').notNull(),
   /** Domaine trouvé à côté du code (gradium.ai), en minuscules. */
   domain: text('domain'),
-  code: text('code').notNull(),
+  /** Vide pour une offre donnée seulement par un lien (link obligatoire alors, ADR-0040). */
+  code: text('code'),
+  /** Lien de l'offre (affiliation) écrit dans la source, vide s'il n'y en a pas. */
+  link: text('link'),
   discount: text('discount').notNull(),
   evidence: text('evidence').notNull().default(''),
   sourceUrl: text('source_url').notNull(),
@@ -347,10 +350,12 @@ export const toolSuggestions = pgTable('tool_suggestions', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   resolvedAt: timestamp('resolved_at', { withTimezone: true }),
 }, table => [
-  uniqueIndex('tool_suggestions_tool_code_idx').on(sql`lower(coalesce(${table.domain}, ${table.name}))`, sql`lower(${table.code})`),
+  uniqueIndex('tool_suggestions_tool_code_idx').on(sql`lower(coalesce(${table.domain}, ${table.name}))`, sql`lower(coalesce(${table.code}, ${table.link}))`),
   index('tool_suggestions_status_idx').on(table.status),
   check('tool_suggestions_name_len', sql`char_length(trim(${table.name})) between 1 and 120`),
-  check('tool_suggestions_code_len', sql`char_length(trim(${table.code})) between 1 and 120`),
+  check('tool_suggestions_code_len', sql`${table.code} is null or char_length(trim(${table.code})) between 1 and 120`),
+  check('tool_suggestions_code_or_link', sql`${table.code} is not null or ${table.link} is not null`),
+  check('tool_suggestions_link_http', sql`${table.link} is null or ${table.link} ~* '^https?://'`),
   check('tool_suggestions_discount_len', sql`char_length(trim(${table.discount})) between 1 and 240`),
   check('tool_suggestions_domain_format', sql`${table.domain} is null or ${table.domain} ~ '^[a-z0-9-]+(\\.[a-z0-9-]+)+$'`),
   check('tool_suggestions_source_http', sql`${table.sourceUrl} ~* '^https?://'`),

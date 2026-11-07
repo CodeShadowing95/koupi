@@ -78,6 +78,30 @@ describe('keepVerbatimCodes', () => {
     expect(keepVerbatimCodes({ codes: 'x' }, description)).toEqual([]);
     expect(keepVerbatimCodes({ codes: [{ code: 42 }] }, description)).toEqual([]);
   });
+
+  it('garde une offre par lien seulement si le lien est écrit et l’offre annoncée', () => {
+    const notes = [
+      '- KrispCall : -20 % sur le premier mois avec https://try.krispcall.com/tad',
+      '- Notion : https://notion.so/ana',
+      '- Ma chaîne : https://youtube.com/@ana',
+      '- Qonto, code ANA10 : https://qonto.com/r/ana',
+    ].join('\n');
+    const codes = keepVerbatimCodes({ codes: [
+      { code: '', link: 'https://try.krispcall.com/tad', tool: 'KrispCall', discount: '-20 % sur le premier mois', conditions: '', expires_on: '' },
+      { code: '', link: 'https://notion.so/ana', tool: 'Notion', discount: '', conditions: '', expires_on: '' },
+      { code: '', link: 'https://youtube.com/@ana', tool: 'YouTube', discount: '-10 %', conditions: '', expires_on: '' },
+      { code: '', link: 'https://invente.com/x', tool: 'Invente', discount: '-10 %', conditions: '', expires_on: '' },
+      { code: 'ANA10', link: 'https://qonto.com/r/ana', tool: 'Qonto', discount: '', conditions: '', expires_on: '' },
+      { code: '', link: 'https://try.krispcall.com/tad', tool: 'KrispCall', discount: '-20 %', conditions: '', expires_on: '' },
+    ] }, notes);
+    expect(codes.map(c => [c.code, c.link])).toEqual([['', 'https://try.krispcall.com/tad'], ['ANA10', 'https://qonto.com/r/ana']]);
+    expect(codes[0].evidence).toContain('try.krispcall.com/tad');
+  });
+
+  it('garde un code sans le lien quand l’IA invente le lien', () => {
+    const codes = keepVerbatimCodes({ codes: [{ code: 'NORD20', link: 'https://nordvpn.com/invente', tool: 'NordVPN', discount: '', conditions: '', expires_on: '' }] }, description);
+    expect(codes.map(c => [c.code, c.link])).toEqual([['NORD20', '']]);
+  });
 });
 
 describe('keepVerbatimCodes et faux codes', () => {
@@ -126,7 +150,7 @@ describe('extractCodes', () => {
 });
 
 describe('needsSecondReading', () => {
-  const found: Extraction = { codes: [{ code: 'A', tool: '', discount: '', conditions: '', expiresOn: '', evidence: '' }], model: 'm', costUsdMicros: 0, refused: false };
+  const found: Extraction = { codes: [{ code: 'A', link: '', tool: '', discount: '', conditions: '', expiresOn: '', evidence: '' }], model: 'm', costUsdMicros: 0, refused: false };
   const empty: Extraction = { ...found, codes: [] };
 
   it('relit après un refus', () => {

@@ -202,20 +202,20 @@ export async function searchCategoryCodes(db: Db, youtube: YoutubeSearch, option
         const creatorId = await resolveCreator(db, video.channelTitle || 'Chaîne YouTube');
         for (const found of scan.found) {
           const codeId = await addPendingCode(db, {
-            toolId: found.toolId, creatorId, code: found.code, discount: found.discount, sourceUrl, sourceTitle: video.title,
+            toolId: found.toolId, creatorId, code: found.code, link: found.link, discount: found.discount, sourceUrl, sourceTitle: video.title,
             note: `Trouvé par la recherche « ${query} » : « ${found.evidence} »`, expiresOn: found.expiresOn, origin: 'youtube_search',
           }, `${origin} : ${label}`);
           if (!codeId) continue;
           codesForVideo++;
-          report.found.push({ tool: toolName.get(found.toolId) ?? '', code: found.code, creator: video.channelTitle });
+          report.found.push({ tool: toolName.get(found.toolId) ?? '', code: found.code || 'lien', creator: video.channelTitle });
           if (options.deps) await runVerification(db, codeId, options.deps).catch(error => console.error('category search verification failed', error));
         }
         for (const item of scan.unknown) {
           const inserted = await db.insert(toolSuggestions).values({
-            name: clip(item.name, 120), domain: item.domain, code: item.code, discount: item.discount, evidence: item.evidence,
+            name: clip(item.name, 120), domain: item.domain, code: item.code || null, link: item.link || null, discount: item.discount, evidence: item.evidence,
             sourceUrl, sourceTitle: clip(video.title, 300), creatorId,
           }).onConflictDoNothing().returning({ id: toolSuggestions.id });
-          if (inserted.length) report.suggested.push({ tool: item.domain ?? item.name, code: item.code });
+          if (inserted.length) report.suggested.push({ tool: item.domain ?? item.name, code: item.code || 'lien' });
         }
       }
       codesForQuery += codesForVideo;
