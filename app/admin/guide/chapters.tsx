@@ -291,7 +291,7 @@ function Verifications() {
         { term: <StatusDot tone="muted">Pas analysé</StatusDot>, meaning: 'Aucune analyse pour l’instant. Lance-la.' },
       ]} />
       <p>La file met devant les dossiers analysés, du plus sûr au moins sûr : tu valides vite ce qui est clair, puis tu prends le temps sur le reste.</p>
-      <p>Tout code part de 30 points (la ligne « Point de départ »), et la somme des lignes donne le score. Un code qui n’est qu’un nombre (« 2026 »), qui ressemble à une clé de licence ou qui n’est que le nom de l’outil (« LWS » pour LWS) perd 50 points : il n’est jamais classé clair. Quand l’IA lit la source sans y voir ce code, il perd encore 20 points.</p>
+      <p>Tout code part de 30 points (la ligne « Point de départ »), et la somme des lignes donne le score. Un code qui n’est qu’un nombre (« 2026 »), qui ressemble à une clé de licence ou qui n’est que le nom de l’outil (« LWS » pour LWS) perd 50 points : il n’est jamais classé clair. Quand l’IA lit la source sans y voir ce code, il perd encore 20 points, et au moins assez pour ne plus être « clair » : un dossier où l’IA n’est pas d’accord se regarde toujours de près. Un mot collé à un minutage du sommaire (« Cowork13:18 ») ou pris dans une adresse e-mail (« wesroth@… ») ne compte pas comme le code écrit dans la source.</p>
     </Section>
     <Section id="decider" title="Tes trois décisions">
       <Legend rows={[
