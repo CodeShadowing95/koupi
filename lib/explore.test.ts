@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Code, Tool } from './data';
 import {
-  categoryChips, closeIntro, shortName, DEFAULT_EXPLORE, exploreCodes, exploreFilters, exploreTitle, exploreToParams, familyEntries, parseExplore, readIntroClosed, topCreators,
+  categoryChips, closeIntro, readCardView, saveCardView, shortName, DEFAULT_EXPLORE, exploreCodes, exploreFilters, exploreTitle, exploreToParams, familyEntries, parseExplore, readIntroClosed, topCreators,
 } from './explore';
 
 const NOW = Date.parse('2026-11-06T12:00:00Z');
@@ -102,5 +102,20 @@ describe('message d’accueil', () => {
     const broken = { getItem: () => { throw new Error('bloqué'); }, setItem: () => { throw new Error('bloqué'); } };
     expect(readIntroClosed(broken)).toBe(false);
     expect(() => closeIntro(broken)).not.toThrow();
+  });
+});
+
+describe('vue des cartes', () => {
+  it('garde le choix, détaillées par défaut ou sans stockage', () => {
+    const store = new Map<string, string>();
+    const storage = { getItem: (key: string) => store.get(key) ?? null, setItem: (key: string, value: string) => { store.set(key, value); } };
+    expect(readCardView(storage)).toBe('detailed');
+    saveCardView(storage, 'simple');
+    expect(readCardView(storage)).toBe('simple');
+    saveCardView(storage, 'detailed');
+    expect(readCardView(storage)).toBe('detailed');
+    const broken = { getItem: () => { throw new Error('bloqué'); }, setItem: () => { throw new Error('bloqué'); } };
+    expect(readCardView(broken)).toBe('detailed');
+    expect(() => saveCardView(broken, 'simple')).not.toThrow();
   });
 });

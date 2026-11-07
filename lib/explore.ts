@@ -137,3 +137,16 @@ export function closeIntro(storage: Pick<Storage, 'setItem'> | undefined): void 
 
 /** Colonne de gauche : ouverte (large) ou réduite (icônes). Le choix est gardé par navigateur. */
 export const EXPLORE_RAIL_KEY = 'merkod-explore-rail';
+
+/** Cartes détaillées (créateur, réussite, votes, date, source) ou simples (outil, créateur, réduction, pouces, talon). */
+export type CardView = 'detailed' | 'simple';
+export const EXPLORE_CARDS_KEY = 'merkod-explore-cards';
+
+/** Le choix gardé par navigateur ; détaillées par défaut ou si le stockage est indisponible. */
+export function readCardView(storage: Pick<Storage, 'getItem'> | undefined): CardView {
+  try { return storage?.getItem(EXPLORE_CARDS_KEY) === 'simple' ? 'simple' : 'detailed'; } catch { return 'detailed'; }
+}
+
+export function saveCardView(storage: Pick<Storage, 'setItem'> | undefined, view: CardView): void {
+  try { storage?.setItem(EXPLORE_CARDS_KEY, view); } catch { /* stockage indisponible : le choix vaut pour cette visite */ }
+}
