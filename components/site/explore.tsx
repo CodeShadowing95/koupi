@@ -13,7 +13,7 @@ import { isSoundEnabled, setSoundEnabled } from '@/lib/coupon-sound';
 import { usesLogoDev } from '@/lib/tool-logos';
 import { gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
 import {
-  categoryChips, closeIntro, DEFAULT_EXPLORE, EXPLORE_RAIL_KEY, exploreCodes, exploreTitle, exploreToParams, familyEntries, readCardView, readCouponTone, readIntroClosed, saveCardView, saveCouponTone, SHELVES, shortName, topCreators,
+  categoryChips, closeIntro, totalVotes, DEFAULT_EXPLORE, EXPLORE_RAIL_KEY, exploreCodes, exploreTitle, exploreToParams, familyEntries, readCardView, readCouponTone, readIntroClosed, saveCardView, saveCouponTone, SHELVES, shortName, topCreators,
   type CardView, type CouponTone, type ExploreState, type Shelf,
 } from '@/lib/explore';
 import { BoardingCoupon } from '@/components/site/boarding-coupon';
@@ -51,6 +51,8 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
   const shownState = useRef<ExploreState | null>(null);
   const isOff = useIsOff();
 
+  // Espaces insécables écrits à la main : même texte côté serveur et navigateur.
+  const votes = useMemo(() => new Intl.NumberFormat('fr-FR').format(totalVotes(codes)).replace(/\s/g, '\u00a0'), [codes]);
   const results = useMemo(() => exploreCodes(codes, tools, state, now), [codes, tools, state, now]);
   const visible = results.slice(0, limit);
   const shelfCounts = useMemo(() => Object.fromEntries(SHELVES.map(({ value }) => [value, exploreCodes(codes, tools, { ...DEFAULT_EXPLORE, shelf: value }, now).length])) as Record<Shelf, number>, [codes, tools, now]);
@@ -295,19 +297,21 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
 
         <main className="k-ex-feed" id="contenu" ref={feed}>
           {intro && (
-            <section className="k-ex-intro" aria-label="Comment ça marche">
+            <section className="k-ex-intro" aria-labelledby="k-ex-intro-title">
               <div className="k-ex-intro-main k-paper">
-                <p className="k-ex-intro-title">Un code t’a servi&nbsp;? Reviens le dire.</p>
+                <span className="k-ex-intro-kicker">Après ton achat</span>
+                <h2 className="k-ex-intro-title" id="k-ex-intro-title">Le code a marché&nbsp;? <em>Dis-le</em> en un pouce.</h2>
                 <ol className="k-ex-intro-steps">
-                  <li><span>1</span>Clique sur le talon bleu&nbsp;: le code est copié et le site s’ouvre.</li>
-                  <li><span>2</span>Essaie-le au moment de payer.</li>
-                  <li><span>3</span>Reviens voter avec le pouce du coupon. Le prochain visiteur saura s’il marche, et le créateur gagne en crédit.</li>
+                  <li><b>1</b>Copie le code</li>
+                  <li><b>2</b>Essaie-le en payant</li>
+                  <li><b>3</b>Reviens voter</li>
                 </ol>
               </div>
-              <button type="button" className="k-ex-intro-stub" onClick={hideIntro}>
-                <span aria-hidden="true">👍</span>
-                <span>C’est noté</span>
-              </button>
+              <div className="k-ex-intro-side">
+                <svg className="k-ex-intro-thumb" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M2 21h4V9H2v12Zm20-11a2 2 0 0 0-2-2h-6.3l.95-4.57.03-.32a1.5 1.5 0 0 0-.44-1.06L13.17 1 6.59 7.59C6.22 7.95 6 8.45 6 9v10a2 2 0 0 0 2 2h9a2 2 0 0 0 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2Z" /></svg>
+                {votes !== '0' && <span className="k-ex-intro-count"><b>{votes}</b> votes déjà</span>}
+                <button type="button" className="k-ex-intro-ok" onClick={hideIntro}>C’est noté</button>
+              </div>
             </section>
           )}
 
