@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import { loadCatalog } from './catalog-db';
-import { applyCodeAction, createCode, parseCodeInput, toolOptions, updateCode, type CodeInput } from './codes-admin';
+import { applyCodeAction, correctCode, createCode, parseCodeInput, toolOptions, updateCode, type CodeInput } from './codes-admin';
 import { createSubmission, listSubmissions } from './submissions';
 
 async function freshDb() {
@@ -193,5 +193,29 @@ describe('actions de l’admin', () => {
     if (!first.ok || !second.ok) throw new Error('setup');
     expect(await updateCode(db, second.data.id, base)).toMatchObject({ ok: false, duplicateId: first.data.id });
     expect(await updateCode(db, first.data.id, { ...base, discount: '-80 %' })).toEqual({ ok: true, data: { id: first.data.id } });
+  });
+});
+
+describe('correction du code depuis Vérifications', () => {
+  it('remplace le code et la réduction, garde le reste et note la correction', async () => {
+    const db = await freshDb();
+    const created = await createCode(db, { ...base, code: 'NORDVPN', status: 'pending' });
+    if (!created.ok) throw new Error(created.error);
+    expect(await correctCode(db, created.data.id, { code: ' cq410 ', discount: '-30 %' })).toEqual({ ok: true, data: { code: 'CQ410', discount: '-30 %' } });
+    const [row] = await db.select().from(schema.codes).where(eq(schema.codes.id, created.data.id));
+    expect(row).toMatchObject({ code: 'CQ410', discount: '-30 %', status: 'pending', sourceUrl: base.sourceUrl });
+    const logs = await db.select().from(schema.codeLogs).where(eq(schema.codeLogs.codeId, created.data.id));
+    expect(logs.at(-1)).toMatchObject({ action: 'edit', previousStatus: 'pending', nextStatus: 'pending', note: 'Corrigé depuis Vérifications : code NORDVPN → CQ410, réduction modifiée.' });
+  });
+
+  it('garde la réduction quand elle est vide, refuse un code mal formé ou déjà au catalogue', async () => {
+    const db = await freshDb();
+    const first = await createCode(db, base);
+    const second = await createCode(db, { ...base, code: 'OTHER' });
+    if (!first.ok || !second.ok) throw new Error('setup');
+    expect(await correctCode(db, second.data.id, { code: 'NEW1', discount: ' ' })).toEqual({ ok: true, data: { code: 'NEW1', discount: base.discount } });
+    expect(await correctCode(db, second.data.id, { code: 'NEW 1' })).toMatchObject({ ok: false, error: expect.stringContaining('sans espace') });
+    expect(await correctCode(db, second.data.id, { code: 'ytstack' })).toMatchObject({ ok: false, duplicateId: first.data.id });
+    expect(await correctCode(db, '00000000-0000-0000-0000-000000000000', { code: 'X1' })).toEqual({ ok: false, error: 'Code introuvable.' });
   });
 });

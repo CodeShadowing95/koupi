@@ -150,6 +150,11 @@ describe('implausibleCode', () => {
   });
   it('garde les vrais codes', () => {
     for (const code of ['NORD20', 'DIGITIZ', 'SUMMER-2026', 'CN-BITDEF', 'A1B2C3']) expect(implausibleCode(code)).toBeNull();
+    expect(implausibleCode('LWS10', 'LWS')).toBeNull();
+  });
+  it('écarte le nom de l’outil pris pour un code', () => {
+    expect(implausibleCode('LWS', 'LWS')).toMatch(/nom de l’outil/);
+    expect(implausibleCode('nordvpn', 'Nord VPN')).toMatch(/nom de l’outil/);
   });
 });
 

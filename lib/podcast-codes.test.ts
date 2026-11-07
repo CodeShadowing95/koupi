@@ -41,6 +41,18 @@ describe('findPromoCodes', () => {
   });
 });
 
+describe('code annoncé après le nom de l’outil', () => {
+  const catalog = [...tools, { id: 't-lws', name: 'LWS', domain: 'lws.fr' }];
+  it('prend le code qui suit le nom de l’outil, pas le nom', () => {
+    expect(findPromoCodes('Code Promo LWS : CQ410 pour votre hébergement', catalog).map(found => [found.toolId, found.code])).toEqual([['t-lws', 'CQ410']]);
+    expect(findPromoCodes('code promo NordVPN « NORD20 »', catalog).map(found => found.code)).toEqual(['NORD20']);
+    expect(findPromoCodes('Accéder à l’offre officielle LWS avec réduction [Code Promo CQ410]', catalog).map(found => found.code)).toEqual(['CQ410']);
+  });
+  it('ne garde rien quand seul le nom de l’outil suit « code promo »', () => {
+    expect(findPromoCodes('Le meilleur code promo LWS du moment', catalog)).toEqual([]);
+  });
+});
+
 describe('scanPromoCodes', () => {
   const gdiy = [
     'Je vous ai négocié un code promo : -10% avec le code GDIY sur https://gradium.ai/',
