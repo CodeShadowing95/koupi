@@ -33,14 +33,8 @@ export default async function About() {
   const total = compactCount(live.length);
   const creators = new Set(live.map(code => code.creator));
   const toolOf = (name: string) => tools.find(tool => tool.name === name);
-  // Un créateur par entrée, avec son nombre de codes visibles et un exemple de code.
-  const orbit = [...new Map(live.map(code => [code.creatorSlug, code])).values()].slice(0, 12).map(code => ({
-    name: code.creator,
-    slug: code.creatorSlug,
-    codes: live.filter(other => other.creatorSlug === code.creatorSlug).length,
-    tool: code.tool,
-    discount: code.discount,
-  }));
+  // Un créateur par entrée : le vivier dans lequel l'orbite tire ses avatars.
+  const orbit = [...new Map(live.map(code => [code.creatorSlug, { name: code.creator, slug: code.creatorSlug }])).values()];
   const best = [...live].sort((a, b) => b.success - a.success || b.votes - a.votes)[0];
   // L'exemple de la section créateurs : un code fiable dont la réduction tient sur le petit coupon.
   const studioExample = [...live].sort((a, b) => b.success - a.success || b.votes - a.votes).find(code => code.discount.length <= 10) ?? best;
