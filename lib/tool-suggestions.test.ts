@@ -98,7 +98,7 @@ describe('tool suggestions', () => {
       const result = await analyzeToolSuggestion(db, row.id, deps);
       expect(result).toMatchObject({ ok: true, data: { categorySlug: 'ia', summary: 'Voix de synthèse par IA.' } });
       expect(readSite).toHaveBeenCalledWith('gradium.ai');
-      await analyzeToolSuggestion(db, row.id, deps, 'https://www.gradium.ai/fr');
+      await analyzeToolSuggestion(db, row.id, deps, { website: 'https://www.gradium.ai/fr' });
       expect(readSite).toHaveBeenLastCalledWith('https://www.gradium.ai/fr');
       const [list] = await listToolSuggestions(db);
       expect(list.analysis).toMatchObject({ toolName: 'Gradium' });
@@ -106,12 +106,26 @@ describe('tool suggestions', () => {
       expect(stored.analysisCostUsdMicros).toBe(300);
     });
 
+    it('lit la description collée par l’admin quand le site refuse les robots', async () => {
+      const [row] = await db.insert(schema.toolSuggestions).values(suggestion('GDIY')).returning();
+      const readSite = vi.fn(async () => ({ ok: false as const, error: 'Le site gradium.ai a répondu 403.' }));
+      create.mockClear();
+      const deps = { ai: { config: aiConfigFrom({ ANTHROPIC_API_KEY: 'k' }), create: create as never }, readSite };
+      expect(await analyzeToolSuggestion(db, row.id, deps, { description: 'Voix IA' })).toEqual({ ok: false, error: expect.stringContaining('trop courte') });
+      const result = await analyzeToolSuggestion(db, row.id, deps, { description: '  Gradium crée des voix de synthèse réalistes\npour les vidéos et les podcasts.  ' });
+      expect(result).toMatchObject({ ok: true, data: { categorySlug: 'ia', url: 'gradium.ai' } });
+      expect(readSite).not.toHaveBeenCalled();
+      const prompt = (create.mock.calls[0] as unknown as [{ messages: { content: string }[] }])[0].messages[0].content;
+      expect(prompt).toContain('Description copiée par l’administrateur');
+      expect(prompt).toContain('Gradium crée des voix de synthèse réalistes pour les vidéos et les podcasts.');
+    });
+
     it('refuse au-delà du plafond et rend l’erreur de lecture du site', async () => {
       const [row] = await db.insert(schema.toolSuggestions).values(suggestion('GDIY')).returning();
       const config = { ...aiConfigFrom({ ANTHROPIC_API_KEY: 'k' }), monthlyBudgetUsdMicros: 0 };
       expect(await analyzeToolSuggestion(db, row.id, { ai: { config, create: create as never } })).toEqual({ ok: false, error: 'Le plafond de l’IA est atteint pour ce mois.' });
       const readSite = vi.fn(async () => ({ ok: false as const, error: 'Le site gradium.ai ne répond pas.' }));
-      expect(await analyzeToolSuggestion(db, row.id, { ai: { config: aiConfigFrom({ ANTHROPIC_API_KEY: 'k' }), create: create as never }, readSite })).toEqual({ ok: false, error: 'Le site gradium.ai ne répond pas.' });
+      expect(await analyzeToolSuggestion(db, row.id, { ai: { config: aiConfigFrom({ ANTHROPIC_API_KEY: 'k' }), create: create as never }, readSite })).toEqual({ ok: false, error: expect.stringContaining('Le site gradium.ai ne répond pas. Copie ce que fait l’outil') });
     });
   });
 });
