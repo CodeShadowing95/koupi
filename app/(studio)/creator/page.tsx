@@ -18,6 +18,7 @@ import { CodeBadge } from '@/components/site/code-badge';
 import { TrustPill } from '@/components/site/trust';
 import { CopyPageLink } from '@/components/site/creator-space-actions';
 import { CreatorProof } from '@/components/site/creator-proof';
+import { StudioSkip } from '@/components/site/studio-skip';
 import { CopiesChart, RosetteRing, StudioShell, type StudioNavItem } from '@/components/site/studio';
 
 export const metadata: Metadata = { title: 'Merkod Studio', robots: { index: false, follow: false } };
@@ -45,7 +46,10 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
     const raw = (await searchParams).q;
     const query = (typeof raw === 'string' ? raw : '').trim().slice(0, 80);
     const found = !pages.length && query ? matchCreatorPages(await loadFindablePages(db), query) : [];
-    const nav: StudioNavItem[] = pages.length ? [{ id: 'preuve', label: 'Prouver ma chaîne', icon: 'proof' }] : [{ id: 'trouver', label: 'Trouver ma page', icon: 'search' }];
+    const nav: StudioNavItem[] = [
+      pages.length ? { id: 'preuve', label: 'Prouver ma chaîne', icon: 'proof' } : { id: 'trouver', label: 'Trouver ma page', icon: 'search' },
+      { id: 'passer', label: 'Passer cette étape', icon: 'page' },
+    ];
     return (
       <StudioShell email={account.email} creator={null} nav={nav} title="Bienvenue dans ton studio">
         <section className="k-st-hello">
@@ -53,12 +57,12 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
           <h2>{pages.length ? 'Une dernière étape, et ton studio s’allume.' : 'Ton studio t’attend. Relie ta page.'}</h2>
           <p>{pages.length
             ? 'Colle ton code dans la bio d’un de tes comptes : seul son vrai propriétaire peut le faire. Dès qu’il y est, tes copies s’affichent ici.'
-            : 'Ton compte est créé, mais il n’est relié à aucune page. Cherche la tienne, puis clique « C’est ta page ? ».'}</p>
+            : 'Tu as déjà une chaîne avec du public ? Cherche ta page et prouve qu’elle est à toi : tes codes seront publiés sans attente. Sinon, passe cette étape et ouvre ton studio tout de suite.'}</p>
         </section>
         <ol className="k-st-steps" aria-label="Étapes">
           <li className="is-done"><b>Compte créé</b><span>Connecté avec {account.email}</span></li>
-          <li className={pages.length ? 'is-done' : 'is-now'}><b>Page revendiquée</b><span>{pages.length ? pages.map(page => page.name).join(', ') : 'Trouve ta page sur Merkod'}</span></li>
-          <li className={pages.length ? 'is-now' : ''}><b>Preuve par ta bio</b><span>Un petit code à coller</span></li>
+          <li className={pages.length ? 'is-done' : 'is-now'}><b>Page revendiquée</b><span>{pages.length ? pages.map(page => page.name).join(', ') : 'Facultatif : trouve ta page'}</span></li>
+          <li className={pages.length ? 'is-now' : ''}><b>Preuve par ta bio</b><span>Facultatif : un petit code à coller</span></li>
           <li><b>Studio ouvert</b><span>Copies, codes, lien de ta page</span></li>
         </ol>
         {pages.length > 0 ? (
@@ -81,11 +85,15 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
                 ))}
               </ul>
             ) : (
-              <p className="k-st-none" role="status">Aucune page « {query} » sur Merkod pour l’instant. Une page naît avec un premier code : propose-en un, et elle se crée dès qu’il est validé.</p>
+              <p className="k-st-none" role="status">Aucune page « {query} » sur Merkod pour l’instant. Pas de souci : passe cette étape juste en dessous, ton studio s’ouvre sur une page à ton nom.</p>
             ))}
-            <p className="k-st-muted">Tu n’y es pas encore ? <Link href={routes.submit()}>Propose un de tes codes</Link> : ta page se crée avec lui.</p>
           </section>
         )}
+        <section id="passer" className="k-st-section k-st-card">
+          <h2 className="k-st-h2">Pas de chaîne, ou pas maintenant ?</h2>
+          <p className="k-st-muted">Ouvre ton studio sur une page à ton nom. Elle reste « non vérifiée » : tes codes passent par la relecture de Merkod avant d’être publiés. Tu pourras prouver ta chaîne plus tard, à tout moment.</p>
+          <StudioSkip suggested={pages.length ? '' : query.replace(/^@/, '')} />
+        </section>
       </StudioShell>
     );
   }
@@ -176,7 +184,9 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
       <div className="k-st-duo">
         <section id="page" className="k-st-section k-st-card">
           <h2 className="k-st-h2">Ma page</h2>
-          <p className="k-st-muted">Mets ce lien dans tes descriptions : tous tes codes au même endroit, chacun avec la vidéo d’où il vient.</p>
+          <p className="k-st-muted">{live
+            ? 'Mets ce lien dans tes descriptions : tous tes codes au même endroit, chacun avec la vidéo d’où il vient.'
+            : 'Ta page apparaîtra sur Merkod dès que ton premier code sera publié. Garde ce lien sous la main.'}</p>
           <p className="k-st-url"><span>{new URL(siteUrl()).host}</span>{pageUrl}</p>
           <div className="k-st-row">
             <CopyPageLink path={pageUrl} />
