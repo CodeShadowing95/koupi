@@ -16,6 +16,7 @@ import { domainOf, scanPromoCodes } from './podcast-codes';
 import { addPendingCode } from './podcast-read';
 import { aiSpendSince, startOfMonthUtc } from './verification-store';
 import { runVerification, type RunDeps } from './verification-run';
+import { compilationNote, creditedCreator, type CreatorFinder, type CreditedCreator } from './compilation-creator';
 
 /** Premier passage : on remonte ce nombre de jours. Ensuite, depuis la dernière lecture (avec une marge). */
 export const FIRST_READ_DAYS = 45;
@@ -140,7 +141,7 @@ export type ChannelReadReport = {
 };
 
 /** Lit les nouvelles vidéos des chaînes suivies actives (ou d'une seule, même en pause, avec onlyId). */
-export async function readYoutubeChannels(db: Db, youtube: YoutubeChannels, options: { onlyId?: string; deps?: RunDeps; now?: Date; max?: number; budgetMs?: number; clock?: () => number } = {}): Promise<ChannelReadReport> {
+export async function readYoutubeChannels(db: Db, youtube: YoutubeChannels, options: { onlyId?: string; deps?: RunDeps; now?: Date; max?: number; budgetMs?: number; clock?: () => number; creators?: CreatorFinder | null } = {}): Promise<ChannelReadReport> {
   const now = options.now ?? new Date();
   const report: ChannelReadReport = { channels: 0, videos: 0, skipped: 0, found: [], suggested: [], units: 0, aiRead: 0, failed: [], remaining: 0 };
   const all = await db.select().from(watchedSources)
@@ -158,6 +159,8 @@ export async function readYoutubeChannels(db: Db, youtube: YoutubeChannels, opti
   const monthStart = startOfMonthUtc(now);
   // Option « Liens d'affiliation » de l'espace Administration : coupée, l'IA ne relève que des codes.
   const links = await offerLinksEnabled(db);
+  // Vidéos « compilation » : un nom n'est cherché qu'une fois par passage.
+  const credited = new Map<string, CreditedCreator>();
   async function readWithAi(video: FoundVideo, url: string) {
     if (!ai?.create || !PROMO_HINT.test(`${video.title}\n${video.description}`)) return [];
     if (aiStatusOf(ai.config, await aiSpendSince(db, monthStart)).state !== 'active') return [];
@@ -208,9 +211,13 @@ export async function readYoutubeChannels(db: Db, youtube: YoutubeChannels, opti
       const scan = { found: forVideo(merged.found), unknown: forVideo(merged.unknown) };
       let codesForVideo = 0;
       for (const found of scan.found) {
+        // Code attribué à un autre créateur que la chaîne (vidéo « compilation ») : crédité à ce créateur.
+        const other = await creditedCreator(db, options.creators ?? null, found.creator, channel.title, credited, now);
+        if (other) report.units += other.units;
         const codeId = await addPendingCode(db, {
-          toolId: found.toolId, creatorId, code: found.code, link: found.link, discount: found.discount, sourceUrl, sourceTitle: video.title,
-          note: `Trouvé dans une vidéo de la chaîne suivie ${channel.title} : « ${found.evidence} »`, expiresOn: found.expiresOn, origin: 'youtube_channel',
+          toolId: found.toolId, creatorId: other?.creatorId ?? creatorId, code: found.code, link: found.link, discount: found.discount, sourceUrl, sourceTitle: video.title,
+          note: other ? compilationNote(channel.title, other.name, found.evidence) : `Trouvé dans une vidéo de la chaîne suivie ${channel.title} : « ${found.evidence} »`,
+          expiresOn: found.expiresOn, origin: 'youtube_channel',
         }, `Chaîne suivie ${channel.title}`);
         if (!codeId) continue;
         codesForVideo++;
@@ -218,9 +225,11 @@ export async function readYoutubeChannels(db: Db, youtube: YoutubeChannels, opti
         if (options.deps) await runVerification(db, codeId, options.deps).catch(error => console.error('youtube channel verification failed', error));
       }
       for (const item of scan.unknown) {
+        const other = await creditedCreator(db, options.creators ?? null, item.creator, channel.title, credited, now);
+        if (other) report.units += other.units;
         const inserted = await db.insert(toolSuggestions).values({
           name: clip(item.name, 120), domain: item.domain, code: item.code || null, link: item.link || null, discount: item.discount, evidence: item.evidence,
-          sourceUrl, sourceTitle: clip(video.title, 300), creatorId,
+          sourceUrl, sourceTitle: clip(video.title, 300), creatorId: other?.creatorId ?? creatorId,
         }).onConflictDoNothing().returning({ id: toolSuggestions.id });
         if (inserted.length) report.suggested.push({ channel: channel.title, code: item.code || 'lien', tool: item.domain ?? item.name });
       }

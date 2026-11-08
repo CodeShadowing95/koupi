@@ -80,6 +80,11 @@ export type ExtractedCode = {
   /** Lien de l'offre (affiliation) écrit tel quel dans la description, '' s'il n'y en a pas. */
   link: string;
   tool: string;
+  /**
+   * Créateur à qui la description attribue le code, quand ce n'est pas l'auteur de la vidéo (vidéo « compilation » :
+   * « Saily — code NOZMAN (Dr Nozman) »). Écrit tel quel dans la description, '' sinon.
+   */
+  creator: string;
   discount: string;
   conditions: string;
   /** Date de fin au format AAAA-MM-JJ, vide si la description n'en donne pas. */
@@ -98,6 +103,7 @@ const BASE_PROMPT = [
   'Ne relève que les codes écrits tels quels dans la description. N’invente jamais un code, une réduction ou une date.',
   'Pour chaque code : le code exact, le nom de l’outil, la réduction telle qu’annoncée, les conditions (nouveaux clients, durée…), la date de fin au format AAAA-MM-JJ si elle est écrite, sinon une chaîne vide.',
   'Un mot qui n’apparaît que dans une adresse web (« try.krispcall.com/tad ») n’est pas un code.',
+  'creator : quand la description attribue le code à un autre créateur que l’auteur de la vidéo (liste ou compilation de codes de plusieurs créateurs, « Saily — code NOZMAN (Dr Nozman) »), le nom de ce créateur tel qu’il est écrit ; sinon une chaîne vide.',
 ];
 
 /** Option « Liens d'affiliation » coupée : l'IA ne relève que des codes promo. */
@@ -119,6 +125,7 @@ const LINKS_PROMPT = [
 const FIELDS = {
   code: { type: 'string' },
   tool: { type: 'string' },
+  creator: { type: 'string' },
   discount: { type: 'string' },
   conditions: { type: 'string' },
   expires_on: { type: 'string' },
@@ -142,7 +149,7 @@ function outputSchema(links: boolean) {
 /** links : relever aussi les liens d'affiliation (option de l'espace Administration, coupée par défaut). */
 export type ExtractOptions = { links?: boolean };
 
-type RawCode = { code?: unknown; link?: unknown; tool?: unknown; discount?: unknown; conditions?: unknown; expires_on?: unknown };
+type RawCode = { code?: unknown; link?: unknown; tool?: unknown; creator?: unknown; discount?: unknown; conditions?: unknown; expires_on?: unknown };
 
 const text = (value: unknown, max: number) => (typeof value === 'string' ? value.trim().slice(0, max) : '');
 
@@ -180,10 +187,14 @@ export function keepVerbatimCodes(raw: unknown, description: string, { links = f
     }
     if (link) seen.add(`link:${link.toLowerCase()}`);
     const expires = text(item.expires_on, 10);
+    // Un créateur nommé seulement s'il est écrit dans la description : l'IA ne doit pas le deviner.
+    const creatorName = text(item.creator, 80);
+    const creator = creatorName && !/[/@]/.test(creatorName) && description.toLowerCase().includes(creatorName.toLowerCase()) ? creatorName : '';
     codes.push({
       code,
       link,
       tool: text(item.tool, 120),
+      creator,
       discount,
       conditions: text(item.conditions, 400),
       expiresOn: /^\d{4}-\d{2}-\d{2}$/.test(expires) ? expires : '',

@@ -8,8 +8,9 @@ import { GLUED_TIMESTAMP, clip, implausibleCode, insideUrl, urlSpans } from './v
 /** domain : domaine du site officiel (nordvpn.com), pour reconnaître un lien vers l'outil. */
 export type CatalogTool = { id: string; name: string; domain?: string | null };
 /** code '' et link rempli : offre donnée seulement par un lien (ADR-0040). link : lien de l'offre écrit dans la source. */
-export type FoundCode = { toolId: string; code: string; discount: string; evidence: string; link?: string };
-export type UnknownToolCode = { name: string; domain: string | null; code: string; discount: string; evidence: string; link?: string };
+/** creator : créateur à qui la source attribue le code quand ce n'est pas son auteur (vidéo « compilation »). */
+export type FoundCode = { toolId: string; code: string; discount: string; evidence: string; link?: string; creator?: string };
+export type UnknownToolCode = { name: string; domain: string | null; code: string; discount: string; evidence: string; link?: string; creator?: string };
 
 const CODE_PATTERN = /\b(?:promo\s*code|code\s*promo|code\s*de\s*r[ée]duction|coupon|code)\s*(?::|est|is)?\s*[«"“'‘]?\s*([A-Za-z0-9][A-Za-z0-9_-]{2,29}%?)(?![\p{L}\p{N}%])/giu;
 const DISCOUNT_PATTERN = /-?\s?\d+(?:[.,]\d+)?\s?(?:%|€|\$|euros?)|\d+\s(?:mois|semaines?|jours?)\s(?:offerts?|gratuits?)|\d+\s(?:months?|weeks?|days?)\sfree/iu;
