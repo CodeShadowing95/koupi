@@ -1121,7 +1121,7 @@ button.k-coupon-stub{transition:transform .3s cubic-bezier(.2,.9,.3,1.3),backgro
 .k-pass-menu-list{display:flex;flex-direction:column;gap:2px;margin:0;padding:0;list-style:none}
 .kp .k-pass-menu-item{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:0 12px;border:0;border-radius:var(--r-sm);background:transparent;color:var(--text);
   font:inherit;font-size:var(--fs-base);font-weight:400;text-align:left;text-decoration:none;cursor:pointer}
-.k-pass-menu-item svg{flex:none;color:var(--muted)}
+.k-pass-menu-item svg{flex:none;color:currentColor}
 .kp .k-pass-menu-item:hover,.kp .k-pass-menu-item:focus-visible{background:var(--surface-2);outline:none}
 .kp .k-pass-menu-item:focus-visible{box-shadow:inset 0 0 0 2px var(--focus)}
 .k-pass-menu-sep{height:1px;margin:4px 6px;background:var(--line)}
