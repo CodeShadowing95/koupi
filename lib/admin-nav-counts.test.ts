@@ -35,4 +35,17 @@ describe('navWaitingCounts', () => {
     ]);
     expect(await navWaitingCounts(db)).toMatchObject({ toDecide: 1, toolsToAdd: 1 });
   });
+
+  it('ne compte pas un candidat déjà suivi, ni un candidat écarté', async () => {
+    const db = drizzle(new PGlite(), { schema }) as unknown as Db;
+    await migrate(db as never, { migrationsFolder: 'db/migrations' });
+    await db.insert(schema.podcastCandidates).values([
+      { itunesId: '111', title: 'Suivi depuis', feedUrl: 'https://a.example/feed' },
+      { itunesId: '222', title: 'À examiner', feedUrl: 'https://b.example/feed' },
+      { itunesId: '333', title: 'Écarté', feedUrl: 'https://c.example/feed', status: 'dismissed' },
+    ]);
+    expect((await navWaitingCounts(db)).newCandidates).toBe(2);
+    await db.insert(schema.watchedSources).values({ platform: 'podcast', externalId: '111', title: 'Suivi depuis' });
+    expect((await navWaitingCounts(db)).newCandidates).toBe(1);
+  });
 });
