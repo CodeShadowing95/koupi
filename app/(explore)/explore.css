@@ -96,6 +96,11 @@
 .k-ex-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 @container k-ex (max-width:940px){.k-ex-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @container k-ex (max-width:580px){.k-ex-grid{grid-template-columns:minmax(0,1fr)}}
+/* Colonne réduite (burger) : le fil gagne de la place, quatre coupons par ligne tant qu'ils restent lisibles. */
+.k-ex.is-mini .k-ex-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:24px 18px}
+@container k-ex (max-width:1240px){.k-ex.is-mini .k-ex-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@container k-ex (max-width:940px){.k-ex.is-mini .k-ex-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container k-ex (max-width:580px){.k-ex.is-mini .k-ex-grid{grid-template-columns:minmax(0,1fr)}}
 
 .k-ex-more{display:flex;justify-content:center;margin-top:36px}
 .k-ex-empty{max-width:560px;margin:40px auto;padding:32px;border-radius:var(--r-2xl);border:1px dashed var(--line-2);text-align:center;color:var(--text-soft)}
