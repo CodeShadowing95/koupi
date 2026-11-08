@@ -4,6 +4,7 @@ import { isAdminRequest } from '@/lib/admin-guard';
 import { readJsonBody } from '@/lib/http';
 import { searchCategoryCodes, youtubeSearch } from '@/lib/category-code-search';
 import { verificationDeps } from '@/lib/verification-deps';
+import { creatorFinder } from '@/lib/compilation-creator';
 import { recordRun } from '@/lib/source-runs';
 import { searchSummary } from '@/lib/source-run-summaries';
 
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
   try {
     const db = getDb();
     const report = await recordRun(db, { source: 'youtube_search', trigger: 'manual', scope: slug ? `Catégorie ${slug}` : 'Catégories vides' },
-      () => searchCategoryCodes(db, youtube, { categorySlug: slug, deps: verificationDeps() }), searchSummary);
+      () => searchCategoryCodes(db, youtube, { categorySlug: slug, deps: verificationDeps(), creators: creatorFinder(process.env.YOUTUBE_API_KEY) }), searchSummary);
     return NextResponse.json({ ok: true, ...report });
   } catch (error) {
     console.error('category code search failed', error);

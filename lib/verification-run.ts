@@ -15,6 +15,7 @@ import { suggestionOrigin, type CodeOrigin } from './code-origin';
 import { youtubeFetch } from './api-usage';
 import { findLinkInText, isLinkOffer, offerName, shortLink } from './offer-link';
 import { offerLinksEnabled } from './site-settings';
+import { isCompilationNote } from './compilation-note';
 
 export type SourceRead = { online: boolean; title: string; description: string };
 /** Lit le texte d'une source. null : source impossible à lire (plateforme non prise en charge, clé absente). */
@@ -190,7 +191,16 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
     }
   }
 
-  if (source?.online) {
+  // Code repris d'une compilation (ADR-0042) : la vidéo est celle d'une autre chaîne, elle ne prouve pas que le créateur
+  // crédité donne ce code. Le dossier n'est jamais « clair » ; les autres codes de la vidéo ont déjà été relevés par la recherche.
+  const compilation = isCompilationNote(code.note);
+  if (compilation) {
+    const next = Math.min(score, CLEAR_SCORE - 1);
+    reasons.push({ points: next - score, label: 'Code repris d’une compilation d’une autre chaîne : vérifie-le chez le créateur crédité avant de le valider.' });
+    score = next;
+  }
+
+  if (source?.online && !compilation) {
     // Une source qui ne s'enregistre pas (texte refusé par la base…) ne doit pas faire échouer l'analyse du code.
     const aiCodes = (ai.extraction?.codes ?? []).filter(found => linksOn || found.code).map(found => (linksOn ? found : { ...found, link: '' }));
     const siblings = await addSiblingCodes(db, code, source, aiCodes).catch(error => { console.error('sibling codes failed', error); return null; });

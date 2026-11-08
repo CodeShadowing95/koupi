@@ -281,6 +281,7 @@ function Verifications() {
         <Step title="Ajouter les autres codes de la source">Une description donne souvent plusieurs codes, un par outil. Ceux des outils du catalogue qui ne sont pas encore chez nous arrivent <b>En attente</b> dans cette page (pas encore analysés), ceux des outils absents vont dans <b>Outils à ajouter</b>. Une ligne de la carte le dit. Un autre code pour le <b>même</b> outil n’est pas ajouté : c’est sans doute le bon, reprends-le avec le crayon.</Step>
         <Step title="Calculer le score">Chaque contrôle ajoute ou retire des points. Les raisons sont listées sous l’extrait, avec leurs points.</Step>
       </Steps>
+      <Callout tone="rule">Vidéo « compilation » : une chaîne liste les codes d’autres créateurs (« 2. Saily — code NOZMAN (Dr Nozman) »). Chaque code est alors crédité au <b>créateur nommé</b>, pas à la chaîne qui fait la liste. Merkod le cherche d’abord parmi les créateurs, puis par sa chaîne YouTube (100 unités du quota, une fois par nom inconnu) ; sans chaîne qui porte ce nom, il le crée par son nom. La note du code commence par « Repris d’une compilation » et son dossier n’est jamais « clair » : la vidéo n’est pas celle du créateur, vérifie le code chez lui avant de le valider.</Callout>
       <p>Le bouton <b>Analyser</b> lance l’analyse d’un code ; <b>Analyser les codes non analysés</b> les fait tous, l’un après l’autre.</p>
     </Section>
     <Section id="score" title="Lire le score">

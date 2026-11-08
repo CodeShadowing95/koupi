@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/db';
 import { isAdminRequest } from '@/lib/admin-guard';
 import { verificationDeps } from '@/lib/verification-deps';
+import { creatorFinder } from '@/lib/compilation-creator';
 import { readYoutubeChannels, youtubeChannels } from '@/lib/youtube-channel-read';
 import { recordRun } from '@/lib/source-runs';
 import { channelSummary } from '@/lib/source-run-summaries';
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest) {
   try {
     const db = getDb();
     const report = await recordRun(db, { source: 'youtube_channel', trigger: 'manual', scope: 'Toutes les chaînes suivies' },
-      () => readYoutubeChannels(db, youtube, { deps: verificationDeps() }), channelSummary);
+      () => readYoutubeChannels(db, youtube, { deps: verificationDeps(), creators: creatorFinder(process.env.YOUTUBE_API_KEY) }), channelSummary);
     return NextResponse.json({ ok: true, ...report });
   } catch (error) {
     console.error('youtube channels read failed', error);

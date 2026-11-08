@@ -3,7 +3,7 @@ import type { ExtractedCode } from './ai-extract';
 import { forVideo, mergeAiCodes, PROMO_HINT } from './podcast-ai';
 
 const tools = [{ id: 't-nord', name: 'NordVPN', domain: 'nordvpn.com' }, { id: 't-qonto', name: 'Qonto', domain: 'qonto.com' }];
-const ai = (code: string, extra: Partial<ExtractedCode> = {}): ExtractedCode => ({ code, link: '', tool: '', discount: '', conditions: '', expiresOn: '', evidence: `code ${code}`, ...extra });
+const ai = (code: string, extra: Partial<ExtractedCode> = {}): ExtractedCode => ({ code, link: '', tool: '', creator: '', discount: '', conditions: '', expiresOn: '', evidence: `code ${code}`, ...extra });
 
 describe('mergeAiCodes', () => {
   it('range une offre par lien sous l’outil de son site, ou en outil à ajouter', () => {

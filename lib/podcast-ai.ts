@@ -29,7 +29,7 @@ export function forVideo<T extends { discount: string }>(items: T[]): T[] {
 export function mergeAiCodes(scan: { found: FoundCode[]; unknown: UnknownToolCode[] }, ai: ExtractedCode[], tools: CatalogTool[]): { found: MergedCode[]; unknown: MergedUnknown[] } {
   const found: MergedCode[] = scan.found.map(item => ({ ...item }));
   const unknown: MergedUnknown[] = scan.unknown.map(item => ({ ...item }));
-  const extra = (item: ExtractedCode) => ({ ...(item.expiresOn ? { expiresOn: item.expiresOn } : {}), ...(item.link ? { link: item.link } : {}) });
+  const extra = (item: ExtractedCode) => ({ ...(item.expiresOn ? { expiresOn: item.expiresOn } : {}), ...(item.link ? { link: item.link } : {}), ...(item.creator ? { creator: item.creator } : {}) });
   // Une offre par lien (code vide) se reconnaît à son lien.
   const keyOf = (entry: { code: string; link?: string }) => entry.code ? entry.code.toLowerCase() : `link:${shortLink(entry.link ?? '')}`;
   for (const item of ai) {
@@ -41,7 +41,7 @@ export function mergeAiCodes(scan: { found: FoundCode[]; unknown: UnknownToolCod
     if (index >= 0 && item.tool && !notAToolName(item.tool) && aiToolId !== found[index].toolId) {
       const [moved] = found.splice(index, 1);
       if (aiToolId) found.push({ ...moved, toolId: aiToolId });
-      else unknown.push({ name: clip(item.tool.trim(), 120), domain: toolDomainIn(item.link || item.evidence), code: moved.code, discount: moved.discount, evidence: moved.evidence, ...(moved.link ? { link: moved.link } : {}) });
+      else unknown.push({ name: clip(item.tool.trim(), 120), domain: toolDomainIn(item.link || item.evidence), code: moved.code, discount: moved.discount, evidence: moved.evidence, ...(moved.link ? { link: moved.link } : {}), ...(item.creator ? { creator: item.creator } : {}) });
     }
     const known = [...found, ...unknown].find(entry => keyOf(entry) === key);
     if (known) {

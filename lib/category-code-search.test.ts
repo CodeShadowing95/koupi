@@ -6,6 +6,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import type { AdminTool } from './catalog-admin';
+import type Anthropic from '@anthropic-ai/sdk';
+import { aiConfigFrom } from './ai-extract';
+import type { CreatorFinder } from './compilation-creator';
 import { searchCategoryCodes, toolsToSearch, youtubeSearch, type FoundVideo, type YoutubeSearch } from './category-code-search';
 
 const now = new Date('2026-11-04T05:00:00Z');
@@ -125,6 +128,36 @@ describe('searchCategoryCodes', () => {
     expect(searches.map(row => [row.variant, row.videos, row.newVideos, row.codes])).toEqual([['code promo', 2, 2, 1], ['code réduction', 3, 1, 1]]);
     const seen = await db.select().from(schema.youtubeSeenVideos);
     expect(seen.map(row => [row.videoId, row.channelId, row.codes]).sort()).toEqual([['v1', 'UC-geek', 1], ['v2', 'UC-new', 0], ['v3', 'UC-new', 1]]);
+  });
+
+  it('crédite au créateur nommé les codes d’une vidéo « compilation », sans les classer clairs', async () => {
+    const description = '1. NordVPN — code NOZMAN (Dr Nozman)\n2. Notion — code ASTRO (Astronogeek)\n3. NordVPN — code BACK10';
+    const video = { id: 'vc', title: 'Les codes des YouTubeurs', description, channelTitle: 'Backed', channelId: 'UC-backed' };
+    const youtube = fake({ 'Notion code promo': [video] });
+    const create = vi.fn(async () => ({
+      id: 'm', type: 'message', role: 'assistant', model: 'claude-haiku-5-5', stop_reason: 'end_turn', usage: { input_tokens: 10, output_tokens: 10 },
+      content: [{ type: 'text', text: JSON.stringify({ codes: [
+        { code: 'NOZMAN', tool: 'NordVPN', creator: 'Dr Nozman', discount: '', conditions: '', expires_on: '' },
+        { code: 'ASTRO', tool: 'Notion', creator: 'Astronogeek', discount: '', conditions: '', expires_on: '' },
+        { code: 'BACK10', tool: 'NordVPN', creator: '', discount: '', conditions: '', expires_on: '' },
+      ] }) }],
+    }) as unknown as Anthropic.Beta.BetaMessage);
+    const creators: CreatorFinder = {
+      searchChannels: vi.fn(async (name: string) => name === 'Dr Nozman' ? [{ id: 'UC-noz', title: 'Dr Nozman' }] : []),
+      channels: vi.fn(async (ids: string[]) => new Map(ids.map(id => [id, { id, handle: '@drnozman', url: 'https://www.youtube.com/@drnozman', subscribers: 1 }]))),
+    };
+    const deps = { readSource: async () => ({ online: true, title: video.title, description }), ai: { config: aiConfigFrom({ ANTHROPIC_API_KEY: 'k' }), create } };
+    const report = await searchCategoryCodes(db, youtube, { now, deps, creators });
+    expect(report.found.map(item => [item.code, item.creator]).sort()).toEqual([['ASTRO', 'Astronogeek'], ['BACK10', 'Backed'], ['NOZMAN', 'Dr Nozman']]);
+    const rows = await db.select({ code: schema.codes.code, note: schema.codes.note, creator: schema.creators.name }).from(schema.codes).innerJoin(schema.creators, eq(schema.creators.id, schema.codes.creatorId));
+    const byCode = new Map(rows.map(row => [row.code, row]));
+    expect(byCode.get('NOZMAN')).toMatchObject({ creator: 'Dr Nozman', note: expect.stringMatching(/^Repris d’une compilation de Backed/) });
+    expect(byCode.get('BACK10')).toMatchObject({ creator: 'Backed', note: expect.stringMatching(/^Trouvé par la recherche/) });
+    const checks = await db.select({ score: schema.verificationChecks.score, reasons: schema.verificationChecks.reasons, code: schema.codes.code }).from(schema.verificationChecks).innerJoin(schema.codes, eq(schema.codes.id, schema.verificationChecks.codeId));
+    const nozman = checks.find(check => check.code === 'NOZMAN')!;
+    expect(nozman.score).toBeLessThan(60);
+    expect(nozman.reasons.map(reason => reason.label)).toContain('Code repris d’une compilation d’une autre chaîne : vérifie-le chez le créateur crédité avant de le valider.');
+    expect(creators.searchChannels).toHaveBeenCalledTimes(2);
   });
 
   it('s’arrête au premier refus de YouTube (quota épuisé)', async () => {
