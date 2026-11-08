@@ -133,6 +133,17 @@ export function implausibleCode(code: string, toolName?: string | null): string 
   return null;
 }
 
+/**
+ * La source vend un accès partagé à un outil payant (« group buy SEO », comptes ou abonnements partagés) : le code est celui
+ * du revendeur, pas une réduction de l'outil, et ce genre d'offre enfreint souvent ses conditions. Raison lisible, sinon null.
+ */
+export function resellerSignal(text: string): string | null {
+  const pattern = /(?<![\p{L}\p{N}])(?:group[\s-]?buys?|groupbuys?|(?:comptes?|abonnements?|acc[eè]s)\s+partag[ée]e?s?|shared\s+(?:accounts?|subscriptions?|access))(?![\p{L}\p{N}])/iu;
+  return pattern.test(text)
+    ? 'La source vend un accès partagé à l’outil (group buy, compte partagé) : le code est celui du revendeur, pas une réduction de l’outil.'
+    : null;
+}
+
 const SHORTENERS = ['bit.ly', 'tinyurl.com', 't.co', 'goo.gl', 'is.gd', 'cutt.ly', 'rebrand.ly', 'shorturl.at', 'ow.ly'];
 
 export type SpamInput = { sourceUrl: string; comment?: string | null; code: string };

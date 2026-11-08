@@ -135,6 +135,24 @@ describe('runVerification', () => {
     expect(check).toMatchObject({ model: 'claude-opus-5-5', costUsdMicros: 8200 });
   });
 
+  it('ne classe jamais clair un code rattaché par l’IA à une autre marque', async () => {
+    const config = aiConfigFrom({ ANTHROPIC_API_KEY: 'k' });
+    const same = vi.fn(async (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => aiResponse(params.model, [{ code: 'ANA10', link: '', tool: 'nordvpn' }]));
+    expect((await runVerification(ctx.db, ctx.codeId, { readSource: reader('Merci NordVPN, code ANA10'), ai: { config, create: same } }))!.score).toBe(90);
+    const other = vi.fn(async (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => aiResponse(params.model, [{ code: 'ANA10', link: '', tool: 'Rankerfox' }]));
+    const check = await runVerification(ctx.db, ctx.codeId, { readSource: reader('Rankerfox : bit.ly/x (code ANA10) pour avoir NordVPN moins cher'), ai: { config, create: other } });
+    expect(check!.score).toBe(CLEAR_SCORE - 1);
+    expect(check?.reasons.map(r => r.label)).toContain('L’IA rattache ce code à « Rankerfox », pas à NordVPN : vérifie l’outil avant de le valider.');
+  });
+
+  it('ne classe jamais clair un code de revendeur d’accès partagés (group buy)', async () => {
+    const check = await runVerification(ctx.db, ctx.codeId, {
+      readSource: reader('Rankerfox (code ANA10)\nPayer NordVPN moins cher grâce aux group buy SEO.'),
+    });
+    expect(check!.score).toBe(CLEAR_SCORE - 1);
+    expect(check?.reasons.map(r => r.label).join(' ')).toContain('accès partagé');
+  });
+
   it('retire des points quand l’IA ne retrouve pas le code', async () => {
     const config = aiConfigFrom({ ANTHROPIC_API_KEY: 'k' });
     const seen = vi.fn(async (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => aiResponse(params.model, ['ANA10']));
