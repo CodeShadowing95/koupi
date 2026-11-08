@@ -73,6 +73,9 @@ describe('connexion des créateurs', () => {
     expect(requests).toHaveLength(1);
     expect(requests[0]).toMatchObject({ kind: 'claim', email: 'ana@exemple.fr', message: 'Depuis le Studio.', status: 'new' });
     expect(await recordClaim(db, { ...input, slug: 'inconnu' })).toEqual({ ok: false, error: 'Créateur inconnu.' });
+    await recordClaim(db, { ...input, email: 'autre@exemple.fr', accountUrl: 'https://www.youtube.com/@autre' });
+    const [, asked] = await db.select().from(schema.creatorRequests).orderBy(schema.creatorRequests.createdAt);
+    expect(asked).toMatchObject({ email: 'autre@exemple.fr', accountUrl: 'https://www.youtube.com/@autre' });
   });
   it('connecte une seule fois, avant 20 minutes, et crée le compte Merkod', async () => {
     await createSignInLink(db, { email: 'ana@exemple.fr', slug: 'ana' }, context);
