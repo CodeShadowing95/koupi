@@ -52,7 +52,12 @@ export function mergeAiCodes(scan: { found: FoundCode[]; unknown: UnknownToolCod
     }
     const discount = clip(item.discount, 240) || NO_DISCOUNT;
     const evidence = clip(item.evidence, 300);
-    const toolId = aiToolId || catalogToolIn(`${item.link} ${evidence}`, tools);
+    // L'IA nomme un outil absent du catalogue, écrit à côté du code (« 1. Autodoc — code Baptiste ») : on ne cherche
+    // pas un autre outil dans l'extrait, qui peut citer la ligne suivante (« 2. Saily… 3. Incogni… »). Le code va dans
+    // les outils à ajouter. Un nom vague (« un VPN ») absent de l'extrait laisse chercher l'outil par le site cité.
+    const toolName = item.tool.trim();
+    const named = Boolean(toolName) && !notAToolName(toolName) && evidence.toLowerCase().includes(toolName.toLowerCase());
+    const toolId = aiToolId || catalogToolIn(named ? item.link : `${item.link} ${evidence}`, tools);
     if (toolId) { found.push({ toolId, code: item.code, discount, evidence, ...extra(item) }); continue; }
     // L'IA peut nommer une étiquette (« Avantages ») ou la plateforme qui encaisse (« Thrivecart ») : on ne garde pas ce nom.
     const name = notAToolName(item.tool) ? '' : clip(item.tool.trim(), 120);
