@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { adminExpiry, expiryOf, isValidDay, todayInParis } from './code-expiry';
+import { adminExpiry, expiryOf, isValidDay, studioExpiry, todayInParis } from './code-expiry';
 
 const now = new Date('2026-11-02T10:00:00Z');
 
@@ -32,6 +32,16 @@ describe('expiryOf', () => {
   });
   it('signale une date passée', () => {
     expect(expiryOf('2026-11-01', now)).toMatchObject({ state: 'expired' });
+  });
+});
+
+describe('studioExpiry', () => {
+  it('tient en quelques mots, alerte seulement quand la fin approche', () => {
+    expect(studioExpiry(null, now)).toBeNull();
+    expect(studioExpiry('2026-12-31', now)).toEqual({ text: 'jusqu’au 31 déc. 2026', title: 'Valable jusqu’au 31 déc. 2026', warn: false });
+    expect(studioExpiry('2026-11-05', now)).toMatchObject({ text: 'expire dans 3 j', warn: true });
+    expect(studioExpiry('2026-11-02', now)).toMatchObject({ text: 'expire aujourd’hui', warn: true });
+    expect(studioExpiry('2026-11-01', now)).toMatchObject({ text: 'date de fin passée', warn: true });
   });
 });
 
