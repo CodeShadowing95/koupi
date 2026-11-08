@@ -22,16 +22,26 @@ import { CreatorProof } from '@/components/site/creator-proof';
 import { ClaimPageButton } from '@/components/site/claim-page-button';
 import { StudioSkip, VerifyRequest } from '@/components/site/studio-skip';
 import { StudioAddCode } from '@/components/site/studio-add-code';
+import { studioExpiry } from '@/lib/code-expiry';
 import { CopiesChart, RosetteRing, StudioShell, type StudioNavItem } from '@/components/site/studio';
 
 export const metadata: Metadata = { title: 'Merkod Studio', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
 
 // Mêmes mots et mêmes pastilles que sur le site public ; « En relecture » et « Retiré » n'existent qu'ici.
+/** La date de fin, discrète sous l'offre : elle ne ressort qu'à l'approche de la fin. */
+function CodeEnd({ expiresOn }: { expiresOn: string | null | undefined }) {
+  const end = studioExpiry(expiresOn);
+  if (!end) return null;
+  return <span className={`k-st-end${end.warn ? ' is-warn' : ''}`} title={end.title}>
+    <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><rect x="2" y="3" width="12" height="11" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+    {end.text}</span>;
+}
+
 function CodeState({ code }: { code: Code }) {
   if (code.status === 'pending') return <TrustPill seal="to_test" label="En relecture" title="Merkod relit ce code avant de le publier." dark />;
   if (code.status === 'rejected') return <TrustPill seal="expired" label="Retiré" title="Ce code n’est plus affiché sur Merkod." dark />;
-  return <CodeBadge code={code} dark withDate={false} />;
+  return <CodeBadge code={code} dark withDate={false} withExpiry={false} />;
 }
 
 const siteHost = (url: string) => { try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; } };
@@ -188,7 +198,7 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
             {rows.map(({ code, copies: n }) => (
               <li key={code.id} className="k-st-code-row">
                 <span className="k-st-code">{code.code || 'Lien seul'}</span>
-                <span className="k-st-tool"><Link href={routes.tool(code.toolSlug)} target="_blank">{code.tool}</Link><small>{code.discount}</small></span>
+                <span className="k-st-tool"><Link href={routes.tool(code.toolSlug)} target="_blank">{code.tool}</Link><small>{code.discount}</small><CodeEnd expiresOn={code.expiresOn} /></span>
                 <span className="k-st-state"><CodeState code={code} /></span>
                 <span className="k-st-share" aria-hidden="true"><i style={{ width: `${total ? Math.max(2, Math.round((n / total) * 100)) : 0}%` }} /></span>
                 <span className="k-st-n">{nb(n)}</span>
@@ -232,14 +242,14 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
             <li><b>La rosette « Créateur vérifié »</b><span>Dès {nb(MIN_SUBSCRIBERS)} abonnés, ou {MIN_RATINGS} notes pour un podcast.</span></li>
           </ul>
           {realProof.length > 0 ? (
-            <div id="relier" className="k-st-link">
+            <div id="relier" className="k-st-relink">
               <p className="k-st-muted">Prouve ta page <b>{realProof[0].name}</b> : dès que c’est fait, ta page provisoire et tes codes y passent, et tu gardes ce studio.</p>
               <CreatorProof pages={realProof} />
             </div>
           ) : realAsked ? (
             <p id="relier" className="k-st-none" role="status">Demande reçue pour la page {realAsked.name}. Merkod contrôle ses comptes, puis ton code de preuve apparaîtra ici. Une fois prouvée, ta page provisoire et tes codes y passeront.</p>
           ) : realMatch ? (
-            <div id="relier" className="k-st-link">
+            <div id="relier" className="k-st-relink">
               <p className="k-st-muted">Merkod a déjà une page <b>{realMatch.name}</b>{realMatch.accounts[0] ? <> ({realMatch.accounts[0].handle})</> : null}. C’est toi ? Revendique-la : une fois prouvée par ta bio, ta page provisoire et tes codes y passent.</p>
               <ClaimPageButton slug={realMatch.slug} name={realMatch.name} next={`${routes.creatorSpace}#relier`} label="C’est moi, relier cette page" />
             </div>
