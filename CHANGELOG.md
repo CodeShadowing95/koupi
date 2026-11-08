@@ -2,6 +2,26 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.12.0](https://github.com/CodeShadowing95/koupi/compare/v0.11.0...v0.12.0) (2026-11-08)
+
+### Nouveautés
+
+- **categories:** Tidy a category with the AI (#262) ([4d44551](https://github.com/CodeShadowing95/koupi/commit/4d44551e029e861ea5d57742ba8e5e640a25dfac))
+- **codes:** Find a new tool's category when validating a code (#261) ([5b5e1f9](https://github.com/CodeShadowing95/koupi/commit/5b5e1f9b2f0d88b0f9e2467e35f52a2f7765a81f))
+- **tools:** Find a tool's category from its official site (#259) ([89e46c1](https://github.com/CodeShadowing95/koupi/commit/89e46c1e259b8007aa18e328f218b637a52d5630))
+- **sources:** Credit codes from compilation videos to the named creator (#258) ([2dc28c9](https://github.com/CodeShadowing95/koupi/commit/2dc28c9f5c3d1d921b744cf5799e45969e62870a))
+- **creators:** Turn the creator space into Merkod Studio (#256) ([e133de7](https://github.com/CodeShadowing95/koupi/commit/e133de7581d1280c9c8ae84116ab3bd8af682290))
+- **creators:** Let creators prove their account themselves (#253) ([c9f1054](https://github.com/CodeShadowing95/koupi/commit/c9f10547a62cd0d928115067951d1bad451691d9))
+- **header:** Add a "+ Créer" menu and a creator icon (#252) ([f792650](https://github.com/CodeShadowing95/koupi/commit/f7926504b5943223a90f3e756229877bab0f42ed))
+- **explore:** Turn the vote invite into a big thumb banner ([db428f8](https://github.com/CodeShadowing95/koupi/commit/db428f8abcd31cf597ea17185a6fc0b0d240577f))
+
+### Corrections
+
+- **ai:** Stop crediting reseller codes to the tool named in the title (#260) ([5212d00](https://github.com/CodeShadowing95/koupi/commit/5212d0016335878d0621873ea9572e1e01bf5290))
+- **ai:** Keep codes on the tool the AI names, not the next one in the excerpt (#255) ([82c3e82](https://github.com/CodeShadowing95/koupi/commit/82c3e82593aef0375d16cd1d242f3709407be4a2))
+- **admin:** Stop counting followed podcast candidates in the menu badge (#254) ([0023b6f](https://github.com/CodeShadowing95/koupi/commit/0023b6f59482ae7e9b7cceccd3547f6a38f55e91))
+- **creators:** Keep every sign-in e-mail visible in Gmail (#257) ([38f1fda](https://github.com/CodeShadowing95/koupi/commit/38f1fdaa0bbade95325053aef30a1143b03d06db))
+
 ## [0.11.0](https://github.com/CodeShadowing95/koupi/compare/v0.10.0...v0.11.0) (2026-11-07)
 
 ### Nouveautés
