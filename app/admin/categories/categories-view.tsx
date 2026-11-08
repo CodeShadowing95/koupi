@@ -10,6 +10,7 @@ import { matchesSearch } from '@/lib/admin-search';
 import { IconButton, IconLink, StatusDot } from '@/components/admin-card';
 import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
+import { CategoryTidy, type TidyTool } from './category-tidy';
 import { CodeSearchReport, plural, runCodeSearch, type CodeSearchAvailability, type CodeSearchResult } from '@/components/admin-code-search-report';
 
 const rate = (category: AdminCategory) => category.tools ? Math.round((category.covered / category.tools) * 100) : 0;
@@ -28,7 +29,9 @@ const sortFields: SortField<AdminCategory>[] = [
 // Famille choisie dans le filtre : '' = toutes, NONE = catégories pas encore rangées.
 const NONE = '-';
 
-export function CategoriesView({ categories: all, families, search }: { categories: AdminCategory[]; families: CategoryFamily[]; search: CodeSearchAvailability }) {
+export function CategoriesView({ categories: all, families, search, tools }: { categories: AdminCategory[]; families: CategoryFamily[]; search: CodeSearchAvailability; tools: TidyTool[] }) {
+  // Catégorie dont l'IA relit les outils (« Ranger »).
+  const [tidying, setTidying] = useState<AdminCategory | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
   const [family, setFamily] = useState('');
@@ -151,6 +154,9 @@ export function CategoriesView({ categories: all, families, search }: { categori
           actions={selected && <>
             <a className="adm-btn" href={`/admin/outils?category=${encodeURIComponent(selected.slug)}`} title={`Voir les outils de ${selected.name}`}>Outils</a>
             <button type="button" className="adm-btn" disabled={!search.youtube || searching !== null || selected.tools === 0} title={searchTitle ?? `Cherche sur YouTube des codes pour les outils de ${selected.name}, puis pour « ${selected.name} »`} onClick={() => searchCodes(selected)}>{searching === selected.slug ? 'Recherche…' : 'Chercher des codes'}</button>
+            <button type="button" className="adm-btn adm-sugg-ai" disabled={!search.ai.active || selected.tools === 0}
+              title={!search.ai.active ? `${search.ai.label} : la relecture est indisponible.` : selected.tools === 0 ? 'Aucun outil à relire' : `L’IA relit le site de chaque outil de ${selected.name} et propose une meilleure catégorie`}
+              onClick={() => { setTidying(selected); setSelectedSlug(null); }}>✦ Ranger</button>
             <span style={{ flex: 1 }} />
             <button type="button" className="adm-btn adm-btn-pri" onClick={() => open(selected)}>Modifier</button>
           </>}>
@@ -165,6 +171,7 @@ export function CategoriesView({ categories: all, families, search }: { categori
             ]} />
           </>}
         </AdminDrawer>
+        {tidying && <CategoryTidy category={tidying} tools={tools.filter(tool => tool.categorySlug === tidying.slug)} categories={all} onClose={() => setTidying(null)} />}
         <FormDialog open={editing !== null} title={editing === 'new' ? 'Nouvelle catégorie' : `Modifier ${editing?.name ?? ''}`}
           intro={editing === 'new' ? 'Elle apparaîtra sur le site dès qu’un de ses outils aura un code visible.' : 'Son adresse sur le site ne change pas, même si tu la renommes.'}
           onClose={() => setEditing(null)}

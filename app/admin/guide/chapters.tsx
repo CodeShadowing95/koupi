@@ -583,6 +583,8 @@ function Categories() {
     <Section id="gerer" title="Créer, renommer et ranger">
       <p><b>Nouvelle catégorie</b> en crée une ; <b>Modifier</b> change son nom partout et sa famille. Garde des noms courts, au pluriel quand c’est naturel, compréhensibles par tout le monde (« Banques en ligne » plutôt que « Néobanques »).</p>
       <Callout tone="tip">Moins de catégories bien remplies valent mieux que beaucoup de catégories vides.</Callout>
+      <p><b>✦ Ranger</b>, dans le panneau d’une catégorie, fait relire par l’IA le site officiel de chacun de ses outils, un par un. Pour chaque outil, elle dit s’il est à sa place, s’il irait mieux dans une autre catégorie, ou propose une nouvelle catégorie. Tu choisis ligne par ligne : <b>Déplacer</b> (ou <b>Créer et déplacer</b>) ou <b>Garder ici</b>. Rien ne bouge sans ton clic, et <b>Arrêter</b> interrompt la relecture.</p>
+      <Callout tone="why">Utile pour une catégorie fourre-tout (« Productivité ») qui a trop grossi. Chaque outil relu coûte environ 0,1 centime, compté dans le plafond du mois : la fenêtre affiche le coût estimé avant de lancer, et la relecture s’arrête d’elle-même si le plafond est atteint. Le bouton est grisé quand l’IA est coupée.</Callout>
     </Section>
     <Section id="chercher" title="Chercher des codes pour une catégorie">
       <p>La tâche de l’accueil « Trouver des codes pour … catégories vides » cite les cinq premières et ouvre cette page déjà filtrée sur <b>Vides sur le site</b>.</p>
