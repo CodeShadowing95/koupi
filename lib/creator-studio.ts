@@ -80,7 +80,7 @@ export async function studioAccounts(db: Db, creatorId: string) {
   return db.select().from(creatorAccounts).where(eq(creatorAccounts.creatorId, creatorId));
 }
 
-const fold = (value: string) => value.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+export const fold = (value: string) => value.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
 
 export type FoundPage = { slug: string; name: string; codes: number; accounts: { platform: CreatorPlatform; handle: string }[] };
 

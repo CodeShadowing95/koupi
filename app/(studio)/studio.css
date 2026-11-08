@@ -161,3 +161,7 @@
 .k-st-found b{color:#fff;font-size:var(--fs-base)}
 .k-st-found small{color:var(--muted);font-size:var(--fs-sm)}
 .k-st-none{max-width:620px;margin:4px 0 14px;padding:12px 14px;border:1px dashed var(--line-2);border-radius:var(--r-md);color:var(--muted);font-size:var(--fs-sm)}
+
+/* « Passer cette étape » : un champ, le nom de créateur. */
+.k-st-skip label{display:block;margin:12px 0 6px;color:var(--text);font-weight:700;font-size:var(--fs-sm)}
+.k-st-skip .k-st-find{margin-top:0}
