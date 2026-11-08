@@ -47,3 +47,14 @@ export function adminExpiry(expiresOn: string | null | undefined, now = new Date
   if (expiry.state === 'none') return null;
   return expiry.daysLeft <= ADMIN_EXPIRY_DAYS ? 'soon' : null;
 }
+
+/** Studio du créateur : la date de fin tient en quelques mots sous l'offre. « warn » seulement quand elle approche ou est passée. */
+export function studioExpiry(expiresOn: string | null | undefined, now = new Date()): { text: string; title: string; warn: boolean } | null {
+  const expiry = expiryOf(expiresOn, now);
+  if (expiry.state === 'none') return null;
+  const day = dayLabel(expiresOn as string);
+  if (expiry.state === 'later') return { text: `jusqu’au ${day}`, title: `Valable jusqu’au ${day}`, warn: false };
+  if (expiry.state === 'expired') return { text: 'date de fin passée', title: `Date de fin passée (${day})`, warn: true };
+  if (expiry.state === 'today') return { text: 'expire aujourd’hui', title: `Expire aujourd’hui (${day})`, warn: true };
+  return { text: `expire dans ${expiry.daysLeft} j`, title: `${expiry.label} (${day})`, warn: true };
+}

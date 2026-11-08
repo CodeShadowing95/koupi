@@ -5,9 +5,9 @@ import { TrustPill } from '@/components/site/trust';
 type BadgeCode = Pick<Code, 'status' | 'lastTestedAt' | 'paymentTestedAt' | 'expiresOn'>;
 
 /** Confiance d'un code (Testé au paiement, Vérifié, À tester, Peut-être expiré), suivie de sa date de fin s'il en a une. */
-export function CodeBadge({ code, dark = false, withDate = true }: { code: BadgeCode; dark?: boolean; withDate?: boolean }) {
+export function CodeBadge({ code, dark = false, withDate = true, withExpiry = true }: { code: BadgeCode; dark?: boolean; withDate?: boolean; withExpiry?: boolean }) {
   const badge = codeBadge(code, { withDate });
-  const expiry = expiryNote(code.expiresOn);
+  const expiry = withExpiry ? expiryNote(code.expiresOn) : null;
   const dk = dark ? ' is-dark' : '';
   return (
     <>
