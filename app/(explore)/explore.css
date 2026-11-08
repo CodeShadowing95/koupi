@@ -90,34 +90,12 @@
 .k-ex-head h1{font-size:var(--fs-3xl);letter-spacing:-.03em}
 .k-ex-head-end{display:flex;align-items:center;gap:12px;flex:none}
 /* Clair / sombre : les icônes suffisent (soleil, lune) ; le nom reste dans l'infobulle et pour les lecteurs d'écran. */
-.k-ex-views.is-icons button{padding:0 10px}
 .k-ex-count{flex:none;padding:4px 12px;border-radius:var(--r-pill);border:1px solid var(--line);font-family:var(--mono);font-size:var(--fs-xs);font-weight:700;color:var(--text-soft)}
-.k-ex-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px 22px}
-.k-ex-grid>li{min-width:0}
-.k-ex-grid.is-simple{gap:20px 18px}
+/* La grille et le « ticket de nuit » sont dans site.css (.k-code-grid), partagés avec la page d'un créateur.
+   Ici, seulement les colonnes selon la largeur du fil. */
+.k-ex-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 @container k-ex (max-width:940px){.k-ex-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @container k-ex (max-width:580px){.k-ex-grid{grid-template-columns:minmax(0,1fr)}}
-/* « Ticket de nuit » : le coupon passe en encre bleu nuit, un ton au-dessus du fond, avec un liseré clair
-   pour se détacher de la page ; textes crème, réduction corail, talon bleu qui luit doucement. */
-.k-ex-grid.is-night .k-pass{color:var(--text);filter:drop-shadow(0 18px 34px rgba(0,0,0,.6))}
-.k-ex-grid.is-night .k-pass-main.k-paper{background:linear-gradient(165deg,#22265A 0%,#181B45 50%,#121436 100%);color:var(--text);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 1px 0 0 rgba(255,255,255,.06),inset -1px 0 0 rgba(255,255,255,.06)}
-.k-ex-grid.is-night .k-paper::after{opacity:.18;mix-blend-mode:screen}
-.k-ex-grid.is-night :is(.k-pass-title small,.k-pass-light-by,.k-pass-expiry){color:var(--text-soft)}
-.k-ex-grid.is-night .k-pass-trust{color:var(--text);background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.22)}
-.k-ex-grid.is-night .k-pass-trust::before{box-shadow:0 0 0 2px rgba(255,255,255,.85)}
-.k-ex-grid.is-night .k-pass-more{color:var(--text-soft)}
-.k-ex-grid.is-night .k-pass-more:is(:hover,[aria-expanded="true"]){color:#fff;background:rgba(255,255,255,.1)}
-.k-ex-grid.is-night .k-pass-who:hover,.k-ex-grid.is-night .k-pass-tool:hover{color:var(--blue-soft)}
-.k-ex-grid.is-night .k-pass-offer{border-top-color:rgba(255,255,255,.12)}
-.k-ex-grid.is-night .k-pass-discount{color:#FF8A63}
-.k-ex-grid.is-night .k-codeseal{box-shadow:0 0 0 2.5px #1B1E4A}
-.k-ex-grid.is-night .k-av{border-color:rgba(255,255,255,.7)}
-.k-ex-grid.is-night .k-pass-thumbs{background:rgba(255,255,255,.07)}
-.k-ex-grid.is-night .k-pass-thumbs button{color:var(--text-soft)}
-.k-ex-grid.is-night .k-pass-thumbs button:hover:not(:disabled){color:#fff;background:rgba(255,255,255,.1)}
-.k-ex-grid.is-night .k-pass-stub{background:linear-gradient(160deg,#4A5BFF,var(--blue));box-shadow:0 12px 32px -10px rgb(74 91 255 / calc(.85 * var(--shade) * .5))}
-.k-ex-grid.is-night .k-pass-stub:hover{background:linear-gradient(160deg,#5B6BFF,#3547EA)}
 
 .k-ex-more{display:flex;justify-content:center;margin-top:36px}
 .k-ex-empty{max-width:560px;margin:40px auto;padding:32px;border-radius:var(--r-2xl);border:1px dashed var(--line-2);text-align:center;color:var(--text-soft)}

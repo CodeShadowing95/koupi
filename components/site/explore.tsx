@@ -14,10 +14,11 @@ import { isSoundEnabled, setSoundEnabled } from '@/lib/coupon-sound';
 import { usesLogoDev } from '@/lib/tool-logos';
 import { gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
 import {
-  categoryChips, closeIntro, totalVotes, DEFAULT_EXPLORE, EXPLORE_RAIL_KEY, exploreCodes, exploreTitle, exploreToParams, familyEntries, readCardView, readCouponTone, readIntroClosed, saveCardView, saveCouponTone, SHELVES, shortName, topCreators,
-  type CardView, type CouponTone, type ExploreState, type Shelf,
+  categoryChips, closeIntro, totalVotes, DEFAULT_EXPLORE, EXPLORE_RAIL_KEY, exploreCodes, exploreTitle, exploreToParams, familyEntries, readIntroClosed, SHELVES, shortName, topCreators,
+  type ExploreState, type Shelf,
 } from '@/lib/explore';
 import { BoardingCoupon } from '@/components/site/boarding-coupon';
+import { CodeViewToggles, codeGridClass, useCodeViews } from '@/components/site/code-view-toggles';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { CreatorMark } from '@/components/site/creator-mark';
 import { CreateList, CreateMenu, CreatorButton } from '@/components/site/create-menu';
@@ -44,8 +45,7 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
   const [drawer, setDrawer] = useState(false);
   const [intro, setIntro] = useState(false);
   const [sound, setSound] = useState(true);
-  const [cards, setCards] = useState<CardView>('detailed');
-  const [tone, setTone] = useState<CouponTone>('light');
+  const { cards, tone, chooseCards, chooseTone } = useCodeViews();
   const feed = useRef<HTMLElement>(null);
   const sentinel = useRef<HTMLDivElement>(null);
   const search = useRef<HTMLInputElement>(null);
@@ -75,8 +75,6 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
   useEffect(() => {
     try { setMini(window.localStorage.getItem(EXPLORE_RAIL_KEY) === 'mini'); } catch { /* stockage indisponible */ }
     setIntro(!readIntroClosed(window.localStorage));
-    setCards(readCardView(window.localStorage));
-    setTone(readCouponTone(window.localStorage));
     setSound(isSoundEnabled());
     const onSound = (event: Event) => setSound((event as CustomEvent<boolean>).detail);
     window.addEventListener('koupi-sound-change', onSound);
@@ -150,8 +148,6 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
       return !current;
     });
   };
-  const switchCards = (view: CardView) => { setCards(view); saveCardView(window.localStorage, view); };
-  const switchTone = (next: CouponTone) => { setTone(next); saveCouponTone(window.localStorage, next); };
   const hideIntro = () => { setIntro(false); closeIntro(window.localStorage); };
 
   const Burger = ({ label }: { label: string }) => (
@@ -317,31 +313,12 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
             <h1>{title}</h1>
             <div className="k-ex-head-end">
               <p className="k-ex-count" aria-live="polite">{results.length} {results.length > 1 ? 'codes' : 'code'}</p>
-              {/* Cartes détaillées ou simples : juste au-dessus des coupons qu'il change. */}
-              {/* Coupons clairs (papier crème) ou sombres (« ticket de nuit »). */}
-              <div className="k-board-views k-ex-views is-icons" role="group" aria-label="Teinte des coupons">
-                <button type="button" aria-pressed={tone === 'light'} onClick={() => switchTone('light')} aria-label="Coupons clairs" title="Clairs : papier crème">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
-                </button>
-                <button type="button" aria-pressed={tone === 'night'} onClick={() => switchTone('night')} aria-label="Coupons sombres" title="Sombres : ticket de nuit">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" /></svg>
-                </button>
-              </div>
-              <div className="k-board-views k-ex-views" role="group" aria-label="Affichage des cartes">
-                <button type="button" aria-pressed={cards === 'detailed'} onClick={() => switchCards('detailed')} aria-label="Cartes détaillées" title="Détaillées : créateur, réussite, votes, date et source">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M8 8h8M8 12h8M8 16h5" /></svg>
-                  <span>Détaillées</span>
-                </button>
-                <button type="button" aria-pressed={cards === 'simple'} onClick={() => switchCards('simple')} aria-label="Cartes simples" title="Simples : outil, créateur, réduction et talon">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="2" /><path d="M8 12h8" /></svg>
-                  <span>Simples</span>
-                </button>
-              </div>
+              <CodeViewToggles cards={cards} tone={tone} onCards={chooseCards} onTone={chooseTone} />
             </div>
           </div>
 
           {results.length > 0
-            ? <ul className={`k-ex-grid${cards === 'simple' ? ' is-simple' : ''}${tone === 'night' ? ' is-night' : ''}`}>
+            ? <ul className={codeGridClass(cards, tone, 'k-ex-grid')}>
                 {visible.map(code => (
                   <li key={code.id} className="k-ex-cell">
                     <BoardingCoupon code={code} link={code.creatorLink || toolSite.get(code.toolSlug) || '#'} category={toolCategory.get(code.toolSlug) || undefined}
