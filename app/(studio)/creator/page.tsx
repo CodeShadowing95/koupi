@@ -8,7 +8,7 @@ import { copiesByCode } from '@/lib/creator-auth';
 import { currentCreatorAccount } from '@/lib/creator-current';
 import { creatorLevelFromAccounts } from '@/lib/creator-level';
 import { loadSelfProof } from '@/lib/creator-self-proof';
-import { copiesPerDay, findCreatorPages, greeting, rosetteGoal, studioAccounts, weekTrend } from '@/lib/creator-studio';
+import { copiesPerDay, greeting, loadFindablePages, matchCreatorPages, rosetteGoal, studioAccounts, weekTrend } from '@/lib/creator-studio';
 import { formatCopies } from '@/lib/creator-page';
 import { MIN_RATINGS, MIN_SUBSCRIBERS } from '@/lib/verification';
 import { routes } from '@/lib/routes';
@@ -44,7 +44,7 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
     const pages = account.claims.length ? await loadSelfProof(db, account, now) : [];
     const raw = (await searchParams).q;
     const query = (typeof raw === 'string' ? raw : '').trim().slice(0, 80);
-    const found = !pages.length && query ? findCreatorPages((await getCatalog()).codes, query) : [];
+    const found = !pages.length && query ? matchCreatorPages(await loadFindablePages(db), query) : [];
     const nav: StudioNavItem[] = pages.length ? [{ id: 'preuve', label: 'Prouver ma chaîne', icon: 'proof' }] : [{ id: 'trouver', label: 'Trouver ma page', icon: 'search' }];
     return (
       <StudioShell email={account.email} creator={null} nav={nav} title="Bienvenue dans ton studio">
@@ -68,14 +68,14 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
             <h2 className="k-st-h2">Trouver ma page</h2>
             <form className="k-st-find" action={routes.creatorSpace} method="get" role="search">
               <label className="k-sr" htmlFor="k-st-q">Nom de ta chaîne</label>
-              <input id="k-st-q" name="q" type="search" defaultValue={query} placeholder="Le nom de ta chaîne ou de ton podcast" maxLength={80} required />
+              <input id="k-st-q" name="q" type="search" defaultValue={query} placeholder="Ton nom, ta chaîne ou ton @pseudo" maxLength={80} required />
               <button type="submit" className="k-btn k-btn-primary">Chercher</button>
             </form>
             {query && (found.length ? (
               <ul className="k-st-found" aria-label="Pages trouvées">
                 {found.map(page => (
                   <li key={page.slug}>
-                    <span><b>{page.name}</b><small>{page.codes} code{page.codes > 1 ? 's' : ''} sur Merkod</small></span>
+                    <span><b>{page.name}</b><small>{[...page.accounts.slice(0, 2).map(account => account.handle), page.codes ? `${page.codes} code${page.codes > 1 ? 's' : ''}` : 'Pas encore de code'].join(' · ')}</small></span>
                     <Link className="k-btn k-btn-primary" href={routes.forCreators(page.slug)}>C’est ma page</Link>
                   </li>
                 ))}

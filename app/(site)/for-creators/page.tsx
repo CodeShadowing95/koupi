@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import Link from '@/components/site/site-pages';
+import { eq } from 'drizzle-orm';
+import { getDb } from '@/db';
+import { creators } from '@/db/schema';
 import { isPublic } from '@/lib/data';
+import { SLUG } from '@/lib/creator-auth';
 import { getCatalog, getCreatorFacts, getCreatorProfile } from '@/lib/catalog-server';
 import { currentCreatorAccount } from '@/lib/creator-current';
 import { routes } from '@/lib/routes';
@@ -22,7 +26,12 @@ export const metadata: Metadata = {
 export default async function ForCreators({ searchParams }: { searchParams: Promise<{ c?: string }> }) {
   const { c } = await searchParams;
   const [{ codes }, account] = await Promise.all([getCatalog(), currentCreatorAccount()]);
-  const match = typeof c === 'string' ? codes.find(code => code.creatorSlug === c) : undefined;
+  const fromCode = typeof c === 'string' ? codes.find(code => code.creatorSlug === c) : undefined;
+  // Une page sans code publié (créée à la main par l'admin avec ses comptes) se revendique aussi.
+  const bare = !fromCode && typeof c === 'string' && SLUG.test(c)
+    ? (await getDb().select({ slug: creators.slug, name: creators.name }).from(creators).where(eq(creators.slug, c)).limit(1))[0]
+    : undefined;
+  const match = fromCode ?? (bare ? { creatorSlug: bare.slug, creator: bare.name } : undefined);
   const own = match ? codes.filter(code => code.creatorSlug === match.creatorSlug && isPublic(code)) : [];
   const [facts, profile] = match ? await Promise.all([getCreatorFacts(), getCreatorProfile(match.creatorSlug)]) : [null, null];
   const copies = match ? facts?.[match.creatorSlug]?.copies ?? 0 : 0;
@@ -48,6 +57,8 @@ export default async function ForCreators({ searchParams }: { searchParams: Prom
               </div>
               {copies > 0 ? (
                 <p className="k-fc-big">tes codes ont été copiés <b><Counter value={copies} group /> fois</b> ce mois-ci sur Merkod.</p>
+              ) : own.length === 0 ? (
+                <p className="k-fc-big">ta page t’attend sur Merkod. Prouve qu’elle est à toi, et tes codes y trouveront leur place.</p>
               ) : (
                 <p className="k-fc-big"><b>{plural(own.length, 'de tes codes est', 'de tes codes sont')}</b> déjà sur Merkod, chacun avec la vidéo d’où il vient.</p>
               )}
