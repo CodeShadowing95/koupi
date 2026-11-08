@@ -5,6 +5,7 @@ import { clientHash } from '@/lib/client';
 import { loadCreatorAccount, recordClaim, SLUG } from '@/lib/creator-auth';
 import { CREATOR_COOKIE, readCreatorToken } from '@/lib/creator-session';
 import { httpUrl } from '@/lib/creator-requests';
+import { isProvisionalPage } from '@/lib/creator-merge';
 import { consumeRateLimit, CREATOR_SIGN_IN_RULE } from '@/lib/rate-limit';
 
 // « C'est ma page » pour un créateur déjà connecté : la revendication est notée à son e-mail,
@@ -23,18 +24,22 @@ export async function POST(request: NextRequest) {
     if (!body.ok) return NextResponse.json({ error: 'Requête invalide.' }, { status: body.status });
     const slug = typeof body.data.slug === 'string' ? body.data.slug.trim().slice(0, 200) : '';
     if (!SLUG.test(slug)) return NextResponse.json({ error: 'Créateur inconnu.' }, { status: 400 });
-    // Un créateur relié à une page non vérifiée ne revendique que la sienne, pour y faire ajouter sa chaîne puis la prouver.
-    if (user.creator && user.creator.slug !== slug) return NextResponse.json({ error: 'Ton espace est déjà relié à une page.' }, { status: 409 });
+    // Un créateur relié à une page non vérifiée revendique la sienne (pour y faire ajouter sa chaîne puis la prouver),
+    // ou sa vraie page déjà sur Merkod : une fois prouvée, sa page provisoire y est fusionnée (ADR-0044).
+    const own = Boolean(user.creator && user.creator.slug === slug);
+    if (user.creator && !own && !(await isProvisionalPage(db, user.creator.id))) return NextResponse.json({ error: 'Ton espace est déjà relié à une page vérifiée.' }, { status: 409 });
     const rawUrl = typeof body.data.accountUrl === 'string' ? body.data.accountUrl.trim().slice(0, 1000) : '';
     const accountUrl = rawUrl ? httpUrl(rawUrl) : null;
     if (rawUrl && !accountUrl) return NextResponse.json({ error: 'Le lien de ta chaîne doit être une adresse web valide.' }, { status: 400 });
-    if (user.creator && !accountUrl) return NextResponse.json({ error: 'Colle le lien de ta chaîne ou de ton profil.' }, { status: 400 });
+    if (own && !accountUrl) return NextResponse.json({ error: 'Colle le lien de ta chaîne ou de ton profil.' }, { status: 400 });
     const limit = await consumeRateLimit(db, `creator-claim:${user.id}`, CREATOR_SIGN_IN_RULE);
     if (!limit.allowed) {
       return NextResponse.json({ error: 'Beaucoup de demandes d’un coup. Réessaie dans un moment.' }, { status: 429, headers: { 'Retry-After': String(limit.retryAfterSeconds) } });
     }
-    const claimed = await recordClaim(db, { email: user.email, slug, ipHash: clientHash(request, salt), appUrl, message: user.creator
+    const claimed = await recordClaim(db, { email: user.email, slug, ipHash: clientHash(request, salt), appUrl, message: own
       ? 'Demande de vérification depuis le Studio : ajoute ce compte à sa page et contrôle-le, il le prouvera ensuite par sa bio.'
+      : user.creator
+      ? `Revendication depuis le Studio par le créateur de la page non vérifiée « ${user.creator.name} » : une fois cette page prouvée, la sienne y sera fusionnée.`
       : 'Revendication envoyée depuis le Studio, par un créateur déjà connecté.', ...(accountUrl ? { accountUrl } : {}) });
     if (!claimed.ok) return NextResponse.json({ error: claimed.error }, { status: 404 });
     return NextResponse.json({ ok: true });

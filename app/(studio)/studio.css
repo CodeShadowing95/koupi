@@ -200,3 +200,8 @@
 .k-st-combo-list li.is-active{background:rgba(255,255,255,.08)}
 .k-st-tool-note{color:var(--muted);font-weight:400;font-size:var(--fs-sm)}
 .k-st-tool-new{display:grid;gap:8px}
+
+/* Relier sa vraie page (ADR-0044) : au-dessus de la preuve de sa page provisoire. */
+.k-st-link{margin:4px 0 18px;padding:14px 16px;border:1px solid var(--blue-soft);border-radius:var(--r-md);background:var(--surface)}
+.k-st-link .k-st-muted{margin:0 0 12px}
+.k-st-link b{color:#fff}
