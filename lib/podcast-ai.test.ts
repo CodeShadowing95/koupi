@@ -56,6 +56,18 @@ describe('mergeAiCodes', () => {
     ]);
   });
 
+  it('ne rattache pas un outil absent du catalogue à l’outil cité plus loin dans l’extrait', () => {
+    const catalog = [...tools, { id: 't-incogni', name: 'Incogni', domain: 'incogni.com' }];
+    const evidence = '1. Autodoc — code Baptiste (Baptiste Pitois) 2. Saily — code NOZMAN (Dr Nozman) 3. Incogni — code ASTRONOGEEK';
+    const merged = mergeAiCodes({ found: [], unknown: [] }, [
+      ai('Baptiste', { tool: 'Autodoc', evidence }),
+      ai('NOZMAN', { tool: 'Saily', evidence }),
+      ai('ASTRONOGEEK', { tool: 'Incogni', evidence }),
+    ], catalog);
+    expect(merged.found.map(item => [item.code, item.toolId])).toEqual([['ASTRONOGEEK', 't-incogni']]);
+    expect(merged.unknown.map(item => [item.code, item.name])).toEqual([['Baptiste', 'Autodoc'], ['NOZMAN', 'Saily']]);
+  });
+
   it('ne garde pas en outil à ajouter une étiquette ou une plateforme de paiement nommée par l’IA', () => {
     const merged = mergeAiCodes({ found: [], unknown: [] }, [
       ai('PODCAST20', { tool: 'Avantages', evidence: 'Avantages : avec le code PODCAST20' }),
