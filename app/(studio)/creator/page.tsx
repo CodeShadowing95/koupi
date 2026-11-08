@@ -19,6 +19,7 @@ import { TrustPill } from '@/components/site/trust';
 import { CopyPageLink } from '@/components/site/creator-space-actions';
 import { CreatorProof } from '@/components/site/creator-proof';
 import { StudioSkip, VerifyRequest } from '@/components/site/studio-skip';
+import { StudioAddCode } from '@/components/site/studio-add-code';
 import { CopiesChart, RosetteRing, StudioShell, type StudioNavItem } from '@/components/site/studio';
 
 export const metadata: Metadata = { title: 'Merkod Studio', robots: { index: false, follow: false } };
@@ -99,7 +100,7 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
   }
 
   const creator = account.creator;
-  const [{ codes }, copies, series, accounts] = await Promise.all([getCatalog(), copiesByCode(db, creator.id, now), copiesPerDay(db, creator.id, now), studioAccounts(db, creator.id)]);
+  const [{ codes, tools }, copies, series, accounts] = await Promise.all([getCatalog(), copiesByCode(db, creator.id, now), copiesPerDay(db, creator.id, now), studioAccounts(db, creator.id)]);
   const own = codes.filter(code => code.creatorSlug === creator.slug && (isPublic(code) || code.status === 'pending'));
   const rows = own.map(code => ({ code, copies: copies.get(code.id) ?? 0 })).sort((a, b) => b.copies - a.copies || a.code.tool.localeCompare(b.code.tool, 'fr'));
   const total = rows.reduce((sum, row) => sum + row.copies, 0);
@@ -107,6 +108,7 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
   const reviewing = own.filter(code => code.status === 'pending').length;
   const top = rows[0]?.copies ? rows[0] : null;
   const trend = weekTrend(series);
+  const toolChoices = tools.map(tool => ({ slug: tool.slug, name: tool.name })).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
   const goal = rosetteGoal(accounts);
   const level = creatorLevelFromAccounts(accounts);
   // Page non vérifiée : aucun compte prouvé par la bio (ADR-0043). On l'invite à faire vérifier sa chaîne.
@@ -171,7 +173,8 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
           <h2 className="k-st-h2">Mes codes</h2>
           <p className="k-st-muted">Copies depuis le 1er {month}. Les chiffres viennent du compteur anonyme de Merkod : un total par jour, rien sur les visiteurs.</p>
         </div>
-        {rows.length === 0 ? <p className="k-st-card k-st-muted">Aucun code pour l’instant.</p> : (
+        <StudioAddCode tools={toolChoices} proven={proven} />
+        {rows.length === 0 ? <p className="k-st-card k-st-muted">Aucun code pour l’instant. Ajoute le premier : ta page apparaîtra sur Merkod dès qu’il sera publié.</p> : (
           <ul className="k-st-codes">
             {rows.map(({ code, copies: n }) => (
               <li key={code.id} className="k-st-code-row">
