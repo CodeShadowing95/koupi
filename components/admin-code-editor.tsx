@@ -10,6 +10,8 @@ import { AdminSelect } from '@/components/admin-select';
 import { matchCategory } from '@/lib/category-match';
 import { codeFormatError, findDuplicateCode, normalizeCode, MAX_CODE_LENGTH, type ExistingCode } from '@/lib/code-format';
 import { confirmAction } from '@/components/admin-ask';
+import { CategoryFinder } from '@/components/admin-category-finder';
+import { toolWithSameSite } from '@/lib/tool-form-fill';
 
 export type EditorTarget =
   | { kind: 'create' }
@@ -51,8 +53,10 @@ function initialValues(target: EditorTarget, tools: ToolOption[], categories: Ca
 /** Lien vers un code du catalogue dans la liste des codes. */
 function codeHref(code: string): string { return `/admin/codes?q=${encodeURIComponent(code)}`; }
 
-export function CodeEditor({ target, tools, categories, creators, existing = [], onClose, onSaved }: {
+export function CodeEditor({ target, tools, categories, creators, existing = [], ai, onClose, onSaved }: {
   target: EditorTarget | null; tools: ToolOption[]; categories: Category[]; creators: string[];
+  /** État de l'IA pour « Trouver la catégorie » d'un nouvel outil (grisé si coupée ou plafond atteint). */
+  ai: { active: boolean; label: string };
   /** Les codes du catalogue (archivés compris si possible), pour prévenir d'un doublon avant l'envoi. */
   existing?: readonly ExistingCode[];
   onClose: () => void; onSaved?: () => void;
@@ -64,14 +68,19 @@ export function CodeEditor({ target, tools, categories, creators, existing = [],
   const [errorCode, setErrorCode] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // Outils et catégories lus au moment d'ouvrir : une catégorie créée depuis la fenêtre recharge la page
+  // (router.refresh) sans effacer ce qui est déjà saisi.
+  const lists = useRef({ tools, categories });
+  lists.current = { tools, categories };
+
   useEffect(() => {
     if (!target) { dialog.current?.close(); return; }
-    setValues(initialValues(target, tools, categories));
+    setValues(initialValues(target, lists.current.tools, lists.current.categories));
     setError('');
     setErrorCode('');
     setSaving(false);
     if (!dialog.current?.open) dialog.current?.showModal();
-  }, [target, tools, categories]);
+  }, [target]);
 
   const closed = () => afterDialogClose(() => { if (!dialog.current?.open) onClose(); });
   if (!target) return <dialog ref={dialog} className="adm-dialog adm-drawer" onClose={closed} />;
@@ -81,6 +90,7 @@ export function CodeEditor({ target, tools, categories, creators, existing = [],
   const isNewTool = values.toolSlug === NEW_TOOL;
   const typedCode = normalizeCode(values.code);
   const formatError = typedCode ? codeFormatError(typedCode) : null;
+  const sameSite = isNewTool ? toolWithSameSite(tools.map(tool => ({ ...tool, id: tool.slug })), values.newToolWebsite) : null;
   const duplicate = isNewTool ? undefined : findDuplicateCode(existing, values.toolSlug, values.code, target.kind === 'edit' ? target.code.id : undefined);
 
   async function send(url: string, method: string, body: unknown) {
@@ -152,7 +162,14 @@ export function CodeEditor({ target, tools, categories, creators, existing = [],
               <legend>Nouvel outil</legend>
               <div className="field"><label htmlFor="ce-tool-name">Nom</label><input id="ce-tool-name" value={values.newToolName} onChange={set('newToolName')} required maxLength={120} /></div>
               <div className="field"><label htmlFor="ce-tool-cat">Catégorie</label><AdminSelect id="ce-tool-cat" value={values.newToolCategory} onChange={newToolCategory => setValues(current => ({ ...current, newToolCategory }))} options={categories.map(category => ({ value: category.slug, label: category.name }))} placeholder="Choisir une catégorie…" searchPlaceholder="Rechercher une catégorie…" required /></div>
-              <div className="field"><label htmlFor="ce-tool-site">Site officiel</label><input id="ce-tool-site" value={values.newToolWebsite} onChange={set('newToolWebsite')} required placeholder="exemple.com" maxLength={300} /></div>
+              <div className="field"><label htmlFor="ce-tool-site">Site officiel</label><input id="ce-tool-site" value={values.newToolWebsite} onChange={set('newToolWebsite')} required placeholder="exemple.com" maxLength={300} aria-describedby={sameSite ? 'ce-tool-site-dup' : undefined} />
+                {sameSite && <small id="ce-tool-site-dup" className="adm-field-warn">Cet outil existe déjà : <b>{sameSite.name}</b>. <button type="button" className="adm-link-btn" onClick={() => setValues(current => ({ ...current, toolSlug: sameSite.slug }))}>Le choisir</button></small>}</div>
+              <CategoryFinder
+                key={target.kind === 'submission' ? target.submission.id : target.kind}
+                form={{ name: values.newToolName, categorySlug: values.newToolCategory, website: values.newToolWebsite, description: '', priority: 3 }}
+                categories={categories} ai={ai} hint="Lit le site officiel, choisit la catégorie et corrige l’orthographe du nom."
+                onFill={next => setValues(current => ({ ...current, newToolName: next.name, newToolCategory: next.categorySlug }))}
+              />
             </fieldset>
           )}
           <div className="field">

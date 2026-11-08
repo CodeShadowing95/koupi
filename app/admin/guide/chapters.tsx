@@ -195,7 +195,7 @@ function Propositions() {
       </Callout>
     </Section>
     <Section id="outil-inconnu" title="Si l’outil n’existe pas encore">
-      <p>Dans le formulaire, la liste « Outil » propose <b>+ Nouvel outil</b>. Donne son nom, sa catégorie et son site officiel : l’outil est créé en même temps que le code. Si le visiteur a choisi une catégorie, elle est déjà remplie ; sinon, choisis-la toi-même. Son commentaire est repris dans la note interne.</p>
+      <p>Dans le formulaire, la liste « Outil » propose <b>+ Nouvel outil</b>. Donne son nom, sa catégorie et son site officiel : l’outil est créé en même temps que le code. Si le visiteur a choisi une catégorie, elle est déjà remplie ; sinon, choisis-la toi-même ou clique sur <b>✦ Trouver la catégorie</b> : l’IA lit le site officiel, choisit la catégorie (ou propose d’en créer une) et corrige l’orthographe du nom. Si le site appartient déjà à un outil du catalogue, un avertissement l’indique, avec <b>Le choisir</b> pour rattacher le code à cet outil. Son commentaire est repris dans la note interne.</p>
       <Callout tone="warn">Avant de créer un outil, cherche-le dans la liste avec une autre orthographe (« Nord VPN » ou « NordVPN »). Deux fiches pour le même outil, c’est deux pages à moitié vides.</Callout>
     </Section>
     <Section id="filtres" title="Retrouver une ancienne proposition">

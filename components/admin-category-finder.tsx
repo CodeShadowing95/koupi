@@ -1,13 +1,15 @@
 'use client';
-// « Trouver la catégorie » dans la fiche d'un outil : l'IA lit le site officiel et choisit la catégorie (ADR-0024).
+// « Trouver la catégorie » dans la fiche d'un outil et dans « Nouvel outil » en validant un code : l'IA lit le site officiel et choisit la catégorie (ADR-0024).
 // Rien n'est enregistré ici : la fiche est remplie, l'admin valide. Grisé quand l'IA est coupée ou son plafond atteint.
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ToolAnalysis } from '@/lib/tool-analysis';
 import { applyToolAnalysis, type ToolFormFields } from '@/lib/tool-form-fill';
+import { slugify } from '@/lib/slug';
 
-export function CategoryFinder({ form, categories, ai, onFill }: {
+export function CategoryFinder({ form, categories, ai, onFill, hint = 'Lit le site officiel et remplit la catégorie, et la description si elle est vide.' }: {
   form: ToolFormFields;
+  hint?: string;
   categories: { slug: string; name: string }[];
   ai: { active: boolean; label: string };
   onFill: (next: ToolFormFields) => void;
@@ -33,7 +35,16 @@ export function CategoryFinder({ form, categories, ai, onFill }: {
     setBusy(null);
   }
 
+  // Une catégorie du même nom existe déjà (créée entre-temps, ou écrite autrement) : on la choisit sans en créer une autre.
+  const sameName = (name: string) => categories.find(category => slugify(category.name) === slugify(name));
+
   async function createCategory(name: string) {
+    const existing = sameName(name);
+    if (existing) {
+      onFill({ ...form, categorySlug: existing.slug });
+      setAnalysis(value => value && { ...value, categorySlug: existing.slug, newCategory: '', reason: 'catégorie déjà au catalogue.' });
+      return;
+    }
     setBusy('create');
     setError('');
     try {
@@ -54,7 +65,7 @@ export function CategoryFinder({ form, categories, ai, onFill }: {
         <button type="button" className="adm-btn adm-sugg-ai" disabled={!ai.active || noSite || busy !== null} title={title} onClick={find}>
           {busy === 'read' ? 'Lecture du site…' : analysis ? 'Relancer la lecture' : '✦ Trouver la catégorie'}
         </button>
-        <small>{!ai.active ? title : 'Lit le site officiel et remplit la catégorie, et la description si elle est vide.'}</small>
+        <small>{!ai.active ? title : hint}</small>
       </div>
       {error && <p className="adm-cat-finder-error" role="alert">{error}</p>}
       {analysis && (
@@ -65,7 +76,7 @@ export function CategoryFinder({ form, categories, ai, onFill }: {
             ? <p className="muted">Catégorie choisie : <b>{nameOf(analysis.categorySlug)}</b>{analysis.reason ? ` · ${analysis.reason}` : ''}</p>
             : analysis.newCategory
               ? <p className="adm-cat-finder-new">Aucune catégorie ne convient. L’IA propose <b>{analysis.newCategory}</b>.
-                  <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => createCategory(analysis.newCategory)}>{busy === 'create' ? 'Création…' : `Créer « ${analysis.newCategory} »`}</button></p>
+                  <button type="button" className="adm-btn" disabled={busy !== null} onClick={() => createCategory(analysis.newCategory)}>{busy === 'create' ? 'Création…' : sameName(analysis.newCategory) ? `Choisir « ${analysis.newCategory} »` : `Créer « ${analysis.newCategory} »`}</button></p>
               : <p className="muted">Aucune catégorie proposée : choisis-la à la main.</p>}
         </div>
       )}
