@@ -19,6 +19,8 @@ import { calendarDay, parisDate } from '@/lib/paris-date';
 import { IconButton } from '@/components/admin-card';
 import { FormDialog, sendJson } from '@/components/admin-form-dialog';
 import { MAX_CODE_LENGTH } from '@/lib/code-format';
+import type { PickerTool } from '@/lib/verification-display';
+import { ToolPicker } from './tool-picker';
 
 type Ai = { status: AiStatus; spentUsdMicros: number; budgetUsdMicros: number; usdPerEur: number; model: string; reviewModel: string };
 type Filter = 'all' | Verdict | 'retest';
@@ -73,7 +75,7 @@ function Evidence({ excerpt, code }: { excerpt: string; code: string }) {
   return <blockquote className="adm-vf-evidence">{highlightCode(excerpt, code).map((part, index) => part.match ? <mark key={index}>{part.text}</mark> : <span key={index}>{part.text}</span>)}</blockquote>;
 }
 
-export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueItem[]; ai: Ai; youtubeReady: boolean }) {
+export function VerificationsView({ queue, ai, youtubeReady, tools }: { queue: QueueItem[]; ai: Ai; youtubeReady: boolean; tools: PickerTool[] }) {
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
@@ -263,6 +265,10 @@ export function VerificationsView({ queue, ai, youtubeReady }: { queue: QueueIte
                           <span>L’IA lit plutôt</span>
                           {item.check.aiCodes.map(code => <button key={code} type="button" className="adm-vf-chip" disabled={isBusy} title={`Corriger le code en ${code}`} onClick={event => { event.stopPropagation(); setDraft({ code, discount: item.discount }); setEditing(item); }}><span className="mono">{code}</span> · utiliser</button>)}
                         </p>
+                      )}
+                      {item.check.aiTool && (
+                        <ToolPicker key={`${item.id}-${item.toolSlug}`} codeId={item.id} currentSlug={item.toolSlug} currentName={item.tool} aiTool={item.check.aiTool} tools={tools} disabled={isBusy}
+                          onMoved={toolName => { setMessage(`${nameOf(item)} : rattaché à ${toolName}. Nouvelle analyse…`); void runOne({ ...item, tool: toolName }); }} />
                       )}
                       <ul className="adm-vf-reasons">
                         {item.check.reasons.map((reason, reasonIndex) => (
