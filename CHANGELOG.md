@@ -2,6 +2,26 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.13.0](https://github.com/CodeShadowing95/koupi/compare/v0.12.1...v0.13.0) (2026-11-08)
+
+### Nouveautés
+
+- **explore:** Show four coupons per row when the sidebar is collapsed (#279) ([17f3c49](https://github.com/CodeShadowing95/koupi/commit/17f3c49c538eee5adecfaae6ab23354c6a7e8a1b))
+- **site:** Redesign public pages with an accessible light theme and a dark option (#277) ([1db7b73](https://github.com/CodeShadowing95/koupi/commit/1db7b730e38acc7a7b5e119817b20774726e887f))
+- **studio:** Show the end date quietly under the offer in my codes (#278) ([dd8c980](https://github.com/CodeShadowing95/koupi/commit/dd8c9800266e003721daa7b29a6d6720812b263b))
+- **studio:** Type the tool name with suggestions when adding an offer (#275) ([848d3f1](https://github.com/CodeShadowing95/koupi/commit/848d3f100c7a369aadaa94e65b2ada825551a97d))
+- **creators:** Link a provisional page to the creator's real page (#274) ([66d5d9e](https://github.com/CodeShadowing95/koupi/commit/66d5d9ed54c9a297a75a17d579d433b9846c3018))
+- **studio:** Let creators add offers with a code, an affiliate link or both (#273) ([f02ae2f](https://github.com/CodeShadowing95/koupi/commit/f02ae2fc23e3085764a389bdfd0c5dbb47e75747))
+- **creators:** Let creators add their own codes from the Studio (#272) ([0630624](https://github.com/CodeShadowing95/koupi/commit/063062441e10f783f4bd802fcfea104687d7d8dc))
+- **creators:** Invite unverified creators to get their channel checked (#271) ([d8954f0](https://github.com/CodeShadowing95/koupi/commit/d8954f05c50e74429dc7d43992f9aa66ff15c653))
+- **creators:** Let creators skip the claim and open their Studio (#270) ([24e1aba](https://github.com/CodeShadowing95/koupi/commit/24e1abadc3e3191d195f37e68d1a2c005764d512))
+
+### Corrections
+
+- **studio:** Remove blue borders from the menu and move the offer help into an info tip (#276) ([8b28844](https://github.com/CodeShadowing95/koupi/commit/8b2884461279af22ddb10390a324f370f750ea19))
+- **creators:** Find creator pages by their social accounts (#269) ([b78bb3b](https://github.com/CodeShadowing95/koupi/commit/b78bb3bac60e603243088cc9121e92b5c2df88b7))
+- **creators:** Let a signed-in creator claim a page (#268) ([2727650](https://github.com/CodeShadowing95/koupi/commit/2727650c51eada1d5a63205d8efa098c24be3f86))
+
 ## [0.12.1](https://github.com/CodeShadowing95/koupi/compare/v0.12.0...v0.12.1) (2026-11-08)
 
 ### Corrections
