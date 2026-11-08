@@ -4,7 +4,8 @@
 // pastilles de catégories qui défilent, puis les coupons, trois par ligne, qui se chargent au fil du défilement.
 // En tête, une fois par navigateur, le message « Copie, essaie, reviens voter » ; le vote se fait sur le coupon même
 // (pouces à droite du nom de l'outil) et la fenêtre « Laisse un 👍 » le rappelle au retour du visiteur.
-import Image from 'next/image';
+import { SiteLogo } from '@/components/site/site-logo';
+import { ThemeToggle } from '@/components/site/theme-toggle';
 import Link, { SiteLinkItem, useIsOff } from '@/components/site/site-pages';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Category, Code, Family, Tool } from '@/lib/data';
@@ -160,7 +161,7 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
   );
   const Logo = () => (
     <Link className="k-ex-logo" href={routes.home} aria-label="Merkod, accueil">
-      <Image className="k-ex-logo-full" src="/merkod-logo-dark.png" alt="Merkod" width={1323} height={287} priority />
+      <SiteLogo className="k-ex-logo-full" priority />
     </Link>
   );
 
@@ -175,7 +176,7 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
         </div>
 
         {/* Sur téléphone, la barre du haut n'a de place que pour la recherche : le menu « Créer » passe dans le tiroir. */}
-        <div className="k-ex-side-create"><CreateList onPick={() => setDrawer(false)} /></div>
+        <div className="k-ex-side-create"><CreateList onPick={() => setDrawer(false)} /><ThemeToggle row /></div>
 
         <nav className="k-ex-nav" aria-label="Rayons du comptoir">
           <ul className="k-ex-group">
@@ -275,6 +276,7 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
                 ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z" /><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M19 5a10 10 0 0 1 0 14" /></svg>
                 : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z" /><path d="m22 9-6 6" /><path d="m16 9 6 6" /></svg>}
             </button>
+            <ThemeToggle />
             <CreatorButton />
           </div>
         </header>

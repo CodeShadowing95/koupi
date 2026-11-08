@@ -16,7 +16,7 @@ export function TrustGlyph({ seal }: { seal: TrustSeal }) {
   return <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" /></svg>;
 }
 
-/** Pastille + mot. dark : sur le fond nuit ; sinon sur le papier des coupons. */
+/** Pastille + mot. dark : sur le fond de la page ; sinon sur le papier des coupons. */
 export function TrustPill({ seal, label, title, dark = false }: { seal: TrustSeal; label: React.ReactNode; title?: string; dark?: boolean }) {
   return (
     <span className={`k-trustpill is-${seal}${dark ? ' is-dark' : ''}`} title={title}>
