@@ -1,6 +1,7 @@
 'use client';
 import { useId, useState } from 'react';
 import { fold, matchTools, MIN_CHARS, type ToolChoice } from '@/lib/studio-tools';
+import { ToolLogo } from './tool-logo';
 
 export type { ToolChoice };
 
@@ -37,12 +38,13 @@ export function StudioToolField({ tools }: { tools: ToolChoice[] }) {
   return (
     <div className="k-st-tool">
       <label htmlFor={`${id}-input`}>Outil <small>(écris son nom)</small></label>
-      <div className="k-st-combo">
+      <div className={picked ? 'k-st-combo has-logo' : 'k-st-combo'}>
         <input id={`${id}-input`} name="toolName" value={text} required maxLength={120} autoComplete="off" placeholder="Notion, Canva, NordVPN…"
           role="combobox" aria-expanded={open && matches.length > 0} aria-controls={listId} aria-autocomplete="list"
           aria-activedescendant={open && matches.length ? `${id}-opt-${active}` : undefined}
           onChange={event => { setText(event.target.value); setPicked(null); setOpen(true); setActive(0); }}
           onFocus={() => setOpen(true)} onBlur={() => window.setTimeout(() => setOpen(false), 120)} onKeyDown={onKey} />
+        {picked && <ToolLogo tool={picked.slug} name={picked.name} className="k-st-combo-logo is-picked" />}
         {picked && <span className="k-st-combo-ok" aria-hidden="true">✓</span>}
         {open && matches.length > 0 && (
           <ul id={listId} role="listbox" className="k-st-combo-list" aria-label="Outils déjà sur Merkod">
@@ -50,7 +52,8 @@ export function StudioToolField({ tools }: { tools: ToolChoice[] }) {
               <li key={tool.slug} id={`${id}-opt-${index}`} role="option" aria-selected={index === active}
                 className={index === active ? 'is-active' : undefined}
                 onMouseDown={event => { event.preventDefault(); choose(tool); }} onMouseEnter={() => setActive(index)}>
-                <span>{tool.name}</span><small>{tool.site}</small>
+                <ToolLogo tool={tool.slug} name={tool.name} className="k-st-combo-logo" />
+                <span className="k-st-combo-text"><span>{tool.name}</span><small>{tool.site}</small></span>
               </li>
             ))}
           </ul>

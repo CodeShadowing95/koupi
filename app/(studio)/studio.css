@@ -195,8 +195,13 @@
 .k-st-combo input{width:100%}
 .k-st-combo-ok{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--blue-soft);font-weight:800}
 .k-st-combo-list{position:absolute;z-index:20;left:0;right:0;top:calc(100% + 6px);margin:0;padding:6px;list-style:none;max-height:280px;overflow:auto;border:1px solid var(--line-2);border-radius:var(--r-md);background:var(--bg-2);box-shadow:0 18px 40px rgba(0,0,0,.45)}
-.k-st-combo-list li{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 12px;border-radius:var(--r-sm);color:#fff;font-size:var(--fs-base);cursor:pointer}
+.k-st-combo-list li{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--r-sm);color:#fff;font-size:var(--fs-base);cursor:pointer}
 .k-st-combo-list li small{color:var(--muted);font-size:var(--fs-sm)}
+.k-st-combo-text{display:flex;flex:1;min-width:0;justify-content:space-between;align-items:baseline;gap:12px}
+.k-st-combo-text>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kp .k-st-combo-logo{width:30px;height:30px;border-radius:var(--r-sm);font-size:var(--fs-sm)}
+.kp .k-st-combo-logo.is-picked{position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none}
+.k-st-add .k-st-combo.has-logo input{padding-left:48px}
 .k-st-combo-list li.is-active{background:rgba(255,255,255,.08)}
 .k-st-tool-note{color:var(--muted);font-weight:400;font-size:var(--fs-sm)}
 .k-st-tool-new{display:grid;gap:8px}
