@@ -8,7 +8,7 @@ import { copiesByCode } from '@/lib/creator-auth';
 import { currentCreatorAccount } from '@/lib/creator-current';
 import { creatorLevelFromAccounts } from '@/lib/creator-level';
 import { loadSelfProof } from '@/lib/creator-self-proof';
-import { copiesPerDay, greeting, rosetteGoal, studioAccounts, weekTrend } from '@/lib/creator-studio';
+import { copiesPerDay, findCreatorPages, greeting, rosetteGoal, studioAccounts, weekTrend } from '@/lib/creator-studio';
 import { formatCopies } from '@/lib/creator-page';
 import { MIN_RATINGS, MIN_SUBSCRIBERS } from '@/lib/verification';
 import { routes } from '@/lib/routes';
@@ -34,7 +34,7 @@ const nb = (n: number) => formatCopies(n).replace(/\s/g, ' ');
 const today = (now: Date) => new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Paris' }).format(now);
 
 // Merkod Studio : l'espace du créateur connecté (ADR-0021). Ses chiffres, ses codes, sa page, son objectif.
-export default async function CreatorStudio() {
+export default async function CreatorStudio({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const account = await currentCreatorAccount();
   if (!account) redirect(routes.forCreators());
   const now = new Date();
@@ -42,6 +42,9 @@ export default async function CreatorStudio() {
 
   if (!account.creator) {
     const pages = account.claims.length ? await loadSelfProof(db, account, now) : [];
+    const raw = (await searchParams).q;
+    const query = (typeof raw === 'string' ? raw : '').trim().slice(0, 80);
+    const found = !pages.length && query ? findCreatorPages((await getCatalog()).codes, query) : [];
     const nav: StudioNavItem[] = pages.length ? [{ id: 'preuve', label: 'Prouver ma chaîne', icon: 'proof' }] : [{ id: 'trouver', label: 'Trouver ma page', icon: 'search' }];
     return (
       <StudioShell email={account.email} creator={null} nav={nav} title="Bienvenue dans ton studio">
@@ -63,11 +66,23 @@ export default async function CreatorStudio() {
         ) : (
           <section id="trouver" className="k-st-section k-st-card">
             <h2 className="k-st-h2">Trouver ma page</h2>
-            <form className="k-st-find" action={routes.creators()} method="get" role="search">
+            <form className="k-st-find" action={routes.creatorSpace} method="get" role="search">
               <label className="k-sr" htmlFor="k-st-q">Nom de ta chaîne</label>
-              <input id="k-st-q" name="q" type="search" placeholder="Le nom de ta chaîne ou de ton podcast" maxLength={80} required />
+              <input id="k-st-q" name="q" type="search" defaultValue={query} placeholder="Le nom de ta chaîne ou de ton podcast" maxLength={80} required />
               <button type="submit" className="k-btn k-btn-primary">Chercher</button>
             </form>
+            {query && (found.length ? (
+              <ul className="k-st-found" aria-label="Pages trouvées">
+                {found.map(page => (
+                  <li key={page.slug}>
+                    <span><b>{page.name}</b><small>{page.codes} code{page.codes > 1 ? 's' : ''} sur Merkod</small></span>
+                    <Link className="k-btn k-btn-primary" href={routes.forCreators(page.slug)}>C’est ma page</Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="k-st-none" role="status">Aucune page « {query} » sur Merkod pour l’instant. Une page naît avec un premier code : propose-en un, et elle se crée dès qu’il est validé.</p>
+            ))}
             <p className="k-st-muted">Tu n’y es pas encore ? <Link href={routes.submit()}>Propose un de tes codes</Link> : ta page se crée avec lui.</p>
           </section>
         )}
