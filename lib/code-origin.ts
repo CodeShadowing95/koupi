@@ -29,3 +29,6 @@ export function suggestionOrigin(sourceUrl: string): CodeOrigin {
     return 'podcast';
   }
 }
+
+/** Marque une offre donnée depuis le Studio pour un outil absent du catalogue (« Outils à ajouter ») : origine « creator ». */
+export const CREATOR_SUGGESTION_EVIDENCE = 'Donné par le créateur depuis son Studio (outil pas encore sur Merkod).';

@@ -185,3 +185,18 @@
 .k-st-add input,.k-st-add select{height:44px;padding:0 14px;border-radius:var(--r-md);border:1px solid var(--line-2);background:var(--surface);color:#fff;font-size:var(--fs-base);font-weight:400}
 .k-st-add input:focus,.k-st-add select:focus{outline:2px solid var(--blue-soft);outline-offset:2px}
 @media (max-width:640px){.k-st-add-grid{grid-template-columns:minmax(0,1fr)}}
+
+/* Champ « Outil » avec autocomplétion. color-scheme : listes et calendriers natifs en sombre (plus de liste blanche illisible). */
+.k-st-add input,.k-st-add select{color-scheme:dark}
+.k-st-add select option{background:var(--bg-2);color:#fff}
+.k-st-tool{display:grid;gap:6px;align-content:start}
+.k-st-tool>label,.k-st-tool-new label{display:grid;gap:6px;color:var(--text);font-weight:700;font-size:var(--fs-sm)}
+.k-st-combo{position:relative}
+.k-st-combo input{width:100%}
+.k-st-combo-ok{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--blue-soft);font-weight:800}
+.k-st-combo-list{position:absolute;z-index:20;left:0;right:0;top:calc(100% + 6px);margin:0;padding:6px;list-style:none;max-height:280px;overflow:auto;border:1px solid var(--line-2);border-radius:var(--r-md);background:var(--bg-2);box-shadow:0 18px 40px rgba(0,0,0,.45)}
+.k-st-combo-list li{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 12px;border-radius:var(--r-sm);color:#fff;font-size:var(--fs-base);cursor:pointer}
+.k-st-combo-list li small{color:var(--muted);font-size:var(--fs-sm)}
+.k-st-combo-list li.is-active{background:rgba(255,255,255,.08)}
+.k-st-tool-note{color:var(--muted);font-weight:400;font-size:var(--fs-sm)}
+.k-st-tool-new{display:grid;gap:8px}

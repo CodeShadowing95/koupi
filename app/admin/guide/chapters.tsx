@@ -402,6 +402,7 @@ function Podcasts() {
         <Step title="Le code part en vérification">Le code, et ceux des autres suggestions du même site, arrivent <b>En attente</b> dans <Link href="/admin/verifications">Vérifications</Link>, crédités au créateur du podcast. L’outil reste hors du site tant qu’il n’a pas de code validé.</Step>
       </Steps>
       <p>La croix <b>Ignorer</b> écarte une suggestion (un lien de suivi, une émission, un produit hors sujet). Elle ne reviendra pas aux lectures suivantes.</p>
+      <p><b>Offres données par un créateur.</b> Dans son studio, le créateur écrit le nom de l’outil : dès 3 lettres, Merkod lui propose ceux du catalogue. S’il n’y est pas, son offre arrive ici, marquée <b>Studio du créateur</b>, avec le site de l’outil s’il l’a donné. Une fois l’outil ajouté (ou relié), l’offre part <b>En relecture</b> dans <Link href="/admin/codes">Codes</Link>, créditée à ce créateur avec l’origine « Donné par le créateur », même si sa chaîne est prouvée.</p>
     </Section>
   </>;
 }
