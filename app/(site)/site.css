@@ -121,6 +121,34 @@ html:has(.kp),body:has(.kp){margin:0;background:#07081A}
 .k-nav-coupon.is-large .k-nav-coupon-stub{width:34px;font-size:var(--fs-lg)}
 .k-creator-rotator-name{display:inline-block;max-width:min(24ch,100%);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;vertical-align:bottom;color:var(--text)}
 @media (prefers-reduced-motion:reduce){.k-nav-coupon-stub{transition:none}.k-nav-coupon:hover .k-nav-coupon-main::before{transition:none;transform:translateX(-120%)}}
+/* Barre du haut : « + Créer » (papier crème, rond corail « + ») et son menu ; icône créateur à côté.
+   Mêmes choix en liste dans les menus du téléphone (.k-create-list). */
+.k-create{position:relative;margin-left:6px}
+.k-create-btn{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px 0 5px;border:0;border-radius:var(--r-pill);background:var(--paper);color:var(--paper-ink);font-size:var(--fs-md);font-weight:700;letter-spacing:-.01em;cursor:pointer;box-shadow:0 8px 16px rgba(0,0,0,.45);transition:transform .2s,background .2s}
+.k-create-btn svg{box-sizing:content-box;padding:6px;border-radius:var(--r-pill);background:linear-gradient(160deg,#FF7A52,var(--coral) 55%,#E8462B);color:#fff;transition:transform .35s cubic-bezier(.2,.9,.3,1.4)}
+.k-create-btn:hover{background:#fff}
+.k-create-btn:hover svg{transform:rotate(90deg)}
+.k-create-btn[aria-expanded="true"] svg{transform:rotate(45deg)}
+.kp .k-create-btn:focus-visible{outline-offset:4px}
+.k-create-menu{position:absolute;z-index:60;top:calc(100% + 10px);right:0;width:min(340px,calc(100vw - 32px));padding:8px;border:1px solid var(--line-2);border-radius:var(--r-lg);background:#0C0E24;box-shadow:0 30px 60px -18px rgba(0,0,0,.85);animation:k-create-in .18s ease-out}
+.k-create-menu[hidden]{display:none}
+@keyframes k-create-in{from{opacity:0;transform:translateY(-6px)}}
+.k-create-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:var(--r-md);color:var(--text-soft);text-decoration:none;transition:background .15s,color .15s}
+.k-create-item:hover,.k-create-item:focus-visible{background:var(--surface-2);color:#fff;outline:none}
+.k-create-ico{display:inline-flex;flex:none;align-items:center;justify-content:center;width:40px;height:40px;border-radius:var(--r-md);background:var(--surface);border:1px solid var(--line);color:var(--text)}
+.k-create-item.is-submit .k-create-ico{color:var(--coral)}
+.k-create-item.is-creator .k-create-ico{color:var(--blue-soft)}
+.k-create-item.is-report .k-create-ico{color:var(--amber)}
+.k-create-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.k-create-text b{font-size:var(--fs-md);color:var(--text)}
+.k-create-text small{font-size:var(--fs-sm);color:var(--muted)}
+.k-create-rosette{fill:var(--blue);stroke:var(--blue)}
+.k-creator-btn{color:var(--text-soft)}
+.k-creator-btn .k-av{width:28px;height:28px}
+.k-creator-btn.is-in{border-color:var(--blue-soft)}
+.k-create-list{display:flex;flex-direction:column;gap:2px}
+@media (max-width:640px){.k-header .k-create{display:none}}
+@media (prefers-reduced-motion:reduce){.k-create-btn svg{transition:none}.k-create-menu{animation:none}}
 /* Navigation mobile : bouton burger et menu déroulant sous la barre (sous 980 px) */
 .k-burger{display:none;position:relative;flex-direction:column;justify-content:center;align-items:center;gap:4px}
 .k-burger span{display:block;width:18px;height:2px;border-radius:2px;background:currentColor;transition:transform .25s ease,opacity .2s ease}
@@ -142,10 +170,10 @@ html:has(.kp),body:has(.kp){margin:0;background:#07081A}
   .k-menu-link[aria-current="page"] svg{color:var(--blue-soft)}
   .k-menu-link[aria-current="location"]{color:#fff}
   .k-menu-link.is-accent{color:var(--coral)}
-  .k-menu-coupon{display:none;align-self:flex-start;margin-top:24px}
+  .k-menu .k-create-list{display:none;margin-top:18px}
   .k-menu-lock{overflow:hidden}
 }
-@media (max-width:640px){.k-header .k-menu-coupon{display:inline-flex}}
+@media (max-width:640px){.k-header .k-menu .k-create-list{display:flex}}
 @media (prefers-reduced-motion:reduce){.k-menu,.k-menu[data-open="true"],.k-burger span{transition:none}}
 
 /* Pastilles, étiquettes, statuts */

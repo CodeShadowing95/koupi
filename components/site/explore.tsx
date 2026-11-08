@@ -19,6 +19,7 @@ import {
 import { BoardingCoupon } from '@/components/site/boarding-coupon';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { CreatorMark } from '@/components/site/creator-mark';
+import { CreateList, CreateMenu, CreatorButton } from '@/components/site/create-menu';
 import { FamilyIcon, ShelfIcon } from '@/components/site/explore-icons';
 import { PORTFOLIO_URL, PUBLISHER_NAME } from '@/lib/site-contact';
 
@@ -173,11 +174,8 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
           <Logo />
         </div>
 
-        {/* Sur téléphone, la barre du haut n'a de place que pour la recherche : « Proposer un code » passe dans le tiroir. */}
-        <Link className="k-nav-coupon is-large k-ex-side-submit" href={routes.submit()}>
-          <span className="k-nav-coupon-main k-paper">Proposer un code</span>
-          <span className="k-nav-coupon-stub" aria-hidden="true">%</span>
-        </Link>
+        {/* Sur téléphone, la barre du haut n'a de place que pour la recherche : le menu « Créer » passe dans le tiroir. */}
+        <div className="k-ex-side-create"><CreateList onPick={() => setDrawer(false)} /></div>
 
         <nav className="k-ex-nav" aria-label="Rayons du comptoir">
           <ul className="k-ex-group">
@@ -271,15 +269,13 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
             </button>
           </form>
           <div className="k-ex-bar-end">
-            <Link className="k-nav-coupon" href={routes.submit()}>
-              <span className="k-nav-coupon-main k-paper">Proposer un code</span>
-              <span className="k-nav-coupon-stub" aria-hidden="true">%</span>
-            </Link>
+            <CreateMenu />
             <button type="button" className="k-icon-btn" aria-pressed={sound} aria-label={sound ? 'Couper le son des coupons' : 'Activer le son des coupons'} onClick={() => setSoundEnabled(!sound)}>
               {sound
                 ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z" /><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M19 5a10 10 0 0 1 0 14" /></svg>
                 : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z" /><path d="m22 9-6 6" /><path d="m16 9 6 6" /></svg>}
             </button>
+            <CreatorButton />
           </div>
         </header>
 
