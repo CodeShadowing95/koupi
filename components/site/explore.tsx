@@ -45,7 +45,7 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
   const [drawer, setDrawer] = useState(false);
   const [intro, setIntro] = useState(false);
   const [sound, setSound] = useState(true);
-  const { cards, tone, chooseCards, chooseTone } = useCodeViews();
+  const { cards, chooseCards } = useCodeViews();
   const feed = useRef<HTMLElement>(null);
   const sentinel = useRef<HTMLDivElement>(null);
   const search = useRef<HTMLInputElement>(null);
@@ -313,12 +313,12 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
             <h1>{title}</h1>
             <div className="k-ex-head-end">
               <p className="k-ex-count" aria-live="polite">{results.length} {results.length > 1 ? 'codes' : 'code'}</p>
-              <CodeViewToggles cards={cards} tone={tone} onCards={chooseCards} onTone={chooseTone} />
+              <CodeViewToggles cards={cards} onCards={chooseCards} />
             </div>
           </div>
 
           {results.length > 0
-            ? <ul className={codeGridClass(cards, tone, 'k-ex-grid')}>
+            ? <ul className={codeGridClass(cards, 'k-ex-grid')}>
                 {visible.map(code => (
                   <li key={code.id} className="k-ex-cell">
                     <BoardingCoupon code={code} link={code.creatorLink || toolSite.get(code.toolSlug) || '#'} category={toolCategory.get(code.toolSlug) || undefined}

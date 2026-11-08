@@ -155,15 +155,3 @@ export function readCardView(storage: Pick<Storage, 'getItem'> | undefined): Car
 export function saveCardView(storage: Pick<Storage, 'setItem'> | undefined, view: CardView): void {
   try { storage?.setItem(EXPLORE_CARDS_KEY, view); } catch { /* stockage indisponible : le choix vaut pour cette visite */ }
 }
-
-/** Teinte des coupons : papier crème (clair, par défaut) ou « ticket de nuit » (sombre). */
-export type CouponTone = 'light' | 'night';
-export const EXPLORE_TONE_KEY = 'merkod-explore-tone';
-
-export function readCouponTone(storage: Pick<Storage, 'getItem'> | undefined): CouponTone {
-  try { return storage?.getItem(EXPLORE_TONE_KEY) === 'night' ? 'night' : 'light'; } catch { return 'light'; }
-}
-
-export function saveCouponTone(storage: Pick<Storage, 'setItem'> | undefined, tone: CouponTone): void {
-  try { storage?.setItem(EXPLORE_TONE_KEY, tone); } catch { /* stockage indisponible : le choix vaut pour cette visite */ }
-}
