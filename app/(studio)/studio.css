@@ -209,3 +209,6 @@
 .k-st-main .k-st-link{margin:4px 0 18px;padding:14px 16px;border:1px solid var(--blue-soft);border-radius:var(--r-md);background:var(--surface)}
 .k-st-main .k-st-link .k-st-muted{margin:0 0 12px}
 .k-st-main .k-st-link b{color:var(--strong)}
+
+/* Nuit étoilée : la colonne laisse deviner le ciel derrière elle. */
+:root[data-site-theme="dark"] .k-st-side{background:var(--header-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}

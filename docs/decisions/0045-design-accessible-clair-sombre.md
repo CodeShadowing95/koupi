@@ -16,8 +16,10 @@ Le back-office n'est pas concerné.
 
 ## Décision
 - Toutes les couleurs du site public passent par des jetons déclarés sur `.kp` (thème clair) et redéfinis sous
-  `:root[data-site-theme="dark"] .kp` (thème sombre). Fond uni (#FFF / #0A0A0A), bordures fines, une seule couleur d'accent
+  `:root[data-site-theme="dark"] .kp` (thème sombre). Fond uni blanc (#FFF), bordures fines, une seule couleur d'accent
   (bleu Merkod), boutons principaux noirs (blancs en sombre). Plus de lueurs ni de grille de points.
+- Le thème sombre est une « nuit étoilée » : bleu nuit profond (#070B1A), cartes bleu encre, ciel d'étoiles discret fixé
+  derrière le contenu (pseudo-éléments en CSS, scintillement lent coupé si l'utilisateur réduit les animations).
 - Le thème est clair par défaut. Le choix du visiteur est gardé dans `localStorage` (`merkod-theme`, `lib/site-theme.ts`)
   et posé sur `<html>` par un petit script avant l'affichage (pas de flash). Bouton soleil / lune dans les barres du haut,
   interrupteur « Thème sombre » dans le tiroir de l'Explorer sur téléphone.

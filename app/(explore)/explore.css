@@ -184,3 +184,7 @@
 @media (prefers-reduced-motion:reduce){
   .k-ex-side,.k-ex-scrim{transition:none}
 }
+
+/* Nuit étoilée : la colonne laisse deviner le ciel derrière elle. */
+:root[data-site-theme="dark"] .k-ex-side{background:var(--header-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+:root[data-site-theme="dark"] .k-ex-side-top{background:transparent}

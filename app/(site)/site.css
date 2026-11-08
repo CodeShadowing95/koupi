@@ -51,40 +51,69 @@
   position:relative;min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--body);font-size:var(--fs-base);line-height:1.6;
   -webkit-font-smoothing:antialiased;overflow-x:clip;color-scheme:light;
 }
-/* Thème sombre, choisi par le visiteur (lib/site-theme.ts). Noir doux, gris neutres, accents éclaircis pour garder le contraste. */
+/* Thème sombre « nuit étoilée », choisi par le visiteur (lib/site-theme.ts) : bleu nuit profond, ciel d'étoiles discret
+   derrière le contenu, gris bleutés et accents éclaircis pour garder le contraste AA. */
 :root[data-site-theme="dark"] .kp{
-  --bg:#0A0A0A;
-  --bg-2:#111111;
-  --card:#111111;
-  --tint:255 255 255;
+  --bg:#070B1A;
+  --bg-2:#0A1022;
+  --card:#0E1430;
+  --tint:200 212 255;
   --shade:1;
-  --surface:#141414;
-  --surface-2:#1C1C1C;
-  --line:#262626;
-  --line-2:#3A3A3A;
-  --field-line:#7A7A7A;
+  --surface:#111833;
+  --surface-2:#18203F;
+  --line:#222B4D;
+  --line-2:#33406B;
+  --field-line:#6B78A8;
   --strong:#FFFFFF;
-  --text:#EDEDED;
-  --text-soft:#C7C7C7;
-  --muted:#A1A1A1;
-  --header-bg:rgb(10 10 10 / .86);
-  --btn:#EDEDED;
-  --btn-ink:#0A0A0A;
+  --text:#E8ECF8;
+  --text-soft:#C3CAE3;
+  --muted:#9AA3C4;
+  --header-bg:rgb(7 11 26 / .82);
+  --btn:#E8ECF8;
+  --btn-ink:#070B1A;
   --btn-hover:#FFFFFF;
   --focus:#9AA6FF;
   --blue-hi:#7C8BFF;
   --blue-soft:#9AA6FF;
-  --blue-tint:#161A3A;
+  --blue-tint:#1A2152;
   --coral-text:#FF8A63;
   --mint:#5BE3A4;
   --amber:#FFC46B;
   --red:#FF7A6E;
-  color-scheme:dark;
+  color-scheme:dark;isolation:isolate;
 }
+/* Le ciel : trois couches d'étoiles de tailles différentes, une lueur d'horizon bleu Merkod en haut,
+   fixées à l'écran (elles ne défilent pas avec la page). Très discrètes : le texte ne passe jamais dessus en plein contraste. */
+:root[data-site-theme="dark"] .kp::before,:root[data-site-theme="dark"] .kp::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none}
+:root[data-site-theme="dark"] .kp::before{
+  background:
+    radial-gradient(1px 1px at 12% 18%,rgb(255 255 255 / .75) 50%,transparent 51%),
+    radial-gradient(1px 1px at 27% 62%,rgb(255 255 255 / .55) 50%,transparent 51%),
+    radial-gradient(1.5px 1.5px at 41% 9%,rgb(255 255 255 / .8) 50%,transparent 51%),
+    radial-gradient(1px 1px at 58% 34%,rgb(255 255 255 / .5) 50%,transparent 51%),
+    radial-gradient(1px 1px at 69% 77%,rgb(255 255 255 / .55) 50%,transparent 51%),
+    radial-gradient(1.5px 1.5px at 83% 22%,rgb(220 228 255 / .85) 50%,transparent 51%),
+    radial-gradient(1px 1px at 92% 58%,rgb(255 255 255 / .5) 50%,transparent 51%),
+    radial-gradient(1px 1px at 6% 86%,rgb(255 255 255 / .45) 50%,transparent 51%),
+    radial-gradient(1px 1px at 48% 91%,rgb(255 255 255 / .4) 50%,transparent 51%),
+    radial-gradient(2px 2px at 76% 6%,rgb(255 236 200 / .9) 50%,transparent 51%);
+  background-size:380px 380px;opacity:.9}
+:root[data-site-theme="dark"] .kp::after{
+  background:
+    radial-gradient(1px 1px at 18% 40%,rgb(255 255 255 / .35) 50%,transparent 51%),
+    radial-gradient(1px 1px at 52% 15%,rgb(255 255 255 / .3) 50%,transparent 51%),
+    radial-gradient(1px 1px at 79% 66%,rgb(255 255 255 / .3) 50%,transparent 51%),
+    radial-gradient(1px 1px at 35% 83%,rgb(255 255 255 / .25) 50%,transparent 51%),
+    radial-gradient(ellipse 80% 45% at 50% -8%,rgb(42 59 214 / .28),transparent 70%),
+    radial-gradient(ellipse 50% 30% at 100% 100%,rgb(110 59 214 / .12),transparent 70%);
+  background-size:230px 230px,230px 230px,230px 230px,230px 230px,100% 100%,100% 100%;
+  animation:k-twinkle 6s ease-in-out infinite alternate}
+@keyframes k-twinkle{from{opacity:.65}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){:root[data-site-theme="dark"] .kp::after{animation:none}}
 /* Le papier des coupons reste clair dans les deux thèmes : il garde les couleurs d'accent du thème clair. */
 :root[data-site-theme="dark"] .kp .k-paper{--blue-soft:#2A3BD6;--coral-text:#B93A16;--mint:#0B7A47;--amber:#8A5300;--red:#B42318;--muted:#5C5444;--text-soft:#3D372B}
 html:has(.kp),body:has(.kp){margin:0;background:#FFFFFF}
-:root[data-site-theme="dark"]:has(.kp),:root[data-site-theme="dark"] body:has(.kp){background:#0A0A0A}
+:root[data-site-theme="dark"]:has(.kp),:root[data-site-theme="dark"] body:has(.kp){background:#070B1A}
 /* Logo : texte noir sur clair, texte clair sur sombre. */
 .k-logo-for-dark{display:none!important}
 :root[data-site-theme="dark"] .k-logo-for-light{display:none!important}
