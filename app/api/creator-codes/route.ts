@@ -9,7 +9,7 @@ import { revalidateCatalog } from '@/lib/catalog-server';
 import { routes } from '@/lib/routes';
 import { siteUrl } from '@/lib/seo';
 
-// « Ajouter un code » dans le Studio (ADR-0043) : publié tout de suite si le créateur est prouvé, sinon relu par l'admin.
+// « Ajouter une offre » dans le Studio (ADR-0043) : publié tout de suite si le créateur est prouvé, sinon relu par l'admin.
 export async function POST(request: NextRequest) {
   const userId = await readCreatorToken(request.cookies.get(CREATOR_COOKIE)?.value, process.env.SESSION_SECRET);
   const db = getDb();
