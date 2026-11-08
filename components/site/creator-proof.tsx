@@ -91,13 +91,13 @@ export function CreatorProof({ pages }: { pages: SelfProofCreator[] }) {
     <div className="k-cp">
       {pages.map(page => (
         <section key={page.slug} className="k-cp-page" aria-labelledby={`cp-${page.slug}`}>
-          <h2 id={`cp-${page.slug}`} className="k-cs-h2">Prouve que {page.name}, c’est toi</h2>
+          <h2 id={`cp-${page.slug}`} className="k-st-h2">Prouve que {page.name}, c’est toi</h2>
           {page.accounts.length === 0
             ? <p className="k-cp-msg">Merkod n’a encore relié aucun compte à cette page. On le fait à partir du lien que tu as donné, puis tu pourras le prouver ici.</p>
             : <ul className="k-cp-list">{page.accounts.map(account => <Account key={account.id} account={account} />)}</ul>}
         </section>
       ))}
-      <p className="k-cs-note">Le code ne sert qu’à montrer que tu tiens ce compte : seul son vrai propriétaire peut modifier sa bio. Un seul compte prouvé suffit.</p>
+      <p className="k-st-muted">Le code ne sert qu’à montrer que tu tiens ce compte : seul son vrai propriétaire peut modifier sa bio. Un seul compte prouvé suffit.</p>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 // Garde-fou de cohérence du site public : les tailles de texte et les arrondis passent par les jetons
 // déclarés en haut de site.css. Seuls les grands titres d'affichage (36 px et plus) peuvent rester en dur.
 // La page Explorer a sa propre feuille, tenue aux mêmes jetons.
-const css = ['app/(site)/site.css', 'app/(explore)/explore.css'].map(file => readFileSync(file, 'utf8')).join('\n');
+const css = ['app/(site)/site.css', 'app/(explore)/explore.css', 'app/(studio)/studio.css'].map(file => readFileSync(file, 'utf8')).join('\n');
 
 describe('jetons de design du site public', () => {
   it('déclare l’échelle de texte et les arrondis', () => {
