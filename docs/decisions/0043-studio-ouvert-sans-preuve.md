@@ -15,7 +15,8 @@ Jusqu'ici, un créateur n'entrait dans son studio qu'après avoir revendiqué un
 - Cette page est « non vérifiée » tant qu'aucun compte n'est prouvé : le niveau du créateur reste calculé à partir des comptes (ADR-0016), rien ne change dans le schéma.
 - Garde-fou : le nom, son adresse ou le @ d'un compte ne peuvent pas reprendre ceux d'une page existante. Merkod propose alors de revendiquer cette page.
 - Une page sans code publié reste invisible sur le site public, comme avant.
-- Les codes d'un créateur non prouvé passeront par la relecture de l'admin ; ceux d'un compte prouvé seront publiés sans attente (PR suivantes).
+- « Ajouter un code » dans le Studio : le code d'un créateur non prouvé arrive « En relecture » (statut `pending`) et attend l'admin ; celui d'un créateur dont un compte est prouvé par la bio est publié tout de suite, « À tester ». L'admin peut toujours le retirer.
+- Ces codes portent une nouvelle origine, `creator` (« Donné par le créateur »), ajoutée à la règle de la colonne `codes.origin` (migration 0033). Sans vidéo donnée, leur source est l'adresse de la page du créateur.
 
 ## Alternatives envisagées
 - **Créer la page en collant le lien de sa chaîne** : utile pour les créateurs avec du public, mais ne sert à rien à ceux qui n'ont pas de chaîne. Gardé comme incitation (« Fais vérifier ta chaîne »), pas comme passage obligé.

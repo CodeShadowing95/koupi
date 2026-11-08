@@ -161,7 +161,7 @@ export const codes = pgTable('codes', {
   check('codes_creator_link_http', sql`${table.creatorLink} is null or ${table.creatorLink} ~* '^https?://'`),
   check('codes_status_valid', sql`${table.status} in ('pending','to_test','verified','rejected')`),
   check('codes_votes_positive', sql`${table.votesUp} >= 0 and ${table.votesDown} >= 0`),
-  check('codes_origin_valid', sql`${table.origin} in ('manual','submission','import','youtube_search','youtube_channel','podcast','ai_web','spotify','unknown')`),
+  check('codes_origin_valid', sql`${table.origin} in ('manual','submission','import','youtube_search','youtube_channel','podcast','ai_web','spotify','creator','unknown')`),
 ]);
 
 export const CODE_ACTIONS = ['create', 'edit', 'verify', 'reject', 'to_test', 'pending', 'archive', 'restore', 'payment_test'] as const;

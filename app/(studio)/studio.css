@@ -165,3 +165,13 @@
 /* « Passer cette étape » : un champ, le nom de créateur. */
 .k-st-skip label{display:block;margin:12px 0 6px;color:var(--text);font-weight:700;font-size:var(--fs-sm)}
 .k-st-skip .k-st-find{margin-top:0}
+
+/* « Ajouter un code » */
+.k-st-add-head{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 14px}
+.k-st-add{display:grid;gap:12px;margin:0 0 14px}
+.k-st-add-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.k-st-add label{display:grid;gap:6px;color:var(--text);font-weight:700;font-size:var(--fs-sm)}
+.k-st-add label small{color:var(--muted);font-weight:400}
+.k-st-add input,.k-st-add select{height:44px;padding:0 14px;border-radius:var(--r-md);border:1px solid var(--line-2);background:var(--surface);color:#fff;font-size:var(--fs-base);font-weight:400}
+.k-st-add input:focus,.k-st-add select:focus{outline:2px solid var(--blue-soft);outline-offset:2px}
+@media (max-width:640px){.k-st-add-grid{grid-template-columns:minmax(0,1fr)}}
