@@ -18,6 +18,8 @@ import { FetchLogosButton, RefreshLogoButton } from './logos-button';
 import { ToolCodeSearch } from './tool-code-search';
 import { RefreshButton } from '@/components/admin-refresh-button';
 import { confirmAction } from '@/components/admin-ask';
+import { CategoryFinder } from './category-finder';
+import { toolWithSameSite } from '@/lib/tool-form-fill';
 
 type Filter = 'all' | 'published' | 'empty' | 'archived';
 const filters: { value: Filter; label: string }[] = [
@@ -38,7 +40,7 @@ const sortFields: SortField<Tool>[] = [
 
 type Form = { name: string; categorySlug: string; website: string; description: string; priority: number };
 
-export function ToolsView({ tools, categories, missingLogos, youtubeReady }: { tools: Tool[]; categories: AdminCategory[]; missingLogos: number; youtubeReady: boolean }) {
+export function ToolsView({ tools, categories, missingLogos, youtubeReady, ai }: { tools: Tool[]; categories: AdminCategory[]; missingLogos: number; youtubeReady: boolean; ai: { active: boolean; label: string } }) {
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
@@ -67,6 +69,8 @@ export function ToolsView({ tools, categories, missingLogos, youtubeReady }: { t
   const visible = sort.items;
   const { current, goTo, topRef, size, changeSize } = usePagination(visible, `${filter}|${category}|${query}|${sort.resetKey}`);
   const countOf = (value: Filter) => tools.filter(tool => matches(tool, value)).length;
+  // Doublon : un autre outil du catalogue a déjà ce site (sans IA, dès la saisie).
+  const sameSite = editing ? toolWithSameSite(tools, form.website, editing === 'new' ? undefined : editing.id) : null;
 
   function open(target: AdminTool | 'new') {
     setForm(target === 'new'
@@ -188,7 +192,9 @@ export function ToolsView({ tools, categories, missingLogos, youtubeReady }: { t
           extra={editing && editing !== 'new' ? <button type="button" className="adm-btn adm-btn-danger" onClick={() => archive(editing)}>{editing.archived ? 'Restaurer' : 'Archiver'}</button> : null}>
           <div className="field"><label htmlFor="tool-name">Nom</label><input id="tool-name" value={form.name} onChange={set('name')} required maxLength={120} /></div>
           <div className="field"><label htmlFor="tool-cat">Catégorie</label><AdminSelect id="tool-cat" value={form.categorySlug} onChange={categorySlug => setForm(value => ({ ...value, categorySlug }))} options={categories.map(category => ({ value: category.slug, label: category.name }))} placeholder="Choisir une catégorie…" searchPlaceholder="Rechercher une catégorie…" required /></div>
-          <div className="field"><label htmlFor="tool-site">Site officiel</label><input id="tool-site" value={form.website} onChange={set('website')} required maxLength={300} placeholder="exemple.com" /></div>
+          <div className="field"><label htmlFor="tool-site">Site officiel</label><input id="tool-site" value={form.website} onChange={set('website')} required maxLength={300} placeholder="exemple.com" aria-describedby={sameSite ? 'tool-site-dup' : undefined} />
+            {sameSite && <small id="tool-site-dup" className="adm-field-warn">Cet outil existe déjà : <b>{sameSite.name}</b>{sameSite.archived ? ' (archivé)' : ''}.</small>}</div>
+          <CategoryFinder key={editing === 'new' ? 'new' : editing?.id ?? 'none'} form={form} categories={categories} ai={ai} onFill={setForm} />
           <div className="field"><div className="adm-label-row"><label htmlFor="tool-priority">Priorité</label><InfoTip id="tool-priority-help" label="À quoi sert la priorité ?">Sert à classer les outils. 1 : à couvrir en premier, affiché en tête dans l’admin et sur le site. 5 : peut attendre. Par défaut : 3.</InfoTip></div><select id="tool-priority" value={form.priority} onChange={set('priority')}>{[1, 2, 3, 4, 5].map(value => <option key={value} value={value}>{priorityLabel[value]}</option>)}</select></div>
           <div className="field adm-span-2"><label htmlFor="tool-desc">Description (facultative)</label><textarea id="tool-desc" rows={2} value={form.description} onChange={set('description')} maxLength={300} placeholder="Une phrase pour la fiche de l’outil" /><small>Vide : « Les codes promo donnés par les créateurs pour … ».</small></div>
         </FormDialog>
