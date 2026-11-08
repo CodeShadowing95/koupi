@@ -582,6 +582,7 @@ function Categories() {
     </Section>
     <Section id="familles" title="Les familles">
       <p>Chaque catégorie appartient à une <b>famille</b> : Sécurité et vie privée, Vidéo, Argent et indépendants… Les familles sont le premier niveau du menu, les catégories le second. La carte d’une catégorie affiche sa famille, et le filtre <b>Toutes les familles</b> n’en montre qu’une. <b>Sans famille</b> liste les catégories qui ne sont pas encore rangées.</p>
+      <p>Dans la fiche d’une catégorie (<b>Modifier</b> ou <b>Nouvelle catégorie</b>), <b>✦ Trouver la famille</b> demande à l’IA la famille qui convient, d’après le nom de la catégorie et de ses outils. Elle la choisit dans le menu, ou, si aucune ne convient, propose un nom avec <b>Créer « … »</b> qui crée la famille et la choisit. Rien n’est enregistré avant <b>Enregistrer</b>. Un appel coûte moins d’un dixième de centime, compté dans le plafond du mois ; le bouton est grisé quand l’IA est coupée ou le plafond atteint.</p>
       <Callout tone="tip">Une catégorie répond à un besoin précis (« Gestionnaires de mots de passe »), la famille regroupe les besoins voisins. Un outil n’a qu’une catégorie.</Callout>
     </Section>
     <Section id="gerer" title="Créer, renommer et ranger">

@@ -11,6 +11,7 @@ import { IconButton, IconLink, StatusDot } from '@/components/admin-card';
 import { ExportMenu } from '@/components/admin-export-menu';
 import { AdminDrawer, DetailList, openOnClick } from '@/components/admin-drawer';
 import { CategoryTidy, type TidyTool } from './category-tidy';
+import { FamilyFinder } from './family-finder';
 import { CodeSearchReport, plural, runCodeSearch, type CodeSearchAvailability, type CodeSearchResult } from '@/components/admin-code-search-report';
 
 const rate = (category: AdminCategory) => category.tools ? Math.round((category.covered / category.tools) * 100) : 0;
@@ -54,6 +55,9 @@ export function CategoriesView({ categories: all, families, search, tools }: { c
   const selected = all.find(category => category.slug === selectedSlug) ?? null;
   const [name, setName] = useState('');
   const [familySlug, setFamilySlug] = useState('');
+  // Familles créées depuis la fiche, affichées tout de suite dans le menu (avant le rechargement de la page).
+  const [added, setAdded] = useState<CategoryFamily[]>([]);
+  const familyChoices = [...families, ...added.filter(item => !families.some(family => family.slug === item.slug))];
   const open = (target: AdminCategory | 'new') => {
     setName(target === 'new' ? '' : target.name);
     setFamilySlug(target === 'new' ? (family && family !== NONE ? family : '') : target.familySlug ?? '');
@@ -177,7 +181,9 @@ export function CategoriesView({ categories: all, families, search, tools }: { c
           onClose={() => setEditing(null)}
           onSubmit={() => editing === 'new' ? sendJson('/api/admin/categories', 'POST', { name, familySlug }) : sendJson(`/api/admin/categories/${(editing as AdminCategory).slug}`, 'PATCH', { name, familySlug })}>
           <div className="field adm-span-2"><label htmlFor="category-name">Nom</label><input id="category-name" value={name} onChange={event => setName(event.target.value)} required maxLength={80} /></div>
-          <div className="field adm-span-2"><label htmlFor="category-family">Famille</label><AdminSelect id="category-family" value={familySlug} onChange={setFamilySlug} options={[{ value: '', label: 'Sans famille' }, ...families.map(item => ({ value: item.slug, label: item.name }))]} placeholder="Choisir une famille…" searchPlaceholder="Rechercher une famille…" /></div>
+          <div className="field adm-span-2"><label htmlFor="category-family">Famille</label><AdminSelect id="category-family" value={familySlug} onChange={setFamilySlug} options={[{ value: '', label: 'Sans famille' }, ...familyChoices.map(item => ({ value: item.slug, label: item.name }))]} placeholder="Choisir une famille…" searchPlaceholder="Rechercher une famille…" /></div>
+          {editing !== null && <FamilyFinder key={editing === 'new' ? 'new' : editing.slug} name={name} slug={editing === 'new' ? undefined : editing.slug} families={familyChoices} ai={search.ai}
+            onPick={family => { setFamilySlug(family.slug); setAdded(list => list.some(item => item.slug === family.slug) ? list : [...list, { ...family, position: 999 }]); }} />}
         </FormDialog>
       </div>
     </main>

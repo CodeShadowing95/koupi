@@ -150,6 +150,18 @@ export async function createCategory(db: Db, rawName: unknown, rawFamily?: unkno
   return row ? { ok: true, data: row } : { ok: false, error: 'Une catégorie a déjà cette adresse sur le site.' };
 }
 
+/** Crée une famille de catégories, placée après les autres dans le menu. Une famille du même nom est réutilisée. */
+export async function createFamily(db: Db, rawName: unknown): Promise<Parsed<{ slug: string; name: string }>> {
+  const name = text(rawName, 80), slug = slugify(name);
+  if (!name || !slug) return { ok: false, error: 'Indique le nom de la famille.' };
+  const existing = (await db.select({ slug: categoryFamilies.slug, name: categoryFamilies.name }).from(categoryFamilies))
+    .find(family => family.slug === slug || slugify(family.name) === slug);
+  if (existing) return { ok: true, data: existing };
+  const [last] = await db.select({ position: sql<number>`coalesce(max(${categoryFamilies.position}), 0)::int` }).from(categoryFamilies);
+  const [row] = await db.insert(categoryFamilies).values({ slug, name, position: (last?.position ?? 0) + 1 }).onConflictDoNothing().returning({ slug: categoryFamilies.slug, name: categoryFamilies.name });
+  return row ? { ok: true, data: row } : { ok: false, error: 'Une famille a déjà ce nom.' };
+}
+
 /** Renomme une catégorie et change sa famille (si rawFamily est donné). Son adresse sur le site (slug) reste la même. */
 export async function renameCategory(db: Db, slug: string, rawName: unknown, rawFamily?: unknown): Promise<Parsed<{ slug: string }>> {
   const name = text(rawName, 80);
