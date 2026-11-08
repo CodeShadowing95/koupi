@@ -54,7 +54,7 @@ const sortFields: SortField<WithCopies>[] = [
 ];
 const isFilter = (value: string | null): value is Filter => filters.some(filter => filter.value === value);
 
-export function CodesView({ codes: rows, tools, categories, copies }: { codes: Code[]; tools: ToolOption[]; categories: Category[]; copies: Record<string, number> }) {
+export function CodesView({ codes: rows, tools, categories, copies, ai }: { codes: Code[]; tools: ToolOption[]; categories: Category[]; copies: Record<string, number>; ai: { active: boolean; label: string } }) {
   const codes: WithCopies[] = rows.map(code => ({ ...code, copies: copies[code.id] ?? 0 }));
   const stale = new Set(staleCodes(codes).map(code => code.id));
   const countOf = (value: Filter) => codes.filter(code => matchesFilter(code, value, stale)).length;
@@ -200,7 +200,7 @@ export function CodesView({ codes: rows, tools, categories, copies }: { codes: C
             {selected.note && <p className="adm-detail-quote">Note : {selected.note}</p>}
           </>}
         </AdminDrawer>
-        <CodeEditor target={editing} tools={tools} categories={categories} creators={creators} existing={codes} onClose={() => setEditing(null)} />
+        <CodeEditor target={editing} tools={tools} categories={categories} creators={creators} existing={codes} ai={ai} onClose={() => setEditing(null)} />
       </div>
     </main>
   );

@@ -18,7 +18,7 @@ import { FetchLogosButton, RefreshLogoButton } from './logos-button';
 import { ToolCodeSearch } from './tool-code-search';
 import { RefreshButton } from '@/components/admin-refresh-button';
 import { confirmAction } from '@/components/admin-ask';
-import { CategoryFinder } from './category-finder';
+import { CategoryFinder } from '@/components/admin-category-finder';
 import { toolWithSameSite } from '@/lib/tool-form-fill';
 
 type Filter = 'all' | 'published' | 'empty' | 'archived';
