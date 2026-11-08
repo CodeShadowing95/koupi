@@ -18,7 +18,9 @@ export function StudioToolField({ tools }: { tools: ToolChoice[] }) {
   const [active, setActive] = useState(0);
   const matches = picked ? [] : matchTools(tools, text);
   const exact = matches.find(tool => fold(tool.name) === fold(text)) ?? null;
-  const unknown = !picked && !exact && fold(text).length >= MIN_CHARS;
+  const listShown = open && matches.length > 0;
+  // « Pas encore sur Merkod » n'apparaît qu'une fois la liste fermée : sinon il pousserait le formulaire pendant la saisie.
+  const unknown = !picked && !exact && fold(text).length >= MIN_CHARS && !listShown;
   const listId = `${id}-list`;
 
   function choose(tool: ToolChoice) {
@@ -40,13 +42,13 @@ export function StudioToolField({ tools }: { tools: ToolChoice[] }) {
       <label htmlFor={`${id}-input`}>Outil <small>(écris son nom)</small></label>
       <div className={picked ? 'k-st-combo has-logo' : 'k-st-combo'}>
         <input id={`${id}-input`} name="toolName" value={text} required maxLength={120} autoComplete="off" placeholder="Notion, Canva, NordVPN…"
-          role="combobox" aria-expanded={open && matches.length > 0} aria-controls={listId} aria-autocomplete="list"
+          role="combobox" aria-expanded={listShown} aria-controls={listId} aria-autocomplete="list"
           aria-activedescendant={open && matches.length ? `${id}-opt-${active}` : undefined}
           onChange={event => { setText(event.target.value); setPicked(null); setOpen(true); setActive(0); }}
           onFocus={() => setOpen(true)} onBlur={() => window.setTimeout(() => setOpen(false), 120)} onKeyDown={onKey} />
         {picked && <ToolLogo tool={picked.slug} name={picked.name} className="k-st-combo-logo is-picked" />}
         {picked && <span className="k-st-combo-ok" aria-hidden="true">✓</span>}
-        {open && matches.length > 0 && (
+        {listShown && (
           <ul id={listId} role="listbox" className="k-st-combo-list" aria-label="Outils déjà sur Merkod">
             {matches.map((tool, index) => (
               <li key={tool.slug} id={`${id}-opt-${index}`} role="option" aria-selected={index === active}
