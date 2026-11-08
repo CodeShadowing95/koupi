@@ -232,14 +232,14 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
             <li><b>La rosette « Créateur vérifié »</b><span>Dès {nb(MIN_SUBSCRIBERS)} abonnés, ou {MIN_RATINGS} notes pour un podcast.</span></li>
           </ul>
           {realProof.length > 0 ? (
-            <div id="relier" className="k-st-link">
+            <div id="relier" className="k-st-relink">
               <p className="k-st-muted">Prouve ta page <b>{realProof[0].name}</b> : dès que c’est fait, ta page provisoire et tes codes y passent, et tu gardes ce studio.</p>
               <CreatorProof pages={realProof} />
             </div>
           ) : realAsked ? (
             <p id="relier" className="k-st-none" role="status">Demande reçue pour la page {realAsked.name}. Merkod contrôle ses comptes, puis ton code de preuve apparaîtra ici. Une fois prouvée, ta page provisoire et tes codes y passeront.</p>
           ) : realMatch ? (
-            <div id="relier" className="k-st-link">
+            <div id="relier" className="k-st-relink">
               <p className="k-st-muted">Merkod a déjà une page <b>{realMatch.name}</b>{realMatch.accounts[0] ? <> ({realMatch.accounts[0].handle})</> : null}. C’est toi ? Revendique-la : une fois prouvée par ta bio, ta page provisoire et tes codes y passent.</p>
               <ClaimPageButton slug={realMatch.slug} name={realMatch.name} next={`${routes.creatorSpace}#relier`} label="C’est moi, relier cette page" />
             </div>
