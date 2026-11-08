@@ -1,6 +1,7 @@
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
 import { migrate } from 'drizzle-orm/pglite/migrator';
+import { NextRequest } from 'next/server';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import * as schema from '@/db/schema';
 import { CREATOR_COOKIE, readCreatorToken } from '@/lib/creator-session';
@@ -45,6 +46,15 @@ describe('connexion des créateurs par lien', () => {
     expect(await readCreatorToken(value, process.env.SESSION_SECRET)).toBe(user.id);
     expect(user.email).toBe('ana@exemple.fr');
     expect((await post('verify', { token })).status).toBe(400);
+
+    // L'icône de la barre du haut : connecté, sans e-mail renvoyé ; sans cookie ou cookie faux, personne.
+    const { GET } = await import('./me/route');
+    const me = (cookieValue?: string) => GET(new NextRequest('http://localhost/api/creator-auth/me', cookieValue ? { headers: { cookie: `${CREATOR_COOKIE}=${cookieValue}` } } : {}));
+    const known = await me(encodeURIComponent(value));
+    expect(await known.json()).toEqual({ signedIn: true, name: null });
+    expect(known.headers.get('cache-control')).toContain('no-store');
+    expect(await (await me()).json()).toEqual({ signedIn: false, name: null });
+    expect(await (await me('faux.123.abc')).json()).toEqual({ signedIn: false, name: null });
   });
 
   it('refuse un e-mail invalide ou une page inconnue', async () => {
