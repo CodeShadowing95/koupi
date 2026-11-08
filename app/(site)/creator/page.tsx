@@ -13,6 +13,9 @@ import { CodeBadge } from '@/components/site/code-badge';
 import { TrustPill } from '@/components/site/trust';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { CopyPageLink, SignOutButton } from '@/components/site/creator-space-actions';
+import { CreatorProof } from '@/components/site/creator-proof';
+import { loadSelfProof } from '@/lib/creator-self-proof';
+import { MIN_SUBSCRIBERS } from '@/lib/verification';
 
 export const metadata: Metadata = { title: 'Mon espace · Merkod', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
@@ -45,12 +48,13 @@ export default async function CreatorSpace() {
           <h1 className="k-cs-title">{account.claims.length ? 'On vérifie que c’est bien toi.' : 'Bienvenue sur Merkod.'}</h1>
           {account.claims.length > 0 ? (
             <>
-              <p className="k-cs-lead">Ta demande pour {account.claims.map(claim => claim.name).join(', ')} est bien arrivée. Dès que c’est vérifié, tes chiffres s’affichent ici.</p>
+              <p className="k-cs-lead">Plus qu’une étape : colle ton code dans la bio d’un de tes comptes. Dès qu’il y est, tes chiffres s’affichent ici.</p>
               <ol className="k-cs-steps">
                 <li className="is-done"><b>Demande reçue</b><span>Tu es connecté avec {account.email}.</span></li>
-                <li className="is-now"><b>Preuve par ta bio</b><span>On t’envoie un petit code à coller dans la description de ta chaîne. Seul le vrai propriétaire peut le faire.</span></li>
-                <li><b>Ton espace s’ouvre</b><span>Copies code par code, page « Créateur vérifié », lien à partager.</span></li>
+                <li className="is-now"><b>Preuve par ta bio</b><span>Un petit code à coller dans ta bio : seul le vrai propriétaire du compte peut le faire.</span></li>
+                <li><b>Ton espace s’ouvre</b><span>Copies code par code, lien de ta page à partager. Au-delà de {MIN_SUBSCRIBERS.toLocaleString('fr-FR').replace(/\s/g, '\u00a0')} abonnés, la rosette « Créateur vérifié ».</span></li>
               </ol>
+              <CreatorProof pages={await loadSelfProof(getDb(), account)} />
               <div className="k-cs-actions">
                 {account.claims.map(claim => <Link key={claim.slug} className="k-btn k-btn-ghost" href={routes.creator(claim.slug)}>Voir la page {claim.name}</Link>)}
               </div>

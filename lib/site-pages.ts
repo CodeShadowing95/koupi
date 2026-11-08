@@ -33,7 +33,7 @@ export const SITE_PAGES: SitePage[] = [
   { key: 'feedback', label: 'Ton avis', paths: ['/feedback'], apis: ['/api/feedback'], effect: 'Lien du menu, « Signaler une erreur » du menu Créer et pied de page ; les envois sont refusés' },
   { key: 'transparency', label: 'Transparence', paths: ['/transparency'], effect: 'Lien du menu, du pied de page et des badges de niveau' },
   { key: 'for-creators', label: 'Pour les créateurs', paths: ['/for-creators'], effect: 'Choix « Créer mon espace créateur », icône créateur, lien du pied de page et « C’est ta page ? »' },
-  { key: 'creator-space', label: 'Espace créateur', paths: ['/creator'], apis: ['/api/creator-auth', '/api/creator-requests'], effect: 'Connexion des créateurs et demandes sur les pages créateurs' },
+  { key: 'creator-space', label: 'Espace créateur', paths: ['/creator'], apis: ['/api/creator-auth', '/api/creator-requests', '/api/creator-proof'], effect: 'Connexion des créateurs et demandes sur les pages créateurs' },
   { key: 'legal', label: 'Mentions légales', paths: ['/legal'], locked: 'Obligatoire par la loi', effect: '—' },
   { key: 'privacy', label: 'Confidentialité', paths: ['/privacy'], locked: 'Obligatoire (RGPD)', effect: '—' },
 ];

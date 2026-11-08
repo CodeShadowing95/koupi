@@ -35,6 +35,12 @@ export async function provenCreatorIds(db: Db): Promise<Set<string>> {
   return new Set(accounts.filter(account => accountLevelOf(account) === 'verified').map(account => account.creatorId));
 }
 
+/** Les créateurs qui ont au moins un compte prouvé par la bio, quelle que soit son audience : l'espace leur est ouvert (ADR-0041). */
+export async function bioProvenCreatorIds(db: Db): Promise<Set<string>> {
+  const accounts = await db.selectDistinct({ creatorId: creatorAccounts.creatorId }).from(creatorAccounts).where(eq(creatorAccounts.claimStatus, 'verified'));
+  return new Set(accounts.map(account => account.creatorId));
+}
+
 /** Meilleur niveau parmi les comptes. Un créateur sans compte relié est « repéré ». */
 export function creatorLevelFromAccounts(accounts: AccountFacts[]): CreatorLevel {
   return bestLevel(accounts.map(accountLevelOf));

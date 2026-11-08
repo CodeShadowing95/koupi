@@ -1510,6 +1510,27 @@ button.k-coupon-stub{transition:transform .3s cubic-bezier(.2,.9,.3,1.3),backgro
 .k-cs-steps li.is-now{border-color:rgba(140,155,255,.4)}
 .k-cs-steps li.is-now::before{background:var(--blue);color:#fff}
 .k-cs-steps span{font-size:var(--fs-md);color:var(--muted)}
+/* Preuve par la bio en libre-service (espace créateur, ADR-0041) */
+.k-cp{display:grid;gap:24px;max-width:760px}
+.k-cp-list{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.k-cp-acc{display:grid;gap:14px;padding:18px;border:1px solid var(--line);border-radius:var(--r-xl);background:var(--surface)}
+.k-cp-acc.is-open{border-color:rgba(140,155,255,.45)}
+.k-cp-acc.is-proven{border-color:rgba(91,227,164,.4)}
+.k-cp-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.k-cp-head a{font-weight:700;color:#fff;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.k-cp-head small{color:var(--muted);font-size:var(--fs-sm)}
+.k-cp-msg{font-size:var(--fs-md);color:var(--text-soft)}
+.k-cp-msg.is-ok{color:var(--mint);font-weight:700}
+.k-cp-msg.is-note{color:var(--amber)}
+.k-cp-msg.is-error{color:var(--red)}
+.k-cp-start{display:grid;gap:10px;justify-items:start}
+.k-cp-steps{list-style:none;margin:0;padding:0;display:grid;gap:10px;counter-reset:cp}
+.k-cp-steps li{counter-increment:cp;display:grid;gap:8px;justify-items:start;padding:12px 14px 12px 50px;position:relative;border-radius:var(--r-lg);background:var(--bg-2)}
+.k-cp-steps li::before{content:counter(cp);position:absolute;left:14px;top:12px;width:24px;height:24px;border-radius:var(--r-pill);display:grid;place-items:center;font-size:var(--fs-sm);font-weight:800;background:var(--blue);color:#fff}
+.k-cp-steps span{font-size:var(--fs-md);color:var(--muted)}
+.k-cp-code{display:inline-flex;align-items:center;gap:14px;padding:10px 12px 10px 16px;border:1px dashed var(--paper-muted);border-radius:var(--r-md);background:var(--paper);color:var(--paper-ink);cursor:pointer}
+.k-cp-code span{color:var(--paper-ink);font-family:var(--mono);font-size:var(--fs-xl);font-weight:800;letter-spacing:.04em}
+.k-cp-code em{font-style:normal;font-size:var(--fs-sm);font-weight:700;padding:4px 10px;border-radius:var(--r-pill);background:var(--coral);color:#fff}
 @media(max-width:900px){.k-fc-grid{grid-template-columns:1fr;grid-template-areas:'pitch' 'card' 'perks';gap:32px}.k-fc-card{position:static}}
 @media(max-width:640px){.k-fc-inline{flex-direction:column}.k-cs-row{grid-template-columns:1fr auto;grid-template-areas:'code n' 'tool status'}.k-cs-row.is-head{display:none}.k-cs-code{grid-area:code}.k-cs-n{grid-area:n}.k-cs-row>span:nth-child(2){grid-area:tool}.k-cs-row>span:nth-child(3){grid-area:status;justify-self:end}}
 @media(prefers-reduced-motion:reduce){.k-fc-spinner{animation:none}}

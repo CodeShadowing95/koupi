@@ -1270,6 +1270,11 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-claim-ok{flex:1;font-size:13px;font-weight:600;color:var(--blue)}
 .adm-claim .notice{padding:10px 12px;font-size:13px}
 .notice-info{background:var(--blue-soft);color:var(--blue-dark)}
+.adm-proof h2{margin:0;font-size:17px;display:flex;align-items:center;gap:8px}
+.adm-proof-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.adm-proof-list li{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.adm-proof-list code{font-weight:700}
+.adm-proof-actions{display:flex;gap:8px;flex-wrap:wrap}
 .adm-req-access{font-size:13px;font-weight:600;color:var(--ok)}
 
 /* Espace Administration : mode maintenance, interrupteurs des pages, journal. */
