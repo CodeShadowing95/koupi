@@ -547,6 +547,25 @@ export const creatorSignInTokens = pgTable('creator_sign_in_tokens', {
   check('creator_sign_in_tokens_hash_len', sql`char_length(${table.tokenHash}) = 64`),
 ]);
 
+// Preuve par la bio en libre-service (ADR-0041) : chaque créateur connecté reçoit SON code pour chaque compte qu'il revendique.
+// Un usurpateur ne peut ni écraser ni bloquer le code du vrai créateur. Les codes d'un compte s'effacent dès qu'il est prouvé.
+export const creatorClaimCodes = pgTable('creator_claim_codes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => creatorUsers.id, { onDelete: 'cascade' }),
+  accountId: uuid('account_id').notNull().references(() => creatorAccounts.id, { onDelete: 'cascade' }),
+  code: text('code').notNull(),
+  /** Dernière lecture de la bio par Merkod (YouTube). */
+  checkedAt: timestamp('checked_at', { withTimezone: true }),
+  /** Autres réseaux : le créateur dit avoir mis le code, l'admin le constate sur le profil. */
+  submittedAt: timestamp('submitted_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  uniqueIndex('creator_claim_codes_user_account_idx').on(table.userId, table.accountId),
+  uniqueIndex('creator_claim_codes_code_idx').on(table.code),
+  index('creator_claim_codes_account_idx').on(table.accountId),
+  check('creator_claim_codes_code_format', sql`${table.code} ~ '^MERKOD-[A-Z0-9]{6}$'`),
+]);
+
 export type CreatorUserRow = typeof creatorUsers.$inferSelect;
 
 // Interrupteurs du site (ADR-0022) : une ligne par page publique désactivable (« page:<clé> ») et le mode maintenance

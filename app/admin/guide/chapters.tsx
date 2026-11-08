@@ -525,6 +525,9 @@ function Createurs() {
         <Step title="Retrouve le code">YouTube : <b>Lire la bio</b> lit la description de la chaîne (1 unité de quota). Si le code y est, c’est fait. Autres réseaux : ouvre le profil toi-même et clique <b>J’ai vu le code dans la bio</b>.</Step>
       </Steps>
       <p>Une fois prouvé, le créateur peut retirer le code de sa bio. <b>Nouveau code</b> remplace un code perdu ou expiré, <b>Annuler</b> arrête la preuve en cours, et <b>Retirer la preuve</b> enlève la vérification si tu découvres une erreur.</p>
+      <p><b>Le créateur peut aussi le faire seul.</b> Connecté à son espace avec une revendication en cours, il voit les comptes reliés à sa page. Pour chaque compte que tu as contrôlé, il obtient <b>son propre code</b> (un par personne : un imposteur ne peut ni écraser ni bloquer celui du vrai), le colle dans sa bio, puis clique <b>Vérifier ma description</b> (YouTube, Merkod lit tout seul) ou <b>C’est fait</b> (autres réseaux). Dès que le code est trouvé, le compte est prouvé et son espace s’ouvre, sans que tu aies à donner l’accès.</p>
+      <p>Pour les autres réseaux, sa demande arrive en haut de <Link href="/admin/createurs/demandes">Demandes créateurs</Link>, dans <b>Codes à constater</b> : ouvre le profil, puis <b>J’ai vu le code</b> ou <b>Pas trouvé</b> (il pourra réessayer).</p>
+      <Callout tone="why">En libre-service, le seuil d’audience ne bloque pas : un petit créateur prouve son compte et entre dans son espace, mais n’a la rosette « Créateur vérifié » qu’une fois le seuil atteint. Ton contrôle du compte reste obligatoire avant toute preuve.</Callout>
       <Callout tone="warn">Merkod lit toujours le compte relié à la fiche, jamais celui envoyé dans la demande. Un imposteur peut mettre le code dans la bio de son propre faux compte, mais ça ne prouve rien pour la page du vrai. Pour TikTok ou Instagram, ouvre bien le profil relié à la fiche. C’est pour ça que le contrôle du compte passe avant : si un faux compte était relié par erreur, la preuve le validerait.</Callout>
     </Section>
     <Section id="noms" title="Garder des noms propres">
@@ -545,8 +548,8 @@ function Createurs() {
       </Steps>
       <p>Depuis la connexion des créateurs, « C’est ta page ? » mène à la page <b>Pour les créateurs</b> : la personne voit les chiffres de la page, laisse son e-mail et reçoit un lien pour se connecter. La revendication arrive ici en même temps, avec le compte principal de la page comme « compte annoncé ».</p>
       <Steps>
-        <Step title="Fais prouver le compte">Contrôle le compte, puis donne un code à mettre dans la bio (voir « Faire prouver un compte par la bio »).</Step>
-        <Step title="Donne l’accès">Une fois le compte prouvé, <b>Donner l’accès à son espace</b> sur la revendication. À sa prochaine visite, la personne voit ses codes et leurs copies du mois. Tant qu’aucun compte « Contrôlé par Merkod » du créateur n’est prouvé, le bouton reste grisé : survole-le pour voir pourquoi.</Step>
+        <Step title="Contrôle le compte">Relie le compte s’il ne l’est pas et coche <b>J’ai contrôlé ce compte</b>. Le créateur connecté peut alors le prouver lui-même depuis son espace, qui s’ouvre tout seul (voir « Faire prouver un compte par la bio »).</Step>
+        <Step title="Ou donne l’accès toi-même">Si tu as fait la preuve à sa place (<b>Donner un code</b>), clique <b>Donner l’accès à son espace</b> sur la revendication. Tant qu’aucun compte du créateur n’est prouvé, le bouton reste grisé : survole-le pour voir pourquoi.</Step>
         <Step title="Retire-le si besoin">« Retirer l’accès » la remet dans un espace vide, sans toucher à la page.</Step>
       </Steps>
       <Callout tone="warn">Une revendication ne prouve rien à elle seule : n’importe qui peut écrire « je suis MrBeast ». Ne change jamais le niveau d’un créateur sur la seule foi d’un e-mail : demande-lui la preuve par la bio.</Callout>
