@@ -4,6 +4,7 @@ import { migrate } from 'drizzle-orm/pglite/migrator';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Db } from '@/db';
 import * as schema from '@/db/schema';
+import { compilationNote } from './compilation-note';
 import { createCode } from './codes-admin';
 import { creatorsWithoutChannel, linkYoutubeChannels, youtubeBatch, type ChannelInfo, type YoutubeBatch } from './creator-youtube-link';
 
@@ -62,6 +63,14 @@ describe('linkYoutubeChannels', () => {
     expect(await creatorsWithoutChannel(db)).toBe(0);
     // Une deuxième fois, il n'y a plus rien à faire.
     expect(await linkYoutubeChannels(db, youtube)).toEqual({ linked: [], skipped: [] });
+  });
+
+  it('ne relie pas à un créateur la chaîne d’une compilation qui reprend son code', async () => {
+    await add('Baptiste Pitois', video('ccccccccccc'), 'BAPTISTE');
+    await db.update(schema.codes).set({ note: compilationNote('Backed', 'Baptiste Pitois', 'code BAPTISTE') });
+    const youtube = fakeYoutube({ ccccccccccc: 'UCbacked' }, { UCbacked: info('UCbacked', '@backed', 10_000) });
+    expect(await linkYoutubeChannels(db, youtube)).toEqual({ linked: [], skipped: [] });
+    expect(await db.select().from(schema.creatorAccounts)).toEqual([]);
   });
 
   it('signale ce qu’il ne peut pas relier tout seul', async () => {

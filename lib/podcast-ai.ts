@@ -29,7 +29,7 @@ export function forVideo<T extends { discount: string }>(items: T[]): T[] {
 export function mergeAiCodes(scan: { found: FoundCode[]; unknown: UnknownToolCode[] }, ai: ExtractedCode[], tools: CatalogTool[]): { found: MergedCode[]; unknown: MergedUnknown[] } {
   const found: MergedCode[] = scan.found.map(item => ({ ...item }));
   const unknown: MergedUnknown[] = scan.unknown.map(item => ({ ...item }));
-  const extra = (item: ExtractedCode) => ({ ...(item.expiresOn ? { expiresOn: item.expiresOn } : {}), ...(item.link ? { link: item.link } : {}) });
+  const extra = (item: ExtractedCode) => ({ ...(item.expiresOn ? { expiresOn: item.expiresOn } : {}), ...(item.link ? { link: item.link } : {}), ...(item.creator ? { creator: item.creator } : {}) });
   // Une offre par lien (code vide) se reconnaît à son lien.
   const keyOf = (entry: { code: string; link?: string }) => entry.code ? entry.code.toLowerCase() : `link:${shortLink(entry.link ?? '')}`;
   for (const item of ai) {
@@ -41,7 +41,7 @@ export function mergeAiCodes(scan: { found: FoundCode[]; unknown: UnknownToolCod
     if (index >= 0 && item.tool && !notAToolName(item.tool) && aiToolId !== found[index].toolId) {
       const [moved] = found.splice(index, 1);
       if (aiToolId) found.push({ ...moved, toolId: aiToolId });
-      else unknown.push({ name: clip(item.tool.trim(), 120), domain: toolDomainIn(item.link || item.evidence), code: moved.code, discount: moved.discount, evidence: moved.evidence, ...(moved.link ? { link: moved.link } : {}) });
+      else unknown.push({ name: clip(item.tool.trim(), 120), domain: toolDomainIn(item.link || item.evidence), code: moved.code, discount: moved.discount, evidence: moved.evidence, ...(moved.link ? { link: moved.link } : {}), ...(item.creator ? { creator: item.creator } : {}) });
     }
     const known = [...found, ...unknown].find(entry => keyOf(entry) === key);
     if (known) {
@@ -52,7 +52,12 @@ export function mergeAiCodes(scan: { found: FoundCode[]; unknown: UnknownToolCod
     }
     const discount = clip(item.discount, 240) || NO_DISCOUNT;
     const evidence = clip(item.evidence, 300);
-    const toolId = aiToolId || catalogToolIn(`${item.link} ${evidence}`, tools);
+    // L'IA nomme un outil absent du catalogue, écrit à côté du code (« 1. Autodoc — code Baptiste ») : on ne cherche
+    // pas un autre outil dans l'extrait, qui peut citer la ligne suivante (« 2. Saily… 3. Incogni… »). Le code va dans
+    // les outils à ajouter. Un nom vague (« un VPN ») absent de l'extrait laisse chercher l'outil par le site cité.
+    const toolName = item.tool.trim();
+    const named = Boolean(toolName) && !notAToolName(toolName) && evidence.toLowerCase().includes(toolName.toLowerCase());
+    const toolId = aiToolId || catalogToolIn(named ? item.link : `${item.link} ${evidence}`, tools);
     if (toolId) { found.push({ toolId, code: item.code, discount, evidence, ...extra(item) }); continue; }
     // L'IA peut nommer une étiquette (« Avantages ») ou la plateforme qui encaisse (« Thrivecart ») : on ne garde pas ce nom.
     const name = notAToolName(item.tool) ? '' : clip(item.tool.trim(), 120);

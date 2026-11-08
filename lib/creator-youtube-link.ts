@@ -11,6 +11,7 @@ import { youtubeVideoId } from './verification-run';
 import { youtubeFetch } from './api-usage';
 import { cleanMetrics, type AccountMetrics } from './account-metrics';
 import { channelLocale } from './creator-accounts';
+import { isCompilationNote } from './compilation-note';
 
 const API = 'https://www.googleapis.com/youtube/v3';
 const BATCH = 50;
@@ -81,7 +82,7 @@ export async function linkYoutubeChannels(db: Db, youtube: YoutubeBatch, options
   const only = options.onlyCreatorId;
   const [creatorRows, codeRows, youtubeAccounts] = await Promise.all([
     db.select({ id: creators.id, name: creators.name }).from(creators).where(only ? eq(creators.id, only) : undefined),
-    db.select({ creatorId: codes.creatorId, sourceUrl: codes.sourceUrl }).from(codes).where(only ? and(isNull(codes.archivedAt), eq(codes.creatorId, only)) : isNull(codes.archivedAt)),
+    db.select({ creatorId: codes.creatorId, sourceUrl: codes.sourceUrl, note: codes.note }).from(codes).where(only ? and(isNull(codes.archivedAt), eq(codes.creatorId, only)) : isNull(codes.archivedAt)),
     db.select({ creatorId: creatorAccounts.creatorId, externalId: creatorAccounts.externalId, handle: creatorAccounts.handle })
       .from(creatorAccounts).where(eq(creatorAccounts.platform, 'youtube')),
   ]);
@@ -94,6 +95,8 @@ export async function linkYoutubeChannels(db: Db, youtube: YoutubeBatch, options
   const videosOf = new Map<string, string[]>();
   for (const row of codeRows) {
     if (hasChannel.has(row.creatorId)) continue;
+    // Code repris d'une compilation : la vidéo est celle d'une autre chaîne, pas celle du créateur crédité.
+    if (isCompilationNote(row.note)) continue;
     const id = youtubeVideoId(row.sourceUrl);
     if (id) videosOf.set(row.creatorId, [...(videosOf.get(row.creatorId) ?? []), id]);
   }

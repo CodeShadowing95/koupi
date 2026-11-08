@@ -3,6 +3,7 @@ import { getDb } from '@/db';
 import { isAdminRequest, UUID_PATTERN } from '@/lib/admin-guard';
 import { searchCategoryCodes, youtubeSearch } from '@/lib/category-code-search';
 import { verificationDeps } from '@/lib/verification-deps';
+import { creatorFinder } from '@/lib/compilation-creator';
 import { recordRun } from '@/lib/source-runs';
 import { searchSummary } from '@/lib/source-run-summaries';
 
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   try {
     const db = getDb();
     const report = await recordRun(db, { source: 'youtube_search', trigger: 'manual', scope: 'Outil' },
-      () => searchCategoryCodes(db, youtube, { toolId: id, deps: verificationDeps() }), searchSummary);
+      () => searchCategoryCodes(db, youtube, { toolId: id, deps: verificationDeps(), creators: creatorFinder(process.env.YOUTUBE_API_KEY) }), searchSummary);
     if (report.tools === 0) return NextResponse.json({ error: 'Outil introuvable ou archivé.' }, { status: 404 });
     return NextResponse.json({ ok: true, ...report });
   } catch (error) {

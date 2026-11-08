@@ -20,6 +20,7 @@ import { aiSpendSince, startOfMonthUtc } from './verification-store';
 import { runVerification, type RunDeps } from './verification-run';
 import { youtubeFetch } from './api-usage';
 import { nextQuery, type PastSearch } from './youtube-queries';
+import { compilationNote, creditedCreator, type CreatorFinder, type CreditedCreator } from './compilation-creator';
 
 /** Outils cherchés par lancement : 20 recherches = 2 000 unités, un cinquième du quota du jour. */
 export const MAX_TOOLS_PER_RUN = 20;
@@ -110,7 +111,7 @@ export type CategorySearchReport = {
 };
 
 /** Cherche des codes pour les outils des catégories vides, pour une catégorie choisie (categorySlug) ou pour un seul outil (toolId). */
-export async function searchCategoryCodes(db: Db, youtube: YoutubeSearch, options: { categorySlug?: string; toolId?: string; max?: number; deps?: RunDeps; now?: Date } = {}): Promise<CategorySearchReport> {
+export async function searchCategoryCodes(db: Db, youtube: YoutubeSearch, options: { categorySlug?: string; toolId?: string; max?: number; deps?: RunDeps; now?: Date; creators?: CreatorFinder | null } = {}): Promise<CategorySearchReport> {
   const now = options.now ?? new Date();
   const { tools: targets, remaining } = toolsToSearch(await listToolsAdmin(db), options);
   const subjects: { label: string; toolId: string | null; categorySlug: string | null }[] = targets.map(tool => ({ label: tool.name, toolId: tool.id, categorySlug: null }));
@@ -150,6 +151,8 @@ export async function searchCategoryCodes(db: Db, youtube: YoutubeSearch, option
 
   // Option « Liens d'affiliation » de l'espace Administration : coupée, l'IA ne relève que des codes.
   const links = await offerLinksEnabled(db);
+  // Vidéos « compilation » : un nom n'est cherché qu'une fois par passage.
+  const credited = new Map<string, CreditedCreator>();
   async function readWithAi(video: FoundVideo, url: string) {
     if (!ai?.create || !PROMO_HINT.test(`${video.title}\n${video.description}`)) return [];
     if (aiStatusOf(ai.config, await aiSpendSince(db, startOfMonthUtc(now))).state !== 'active') return [];
@@ -204,19 +207,25 @@ export async function searchCategoryCodes(db: Db, youtube: YoutubeSearch, option
       if (scan.found.length > 0 || scan.unknown.length > 0) {
         const creatorId = await resolveCreator(db, video.channelTitle || 'Chaîne YouTube');
         for (const found of scan.found) {
+          // Code attribué à un autre créateur que la chaîne (vidéo « compilation ») : crédité à ce créateur.
+          const other = await creditedCreator(db, options.creators ?? null, found.creator, video.channelTitle, credited, now);
+          if (other) report.units += other.units;
           const codeId = await addPendingCode(db, {
-            toolId: found.toolId, creatorId, code: found.code, link: found.link, discount: found.discount, sourceUrl, sourceTitle: video.title,
-            note: `Trouvé par la recherche « ${query} » : « ${found.evidence} »`, expiresOn: found.expiresOn, origin: 'youtube_search',
+            toolId: found.toolId, creatorId: other?.creatorId ?? creatorId, code: found.code, link: found.link, discount: found.discount, sourceUrl, sourceTitle: video.title,
+            note: other ? compilationNote(video.channelTitle, other.name, found.evidence) : `Trouvé par la recherche « ${query} » : « ${found.evidence} »`,
+            expiresOn: found.expiresOn, origin: 'youtube_search',
           }, `${origin} : ${label}`);
           if (!codeId) continue;
           codesForVideo++;
-          report.found.push({ tool: toolName.get(found.toolId) ?? '', code: found.code || 'lien', creator: video.channelTitle });
+          report.found.push({ tool: toolName.get(found.toolId) ?? '', code: found.code || 'lien', creator: other?.name ?? video.channelTitle });
           if (options.deps) await runVerification(db, codeId, options.deps).catch(error => console.error('category search verification failed', error));
         }
         for (const item of scan.unknown) {
+          const other = await creditedCreator(db, options.creators ?? null, item.creator, video.channelTitle, credited, now);
+          if (other) report.units += other.units;
           const inserted = await db.insert(toolSuggestions).values({
             name: clip(item.name, 120), domain: item.domain, code: item.code || null, link: item.link || null, discount: item.discount, evidence: item.evidence,
-            sourceUrl, sourceTitle: clip(video.title, 300), creatorId,
+            sourceUrl, sourceTitle: clip(video.title, 300), creatorId: other?.creatorId ?? creatorId,
           }).onConflictDoNothing().returning({ id: toolSuggestions.id });
           if (inserted.length) report.suggested.push({ tool: item.domain ?? item.name, code: item.code || 'lien' });
         }

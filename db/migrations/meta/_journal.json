@@ -225,6 +225,13 @@
       "when": 1794085113821,
       "tag": "0031_amazing_mentallo",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1794119751245,
+      "tag": "0032_high_iron_lad",
+      "breakpoints": true
     }
   ]
 }

@@ -7,14 +7,15 @@ import { aiStatusOf, extractCodes, needsSecondReading, type AiConfig, type Extra
 import { isValidDay } from './code-expiry';
 import { creatorLevelFor } from './creator-level';
 import { aiSpendSince, recordVerificationCheck, startOfMonthUtc } from './verification-store';
-import { AI_MISS_POINTS, CLEAR_SCORE, clip, findCodeInText, implausibleCode, scoreVerification, sourceKindOf, spamSignals } from './verification';
-import { domainOf, scanPromoCodes } from './podcast-codes';
+import { AI_MISS_POINTS, CLEAR_SCORE, clip, findCodeInText, implausibleCode, resellerSignal, scoreVerification, sourceKindOf, spamSignals } from './verification';
+import { catalogToolIn, domainOf, notAToolName, scanPromoCodes } from './podcast-codes';
 import { forVideo, mergeAiCodes } from './podcast-ai';
 import { addPendingCode } from './podcast-read';
 import { suggestionOrigin, type CodeOrigin } from './code-origin';
 import { youtubeFetch } from './api-usage';
 import { findLinkInText, isLinkOffer, offerName, shortLink } from './offer-link';
 import { offerLinksEnabled } from './site-settings';
+import { isCompilationNote } from './compilation-note';
 
 export type SourceRead = { online: boolean; title: string; description: string };
 /** Lit le texte d'une source. null : source impossible à lire (plateforme non prise en charge, clé absente). */
@@ -168,8 +169,16 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
       : ai.extraction.codes.find(found => found.code.toLowerCase() === (code.code ?? '').toLowerCase());
     // L'IA lit la phrase entière : quand elle ne voit pas de code là où notre repérage en voit un (« 2026 », un mot du titre),
     // le dossier n'est plus clair. Le score reste calculé ici, l'IA ne fait que retirer des points.
-    if (seen) reasons.push({ points: 0, label: linkOffer ? 'L’IA retrouve cette offre et son lien dans la description.' : 'L’IA retrouve ce code dans la description.' });
-    else {
+    if (seen) {
+      reasons.push({ points: 0, label: linkOffer ? 'L’IA retrouve cette offre et son lien dans la description.' : 'L’IA retrouve ce code dans la description.' });
+      // L'IA lit la phrase : quand elle rattache le code à une autre marque que l'outil du code, le dossier n'est plus clair.
+      const aiTool = seen.tool.trim();
+      if (tool && aiTool && !notAToolName(aiTool) && !catalogToolIn(aiTool, [{ id: code.toolId, name: tool.name }]) && !catalogToolIn(tool.name, [{ id: code.toolId, name: aiTool }])) {
+        const next = Math.min(score, CLEAR_SCORE - 1);
+        reasons.push({ points: next - score, label: `L’IA rattache ce code à « ${clip(aiTool, 60)} », pas à ${tool.name} : vérifie l’outil avant de le valider.` });
+        score = next;
+      }
+    } else {
       // Elle lit souvent le vrai code à côté (« LWS » repéré, « CQ410 » écrit) : on le montre pour que l'admin corrige.
       const others = [...new Set(ai.extraction.codes.map(found => found.code.trim()).filter(Boolean))].slice(0, 3);
       const what = linkOffer ? 'cette offre' : 'ce code';
@@ -190,7 +199,24 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
     }
   }
 
-  if (source?.online) {
+  // Code repris d'une compilation (ADR-0042) : la vidéo est celle d'une autre chaîne, elle ne prouve pas que le créateur
+  // crédité donne ce code. Le dossier n'est jamais « clair » ; les autres codes de la vidéo ont déjà été relevés par la recherche.
+  const compilation = isCompilationNote(code.note);
+  if (compilation) {
+    const next = Math.min(score, CLEAR_SCORE - 1);
+    reasons.push({ points: next - score, label: 'Code repris d’une compilation d’une autre chaîne : vérifie-le chez le créateur crédité avant de le valider.' });
+    score = next;
+  }
+
+  // Revendeur d'accès partagés (group buy) : le code ne vient pas de l'outil, le dossier n'est jamais « clair ».
+  const reseller = source?.online ? resellerSignal(`${source.title}\n${source.description}`) : null;
+  if (reseller) {
+    const next = Math.min(score, CLEAR_SCORE - 1);
+    reasons.push({ points: next - score, label: reseller });
+    score = next;
+  }
+
+  if (source?.online && !compilation) {
     // Une source qui ne s'enregistre pas (texte refusé par la base…) ne doit pas faire échouer l'analyse du code.
     const aiCodes = (ai.extraction?.codes ?? []).filter(found => linksOn || found.code).map(found => (linksOn ? found : { ...found, link: '' }));
     const siblings = await addSiblingCodes(db, code, source, aiCodes).catch(error => { console.error('sibling codes failed', error); return null; });

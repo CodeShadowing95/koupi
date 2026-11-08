@@ -98,6 +98,15 @@ describe('keepVerbatimCodes', () => {
     expect(codes[0].evidence).toContain('try.krispcall.com/tad');
   });
 
+  it('garde le créateur crédité seulement s’il est écrit dans la description', () => {
+    const notes = '1. Autodoc — code Baptiste (Baptiste Pitois)\n2. Saily — code NOZMAN (Dr Nozman)';
+    const codes = keepVerbatimCodes({ codes: [
+      { code: 'Baptiste', tool: 'Autodoc', creator: 'Baptiste Pitois' },
+      { code: 'NOZMAN', tool: 'Saily', creator: 'Le Docteur' },
+    ] }, notes);
+    expect(codes.map(c => [c.code, c.creator])).toEqual([['Baptiste', 'Baptiste Pitois'], ['NOZMAN', '']]);
+  });
+
   it('sans l’option des liens, ne garde que les codes, sans leur lien', () => {
     const notes = '- KrispCall : -20 % avec https://try.krispcall.com/tad\n- Qonto, code ANA10 : https://qonto.com/r/ana';
     const raw = { codes: [
@@ -170,7 +179,7 @@ describe('extractCodes', () => {
 });
 
 describe('needsSecondReading', () => {
-  const found: Extraction = { codes: [{ code: 'A', link: '', tool: '', discount: '', conditions: '', expiresOn: '', evidence: '' }], model: 'm', costUsdMicros: 0, refused: false };
+  const found: Extraction = { codes: [{ code: 'A', link: '', tool: '', creator: '', discount: '', conditions: '', expiresOn: '', evidence: '' }], model: 'm', costUsdMicros: 0, refused: false };
   const empty: Extraction = { ...found, codes: [] };
 
   it('relit après un refus', () => {

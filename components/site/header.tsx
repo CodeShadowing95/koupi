@@ -7,6 +7,7 @@ import { isSoundEnabled, setSoundEnabled } from '@/lib/coupon-sound';
 import { routes } from '@/lib/routes';
 import { ABOUT_SECTIONS, activeSection } from '@/lib/about-sections';
 import { isCodePage } from '@/lib/back-link';
+import { CreateList, CreateMenu, CreatorButton } from '@/components/site/create-menu';
 
 // Sous 980 px, les liens passent dans un menu déroulant ouvert par le bouton burger :
 // il se ferme au changement de page, avec Échap, au clic à côté, et bloque le défilement de la page derrière.
@@ -96,11 +97,8 @@ export function SiteHeader() {
           )) : shown.map(link => (
             <Link key={link.href} className="k-nav-link" href={hrefOf(link.href)} aria-current={pathname.startsWith(link.href) ? 'page' : undefined}>{link.label}</Link>
           ))}
-          {/* Un vrai petit coupon : papier crème festonné, perforation, talon corail « % » qui se décolle au survol. */}
-          <Link className="k-nav-coupon" href={routes.submit()}>
-            <span className="k-nav-coupon-main k-paper">Proposer un code</span>
-            <span className="k-nav-coupon-stub" aria-hidden="true">%</span>
-          </Link>
+          {/* « + Créer » : proposer un code, ouvrir son espace créateur, signaler une erreur. */}
+          <CreateMenu />
           <button
             type="button"
             className="k-icon-btn"
@@ -115,6 +113,7 @@ export function SiteHeader() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z" /><path d="m22 9-6 6" /><path d="m16 9 6 6" /></svg>
             )}
           </button>
+          <CreatorButton />
           <button
             ref={burger}
             type="button"
@@ -143,10 +142,7 @@ export function SiteHeader() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
             </Link>
           ))}
-          <Link className="k-nav-coupon is-large k-menu-coupon" href={routes.submit()} onClick={() => setOpen(false)}>
-            <span className="k-nav-coupon-main k-paper">Proposer un code</span>
-            <span className="k-nav-coupon-stub" aria-hidden="true">%</span>
-          </Link>
+          <CreateList onPick={() => setOpen(false)} />
         </nav>
       </div>
     </header>

@@ -5,7 +5,6 @@ import { createHash, randomBytes } from 'node:crypto';
 import { and, asc, desc, eq, gt, gte, isNotNull, isNull, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { codes, creatorAccounts, creatorRequests, creatorSignInTokens, creatorUsers, creators, dailyCounters } from '@/db/schema';
-import { accountLevelOf } from './creator-level';
 import { monthStart } from './creator-directory';
 import { CONTACT_EMAIL } from './site-contact';
 
@@ -130,10 +129,10 @@ export async function grantCreatorAccess(db: Db, requestId: string, now = new Da
   const email = normalizeEmail(request.email);
   if (request.kind !== 'claim' || !email) return { ok: false, error: 'Seule une revendication avec un e-mail peut donner un accès.' };
   // Garde-fou : pas d'accès tant qu'aucun compte du créateur n'est prouvé par la bio (ADR-0020).
-  // Le compte prouvé doit aussi être « Contrôlé par Merkod » (seuil d'audience) : c'est le niveau « Créateur vérifié ».
-  const proven = await db.select().from(creatorAccounts)
-    .where(and(eq(creatorAccounts.creatorId, request.creatorId), eq(creatorAccounts.claimStatus, 'verified')));
-  if (!proven.some(account => accountLevelOf(account) === 'verified')) return { ok: false, error: 'Fais d’abord prouver un de ses comptes par la bio : l’accès ne se donne qu’au vrai créateur.' };
+  // Le seuil d'audience ne compte pas ici (ADR-0041) : l'espace est ouvert à tous, la rosette seulement au-dessus du seuil.
+  const proven = await db.select({ id: creatorAccounts.id }).from(creatorAccounts)
+    .where(and(eq(creatorAccounts.creatorId, request.creatorId), eq(creatorAccounts.claimStatus, 'verified'))).limit(1);
+  if (proven.length === 0) return { ok: false, error: 'Fais d’abord prouver un de ses comptes par la bio : l’accès ne se donne qu’au vrai créateur.' };
   const [user] = await db.insert(creatorUsers).values({ email, creatorId: request.creatorId, accessGrantedAt: now, createdAt: now })
     .onConflictDoUpdate({ target: creatorUsers.email, set: { creatorId: request.creatorId, accessGrantedAt: now } })
     .returning({ id: creatorUsers.id });

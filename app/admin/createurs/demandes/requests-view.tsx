@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { AdminCreatorRequest, CreatorRequestStatus } from '@/lib/creator-requests';
+import type { SubmittedCode } from '@/lib/creator-self-proof';
 import { sendJson } from '@/components/admin-form-dialog';
 import { StatusDot } from '@/components/admin-card';
 import { RefreshButton } from '@/components/admin-refresh-button';
@@ -24,10 +25,10 @@ function replyLink(request: AdminCreatorRequest) {
   return `mailto:${request.email}?subject=${encodeURIComponent(subject)}`;
 }
 
-/** Pourquoi « Donner l’accès » reste grisé : le serveur refuse tant qu'aucun compte n'est « Créateur vérifié ». */
-const NOT_PROVEN = 'Fais d’abord prouver un de ses comptes par la bio, sur un compte « Contrôlé par Merkod » : l’accès ne se donne qu’au vrai créateur.';
+/** Pourquoi « Donner l’accès » reste grisé : le serveur refuse tant qu'aucun compte n'est prouvé par la bio. */
+const NOT_PROVEN = 'Fais d’abord prouver un de ses comptes par la bio : l’accès ne se donne qu’au vrai créateur.';
 
-export function RequestsView({ requests, granted, proven }: { requests: AdminCreatorRequest[]; granted: string[]; proven: string[] }) {
+export function RequestsView({ requests, granted, proven, submitted }: { requests: AdminCreatorRequest[]; granted: string[]; proven: string[]; submitted: SubmittedCode[] }) {
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>('new');
   const [busy, setBusy] = useState<string | null>(null);
@@ -59,6 +60,19 @@ export function RequestsView({ requests, granted, proven }: { requests: AdminCre
     if (failed) setError(failed); else router.refresh();
   }
 
+  // Codes posés par un créateur sur un réseau que Merkod ne lit pas (ADR-0041) : tu regardes le profil et tu dis si tu le vois.
+  async function review(item: SubmittedCode, seen: boolean) {
+    const question = seen
+      ? `Tu vois bien ${item.code} dans la bio de ${item.account.handle} (${item.account.label}) ? Le compte sera prouvé et ${item.email} entrera dans l’espace de ${item.creator.name}.`
+      : `Tu ne trouves pas ${item.code} sur ${item.account.handle} ? Le créateur pourra réessayer depuis son espace.`;
+    if (!(await confirmAction(question, { confirmLabel: seen ? 'Oui, je le vois' : 'Pas trouvé', danger: !seen }))) return;
+    setBusy(item.id);
+    setError('');
+    const failed = await sendJson(`/api/admin/creator-claim-codes/${item.id}`, 'POST', { seen });
+    setBusy(null);
+    if (failed) setError(failed); else router.refresh();
+  }
+
   return (
     <main className="adm-page">
       <div className="container">
@@ -70,6 +84,26 @@ export function RequestsView({ requests, granted, proven }: { requests: AdminCre
           </div>
           <div className="adm-head-actions"><RefreshButton /></div>
         </div>
+        {submitted.length > 0 && (
+          <section className="adm-card adm-req adm-proof" aria-labelledby="adm-proof-title">
+            <h2 id="adm-proof-title">Codes à constater <span className="adm-tab-n">{submitted.length}</span></h2>
+            <p className="adm-ca-hint">Ces créateurs disent avoir mis leur code dans la bio d’un réseau que Merkod ne lit pas tout seul. Ouvre le profil : si tu vois le code, le compte est prouvé et le créateur entre dans son espace.</p>
+            <ul className="adm-proof-list">
+              {submitted.map(item => (
+                <li key={item.id}>
+                  <span>
+                    <b>{item.creator.name}</b> · {item.account.label} <a href={item.account.url} target="_blank" rel="noopener noreferrer nofollow">{item.account.handle} ↗</a>
+                    <br /><code>{item.code}</code> <small className="muted">· {item.email} · {dateFr(item.submittedAt)}</small>
+                  </span>
+                  <span className="adm-proof-actions">
+                    <button type="button" className="adm-btn" disabled={busy === item.id} onClick={() => review(item, false)}>Pas trouvé</button>
+                    <button type="button" className="adm-btn adm-btn-pri" disabled={busy === item.id} onClick={() => review(item, true)}>J’ai vu le code</button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         <div className="adm-tabs" role="group" aria-label="Filtre">
           {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label} <span className="adm-tab-n">{countOf(item.value)}</span></button>)}
         </div>
@@ -97,7 +131,7 @@ export function RequestsView({ requests, granted, proven }: { requests: AdminCre
                     {request.message && <><dt>Message</dt><dd style={{ whiteSpace: 'pre-line' }}>{request.message}</dd></>}
                   </dl>
                   {request.kind === 'claim' && request.status === 'new' && (
-                    <p className="adm-ca-hint">Pour qu’il prouve que le compte est le sien : ouvre sa <a href={`/admin/createurs?q=${encodeURIComponent(request.creator.name)}`}>fiche admin</a>, relie ce compte s’il ne l’est pas, puis <b>Donner un code</b> et envoie-lui le message. Le compte doit être « Contrôlé par Merkod » (seuil d’audience atteint). Une fois le compte prouvé, <b>Donner l’accès à son espace</b>.</p>
+                    <p className="adm-ca-hint">Ouvre sa <a href={`/admin/createurs?q=${encodeURIComponent(request.creator.name)}`}>fiche admin</a>, relie ce compte s’il ne l’est pas et coche <b>J’ai contrôlé ce compte</b>. S’il est connecté, le créateur prouve ensuite le compte lui-même depuis son espace, qui s’ouvre tout seul. Sinon, tu peux toujours <b>Donner un code</b> à la main, puis <b>Donner l’accès à son espace</b>.</p>
                   )}
                   <div className="field">
                     <label htmlFor={`note-${request.id}`}>Note pour toi <span className="muted">(facultatif)</span></label>

@@ -85,9 +85,8 @@ describe('connexion des créateurs', () => {
     const userId = signedIn.ok ? signedIn.data.userId : '';
 
     expect(await grantCreatorAccess(db, request.id, now)).toEqual({ ok: false, error: expect.stringContaining('prouver un de ses comptes') });
-    // Une preuve sur un compte sous le seuil d'audience ne suffit pas : il faut un compte « Contrôlé par Merkod ».
+    // Une preuve sur un compte sous le seuil d'audience ouvre l'espace (ADR-0041), mais pas la rosette « Créateur vérifié ».
     await db.update(schema.creatorAccounts).set({ claimStatus: 'verified', claimMethod: 'bio_code', claimedAt: now }).where(eq(schema.creatorAccounts.platform, 'youtube'));
-    expect(await grantCreatorAccess(db, request.id, now)).toEqual({ ok: false, error: expect.stringContaining('prouver un de ses comptes') });
     expect(await provenCreatorIds(db)).toEqual(new Set());
     await db.update(schema.creatorAccounts).set({ adminCheckedAt: now, subscribers: 4_000 }).where(eq(schema.creatorAccounts.platform, 'youtube'));
     expect(await provenCreatorIds(db)).toEqual(new Set([ana]));
