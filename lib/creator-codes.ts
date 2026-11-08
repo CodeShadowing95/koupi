@@ -15,7 +15,7 @@ export type CreatorCodeInput = { toolSlug: string; code: string; discount: strin
 const text = (value: unknown, max: number) => (typeof value === 'string' ? value.trim().slice(0, max) : '');
 const withScheme = (value: string) => (value && !/^https?:\/\//i.test(value) ? `https://${value}` : value);
 
-/** Le formulaire « Ajouter un code » du Studio. */
+/** Le formulaire « Ajouter une offre » du Studio : code, lien d'affiliation ou les deux. L'interrupteur « Liens d'affiliation » ne concerne que l'IA. */
 export function parseCreatorCode(body: Record<string, unknown>): Parsed<CreatorCodeInput> {
   const toolSlug = text(body.toolSlug, 120);
   if (!toolSlug) return { ok: false, error: 'Choisis l’outil.' };
@@ -23,7 +23,7 @@ export function parseCreatorCode(body: Record<string, unknown>): Parsed<CreatorC
   const discount = text(body.discount, 240);
   const creatorLink = withScheme(text(body.creatorLink, 1000));
   const sourceUrl = withScheme(text(body.sourceUrl, 1000));
-  if (!code && !creatorLink) return { ok: false, error: 'Indique ton code, ou le lien de ton offre s’il n’y a pas de code.' };
+  if (!code && !creatorLink) return { ok: false, error: 'Indique ton code promo, ton lien d’affiliation, ou les deux.' };
   const codeError = code ? codeFormatError(code) : null;
   if (codeError) return { ok: false, error: codeError };
   if (!discount) return { ok: false, error: 'Indique ce que gagne la personne (ex. -20 %, 1 mois offert).' };

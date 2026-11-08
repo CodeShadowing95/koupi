@@ -47,6 +47,8 @@ export function BoardingCoupon({ code, category, link, compact = false, light = 
   const [failed, setFailed] = useState(false);
   const badge = codeBadge(code, { withDate: false });
   const platform = sourcePlatform(code.source);
+  // Code + lien du créateur : la copie ouvre son lien d'affiliation, on le dit sur le talon (ADR-0040).
+  const viaCreator = Boolean(code.creatorLink && link === code.creatorLink);
 
   const tear = async () => {
     track('copy', code.id);
@@ -134,9 +136,10 @@ export function BoardingCoupon({ code, category, link, compact = false, light = 
           <span className="k-pass-action">Profiter de l’offre</span>
         </a>
       ) : <>
-      <button type="button" className="k-pass-stub" onClick={tear} aria-label={torn ? `Recopier le code ${code.code}` : `Copier le code ${code.code} et ouvrir ${code.tool}`}>
+      <button type="button" className="k-pass-stub" onClick={tear}
+        aria-label={torn ? `Recopier le code ${code.code}` : viaCreator ? `Copier le code ${code.code} et ouvrir ${code.tool} via le lien de ${code.creator} (lien d’affiliation)` : `Copier le code ${code.code} et ouvrir ${code.tool}`}>
         <span className="k-pass-stub-code">
-          <small>{torn ? (failed ? 'Copie à la main' : 'Copié ✓') : 'Code promo'}</small>
+          <small>{torn ? (failed ? 'Copie à la main' : 'Copié ✓') : viaCreator ? `Code promo · via le lien de ${code.creator}` : 'Code promo'}</small>
           <span className="k-pass-code">{code.code}</span>
         </span>
         <span className="k-pass-action">{torn ? 'Recopier' : 'Copier'}</span>
