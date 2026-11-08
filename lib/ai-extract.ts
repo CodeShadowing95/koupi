@@ -103,6 +103,8 @@ const BASE_PROMPT = [
   'Ne relève que les codes écrits tels quels dans la description. N’invente jamais un code, une réduction ou une date.',
   'Pour chaque code : le code exact, le nom de l’outil, la réduction telle qu’annoncée, les conditions (nouveaux clients, durée…), la date de fin au format AAAA-MM-JJ si elle est écrite, sinon une chaîne vide.',
   'Un mot qui n’apparaît que dans une adresse web (« try.krispcall.com/tad ») n’est pas un code.',
+  'tool : la marque qui accorde la réduction, là où l’on tape le code, en général nommée sur la ligne du code ou juste avant. Ce n’est pas forcément le sujet de la vidéo ni le produit dont parle le titre.',
+  'Ne relève pas les codes d’un revendeur d’accès partagés à des outils payants (« group buy », comptes ou abonnements partagés, revente de licences) : ce n’est pas une réduction de l’outil, même si la vidéo en parle.',
   'creator : quand la description attribue le code à un autre créateur que l’auteur de la vidéo (liste ou compilation de codes de plusieurs créateurs, « Saily — code NOZMAN (Dr Nozman) »), le nom de ce créateur tel qu’il est écrit ; sinon une chaîne vide.',
 ];
 

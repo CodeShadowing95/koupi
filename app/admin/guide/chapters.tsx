@@ -282,6 +282,7 @@ function Verifications() {
         <Step title="Calculer le score">Chaque contrôle ajoute ou retire des points. Les raisons sont listées sous l’extrait, avec leurs points.</Step>
       </Steps>
       <Callout tone="rule">Vidéo « compilation » : une chaîne liste les codes d’autres créateurs (« 2. Saily — code NOZMAN (Dr Nozman) »). Chaque code est alors crédité au <b>créateur nommé</b>, pas à la chaîne qui fait la liste. Merkod le cherche d’abord parmi les créateurs, puis par sa chaîne YouTube (100 unités du quota, une fois par nom inconnu) ; sans chaîne qui porte ce nom, il le crée par son nom. La note du code commence par « Repris d’une compilation » et son dossier n’est jamais « clair » : la vidéo n’est pas celle du créateur, vérifie le code chez lui avant de le valider.</Callout>
+      <Callout tone="rule">Revendeur d’accès partagés : une vidéo qui vend un outil payant « moins cher » par un <b>group buy</b> ou un compte partagé donne le code du revendeur (« Rankerfox, code JULIEN20 » pour Envato Elements), pas une réduction de l’outil. L’IA ne relève plus ces codes, et quand la source parle de group buy ou de compte partagé, le dossier n’est jamais « clair ». De même, quand l’IA rattache le code à une autre marque que son outil, le dossier passe « À regarder » et la raison nomme cette marque : rejette le code ou corrige son outil.</Callout>
       <p>Le bouton <b>Analyser</b> lance l’analyse d’un code ; <b>Analyser les codes non analysés</b> les fait tous, l’un après l’autre.</p>
     </Section>
     <Section id="score" title="Lire le score">

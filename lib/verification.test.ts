@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  resellerSignal,
   MIN_SUBSCRIBERS, REJECT_BELOW, clip, creatorLevelOf, findCodeInText, implausibleCode, scoreVerification, sourceKindOf, spamSignals,
   type VerificationFacts,
 } from './verification';
@@ -191,5 +192,19 @@ describe('clip', () => {
     // L'extrait commence 80 caractères avant le code, ici au milieu de l'emoji.
     const { excerpt } = findCodeInText('NORD20', `🔗${'y'.repeat(73)} code NORD20`);
     expect(excerpt?.startsWith('…y')).toBe(true);
+  });
+});
+
+describe('resellerSignal', () => {
+  it('repère les revendeurs d’accès partagés', () => {
+    expect(resellerSignal('Envato Elements moins cher grâce aux group buy SEO')).not.toBeNull();
+    expect(resellerSignal('Un groupbuy fiable')).not.toBeNull();
+    expect(resellerSignal('Netflix en compte partagé')).not.toBeNull();
+    expect(resellerSignal('Shared accounts for Semrush')).not.toBeNull();
+  });
+
+  it('laisse passer une description ordinaire', () => {
+    expect(resellerSignal('Code ANA10 : -10 % sur NordVPN, partagé par Ana')).toBeNull();
+    expect(resellerSignal('Le groupe a acheté Notion')).toBeNull();
   });
 });
