@@ -1,6 +1,6 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { StudioToolField, type ToolChoice } from './studio-tool-field';
 
 // « Ajouter une offre » dans le Studio : un code, un lien d'affiliation, ou les deux. Créateur prouvé : en ligne tout de suite. Sinon : relu par Merkod d'abord.
@@ -10,6 +10,8 @@ export function StudioAddCode({ tools, proven }: { tools: ToolChoice[]; proven: 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState('');
+  const [newTool, setNewTool] = useState(false);
+  const onNewTool = useCallback((value: boolean) => setNewTool(value), []);
 
   async function send(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -45,13 +47,15 @@ export function StudioAddCode({ tools, proven }: { tools: ToolChoice[]; proven: 
     <form className="k-st-card k-st-add" onSubmit={send}>
       <p className="k-st-muted">{proven ? 'Ta chaîne est prouvée : ton offre est publiée tout de suite, marquée « À tester » (sauf pour un outil pas encore sur Merkod, qu’on ajoute d’abord).' : 'Ta page n’est pas encore vérifiée : Merkod relit ton offre avant de la publier.'}</p>
       <div className="k-st-add-grid">
-        <StudioToolField tools={tools} />
+        <StudioToolField tools={tools} onNewTool={onNewTool} />
         <label>Ton code promo <small>(si tu en as un)</small><input name="code" maxLength={120} placeholder="VASTO20" autoCapitalize="characters" /></label>
         <label>Ce que gagne la personne<input name="discount" maxLength={240} required placeholder="-20 % sur l’abonnement" /></label>
         <label>Ton lien d’affiliation <small>(si tu en as un)</small><input name="creatorLink" type="url" inputMode="url" maxLength={1000} placeholder="https://…" /></label>
         <label>Vidéo ou post où tu le donnes <small>(facultatif)</small><input name="sourceUrl" type="url" inputMode="url" maxLength={1000} placeholder="https://youtu.be/…" /></label>
         <label>Date de fin <small>(facultatif)</small><input name="expiresOn" type="date" /></label>
+        {newTool && <label>Site de l’outil <small>(facultatif, ça nous aide à l’ajouter)</small><input name="toolSite" inputMode="url" maxLength={300} placeholder="notion.so" /></label>}
       </div>
+      {newTool && <p className="k-st-muted" role="status">Cet outil n’est pas encore sur Merkod : on l’ajoute, puis on relit ton offre.</p>}
       {error && <p className="k-req-error" role="alert">{error}</p>}
       <div className="k-st-row">
         <button type="submit" className="k-btn k-btn-primary" disabled={busy}>{busy ? 'Envoi…' : proven ? 'Publier mon offre' : 'Envoyer mon offre'}</button>

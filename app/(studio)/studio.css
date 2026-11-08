@@ -180,7 +180,9 @@
 .k-st-add-head{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 14px}
 .k-st-add{display:grid;gap:12px;margin:0 0 14px}
 .k-st-add-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.k-st-add label{display:grid;gap:6px;color:var(--text);font-weight:700;font-size:var(--fs-sm)}
+/* Libellé et mention « (facultatif) » sur la même ligne : tous les champs restent alignés. */
+.k-st-add label{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:6px;row-gap:6px;color:var(--text);font-weight:700;font-size:var(--fs-sm)}
+.k-st-add label>input,.k-st-add label>select{flex:1 0 100%}
 .k-st-add label small{color:var(--muted);font-weight:400}
 .k-st-add input,.k-st-add select{height:44px;padding:0 14px;border-radius:var(--r-md);border:1px solid var(--line-2);background:var(--surface);color:#fff;font-size:var(--fs-base);font-weight:400}
 .k-st-add input:focus,.k-st-add select:focus{outline:2px solid var(--blue-soft);outline-offset:2px}
@@ -189,8 +191,7 @@
 /* Champ « Outil » avec autocomplétion. color-scheme : listes et calendriers natifs en sombre (plus de liste blanche illisible). */
 .k-st-add input,.k-st-add select{color-scheme:dark}
 .k-st-add select option{background:var(--bg-2);color:#fff}
-.k-st-tool{display:grid;gap:6px;align-content:start}
-.k-st-tool>label,.k-st-tool-new label{display:grid;gap:6px;color:var(--text);font-weight:700;font-size:var(--fs-sm)}
+.k-st-toolfield{display:grid;gap:6px;align-content:start}
 .k-st-combo{position:relative}
 .k-st-combo input{width:100%}
 .k-st-combo-ok{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--blue-soft);font-weight:800}
@@ -202,9 +203,9 @@
 .kp .k-st-combo-logo{width:30px;height:30px;border-radius:var(--r-sm);font-size:var(--fs-sm)}
 .kp .k-st-combo-logo.is-picked{position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none}
 .k-st-add .k-st-combo.has-logo input{padding-left:48px}
+.k-st-combo-new{position:absolute;right:10px;top:50%;transform:translateY(-50%);padding:3px 10px;border-radius:var(--r-pill);border:1px dashed var(--line-2);color:var(--muted);font-size:var(--fs-xs);pointer-events:none}
+.k-st-add .k-st-combo.is-new input{padding-right:120px}
 .k-st-combo-list li.is-active{background:rgba(255,255,255,.08)}
-.k-st-tool-note{color:var(--muted);font-weight:400;font-size:var(--fs-sm)}
-.k-st-tool-new{display:grid;gap:8px}
 
 /* Relier sa vraie page (ADR-0044) : au-dessus de la preuve de sa page provisoire. */
 .k-st-link{margin:4px 0 18px;padding:14px 16px;border:1px solid var(--blue-soft);border-radius:var(--r-md);background:var(--surface)}

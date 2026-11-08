@@ -1,5 +1,5 @@
 'use client';
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { fold, matchTools, MIN_CHARS, type ToolChoice } from '@/lib/studio-tools';
 import { ToolLogo } from './tool-logo';
 
@@ -10,7 +10,7 @@ export type { ToolChoice };
  * Rien ne correspond ? Il garde son texte (et donne le site s'il veut) : Merkod ajoutera l'outil.
  * Envoie toolSlug (outil choisi) ou toolName (+ toolSite).
  */
-export function StudioToolField({ tools }: { tools: ToolChoice[] }) {
+export function StudioToolField({ tools, onNewTool }: { tools: ToolChoice[]; onNewTool?: (isNew: boolean) => void }) {
   const id = useId();
   const [text, setText] = useState('');
   const [picked, setPicked] = useState<ToolChoice | null>(null);
@@ -22,6 +22,8 @@ export function StudioToolField({ tools }: { tools: ToolChoice[] }) {
   // « Pas encore sur Merkod » n'apparaît qu'une fois la liste fermée : sinon il pousserait le formulaire pendant la saisie.
   const unknown = !picked && !exact && fold(text).length >= MIN_CHARS && !listShown;
   const listId = `${id}-list`;
+  // Le champ « Site de l'outil » est ajouté par le formulaire en fin de grille : rien ne se décale sous ce champ.
+  useEffect(() => { onNewTool?.(unknown); }, [unknown, onNewTool]);
 
   function choose(tool: ToolChoice) {
     setPicked(tool);
@@ -38,16 +40,17 @@ export function StudioToolField({ tools }: { tools: ToolChoice[] }) {
   }
 
   return (
-    <div className="k-st-tool">
+    <div className="k-st-toolfield">
       <label htmlFor={`${id}-input`}>Outil <small>(écris son nom)</small></label>
-      <div className={picked ? 'k-st-combo has-logo' : 'k-st-combo'}>
+      <div className={`k-st-combo${picked ? ' has-logo' : ''}${unknown ? ' is-new' : ''}`}>
         <input id={`${id}-input`} name="toolName" value={text} required maxLength={120} autoComplete="off" placeholder="Notion, Canva, NordVPN…"
           role="combobox" aria-expanded={listShown} aria-controls={listId} aria-autocomplete="list"
           aria-activedescendant={open && matches.length ? `${id}-opt-${active}` : undefined}
           onChange={event => { setText(event.target.value); setPicked(null); setOpen(true); setActive(0); }}
           onFocus={() => setOpen(true)} onBlur={() => window.setTimeout(() => setOpen(false), 120)} onKeyDown={onKey} />
         {picked && <ToolLogo tool={picked.slug} name={picked.name} className="k-st-combo-logo is-picked" />}
-        {picked && <span className="k-st-combo-ok" aria-hidden="true">✓</span>}
+        {picked && <span className="k-st-combo-ok" title="Outil déjà sur Merkod">✓<span className="k-sr"> Outil déjà sur Merkod</span></span>}
+        {unknown && <span className="k-st-combo-new" title="Pas encore sur Merkod : on l’ajoute, puis on relit ton offre.">Nouvel outil</span>}
         {listShown && (
           <ul id={listId} role="listbox" className="k-st-combo-list" aria-label="Outils déjà sur Merkod">
             {matches.map((tool, index) => (
@@ -62,13 +65,6 @@ export function StudioToolField({ tools }: { tools: ToolChoice[] }) {
         )}
       </div>
       <input type="hidden" name="toolSlug" value={picked?.slug ?? exact?.slug ?? ''} />
-      {picked && <small className="k-st-tool-note">Outil déjà sur Merkod.</small>}
-      {unknown && (
-        <div className="k-st-tool-new">
-          <small className="k-st-tool-note">{matches.length ? 'Pas dans la liste ? Garde ton texte : ' : 'Pas encore sur Merkod : '}on l’ajoute, puis on relit ton offre.</small>
-          <label>Site de l’outil <small>(facultatif, ça nous aide)</small><input name="toolSite" inputMode="url" maxLength={300} placeholder="notion.so" /></label>
-        </div>
-      )}
     </div>
   );
 }
