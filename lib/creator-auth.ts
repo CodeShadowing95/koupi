@@ -7,6 +7,7 @@ import type { Db } from '@/db';
 import { codes, creatorAccounts, creatorRequests, creatorSignInTokens, creatorUsers, creators, dailyCounters } from '@/db/schema';
 import { monthStart } from './creator-directory';
 import { CONTACT_EMAIL } from './site-contact';
+import { isProvisionalPage, mergeProvisionalPage } from './creator-merge';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -143,6 +144,11 @@ export async function grantCreatorAccess(db: Db, requestId: string, now = new Da
   const proven = await db.select({ id: creatorAccounts.id }).from(creatorAccounts)
     .where(and(eq(creatorAccounts.creatorId, request.creatorId), eq(creatorAccounts.claimStatus, 'verified'))).limit(1);
   if (proven.length === 0) return { ok: false, error: 'Fais d’abord prouver un de ses comptes par la bio : l’accès ne se donne qu’au vrai créateur.' };
+  // Son studio était ouvert sur une page provisoire (ADR-0043) : elle est fusionnée dans la vraie page (ADR-0044).
+  const [before] = await db.select({ creatorId: creatorUsers.creatorId }).from(creatorUsers).where(eq(creatorUsers.email, email)).limit(1);
+  if (before?.creatorId && before.creatorId !== request.creatorId && await isProvisionalPage(db, before.creatorId)) {
+    await mergeProvisionalPage(db, before.creatorId, request.creatorId, now);
+  }
   const [user] = await db.insert(creatorUsers).values({ email, creatorId: request.creatorId, accessGrantedAt: now, createdAt: now })
     .onConflictDoUpdate({ target: creatorUsers.email, set: { creatorId: request.creatorId, accessGrantedAt: now } })
     .returning({ id: creatorUsers.id });

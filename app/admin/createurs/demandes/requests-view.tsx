@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { AdminCreatorRequest, CreatorRequestStatus } from '@/lib/creator-requests';
 import type { SubmittedCode } from '@/lib/creator-self-proof';
+import type { PageToLink } from '@/lib/creator-merge';
 import { sendJson } from '@/components/admin-form-dialog';
 import { StatusDot } from '@/components/admin-card';
 import { RefreshButton } from '@/components/admin-refresh-button';
@@ -28,7 +29,7 @@ function replyLink(request: AdminCreatorRequest) {
 /** Pourquoi « Donner l’accès » reste grisé : le serveur refuse tant qu'aucun compte n'est prouvé par la bio. */
 const NOT_PROVEN = 'Fais d’abord prouver un de ses comptes par la bio : l’accès ne se donne qu’au vrai créateur.';
 
-export function RequestsView({ requests, granted, proven, submitted }: { requests: AdminCreatorRequest[]; granted: string[]; proven: string[]; submitted: SubmittedCode[] }) {
+export function RequestsView({ requests, granted, proven, submitted, toLink }: { requests: AdminCreatorRequest[]; granted: string[]; proven: string[]; submitted: SubmittedCode[]; toLink: PageToLink[] }) {
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>('new');
   const [busy, setBusy] = useState<string | null>(null);
@@ -73,6 +74,18 @@ export function RequestsView({ requests, granted, proven, submitted }: { request
     if (failed) setError(failed); else router.refresh();
   }
 
+  // Pages à relier (ADR-0044) : une invitation par e-mail, envoyée seulement quand tu cliques.
+  async function invite(item: PageToLink) {
+    const again = item.invitedAt ? ` Tu l’as déjà invité le ${dateFr(item.invitedAt)}.` : '';
+    const question = `Envoyer à ${item.email} une invitation à relier sa page « ${item.page.name} » à la page ${item.match.name} ?${again} Il devra quand même la prouver par sa bio.`;
+    if (!(await confirmAction(question, { confirmLabel: 'Envoyer l’invitation' }))) return;
+    setBusy(item.userId);
+    setError('');
+    const failed = await sendJson(`/api/admin/pages-to-link/${item.userId}`, 'POST', {});
+    setBusy(null);
+    if (failed) setError(failed); else router.refresh();
+  }
+
   return (
     <main className="adm-page">
       <div className="container">
@@ -98,6 +111,27 @@ export function RequestsView({ requests, granted, proven, submitted }: { request
                   <span className="adm-proof-actions">
                     <button type="button" className="adm-btn" disabled={busy === item.id} onClick={() => review(item, false)}>Pas trouvé</button>
                     <button type="button" className="adm-btn adm-btn-pri" disabled={busy === item.id} onClick={() => review(item, true)}>J’ai vu le code</button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {toLink.length > 0 && (
+          <section className="adm-card adm-req adm-proof" aria-labelledby="adm-link-title">
+            <h2 id="adm-link-title">Pages à relier <span className="adm-tab-n">{toLink.length}</span></h2>
+            <p className="adm-ca-hint">Ces créateurs ont ouvert leur studio sur une page provisoire, alors qu’une page au nom proche existe déjà. Si c’est sans doute la même personne, envoie-lui l’invitation : il revendique la vraie page, la prouve par sa bio, et sa page provisoire y est fusionnée.</p>
+            <ul className="adm-proof-list">
+              {toLink.map(item => (
+                <li key={item.userId}>
+                  <span>
+                    <b>{item.page.name}</b> <small className="muted">(page provisoire · {item.email})</small>
+                    <br />ressemble à <a href={`/admin/createurs?q=${encodeURIComponent(item.match.name)}`}>{item.match.name}</a>
+                    {item.match.accounts.length > 0 && <small className="muted"> · {item.match.accounts.map(account => account.handle).join(', ')}</small>}
+                    <small className="muted"> · {item.match.codes} {item.match.codes > 1 ? 'codes' : 'code'}{item.invitedAt ? ` · invité le ${dateFr(item.invitedAt)}` : ''}</small>
+                  </span>
+                  <span className="adm-proof-actions">
+                    <button type="button" className={item.invitedAt ? 'adm-btn' : 'adm-btn adm-btn-pri'} disabled={busy === item.userId} onClick={() => invite(item)}>{item.invitedAt ? 'Renvoyer' : 'Envoyer l’invitation'}</button>
                   </span>
                 </li>
               ))}

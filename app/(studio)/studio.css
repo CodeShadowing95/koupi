@@ -185,3 +185,8 @@
 .k-st-add input,.k-st-add select{height:44px;padding:0 14px;border-radius:var(--r-md);border:1px solid var(--line-2);background:var(--surface);color:#fff;font-size:var(--fs-base);font-weight:400}
 .k-st-add input:focus,.k-st-add select:focus{outline:2px solid var(--blue-soft);outline-offset:2px}
 @media (max-width:640px){.k-st-add-grid{grid-template-columns:minmax(0,1fr)}}
+
+/* Relier sa vraie page (ADR-0044) : au-dessus de la preuve de sa page provisoire. */
+.k-st-link{margin:4px 0 18px;padding:14px 16px;border:1px solid var(--blue-soft);border-radius:var(--r-md);background:var(--surface)}
+.k-st-link .k-st-muted{margin:0 0 12px}
+.k-st-link b{color:#fff}
