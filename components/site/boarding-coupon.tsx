@@ -81,10 +81,7 @@ export function BoardingCoupon({ code, category, link, compact = false, light = 
               : <strong>{code.tool}</strong>}
             {light
               ? <small className="k-pass-light-by">par {code.creator}<CreatorMark level={code.creatorLevel} compact /></small>
-              : compact
-              ? category && <small>{category}</small>
-              // Mode détaillé : un mot de confiance court à la place de la catégorie (la pastille du logo porte le dessin).
-              : <small className={`k-pass-trust is-${badge.seal}`} title={badge.title}>{badge.label}</small>}
+              : category && <small>{category}</small>}
           </span>
           {!light && (
             <span className="k-pass-actions">
@@ -99,9 +96,11 @@ export function BoardingCoupon({ code, category, link, compact = false, light = 
           : compact || light
           ? <p className="k-pass-discount">{code.discount}</p>
           : <>
-        {/* Le créateur seul (avatar et nom) : la source, le partage et le signalement sont dans le menu ⋮. */}
+        {/* Le créateur (avatar et nom) et, tout à droite, le badge de confiance du code (point de couleur ET mot).
+            La source, le partage et le signalement sont dans le menu ⋮. */}
         <p className="k-pass-by">
           <Link href={routes.creator(code.creatorSlug)} className="k-pass-who"><CreatorAvatar name={code.creator} size="xs" /><span className="k-pass-who-name">{code.creator}</span><CreatorMark level={code.creatorLevel} compact /></Link>
+          <span className={`k-pass-trust is-${badge.seal}`} title={badge.title}>{badge.label}</span>
         </p>
 
         {/* Une seule information mise en avant : la réduction. La date de fin s'affiche seulement si elle existe. */}
