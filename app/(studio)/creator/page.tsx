@@ -18,7 +18,7 @@ import { CodeBadge } from '@/components/site/code-badge';
 import { TrustPill } from '@/components/site/trust';
 import { CopyPageLink } from '@/components/site/creator-space-actions';
 import { CreatorProof } from '@/components/site/creator-proof';
-import { StudioSkip } from '@/components/site/studio-skip';
+import { StudioSkip, VerifyRequest } from '@/components/site/studio-skip';
 import { CopiesChart, RosetteRing, StudioShell, type StudioNavItem } from '@/components/site/studio';
 
 export const metadata: Metadata = { title: 'Merkod Studio', robots: { index: false, follow: false } };
@@ -109,11 +109,15 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
   const trend = weekTrend(series);
   const goal = rosetteGoal(accounts);
   const level = creatorLevelFromAccounts(accounts);
+  // Page non vérifiée : aucun compte prouvé par la bio (ADR-0043). On l'invite à faire vérifier sa chaîne.
+  const proven = accounts.some(item => item.claimStatus === 'verified');
+  const asked = account.claims.some(claim => claim.slug === creator.slug);
+  const ownProof = !proven && asked ? (await loadSelfProof(db, account, now)).filter(page => page.slug === creator.slug && page.accounts.length > 0) : [];
   const nav: StudioNavItem[] = [
     { id: 'apercu', label: 'Tableau de bord', icon: 'home' },
     { id: 'codes', label: 'Mes codes', icon: 'codes' },
     { id: 'page', label: 'Ma page', icon: 'page' },
-    { id: 'rosette', label: 'Objectif rosette', icon: 'rosette' },
+    proven ? { id: 'rosette', label: 'Objectif rosette', icon: 'rosette' } : { id: 'verifier', label: 'Faire vérifier ma chaîne', icon: 'proof' },
   ];
   const month = new Intl.DateTimeFormat('fr-FR', { month: 'long', timeZone: 'Europe/Paris' }).format(now);
   const pageUrl = routes.creator(creator.slug);
@@ -130,6 +134,7 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
         <div className="k-st-hello">
           <p className="k-st-eyebrow">{greeting(now)} · {today(now)}</p>
           <h2>{greeting(now)}, {creator.name}.</h2>
+          {!proven && <p><a className="k-st-unverified" href="#verifier">Page non vérifiée</a></p>}
         </div>
 
         <div className="k-st-hero">
@@ -204,6 +209,21 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
           </div>
         </section>
       </div>
+
+      {!proven && (
+        <section id="verifier" className="k-st-section k-st-card k-st-verify">
+          <h2 className="k-st-h2">Fais vérifier ta chaîne</h2>
+          <p className="k-st-muted">Ta page est « non vérifiée » : tes codes passent par la relecture de Merkod avant d’être publiés. Prouve que ta chaîne est à toi, en deux minutes :</p>
+          <ul className="k-st-perks">
+            <li><b>Tes codes publiés sans attente</b><span>Plus de relecture : ils sont en ligne dès que tu les ajoutes.</span></li>
+            <li><b>La coche bleue sur ta page</b><span>Tes abonnés savent que c’est bien toi.</span></li>
+            <li><b>La rosette « Créateur vérifié »</b><span>Dès {nb(MIN_SUBSCRIBERS)} abonnés, ou {MIN_RATINGS} notes pour un podcast.</span></li>
+          </ul>
+          {ownProof.length > 0 ? <CreatorProof pages={ownProof} />
+            : asked ? <p className="k-st-none" role="status">Demande reçue. Merkod ajoute ta chaîne à ta page et la contrôle, puis ton code de preuve apparaîtra ici.</p>
+            : <VerifyRequest slug={creator.slug} />}
+        </section>
+      )}
     </StudioShell>
   );
 }
