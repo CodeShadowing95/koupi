@@ -48,3 +48,39 @@ export function StudioSkip({ suggested }: { suggested: string }) {
     </form>
   );
 }
+
+// « Fais vérifier ta chaîne » : le créateur d'une page non vérifiée colle le lien de sa chaîne. L'admin l'ajoute à sa page
+// et la contrôle ; le code de preuve apparaît ensuite dans le Studio.
+export function VerifyRequest({ slug }: { slug: string }) {
+  const router = useRouter();
+  const [url, setUrl] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  async function send(event: React.FormEvent) {
+    event.preventDefault();
+    setBusy(true);
+    setError('');
+    try {
+      const response = await fetch('/api/creator-claim', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug, accountUrl: url }) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) { setError(typeof data.error === 'string' ? data.error : 'Impossible d’envoyer ta demande.'); return; }
+      router.refresh();
+    } catch {
+      setError('Pas de connexion. Réessaie dans un instant.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form className="k-st-skip" onSubmit={send}>
+      <label htmlFor="k-st-channel">Le lien de ta chaîne ou de ton profil</label>
+      <div className="k-st-find">
+        <input id="k-st-channel" type="url" inputMode="url" value={url} onChange={event => setUrl(event.target.value)} maxLength={1000} required placeholder="https://www.youtube.com/@tachaine" />
+        <button type="submit" className="k-btn k-btn-primary" disabled={busy}>{busy ? 'Envoi…' : 'Faire vérifier'}</button>
+      </div>
+      {error && <p className="k-req-error" role="alert">{error}</p>}
+    </form>
+  );
+}

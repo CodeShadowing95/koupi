@@ -42,7 +42,7 @@ export type SignInLink = { link: string; creatorName: string | null };
  * Enregistre la revendication d'une page pour une adresse e-mail, une seule fois par e-mail et par page
  * tant qu'elle n'est pas traitée. Elle apparaît dans les Demandes de l'admin et ouvre l'étape de preuve du Studio.
  */
-export async function recordClaim(db: Db, input: { email: string; slug: string; ipHash: string; appUrl: string; message?: string }): Promise<Parsed<{ creatorName: string }>> {
+export async function recordClaim(db: Db, input: { email: string; slug: string; ipHash: string; appUrl: string; message?: string; accountUrl?: string }): Promise<Parsed<{ creatorName: string }>> {
   const [creator] = await db.select({ id: creators.id, name: creators.name }).from(creators).where(eq(creators.slug, input.slug)).limit(1);
   if (!creator) return { ok: false, error: 'Créateur inconnu.' };
   const [open] = await db.select({ id: creatorRequests.id }).from(creatorRequests)
@@ -53,7 +53,7 @@ export async function recordClaim(db: Db, input: { email: string; slug: string; 
     accounts.sort((a, b) => PLATFORM_ORDER.indexOf(a.platform) - PLATFORM_ORDER.indexOf(b.platform));
     await db.insert(creatorRequests).values({
       creatorId: creator.id, kind: 'claim', email: input.email, ipHash: input.ipHash,
-      accountUrl: accounts[0]?.url ?? `${input.appUrl}/creators/${input.slug}`,
+      accountUrl: input.accountUrl ?? accounts[0]?.url ?? `${input.appUrl}/creators/${input.slug}`,
       message: input.message ?? 'Revendication envoyée depuis « Pour les créateurs », avec la connexion par e-mail.',
     });
   }

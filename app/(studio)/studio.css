@@ -165,3 +165,13 @@
 /* « Passer cette étape » : un champ, le nom de créateur. */
 .k-st-skip label{display:block;margin:12px 0 6px;color:var(--text);font-weight:700;font-size:var(--fs-sm)}
 .k-st-skip .k-st-find{margin-top:0}
+
+/* Page non vérifiée : pastille sous le bonjour et encart « Fais vérifier ta chaîne ». */
+.k-st-unverified{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:var(--r-pill);border:1px dashed var(--line-2);color:var(--muted);font-size:var(--fs-sm);text-decoration:none}
+.k-st-unverified:hover{color:var(--text);border-color:var(--blue-soft)}
+.k-st-verify{margin-top:24px}
+.k-st-perks{list-style:none;margin:14px 0 18px;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.k-st-perks li{display:grid;gap:4px;padding:14px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface)}
+.k-st-perks b{color:#fff;font-size:var(--fs-base)}
+.k-st-perks span{color:var(--muted);font-size:var(--fs-sm)}
+@media (max-width:980px){.k-st-perks{grid-template-columns:minmax(0,1fr)}}
