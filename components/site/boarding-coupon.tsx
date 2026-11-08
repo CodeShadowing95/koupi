@@ -11,9 +11,8 @@ import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { PlatformIcon } from '@/components/platform-icon';
 import { codeBadge } from '@/lib/code-badge';
 import { TrustGlyph } from '@/components/site/trust';
-import { PLATFORM_LABELS } from '@/lib/creator-accounts-display';
 import { sourcePlatform } from '@/lib/source-platform';
-import { sourceLabel } from '@/lib/source-label';
+import { sourceAction, sourceLabel } from '@/lib/source-label';
 import { CodeThumbs } from '@/components/site/code-thumbs';
 import { CreatorMark } from '@/components/site/creator-mark';
 import { CODE_COPIED_EVENT, type CopiedCode } from '@/lib/vote-invite';
@@ -94,35 +93,30 @@ export function BoardingCoupon({ code, category, link, compact = false, light = 
           ? <p className="k-pass-discount">{code.discount}</p>
           : <>
         <p className="k-pass-by">
-          <span className="k-pass-by-top">
-            <small>Donné par</small>
-            {platform && platform !== 'other' && (
-              <span className="k-pass-platform"><PlatformIcon platform={platform} size={16} className="k-platform-icon" />{PLATFORM_LABELS[platform]}</span>
+          <small className="k-pass-by-label">Donné par</small>
+          <span className="k-pass-by-row">
+            <Link href={routes.creator(code.creatorSlug)} className="k-pass-who"><CreatorAvatar name={code.creator} size="xs" /><span className="k-pass-who-name">{code.creator}</span><CreatorMark level={code.creatorLevel} compact /></Link>
+            {/* Vérifier d'où vient le code, sans quitter la ligne du créateur. */}
+            {code.source && (
+              <a className="k-pass-source" href={code.source} target="_blank" rel="noopener noreferrer"
+                title={sourceLabel(code) || undefined} aria-label={`${sourceAction(platform)} d’où vient le code${sourceLabel(code) ? ` : ${sourceLabel(code)}` : ''} (nouvel onglet)`}>
+                {platform === 'youtube'
+                  ? <svg className="k-pass-source-yt" width="18" height="13" viewBox="0 0 20 14" aria-hidden="true"><rect width="20" height="14" rx="4" fill="#FF0000" /><path d="M8 4v6l5.2-3z" fill="#fff" /></svg>
+                  : platform && platform !== 'other'
+                  ? <PlatformIcon platform={platform} size={15} className="k-platform-icon" />
+                  : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18" /></svg>}
+                <span>{sourceAction(platform)}</span>
+              </a>
             )}
           </span>
-          <Link href={routes.creator(code.creatorSlug)} className="k-pass-who"><CreatorAvatar name={code.creator} size="xs" /><span className="k-pass-who-name">{code.creator}</span><CreatorMark level={code.creatorLevel} compact /></Link>
         </p>
 
-        <dl className="k-pass-facts">
-          <div className="is-wide"><dt>Réduction</dt><dd className="is-discount">{code.discount}</dd></div>
-          <div><dt>Réussite</dt><dd>{code.votes > 0 ? `${code.success} %` : '—'}</dd></div>
-          <div><dt>Votes</dt><dd>{code.votes}</dd></div>
-          {code.expiresOn
-            ? <div><dt>Expire</dt><dd>{shortDate(code.expiresOn)}</dd></div>
-            : <div><dt>Ajouté</dt><dd>{shortDate(code.createdAt)}</dd></div>}
-        </dl>
+        {/* Une seule information mise en avant : la réduction. La date de fin s'affiche seulement si elle existe. */}
+        <p className="k-pass-offer">
+          <span className="k-pass-discount is-detail">{code.discount}</span>
+          {code.expiresOn && <small className="k-pass-expiry">Jusqu’au {shortDate(code.expiresOn)}</small>}
+        </p>
           </>}
-
-        {!light && code.source && (
-          <a className="k-pass-source" href={code.source} target="_blank" rel="noopener noreferrer" title={code.sourceTitle || undefined}>
-            {platform === 'youtube'
-              ? <svg className="k-pass-source-yt" width="20" height="14" viewBox="0 0 20 14" aria-hidden="true"><rect width="20" height="14" rx="4" fill="#FF0000" /><path d="M8 4v6l5.2-3z" fill="#fff" /></svg>
-              : platform && platform !== 'other'
-              ? <PlatformIcon platform={platform} size={16} className="k-platform-icon" />
-              : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18" /></svg>}
-            <span>{sourceLabel(code) || 'Voir la source'}</span>
-          </a>
-        )}
       </div>
 
       {!code.code ? (
