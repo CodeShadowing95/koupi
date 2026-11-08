@@ -2,7 +2,7 @@
 // (codes trouvés, validés, copiés). Sans base ni réseau : importable par les composants client.
 
 /** Toutes les origines, y compris celles des sources à venir, pour ne pas changer la contrainte de la base à chaque fois. */
-export const CODE_ORIGINS = ['manual', 'submission', 'import', 'youtube_search', 'youtube_channel', 'podcast', 'ai_web', 'spotify', 'unknown'] as const;
+export const CODE_ORIGINS = ['manual', 'submission', 'import', 'youtube_search', 'youtube_channel', 'podcast', 'ai_web', 'spotify', 'creator', 'unknown'] as const;
 export type CodeOrigin = (typeof CODE_ORIGINS)[number];
 
 export const CODE_ORIGIN_LABELS: Record<CodeOrigin, string> = {
@@ -14,6 +14,7 @@ export const CODE_ORIGIN_LABELS: Record<CodeOrigin, string> = {
   podcast: 'Podcast suivi',
   ai_web: 'Recherche IA sur le web',
   spotify: 'Spotify',
+  creator: 'Donné par le créateur',
   unknown: 'Inconnue',
 };
 
@@ -28,3 +29,6 @@ export function suggestionOrigin(sourceUrl: string): CodeOrigin {
     return 'podcast';
   }
 }
+
+/** Marque une offre donnée depuis le Studio pour un outil absent du catalogue (« Outils à ajouter ») : origine « creator ». */
+export const CREATOR_SUGGESTION_EVIDENCE = 'Donné par le créateur depuis son Studio (outil pas encore sur Merkod).';

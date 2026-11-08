@@ -43,5 +43,8 @@ Chaque décision importante est notée ici dans un fichier numéroté. On ne sup
 | [0038](0038-vitesse-ressentie-web-vitals.md) | Vitesse ressentie mesurée chez les visiteurs, comptée dans Neon | Acceptée |
 | [0040](0040-offre-par-lien-sans-code.md) | Une offre peut se donner par un lien, sans code | Acceptée |
 | [0041](0041-preuve-par-la-bio-en-libre-service.md) | Le créateur prouve son compte lui-même, avec son propre code | Acceptée |
+| [0043](0043-studio-ouvert-sans-preuve.md) | Le Studio s'ouvre sans revendication ni preuve, sur une page non vérifiée | Acceptée |
+| [0044](0044-relier-la-page-provisoire.md) | Une page provisoire est fusionnée dans la vraie page une fois celle-ci prouvée | Acceptée |
+| [0045](0045-design-accessible-clair-sombre.md) | Site public « Comptoir clair » accessible, clair par défaut et sombre au choix | Proposée |
 
 Modèle : copier [`template.md`](template.md).

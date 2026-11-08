@@ -13,6 +13,7 @@ import { AdminSelect } from '@/components/admin-select';
 import { matchesSearch } from '@/lib/admin-search';
 import type { AdminToolSuggestion } from '@/lib/tool-suggestions';
 import type { ToolAnalysis } from '@/lib/tool-analysis';
+import { CREATOR_SUGGESTION_EVIDENCE } from '@/lib/code-origin';
 
 export type CategoryOption = { slug: string; name: string };
 export type CatalogToolOption = { slug: string; name: string; category: string };
@@ -143,7 +144,7 @@ export function ToolSuggestionsPanel({ suggestions, categories, tools, ai }: { s
                   ? <p className="adm-sugg-known">{item.existing.name} est déjà dans le catalogue, mais archivé. Restaure-le dans <Link href="/admin/outils">Outils</Link> pour y relier ce code.</p>
                   : <p className="adm-sugg-known"><b>{item.existing.name}</b> est déjà dans le catalogue : relie simplement le code.</p>)}
                 {!item.existing && item.analysis && analysisBlock(item.analysis)}
-                <p className="adm-card-sub"><a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" title={item.sourceTitle}>{item.podcastTitle ?? (isVideo(item.sourceUrl) ? 'Vidéo YouTube' : 'Podcast')} · {item.sourceTitle} ↗</a></p>
+                <p className="adm-card-sub"><a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" title={item.sourceTitle}>{item.podcastTitle ?? (item.evidence === CREATOR_SUGGESTION_EVIDENCE ? 'Studio du créateur' : isVideo(item.sourceUrl) ? 'Vidéo YouTube' : 'Podcast')} · {item.sourceTitle} ↗</a></p>
                 <div className="adm-card-foot">
                   {item.existing && !item.existing.archived
                     ? <button type="button" className="adm-btn adm-btn-pri" disabled={busy !== null} title={`${item.code ? `Le code ${item.code}` : 'L’offre par lien'} part en attente dans Vérifications, sur ${item.existing.name}`} onClick={() => link(item, item.existing!.slug)}>{busy === item.id ? 'Liaison…' : `Relier à ${item.existing.name}`}</button>

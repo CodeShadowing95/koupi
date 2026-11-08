@@ -11,6 +11,7 @@ import { provenCreatorIds } from './creator-level';
 import {
   consumeSignInToken, copiesByCode, createSignInLink, grantCreatorAccess, grantedAccessKeys, hashToken, loadCreatorAccount,
   newSignInToken, normalizeEmail, parseSignInRequest, pruneSignInTokens, revokeCreatorAccess,
+  recordClaim,
 } from './creator-auth';
 
 const now = new Date('2026-11-03T12:00:00Z');
@@ -64,6 +65,18 @@ describe('connexion des créateurs', () => {
     expect(await createSignInLink(db, { email: 'ana@exemple.fr', slug: 'inconnu' }, context)).toEqual({ ok: false, error: 'Créateur inconnu.' });
   });
 
+  it('enregistre la revendication d’un créateur déjà connecté, sans doublon', async () => {
+    const input = { email: 'ana@exemple.fr', slug: 'ana', ipHash: 'h', appUrl: 'https://koupi.test', message: 'Depuis le Studio.' };
+    expect(await recordClaim(db, input)).toEqual({ ok: true, data: { creatorName: 'Ana' } });
+    expect(await recordClaim(db, input)).toEqual({ ok: true, data: { creatorName: 'Ana' } });
+    const requests = await db.select().from(schema.creatorRequests);
+    expect(requests).toHaveLength(1);
+    expect(requests[0]).toMatchObject({ kind: 'claim', email: 'ana@exemple.fr', message: 'Depuis le Studio.', status: 'new' });
+    expect(await recordClaim(db, { ...input, slug: 'inconnu' })).toEqual({ ok: false, error: 'Créateur inconnu.' });
+    await recordClaim(db, { ...input, email: 'autre@exemple.fr', accountUrl: 'https://www.youtube.com/@autre' });
+    const [, asked] = await db.select().from(schema.creatorRequests).orderBy(schema.creatorRequests.createdAt);
+    expect(asked).toMatchObject({ email: 'autre@exemple.fr', accountUrl: 'https://www.youtube.com/@autre' });
+  });
   it('connecte une seule fois, avant 20 minutes, et crée le compte Merkod', async () => {
     await createSignInLink(db, { email: 'ana@exemple.fr', slug: 'ana' }, context);
     const first = await consumeSignInToken(db, TOKEN, minutes(5));

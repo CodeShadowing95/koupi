@@ -1,0 +1,2 @@
+ALTER TABLE "codes" DROP CONSTRAINT "codes_origin_valid";--> statement-breakpoint
+ALTER TABLE "codes" ADD CONSTRAINT "codes_origin_valid" CHECK ("codes"."origin" in ('manual','submission','import','youtube_search','youtube_channel','podcast','ai_web','spotify','creator','unknown'));

@@ -1,7 +1,8 @@
 'use client';
 // Merkod Studio : la coque de l'espace créateur (colonne de navigation, barre du haut) et ses pièces interactives.
 // Pas d'en-tête ni de pied de page du site : on est « dans les coulisses », comme un studio.
-import Image from 'next/image';
+import { SiteLogo } from '@/components/site/site-logo';
+import { ThemeToggle } from '@/components/site/theme-toggle';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
@@ -65,7 +66,7 @@ export function StudioShell({ email, creator, nav, title, actions, children }: S
       <a className="k-skip" href="#studio-main">Aller au contenu</a>
       <aside className="k-st-side" aria-label="Merkod Studio">
         <Link className="k-st-brand" href={routes.creatorSpace} aria-label="Merkod Studio, tableau de bord">
-          <Image src="/merkod-logo-dark.png" alt="Merkod" width={1323} height={287} priority />
+          <SiteLogo priority />
           <span className="k-st-badge">Studio</span>
         </Link>
 
@@ -95,7 +96,7 @@ export function StudioShell({ email, creator, nav, title, actions, children }: S
       <div className="k-st-body">
         <header className="k-st-bar">
           <h1 className="k-st-title">{title}</h1>
-          {actions && <div className="k-st-bar-actions">{actions}</div>}
+          <div className="k-st-bar-actions">{actions}<ThemeToggle /></div>
         </header>
         <main className="k-st-main" id="studio-main">{children}</main>
       </div>

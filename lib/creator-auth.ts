@@ -7,12 +7,13 @@ import type { Db } from '@/db';
 import { codes, creatorAccounts, creatorRequests, creatorSignInTokens, creatorUsers, creators, dailyCounters } from '@/db/schema';
 import { monthStart } from './creator-directory';
 import { CONTACT_EMAIL } from './site-contact';
+import { isProvisionalPage, mergeProvisionalPage } from './creator-merge';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 
 export const SIGN_IN_MINUTES = 20;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+export const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const PLATFORM_ORDER = ['youtube', 'tiktok', 'instagram', 'twitch', 'snapchat', 'x', 'podcast', 'other'];
 
 export const hashToken = (token: string) => createHash('sha256').update(token).digest('hex');
@@ -39,6 +40,28 @@ export type SignInContext = { ipHash: string; appUrl: string; now?: Date; newTok
 export type SignInLink = { link: string; creatorName: string | null };
 
 /**
+ * Enregistre la revendication d'une page pour une adresse e-mail, une seule fois par e-mail et par page
+ * tant qu'elle n'est pas traitée. Elle apparaît dans les Demandes de l'admin et ouvre l'étape de preuve du Studio.
+ */
+export async function recordClaim(db: Db, input: { email: string; slug: string; ipHash: string; appUrl: string; message?: string; accountUrl?: string }): Promise<Parsed<{ creatorName: string }>> {
+  const [creator] = await db.select({ id: creators.id, name: creators.name }).from(creators).where(eq(creators.slug, input.slug)).limit(1);
+  if (!creator) return { ok: false, error: 'Créateur inconnu.' };
+  const [open] = await db.select({ id: creatorRequests.id }).from(creatorRequests)
+    .where(and(eq(creatorRequests.creatorId, creator.id), eq(creatorRequests.kind, 'claim'), eq(creatorRequests.email, input.email), eq(creatorRequests.status, 'new')))
+    .limit(1);
+  if (!open) {
+    const accounts = await db.select({ platform: creatorAccounts.platform, url: creatorAccounts.url }).from(creatorAccounts).where(eq(creatorAccounts.creatorId, creator.id));
+    accounts.sort((a, b) => PLATFORM_ORDER.indexOf(a.platform) - PLATFORM_ORDER.indexOf(b.platform));
+    await db.insert(creatorRequests).values({
+      creatorId: creator.id, kind: 'claim', email: input.email, ipHash: input.ipHash,
+      accountUrl: input.accountUrl ?? accounts[0]?.url ?? `${input.appUrl}/creators/${input.slug}`,
+      message: input.message ?? 'Revendication envoyée depuis « Pour les créateurs », avec la connexion par e-mail.',
+    });
+  }
+  return { ok: true, data: { creatorName: creator.name } };
+}
+
+/**
  * Prépare un lien de connexion. Avec une page (slug), enregistre aussi la revendication pour l'admin,
  * une seule fois par e-mail et par page tant qu'elle n'est pas traitée.
  */
@@ -46,21 +69,9 @@ export async function createSignInLink(db: Db, input: SignInRequest, context: Si
   const now = context.now ?? new Date();
   let creatorName: string | null = null;
   if (input.slug) {
-    const [creator] = await db.select({ id: creators.id, name: creators.name }).from(creators).where(eq(creators.slug, input.slug)).limit(1);
-    if (!creator) return { ok: false, error: 'Créateur inconnu.' };
-    creatorName = creator.name;
-    const [open] = await db.select({ id: creatorRequests.id }).from(creatorRequests)
-      .where(and(eq(creatorRequests.creatorId, creator.id), eq(creatorRequests.kind, 'claim'), eq(creatorRequests.email, input.email), eq(creatorRequests.status, 'new')))
-      .limit(1);
-    if (!open) {
-      const accounts = await db.select({ platform: creatorAccounts.platform, url: creatorAccounts.url }).from(creatorAccounts).where(eq(creatorAccounts.creatorId, creator.id));
-      accounts.sort((a, b) => PLATFORM_ORDER.indexOf(a.platform) - PLATFORM_ORDER.indexOf(b.platform));
-      await db.insert(creatorRequests).values({
-        creatorId: creator.id, kind: 'claim', email: input.email, ipHash: context.ipHash,
-        accountUrl: accounts[0]?.url ?? `${context.appUrl}/creators/${input.slug}`,
-        message: 'Revendication envoyée depuis « Pour les créateurs », avec la connexion par e-mail.',
-      });
-    }
+    const claimed = await recordClaim(db, { email: input.email, slug: input.slug, ipHash: context.ipHash, appUrl: context.appUrl });
+    if (!claimed.ok) return { ok: false, error: claimed.error };
+    creatorName = claimed.data.creatorName;
   }
   const token = (context.newToken ?? newSignInToken)();
   await db.insert(creatorSignInTokens).values({
@@ -133,6 +144,11 @@ export async function grantCreatorAccess(db: Db, requestId: string, now = new Da
   const proven = await db.select({ id: creatorAccounts.id }).from(creatorAccounts)
     .where(and(eq(creatorAccounts.creatorId, request.creatorId), eq(creatorAccounts.claimStatus, 'verified'))).limit(1);
   if (proven.length === 0) return { ok: false, error: 'Fais d’abord prouver un de ses comptes par la bio : l’accès ne se donne qu’au vrai créateur.' };
+  // Son studio était ouvert sur une page provisoire (ADR-0043) : elle est fusionnée dans la vraie page (ADR-0044).
+  const [before] = await db.select({ creatorId: creatorUsers.creatorId }).from(creatorUsers).where(eq(creatorUsers.email, email)).limit(1);
+  if (before?.creatorId && before.creatorId !== request.creatorId && await isProvisionalPage(db, before.creatorId)) {
+    await mergeProvisionalPage(db, before.creatorId, request.creatorId, now);
+  }
   const [user] = await db.insert(creatorUsers).values({ email, creatorId: request.creatorId, accessGrantedAt: now, createdAt: now })
     .onConflictDoUpdate({ target: creatorUsers.email, set: { creatorId: request.creatorId, accessGrantedAt: now } })
     .returning({ id: creatorUsers.id });

@@ -11,7 +11,7 @@ import { analyzeTool, type ToolAnalysis } from './tool-analysis';
 import { aiSpendSince, startOfMonthUtc } from './verification-store';
 import { resolveCreator } from './codes-admin';
 import { addPodcastCode } from './podcast-read';
-import { suggestionOrigin } from './code-origin';
+import { CREATOR_SUGGESTION_EVIDENCE, suggestionOrigin } from './code-origin';
 import { domainOf } from './podcast-codes';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -100,9 +100,12 @@ export async function acceptToolSuggestion(db: Db, id: string, target: AcceptTar
   for (const { row, podcastTitle } of group) {
     const podcast = podcastTitle ?? 'inconnu';
     const creatorId = row.creatorId ?? await resolveCreator(db, podcast);
+    // Offre donnée par le créateur depuis son Studio (ADR-0043) : elle garde son origin « Donné par le créateur ».
+    const fromStudio = row.evidence === CREATOR_SUGGESTION_EVIDENCE;
     const codeId = await addPodcastCode(db, {
       toolId, creatorId, code: row.code ?? '', link: row.link ?? undefined, discount: row.discount, sourceUrl: row.sourceUrl, sourceTitle: row.sourceTitle,
-      note: `Trouvé dans le podcast ${podcast} : « ${row.evidence} »`, podcastTitle: podcast, origin: suggestionOrigin(row.sourceUrl),
+      note: fromStudio ? 'Ajouté par le créateur depuis son Studio, pour un outil pas encore sur Merkod.' : `Trouvé dans le podcast ${podcast} : « ${row.evidence} »`,
+      podcastTitle: fromStudio ? 'Studio du créateur' : podcast, origin: fromStudio ? 'creator' : suggestionOrigin(row.sourceUrl),
     });
     if (codeId) codeIds.push(codeId);
     await db.update(toolSuggestions).set({ status: 'added', toolId, codeId, resolvedAt: now }).where(eq(toolSuggestions.id, row.id));

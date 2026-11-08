@@ -12,7 +12,7 @@ import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { CreatorMark } from '@/components/site/creator-mark';
 import { CreatorRequest } from '@/components/site/creator-request';
 import { CreatorMore } from '@/components/site/creator-more';
-import { CodeRows, CreatorCodes } from '@/components/site/creator-codes';
+import { CreatorCodes } from '@/components/site/creator-codes';
 import { PlatformIcon } from '@/components/platform-icon';
 import { Crumbs } from '@/components/site/page-head';
 import { JsonLd } from '@/components/json-ld';
@@ -111,14 +111,8 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
             </CreatorMore>
           </div>
         </header>
-        {active.length > 0 && <CreatorCodes codes={active} tools={tools} creator={creator} />}
-        {expired.length > 0 && (
-          <details className="k-creator-expired">
-            <summary>{plural(expired.length, 'code à la date de fin passée', 'codes à la date de fin passée')}</summary>
-            <p>Le créateur avait annoncé une date de fin. Ils marchent peut-être encore : essaie, et dis-nous si ça a marché.</p>
-            <CodeRows codes={expired} tools={tools} reveal={false} />
-          </details>
-        )}
+        <CreatorCodes codes={active} expired={expired} tools={tools} creator={creator}
+          expiredTitle={plural(expired.length, 'code à la date de fin passée', 'codes à la date de fin passée')} />
       </div>
       <VoteInvite trigger="copy" />
     </main>

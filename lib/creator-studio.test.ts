@@ -6,7 +6,7 @@ import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import { createTool } from './catalog-admin';
 import { createCode } from './codes-admin';
-import { copiesPerDay, fillDays, greeting, rosetteGoal, weekTrend, findCreatorPages } from './creator-studio';
+import { copiesPerDay, fillDays, greeting, rosetteGoal, weekTrend, loadFindablePages, matchCreatorPages } from './creator-studio';
 
 const now = new Date('2026-11-08T10:00:00Z');
 
@@ -73,17 +73,23 @@ describe('Merkod Studio', () => {
 });
 
 describe('trouver ma page dans le Studio', () => {
-  const list = [
-    { creator: 'Vastolorde', creatorSlug: 'vastolorde', status: 'verified' as const },
-    { creator: 'Vastolorde', creatorSlug: 'vastolorde', status: 'to_test' as const },
-    { creator: 'Le Vasto Show', creatorSlug: 'le-vasto-show', status: 'verified' as const },
-    { creator: 'Caché', creatorSlug: 'cache', status: 'pending' as const },
+  const pages = [
+    { slug: 'vastolorde', name: 'Vastolorde', codes: 2, accounts: [{ platform: 'youtube' as const, handle: '@vastolorde' }] },
+    { slug: 'le-vasto-show', name: 'Le Vasto Show', codes: 5, accounts: [] },
+    { slug: 'nchang', name: 'Nchang', codes: 0, accounts: [{ platform: 'tiktok' as const, handle: '@nchang.belinga' }] },
   ];
-  it('ignore le @, les accents et les espaces, et ne garde que les pages publiques', () => {
-    expect(findCreatorPages(list, '@vastolorde')).toEqual([{ slug: 'vastolorde', name: 'Vastolorde', codes: 2 }]);
-    expect(findCreatorPages(list, 'vasto').map(page => page.slug)).toEqual(['vastolorde', 'le-vasto-show']);
-    expect(findCreatorPages(list, 'le-vasto')).toHaveLength(1);
-    expect(findCreatorPages(list, 'cache')).toEqual([]);
-    expect(findCreatorPages(list, '@')).toEqual([]);
+  it('ignore le @, les accents, espaces et points, et cherche aussi dans les comptes', () => {
+    expect(matchCreatorPages(pages, '@vastolorde').map(page => page.slug)).toEqual(['vastolorde']);
+    expect(matchCreatorPages(pages, 'vasto').map(page => page.slug)).toEqual(['vastolorde', 'le-vasto-show']);
+    expect(matchCreatorPages(pages, 'Nchang Belinga').map(page => page.slug)).toEqual(['nchang']);
+    expect(matchCreatorPages(pages, '@nchang.belinga').map(page => page.slug)).toEqual(['nchang']);
+    expect(matchCreatorPages(pages, '@')).toEqual([]);
+  });
+  it('lit les pages, leurs comptes et leurs codes publiés en base', async () => {
+    const db = drizzle(new PGlite(), { schema }) as unknown as Db;
+    await migrate(db as never, { migrationsFolder: 'db/migrations' });
+    const [{ id }] = await db.insert(schema.creators).values({ slug: 'nchang', name: 'Nchang' }).returning();
+    await db.insert(schema.creatorAccounts).values({ creatorId: id, platform: 'tiktok', handle: '@nchang.belinga', url: 'https://www.tiktok.com/@nchang.belinga' });
+    expect(await loadFindablePages(db)).toEqual([{ slug: 'nchang', name: 'Nchang', codes: 0, accounts: [{ platform: 'tiktok', handle: '@nchang.belinga' }] }]);
   });
 });

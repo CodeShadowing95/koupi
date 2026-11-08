@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import { isIndexable, siteUrl } from '@/lib/seo';
+import { SITE_THEME_SCRIPT } from '@/lib/site-theme';
 
 // Polices hébergées dans app/fonts (voir app/fonts/README.md) : le build ne dépend pas de Google Fonts
 // et le visiteur ne fait aucun appel à Google.
@@ -24,7 +25,9 @@ export const metadata: Metadata = {
 // ont chacun leur propre en-tête et leur propre feuille de style.
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="fr" className={`${bricolage.variable} ${inter.variable} ${jetbrains.variable}`}>
+    // Le thème du site public (clair par défaut) est posé sur <html> avant l'affichage : React ne doit pas s'en plaindre.
+    <html lang="fr" className={`${bricolage.variable} ${inter.variable} ${jetbrains.variable}`} suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{ __html: SITE_THEME_SCRIPT }} /></head>
       <body>{children}</body>
     </html>
   );

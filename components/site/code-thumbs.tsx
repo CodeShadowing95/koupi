@@ -1,6 +1,6 @@
 'use client';
 // Le vote d'un code, le même partout : 👍 avec le nombre de votes positifs, 👎 à côté.
-// Le pouce choisi reste coloré ; un vote tout juste donné ajoute +1 au compteur. dark : sur le fond nuit.
+// Le pouce choisi reste coloré ; un vote tout juste donné ajoute +1 au compteur. dark : sur le fond de la page.
 import type { Code } from '@/lib/data';
 import { useCodeVote } from '@/components/site/use-code-vote';
 

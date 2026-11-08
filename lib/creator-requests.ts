@@ -12,7 +12,7 @@ export type CreatorRequestInput = { slug: string; kind: CreatorRequestKind; emai
 const clean = (value: unknown, max: number) => (typeof value === 'string' ? value.trim().slice(0, max) : '');
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function httpUrl(raw: string): string | null {
+export function httpUrl(raw: string): string | null {
   if (!raw) return null;
   try {
     const url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
