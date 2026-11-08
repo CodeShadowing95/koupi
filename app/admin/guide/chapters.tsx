@@ -415,8 +415,9 @@ function Outils() {
       <Steps>
         <Step title="Vérifie qu’il n’existe pas déjà">Tape son nom dans la recherche, avec et sans espace.</Step>
         <Step title="Clique sur « Nouvel outil »">Donne son nom exact, tel que la marque l’écrit.</Step>
-        <Step title="Choisis la catégorie">Elle est vide au départ, et l’enregistrement attend ton choix. Le menu se filtre quand tu tapes. Si aucune ne convient, crée-la d’abord dans Catégories.</Step>
-        <Step title="Site officiel">Le domaine suffit : « exemple.com ». Il sert au logo et au lien.</Step>
+        <Step title="Choisis la catégorie">Elle est vide au départ, et l’enregistrement attend ton choix. Le menu se filtre quand tu tapes. Si aucune ne convient, crée-la d’abord dans Catégories, ou laisse l’IA la trouver (étape suivante).</Step>
+        <Step title="Site officiel">Le domaine suffit : « exemple.com ». Il sert au logo et au lien. Si un outil du catalogue a déjà ce site, la fiche le signale tout de suite : c’est un doublon.</Step>
+        <Step title="« Trouver la catégorie » (facultatif)">L’IA lit la page d’accueil du site et choisit la catégorie qui convient. Elle remplit aussi la description si elle est vide, et corrige l’écriture du nom (« N8N » devient « n8n »). Si aucune catégorie ne convient, elle en propose une : <b>Créer « … »</b> la crée et la choisit. Rien n’est enregistré avant <b>Enregistrer</b>. Une lecture coûte environ 0,1 centime, comptée dans le plafond du mois ; le bouton est grisé quand l’IA est coupée ou le plafond atteint.</Step>
         <Step title="Description (facultative)">Une phrase pour la fiche. Vide, le site écrit « Les codes promo donnés par les créateurs pour … ».</Step>
       </Steps>
     </Section>

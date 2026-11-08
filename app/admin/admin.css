@@ -1325,6 +1325,12 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-sugg-analysis p{margin:0}
 .adm-sugg-analysis .muted{font-size:12px}
 .adm-sugg-warn{color:var(--bad);font-weight:600}
+.adm-cat-finder{display:flex;flex-direction:column;gap:8px}
+.adm-cat-finder-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.adm-cat-finder-row small{margin:0}
+.adm-cat-finder-error{margin:0;font-size:12.5px;color:var(--bad)}
+.adm-cat-finder-new{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.adm-cat-finder-new .adm-btn{min-height:30px;padding:0 10px;font-size:12.5px}
 .adm-sugg .adm-card-foot{flex-wrap:wrap;row-gap:6px}
 .adm-sugg .adm-sugg-analysis>p:first-child{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .adm-dialog .adm-sugg-analysis>p:first-child{display:block}
