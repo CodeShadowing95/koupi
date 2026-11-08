@@ -11,6 +11,7 @@ const LABELS: Record<string, string> = {
   creator_enabled: 'Compte créateur réactivé :',
   creator_access_removed: 'Accès à la page retiré :',
   creator_deleted: 'Compte créateur supprimé :',
+  creator_link_invite: 'Invitation à relier sa page envoyée :',
 };
 
 export function auditLabel(action: string): string {

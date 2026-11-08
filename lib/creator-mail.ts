@@ -40,6 +40,26 @@ export function signInMail(to: string, link: string, creatorName: string | null,
   return { to, subject, text, html, headers: { 'X-Entity-Ref-ID': id } };
 }
 
+/**
+ * Invitation à relier sa vraie page (ADR-0044), envoyée par l'admin d'un clic, jamais automatiquement :
+ * le créateur a ouvert son studio sur une page provisoire alors qu'une page à son nom existe déjà.
+ */
+export function linkInviteMail(to: string, provisionalName: string, realName: string, link: string, now = new Date(), id: string = crypto.randomUUID()): Mail {
+  const subject = `Ta page ${realName} t’attend sur Merkod (${parisTime(now)})`;
+  const lead = `Tu as ouvert ton studio Merkod sous le nom « ${provisionalName} ». Il existe déjà une page ${realName} sur Merkod, avec ses codes : si c’est toi, relie-la à ton studio.`;
+  const how = 'Dans ton studio, clique « C’est moi, relier cette page », puis prouve ta chaîne en mettant ton code Merkod dans ta bio. Tes codes et ta page provisoire passent alors sur ta vraie page.';
+  const text = ['Bonjour,', '', lead, '', how, '', link, '', 'Si ce n’est pas toi, ignore cet e-mail : rien ne change.', '', 'L’équipe Merkod'].join('\n');
+  const html = `<!doctype html><html lang="fr"><body style="margin:0;padding:32px 16px;background:#F6F4EE;font-family:Arial,Helvetica,sans-serif;color:#14142B">
+<div style="max-width:480px;margin:0 auto;background:#fff;border-radius:16px;padding:32px">
+<p style="margin:0 0 8px;font-size:22px;font-weight:800">Merkod</p>
+<p style="font-size:16px;line-height:1.5">${escape(lead)}</p>
+<p style="font-size:14px;line-height:1.5;color:#5B5B73">${escape(how)}</p>
+<p style="margin:28px 0"><a href="${escape(link)}" style="display:inline-block;background:#2A3BD6;color:#fff;text-decoration:none;font-weight:700;padding:14px 22px;border-radius:12px">Ouvrir mon studio</a></p>
+<p style="font-size:13px;color:#5B5B73;line-height:1.5">Si ce n’est pas toi, ignore cet e-mail : rien ne change.</p>
+</div></body></html>`;
+  return { to, subject, text, html, headers: { 'X-Entity-Ref-ID': id } };
+}
+
 export function resendMailer(apiKey: string, from: string, fetchFn: typeof fetch = withTimeout()): Mailer {
   return async mail => {
     const response = await fetchFn('https://api.resend.com/emails', {

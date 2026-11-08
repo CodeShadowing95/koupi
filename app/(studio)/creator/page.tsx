@@ -8,6 +8,7 @@ import { copiesByCode } from '@/lib/creator-auth';
 import { currentCreatorAccount } from '@/lib/creator-current';
 import { creatorLevelFromAccounts } from '@/lib/creator-level';
 import { loadSelfProof } from '@/lib/creator-self-proof';
+import { bestMatch, provisionalUsers } from '@/lib/creator-merge';
 import { copiesPerDay, greeting, loadFindablePages, matchCreatorPages, rosetteGoal, studioAccounts, weekTrend } from '@/lib/creator-studio';
 import { formatCopies } from '@/lib/creator-page';
 import { MIN_RATINGS, MIN_SUBSCRIBERS } from '@/lib/verification';
@@ -18,6 +19,7 @@ import { CodeBadge } from '@/components/site/code-badge';
 import { TrustPill } from '@/components/site/trust';
 import { CopyPageLink } from '@/components/site/creator-space-actions';
 import { CreatorProof } from '@/components/site/creator-proof';
+import { ClaimPageButton } from '@/components/site/claim-page-button';
 import { StudioSkip, VerifyRequest } from '@/components/site/studio-skip';
 import { StudioAddCode } from '@/components/site/studio-add-code';
 import { CopiesChart, RosetteRing, StudioShell, type StudioNavItem } from '@/components/site/studio';
@@ -114,7 +116,13 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
   // Page non vérifiée : aucun compte prouvé par la bio (ADR-0043). On l'invite à faire vérifier sa chaîne.
   const proven = accounts.some(item => item.claimStatus === 'verified');
   const asked = account.claims.some(claim => claim.slug === creator.slug);
-  const ownProof = !proven && asked ? (await loadSelfProof(db, account, now)).filter(page => page.slug === creator.slug && page.accounts.length > 0) : [];
+  const selfProof = proven ? [] : await loadSelfProof(db, account, now);
+  const ownProof = asked ? selfProof.filter(page => page.slug === creator.slug && page.accounts.length > 0) : [];
+  // Sa vraie page existe peut-être déjà sur Merkod (ADR-0044) : il la revendique, la prouve, et sa page provisoire y est fusionnée.
+  const realProof = selfProof.filter(page => page.slug !== creator.slug && page.accounts.length > 0);
+  const realAsked = account.claims.find(claim => claim.slug !== creator.slug) ?? null;
+  const realMatch = proven || realAsked ? null
+    : bestMatch(await loadFindablePages(db), creator, new Set((await provisionalUsers(db)).map(user => user.slug)));
   const nav: StudioNavItem[] = [
     { id: 'apercu', label: 'Tableau de bord', icon: 'home' },
     { id: 'codes', label: 'Mes codes', icon: 'codes' },
@@ -222,7 +230,21 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
             <li><b>La coche bleue sur ta page</b><span>Tes abonnés savent que c’est bien toi.</span></li>
             <li><b>La rosette « Créateur vérifié »</b><span>Dès {nb(MIN_SUBSCRIBERS)} abonnés, ou {MIN_RATINGS} notes pour un podcast.</span></li>
           </ul>
+          {realProof.length > 0 ? (
+            <div id="relier" className="k-st-link">
+              <p className="k-st-muted">Prouve ta page <b>{realProof[0].name}</b> : dès que c’est fait, ta page provisoire et tes codes y passent, et tu gardes ce studio.</p>
+              <CreatorProof pages={realProof} />
+            </div>
+          ) : realAsked ? (
+            <p id="relier" className="k-st-none" role="status">Demande reçue pour la page {realAsked.name}. Merkod contrôle ses comptes, puis ton code de preuve apparaîtra ici. Une fois prouvée, ta page provisoire et tes codes y passeront.</p>
+          ) : realMatch ? (
+            <div id="relier" className="k-st-link">
+              <p className="k-st-muted">Merkod a déjà une page <b>{realMatch.name}</b>{realMatch.accounts[0] ? <> ({realMatch.accounts[0].handle})</> : null}. C’est toi ? Revendique-la : une fois prouvée par ta bio, ta page provisoire et tes codes y passent.</p>
+              <ClaimPageButton slug={realMatch.slug} name={realMatch.name} next={`${routes.creatorSpace}#relier`} label="C’est moi, relier cette page" />
+            </div>
+          ) : null}
           {ownProof.length > 0 ? <CreatorProof pages={ownProof} />
+            : realAsked || realProof.length > 0 ? null
             : asked ? <p className="k-st-none" role="status">Demande reçue. Merkod ajoute ta chaîne à ta page et la contrôle, puis ton code de preuve apparaîtra ici.</p>
             : <VerifyRequest slug={creator.slug} />}
         </section>
