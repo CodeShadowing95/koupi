@@ -6,7 +6,7 @@ import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import { createTool } from './catalog-admin';
 import { createCode } from './codes-admin';
-import { copiesPerDay, fillDays, greeting, rosetteGoal, weekTrend } from './creator-studio';
+import { copiesPerDay, fillDays, greeting, rosetteGoal, weekTrend, findCreatorPages } from './creator-studio';
 
 const now = new Date('2026-11-08T10:00:00Z');
 
@@ -69,5 +69,21 @@ describe('Merkod Studio', () => {
     expect(series.at(-1)).toEqual({ day: '2026-11-08', count: 5 });
     expect(series.find(item => item.day === '2026-11-01')?.count).toBe(1);
     expect(series.reduce((sum, item) => sum + item.count, 0)).toBe(6);
+  });
+});
+
+describe('trouver ma page dans le Studio', () => {
+  const list = [
+    { creator: 'Vastolorde', creatorSlug: 'vastolorde', status: 'verified' as const },
+    { creator: 'Vastolorde', creatorSlug: 'vastolorde', status: 'to_test' as const },
+    { creator: 'Le Vasto Show', creatorSlug: 'le-vasto-show', status: 'verified' as const },
+    { creator: 'Caché', creatorSlug: 'cache', status: 'pending' as const },
+  ];
+  it('ignore le @, les accents et les espaces, et ne garde que les pages publiques', () => {
+    expect(findCreatorPages(list, '@vastolorde')).toEqual([{ slug: 'vastolorde', name: 'Vastolorde', codes: 2 }]);
+    expect(findCreatorPages(list, 'vasto').map(page => page.slug)).toEqual(['vastolorde', 'le-vasto-show']);
+    expect(findCreatorPages(list, 'le-vasto')).toHaveLength(1);
+    expect(findCreatorPages(list, 'cache')).toEqual([]);
+    expect(findCreatorPages(list, '@')).toEqual([]);
   });
 });
