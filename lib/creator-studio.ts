@@ -1,10 +1,9 @@
 // Merkod Studio : le tableau de bord du créateur connecté (espace créateur, ADR-0021).
 // Fonctions pures pour l'affichage (courbe des 30 jours, tendance, objectif rosette) et une requête des copies par jour.
-import { and, eq, gte, sql } from 'drizzle-orm';
+import { and, eq, gte, inArray, isNull, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
-import { codes, creatorAccounts, dailyCounters, type CreatorAccountRow } from '@/db/schema';
+import { codes, creatorAccounts, creators, dailyCounters, type CreatorAccountRow } from '@/db/schema';
 import { cleanMetrics } from './account-metrics';
-import { isPublic, type Code } from './data';
 import { MIN_RATINGS, MIN_SUBSCRIBERS } from './verification';
 import { accountLevelOf } from './creator-level';
 import { PLATFORM_LABELS, type CreatorPlatform } from './creator-accounts-display';
@@ -83,22 +82,40 @@ export async function studioAccounts(db: Db, creatorId: string) {
 
 const fold = (value: string) => value.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
 
+export type FoundPage = { slug: string; name: string; codes: number; accounts: { platform: CreatorPlatform; handle: string }[] };
+
 /**
- * « Trouver ma page » dans le Studio : les pages de créateurs dont le nom ou l'adresse contient la recherche.
- * Le @ d'un pseudo, les accents, espaces et tirets sont ignorés. Seules les pages qui ont un code publié comptent.
+ * « Trouver ma page » dans le Studio : les pages dont le nom, l'adresse ou un compte (@pseudo TikTok, Instagram…)
+ * contient la recherche. Le @, les accents, espaces et tirets sont ignorés. Une page sans code publié compte aussi :
+ * l'admin a pu la créer à la main avec ses comptes avant d'y mettre un code.
  */
-export function findCreatorPages(list: Pick<Code, 'creator' | 'creatorSlug' | 'status'>[], query: string, limit = 8) {
+export function matchCreatorPages(pages: FoundPage[], query: string, limit = 8): FoundPage[] {
   const q = fold(query.replace(/^\s*@/, ''));
   if (q.length < 2) return [];
-  const pages = new Map<string, { slug: string; name: string; codes: number }>();
-  for (const code of list) {
-    if (!isPublic(code) || !code.creatorSlug) continue;
-    const page = pages.get(code.creatorSlug) ?? { slug: code.creatorSlug, name: code.creator, codes: 0 };
-    page.codes += 1;
-    pages.set(code.creatorSlug, page);
-  }
-  return [...pages.values()]
-    .filter(page => fold(page.name).includes(q) || fold(page.slug).includes(q))
-    .sort((a, b) => Number(fold(b.name).startsWith(q)) - Number(fold(a.name).startsWith(q)) || b.codes - a.codes || a.name.localeCompare(b.name, 'fr'))
-    .slice(0, limit);
+  const score = (page: FoundPage) => {
+    const keys = [page.name, page.slug, ...page.accounts.map(account => account.handle)].map(fold);
+    if (keys.some(key => key === q)) return 3;
+    if (keys.some(key => key.startsWith(q))) return 2;
+    return keys.some(key => key.includes(q)) ? 1 : 0;
+  };
+  return pages
+    .map(page => ({ page, score: score(page) }))
+    .filter(item => item.score > 0)
+    .sort((a, b) => b.score - a.score || b.page.codes - a.page.codes || a.page.name.localeCompare(b.page.name, 'fr'))
+    .slice(0, limit)
+    .map(item => item.page);
+}
+
+/** Toutes les pages avec leurs comptes et leur nombre de codes publiés, pour la recherche du Studio. */
+export async function loadFindablePages(db: Db): Promise<FoundPage[]> {
+  const [rows, accounts, counts] = await Promise.all([
+    db.select({ id: creators.id, slug: creators.slug, name: creators.name }).from(creators),
+    db.select({ creatorId: creatorAccounts.creatorId, platform: creatorAccounts.platform, handle: creatorAccounts.handle }).from(creatorAccounts),
+    db.select({ creatorId: codes.creatorId, count: sql<number>`count(*)::int` }).from(codes)
+      .where(and(isNull(codes.archivedAt), inArray(codes.status, ['verified', 'to_test']))).groupBy(codes.creatorId),
+  ]);
+  const byCreator = new Map<string, FoundPage['accounts']>();
+  for (const account of accounts) byCreator.set(account.creatorId, [...(byCreator.get(account.creatorId) ?? []), { platform: account.platform, handle: account.handle }]);
+  const countOf = new Map(counts.map(row => [row.creatorId, row.count]));
+  return rows.map(row => ({ slug: row.slug, name: row.name, codes: countOf.get(row.id) ?? 0, accounts: byCreator.get(row.id) ?? [] }));
 }
