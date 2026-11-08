@@ -34,6 +34,7 @@ function CodeState({ code }: { code: Code }) {
   return <CodeBadge code={code} dark withDate={false} />;
 }
 
+const siteHost = (url: string) => { try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; } };
 const nb = (n: number) => formatCopies(n).replace(/\s/g, ' ');
 const today = (now: Date) => new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Paris' }).format(now);
 
@@ -110,7 +111,7 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
   const reviewing = own.filter(code => code.status === 'pending').length;
   const top = rows[0]?.copies ? rows[0] : null;
   const trend = weekTrend(series);
-  const toolChoices = tools.map(tool => ({ slug: tool.slug, name: tool.name })).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+  const toolChoices = tools.map(tool => ({ slug: tool.slug, name: tool.name, site: siteHost(tool.website) })).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
   const goal = rosetteGoal(accounts);
   const level = creatorLevelFromAccounts(accounts);
   // Page non vérifiée : aucun compte prouvé par la bio (ADR-0043). On l'invite à faire vérifier sa chaîne.
