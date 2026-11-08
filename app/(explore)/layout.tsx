@@ -7,7 +7,7 @@ import { getSiteState } from '@/lib/site-settings-server';
 import { getMediaMap } from '@/lib/catalog-server';
 import { AvatarMapProvider } from '@/components/avatar-map';
 
-// Page Explorer : même direction « Comptoir de nuit » que le site public, mais sa propre coque
+// Page Explorer : même direction « Comptoir clair » que le site public, mais sa propre coque
 // (colonne de rayons sur toute la hauteur et barre de recherche en haut) à la place de l'en-tête et du pied de page du site.
 export default async function ExploreLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const [{ off }, media] = await Promise.all([getSiteState(), getMediaMap()]);

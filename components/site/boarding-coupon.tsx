@@ -8,13 +8,11 @@ import { track } from '@/lib/track';
 import { playCouponSnip, playCouponTear } from '@/lib/coupon-sound';
 import { ToolLogo } from '@/components/site/tool-logo';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
-import { PlatformIcon } from '@/components/platform-icon';
 import { codeBadge } from '@/lib/code-badge';
 import { TrustGlyph } from '@/components/site/trust';
-import { PLATFORM_LABELS } from '@/lib/creator-accounts-display';
 import { sourcePlatform } from '@/lib/source-platform';
-import { sourceLabel } from '@/lib/source-label';
 import { CodeThumbs } from '@/components/site/code-thumbs';
+import { CodeMenu } from '@/components/site/code-menu';
 import { CreatorMark } from '@/components/site/creator-mark';
 import { CODE_COPIED_EVENT, type CopiedCode } from '@/lib/vote-invite';
 
@@ -85,7 +83,12 @@ export function BoardingCoupon({ code, category, link, compact = false, light = 
               ? <small className="k-pass-light-by">par {code.creator}<CreatorMark level={code.creatorLevel} compact /></small>
               : category && <small>{category}</small>}
           </span>
-          {!light && <CodeThumbs code={code} />}
+          {!light && (
+            <span className="k-pass-actions">
+              <CodeThumbs code={code} />
+              <CodeMenu code={code} platform={platform} linkTool={linkTool} />
+            </span>
+          )}
         </header>
 
         {light && votes
@@ -93,36 +96,19 @@ export function BoardingCoupon({ code, category, link, compact = false, light = 
           : compact || light
           ? <p className="k-pass-discount">{code.discount}</p>
           : <>
+        {/* Le créateur (avatar et nom) et, tout à droite, le badge de confiance du code (point de couleur ET mot).
+            La source, le partage et le signalement sont dans le menu ⋮. */}
         <p className="k-pass-by">
-          <span className="k-pass-by-top">
-            <small>Donné par</small>
-            {platform && platform !== 'other' && (
-              <span className="k-pass-platform"><PlatformIcon platform={platform} size={16} className="k-platform-icon" />{PLATFORM_LABELS[platform]}</span>
-            )}
-          </span>
           <Link href={routes.creator(code.creatorSlug)} className="k-pass-who"><CreatorAvatar name={code.creator} size="xs" /><span className="k-pass-who-name">{code.creator}</span><CreatorMark level={code.creatorLevel} compact /></Link>
+          <span className={`k-pass-trust is-${badge.seal}`} title={badge.title}>{badge.label}</span>
         </p>
 
-        <dl className="k-pass-facts">
-          <div className="is-wide"><dt>Réduction</dt><dd className="is-discount">{code.discount}</dd></div>
-          <div><dt>Réussite</dt><dd>{code.votes > 0 ? `${code.success} %` : '—'}</dd></div>
-          <div><dt>Votes</dt><dd>{code.votes}</dd></div>
-          {code.expiresOn
-            ? <div><dt>Expire</dt><dd>{shortDate(code.expiresOn)}</dd></div>
-            : <div><dt>Ajouté</dt><dd>{shortDate(code.createdAt)}</dd></div>}
-        </dl>
+        {/* Une seule information mise en avant : la réduction. La date de fin s'affiche seulement si elle existe. */}
+        <p className="k-pass-offer">
+          <span className="k-pass-discount is-detail">{code.discount}</span>
+          {code.expiresOn && <small className="k-pass-expiry">Jusqu’au {shortDate(code.expiresOn)}</small>}
+        </p>
           </>}
-
-        {!light && code.source && (
-          <a className="k-pass-source" href={code.source} target="_blank" rel="noopener noreferrer" title={code.sourceTitle || undefined}>
-            {platform === 'youtube'
-              ? <svg className="k-pass-source-yt" width="20" height="14" viewBox="0 0 20 14" aria-hidden="true"><rect width="20" height="14" rx="4" fill="#FF0000" /><path d="M8 4v6l5.2-3z" fill="#fff" /></svg>
-              : platform && platform !== 'other'
-              ? <PlatformIcon platform={platform} size={16} className="k-platform-icon" />
-              : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18" /></svg>}
-            <span>{sourceLabel(code) || 'Voir la source'}</span>
-          </a>
-        )}
       </div>
 
       {!code.code ? (
@@ -139,7 +125,7 @@ export function BoardingCoupon({ code, category, link, compact = false, light = 
       <button type="button" className="k-pass-stub" onClick={tear}
         aria-label={torn ? `Recopier le code ${code.code}` : viaCreator ? `Copier le code ${code.code} et ouvrir ${code.tool} via le lien de ${code.creator} (lien d’affiliation)` : `Copier le code ${code.code} et ouvrir ${code.tool}`}>
         <span className="k-pass-stub-code">
-          <small>{torn ? (failed ? 'Copie à la main' : 'Copié ✓') : viaCreator ? `Code promo · via le lien de ${code.creator}` : 'Code promo'}</small>
+          <small>{torn ? (failed ? 'Copie à la main' : 'Copié ✓') : <>Code promo{viaCreator && <svg className="k-pass-stub-link" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" /><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" /></svg>}</>}</small>
           <span className="k-pass-code">{code.code}</span>
         </span>
         <span className="k-pass-action">{torn ? 'Recopier' : 'Copier'}</span>

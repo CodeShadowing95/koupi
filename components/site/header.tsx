@@ -1,6 +1,7 @@
 'use client';
 import Link, { useIsOff } from '@/components/site/site-pages';
-import Image from 'next/image';
+import { SiteLogo } from '@/components/site/site-logo';
+import { ThemeToggle } from '@/components/site/theme-toggle';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { isSoundEnabled, setSoundEnabled } from '@/lib/coupon-sound';
@@ -89,7 +90,7 @@ export function SiteHeader() {
       <a className="k-skip" href="#contenu">Aller au contenu</a>
       <div className="k-wrap k-header-in">
         <Link className="k-logo" href={routes.home} aria-label="Merkod, accueil">
-          <Image src="/merkod-logo-dark.png" alt="Merkod" width={1323} height={287} priority />
+          <SiteLogo priority />
         </Link>
         <nav className="k-nav" aria-label="Navigation principale">
           {onAbout ? ABOUT_SECTIONS.map(item => (
@@ -113,6 +114,7 @@ export function SiteHeader() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z" /><path d="m22 9-6 6" /><path d="m16 9 6 6" /></svg>
             )}
           </button>
+          <ThemeToggle />
           <CreatorButton />
           <button
             ref={burger}

@@ -15,3 +15,14 @@ export function sourceLabel(code: { sourceTitle: string; podcast?: string }): st
   if (number) return `Entendu dans ${code.podcast}, épisode #${number}`;
   return title ? `Entendu dans ${code.podcast} : ${title}` : `Entendu dans ${code.podcast}`;
 }
+
+/**
+ * Petit lien posé à côté du créateur sur le coupon détaillé : d'où vient le code, en deux ou trois mots.
+ * Le titre complet de la source reste dans l'infobulle.
+ */
+export function sourceAction(platform: string | null | undefined): string {
+  if (platform === 'youtube' || platform === 'tiktok' || platform === 'twitch') return 'Voir la vidéo';
+  if (platform === 'podcast') return 'Écouter l’épisode';
+  if (platform === 'instagram' || platform === 'x' || platform === 'snapchat') return 'Voir le post';
+  return 'Voir la source';
+}

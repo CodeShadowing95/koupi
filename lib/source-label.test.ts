@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { episodeNumber, sourceLabel } from './source-label';
+import { episodeNumber, sourceAction, sourceLabel } from './source-label';
 
 describe('episodeNumber', () => {
   it('lit le numéro écrit dans le titre', () => {
@@ -21,5 +21,16 @@ describe('sourceLabel', () => {
 
   it('garde le titre de la source hors podcast', () => {
     expect(sourceLabel({ sourceTitle: 'Ma vidéo #3' })).toBe('Ma vidéo #3');
+  });
+});
+
+describe('sourceAction', () => {
+  it('dit en deux ou trois mots où vérifier le code', () => {
+    expect(sourceAction('youtube')).toBe('Voir la vidéo');
+    expect(sourceAction('tiktok')).toBe('Voir la vidéo');
+    expect(sourceAction('podcast')).toBe('Écouter l’épisode');
+    expect(sourceAction('instagram')).toBe('Voir le post');
+    expect(sourceAction('other')).toBe('Voir la source');
+    expect(sourceAction(null)).toBe('Voir la source');
   });
 });

@@ -1,5 +1,5 @@
 import { SiteLinkItem } from '@/components/site/site-pages';
-import Image from 'next/image';
+import { SiteLogo } from '@/components/site/site-logo';
 import { routes } from '@/lib/routes';
 import { usesLogoDev } from '@/lib/tool-logos';
 import { PORTFOLIO_URL, PUBLISHER_NAME } from '@/lib/site-contact';
@@ -11,7 +11,7 @@ export function SiteFooter({ logoDev = false }: { logoDev?: boolean }) {
       <div className="k-wrap">
         <div className="k-footer-in">
           <div>
-            <Image src="/merkod-logo-dark.png" alt="Merkod" width={1323} height={287} />
+            <SiteLogo />
             <p>Le code du créateur. Crédité, vérifié. On ne remplace jamais son code par le nôtre.</p>
           </div>
           <div>
