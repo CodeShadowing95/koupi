@@ -153,3 +153,11 @@
   .k-st-find{flex-direction:column}
 }
 @media (prefers-reduced-motion:reduce){.k-st-ring-fill,.k-st-link,.k-st-col{transition:none}}
+
+/* Résultats de « Trouver ma page ». */
+.k-st-found{list-style:none;margin:4px 0 14px;padding:0;display:grid;gap:8px;max-width:620px}
+.k-st-found li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface)}
+.k-st-found span{display:grid;gap:2px;min-width:0}
+.k-st-found b{color:#fff;font-size:var(--fs-base)}
+.k-st-found small{color:var(--muted);font-size:var(--fs-sm)}
+.k-st-none{max-width:620px;margin:4px 0 14px;padding:12px 14px;border:1px dashed var(--line-2);border-radius:var(--r-md);color:var(--muted);font-size:var(--fs-sm)}

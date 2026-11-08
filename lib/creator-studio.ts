@@ -4,6 +4,7 @@ import { and, eq, gte, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { codes, creatorAccounts, dailyCounters, type CreatorAccountRow } from '@/db/schema';
 import { cleanMetrics } from './account-metrics';
+import { isPublic, type Code } from './data';
 import { MIN_RATINGS, MIN_SUBSCRIBERS } from './verification';
 import { accountLevelOf } from './creator-level';
 import { PLATFORM_LABELS, type CreatorPlatform } from './creator-accounts-display';
@@ -78,4 +79,26 @@ export async function copiesPerDay(db: Db, creatorId: string, now = new Date(), 
 
 export async function studioAccounts(db: Db, creatorId: string) {
   return db.select().from(creatorAccounts).where(eq(creatorAccounts.creatorId, creatorId));
+}
+
+const fold = (value: string) => value.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+
+/**
+ * « Trouver ma page » dans le Studio : les pages de créateurs dont le nom ou l'adresse contient la recherche.
+ * Le @ d'un pseudo, les accents, espaces et tirets sont ignorés. Seules les pages qui ont un code publié comptent.
+ */
+export function findCreatorPages(list: Pick<Code, 'creator' | 'creatorSlug' | 'status'>[], query: string, limit = 8) {
+  const q = fold(query.replace(/^\s*@/, ''));
+  if (q.length < 2) return [];
+  const pages = new Map<string, { slug: string; name: string; codes: number }>();
+  for (const code of list) {
+    if (!isPublic(code) || !code.creatorSlug) continue;
+    const page = pages.get(code.creatorSlug) ?? { slug: code.creatorSlug, name: code.creator, codes: 0 };
+    page.codes += 1;
+    pages.set(code.creatorSlug, page);
+  }
+  return [...pages.values()]
+    .filter(page => fold(page.name).includes(q) || fold(page.slug).includes(q))
+    .sort((a, b) => Number(fold(b.name).startsWith(q)) - Number(fold(a.name).startsWith(q)) || b.codes - a.codes || a.name.localeCompare(b.name, 'fr'))
+    .slice(0, limit);
 }
