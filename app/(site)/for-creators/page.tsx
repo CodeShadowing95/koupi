@@ -7,6 +7,7 @@ import { routes } from '@/lib/routes';
 import { plural } from '@/lib/ui';
 import { Counter } from '@/components/site/counter';
 import { CreatorAvatar } from '@/components/site/creator-avatar';
+import { ClaimPageButton } from '@/components/site/claim-page-button';
 import { CreatorSignIn } from '@/components/site/creator-sign-in';
 import { PlatformIcon } from '@/components/platform-icon';
 
@@ -61,10 +62,16 @@ export default async function ForCreators({ searchParams }: { searchParams: Prom
         </section>
 
         <section className="k-panel k-panel-glow k-fc-card" aria-labelledby="fc-card-title">
-          {account ? (
+          {account && match && !account.creator ? (
+            <>
+              <h2 id="fc-card-title">C’est ta page ? Prouve-le en deux minutes.</h2>
+              <p>Connecté avec {account.email}. Ta demande arrive dans ton studio, avec un code à coller dans la description de cette chaîne : seul son vrai propriétaire peut le faire.</p>
+              <ClaimPageButton slug={match.creatorSlug} name={match.creator} />
+            </>
+          ) : account ? (
             <>
               <h2 id="fc-card-title">Tu es déjà connecté.</h2>
-              <p>Avec {account.email}.</p>
+              <p>Avec {account.email}.{match && account.creator ? ' Ton espace est déjà relié à une page.' : ''}</p>
               <Link className="k-btn k-btn-primary" href={routes.creatorSpace}>Aller à mon espace</Link>
             </>
           ) : (
