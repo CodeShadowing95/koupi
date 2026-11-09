@@ -180,7 +180,7 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
               <span className="k-st-label">Ton code star</span>
               {top ? <>
                 <b className="k-st-star-code">{top.code.code || 'Lien seul'}</b>
-                <small>{top.code.tool} · {nb(top.copies)} copie{top.copies > 1 ? 's' : ''}</small>
+                <small>{top.code.tool} · {nb(top.copies)} {top.code.code ? 'copie' : 'clic'}{top.copies > 1 ? 's' : ''}</small>
               </> : <><b className="k-st-star-code">—</b><small>Le premier code copié prendra la place</small></>}
             </div>
           </div>
@@ -190,7 +190,7 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
       <section id="codes" className="k-st-section">
         <div className="k-st-section-head">
           <h2 className="k-st-h2">Mes codes</h2>
-          <p className="k-st-muted">Copies depuis le 1er {month}. Les chiffres viennent du compteur anonyme de Merkod : un total par jour, rien sur les visiteurs.</p>
+          <p className="k-st-muted">Copies depuis le 1er {month} ; pour une offre sans code, les clics sur ton lien. Les chiffres viennent du compteur anonyme de Merkod : un total par jour, rien sur les visiteurs.</p>
         </div>
         <StudioAddCode tools={toolChoices} proven={proven} />
         {rows.length === 0 ? <p className="k-st-card k-st-muted">Aucun code pour l’instant. Ajoute le premier : ta page apparaîtra sur Merkod dès qu’il sera publié.</p> : (
