@@ -2,6 +2,13 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.17.0](https://github.com/CodeShadowing95/koupi/compare/v0.16.0...v0.17.0) (2026-11-09)
+
+### Nouveautés
+
+- **site:** Drop the codes and creators lists and move creator pages to /@name (#303) ([c08da41](https://github.com/CodeShadowing95/koupi/commit/c08da413bf525ab7ffe4dc350141539249760492))
+- **site:** Put the codes and creator pages in the Explorer layout (#302) ([ac077fb](https://github.com/CodeShadowing95/koupi/commit/ac077fba298eee68b52bba0d0bba08576cafa3bb))
+
 ## [0.16.0](https://github.com/CodeShadowing95/koupi/compare/v0.15.0...v0.16.0) (2026-11-09)
 
 ### Nouveautés
