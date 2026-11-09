@@ -7,8 +7,10 @@ import { auditLabel, formatAuditDate } from '@/lib/admin-audit';
 import type { AuditEntry, SiteSwitchRow } from '@/lib/site-settings';
 import type { CreatorUserAction, CreatorUserItem } from '@/lib/creator-users-admin';
 import { confirmAction } from '@/components/admin-ask';
+import type { AdminUniverse, FamilyInUniverse } from '@/lib/universes-admin';
+import { DEFAULT_UNIVERSE } from '@/lib/universes';
 
-type Props = { off: PageKey[]; maintenance: boolean; offerLinks: boolean; rows: SiteSwitchRow[]; journal: AuditEntry[]; creatorUsers: CreatorUserItem[] };
+type Props = { off: PageKey[]; maintenance: boolean; offerLinks: boolean; rows: SiteSwitchRow[]; journal: AuditEntry[]; creatorUsers: CreatorUserItem[]; universes: AdminUniverse[]; families: FamilyInUniverse[] };
 
 const USER_QUESTIONS: Record<CreatorUserAction, (user: CreatorUserItem) => string> = {
   disable: user => `Désactiver le compte ${user.email} ? Sa session s’arrête tout de suite et il ne pourra plus se connecter tant que tu ne le réactives pas.`,
@@ -27,7 +29,7 @@ function Switch({ on, label, disabled, onChange }: { on: boolean; label: string;
   );
 }
 
-export function AdministrationView({ off, maintenance, offerLinks, rows, journal, creatorUsers }: Props) {
+export function AdministrationView({ off, maintenance, offerLinks, rows, journal, creatorUsers, universes, families }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -75,6 +77,29 @@ export function AdministrationView({ off, maintenance, offerLinks, rows, journal
       : `Remettre la page ${page.label} en ligne ?`, isOn ? 'Couper la page' : null);
   }
 
+  async function send(target: string, url: string, body: Record<string, unknown>) {
+    setBusy(target);
+    setError('');
+    try {
+      const response = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const reply = await response.json().catch(() => ({})) as { error?: string };
+      if (!response.ok) setError(reply.error || 'Le changement n’a pas pu être enregistré.');
+      else router.refresh();
+    } catch {
+      setError('Le changement n’a pas pu être enregistré. Vérifie ta connexion.');
+    }
+    setBusy(null);
+  }
+
+  async function toggleUniverse(universe: AdminUniverse) {
+    const question = universe.visible
+      ? `Éteindre l’univers ${universe.name} ? Ses ${universe.tools} marques, leurs codes et leurs catégories disparaissent du site. Tout reste dans l’admin.`
+      : `Montrer l’univers ${universe.name} sur le site ? Ses marques avec un code visible apparaissent dans Explorer, la recherche, les pages créateur et le sitemap.`;
+    if (!(await confirmAction(question, { confirmLabel: universe.visible ? 'Éteindre' : 'Montrer sur le site', danger: universe.visible }))) return;
+    await send(`universe:${universe.slug}`, '/api/admin/universes', { slug: universe.slug, visible: !universe.visible });
+  }
+
+  const universeName = new Map(universes.map(universe => [universe.slug, universe.name]));
   const onCount = SITE_PAGES.filter(page => !off.includes(page.key)).length;
 
   return (
@@ -121,6 +146,55 @@ export function AdministrationView({ off, maintenance, offerLinks, rows, journal
                 : 'Relever aussi les liens d’affiliation ? Les prochaines lectures garderont les offres par lien (avec une réduction écrite), à valider dans Vérifications.',
               offerLinks ? 'Couper les liens' : null, 'Activer les liens')} />
           </div>
+        </section>
+
+        <section className="adm-admin-block" aria-labelledby="universes-title">
+          <div className="adm-admin-block-head">
+            <h2 id="universes-title">Univers</h2>
+            <span className="muted">{universes.filter(universe => universe.visible).length} sur {universes.length} montrés sur le site</span>
+          </div>
+          <p className="adm-admin-note">Merkod promet des codes pour les outils en ligne. Les autres marques (beauté, mode, maison…) sont gardées dans leur univers : tu les vois partout dans l’admin, mais le site ne les montre que si tu allumes leur univers. Pour y ranger des marques, utilise « ✦ Ranger par univers » dans Catégories.</p>
+          <div className="adm-table-wrap">
+            <table className="adm-table">
+              <thead><tr><th scope="col">Univers</th><th scope="col">Familles</th><th scope="col">Marques suivies</th><th scope="col">Sur le site</th></tr></thead>
+              <tbody>
+                {universes.map(universe => (
+                  <tr key={universe.slug} className={universe.visible ? undefined : 'is-off'}>
+                    <td><b>{universe.name}</b>{!universe.visible && <span className="adm-page-off">Caché</span>}</td>
+                    <td className="adm-cell-muted">{universe.families}</td>
+                    <td className="adm-cell-muted">{universe.tools}</td>
+                    <td>{universe.slug === DEFAULT_UNIVERSE
+                      ? <Switch on label={`${universe.name} : toujours visible`} disabled />
+                      : <Switch on={universe.visible} label={`${universe.name} visible sur le site`} disabled={busy !== null} onChange={() => toggleUniverse(universe)} />}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <details className="adm-admin-details">
+            <summary>Univers de chaque famille ({families.length})</summary>
+            <p className="adm-admin-note">Une famille emporte ses catégories et ses outils dans l’univers choisi.</p>
+            <div className="adm-table-wrap">
+              <table className="adm-table">
+                <thead><tr><th scope="col">Famille</th><th scope="col">Univers</th></tr></thead>
+                <tbody>
+                  {families.map(family => (
+                    <tr key={family.slug}>
+                      <td><b>{family.name}</b></td>
+                      <td>
+                        <label htmlFor={`family-universe-${family.slug}`} className="sr-only">Univers de {family.name}</label>
+                        <select id={`family-universe-${family.slug}`} className="adm-inline-select" value={family.universe} disabled={busy !== null}
+                          onChange={event => send(`family:${family.slug}`, '/api/admin/families', { slug: family.slug, universe: event.target.value })}>
+                          {universes.map(universe => <option key={universe.slug} value={universe.slug}>{universe.name}</option>)}
+                        </select>
+                        {!universeName.has(family.universe) && <span className="adm-cell-muted"> {family.universe}</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
         </section>
 
         <section className="adm-admin-block" aria-labelledby="pages-title">

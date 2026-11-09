@@ -7,7 +7,7 @@ import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import { applyCodeAction, createCode, type CodeInput } from './codes-admin';
 import { formatEur, formatUsd, highlightCode, modelLabel, verdictOf, type QueueItem } from './verification-display';
-import { aiCodesOf, sortQueue, verificationQueue } from './verification-queue';
+import { aiCodesOf, aiToolOf, sortQueue, verificationQueue } from './verification-queue';
 import { recordVerificationCheck } from './verification-store';
 
 async function freshDb() {
@@ -30,8 +30,8 @@ async function add(db: Db, input: Partial<CodeInput>) {
 }
 
 const item = (id: string, createdAt: string, score: number | null): QueueItem => ({
-  id, code: id, offerLink: null, discount: '', status: 'pending', tool: 't', creator: 'c', sourceUrl: '', sourceTitle: '', origin: 'manual', votesUp: 0, votesDown: 0, createdAt, expiresOn: null, expired: false,
-  check: score === null ? null : { score, reasons: [], evidence: null, model: null, costUsdMicros: 0, createdAt, aiCodes: [] },
+  id, code: id, offerLink: null, discount: '', status: 'pending', tool: 't', toolSlug: 't', creator: 'c', sourceUrl: '', sourceTitle: '', origin: 'manual', votesUp: 0, votesDown: 0, createdAt, expiresOn: null, expired: false,
+  check: score === null ? null : { score, reasons: [], evidence: null, model: null, costUsdMicros: 0, createdAt, aiCodes: [], aiTool: null },
 });
 
 describe('verdictOf', () => {
@@ -118,6 +118,20 @@ describe('verificationQueue', () => {
 
   it('rend une file vide sans requête de plus', async () => {
     expect(await verificationQueue(await freshDb())).toEqual([]);
+  });
+});
+
+describe('aiToolOf', () => {
+  const extracted = { codes: [{ code: 'julien20', tool: 'Rankerfox' }, { code: 'NORD', tool: 'NordVPN Plus' }, { code: 'AV', tool: 'Avantages' }] };
+  it('donne la marque lue par l’IA quand ce n’est pas l’outil du code', () => {
+    expect(aiToolOf(extracted, 'JULIEN20', 'Envato Elements')).toBe('Rankerfox');
+  });
+  it('ne dit rien pour le même outil écrit autrement, une étiquette, un code absent ou une offre par lien', () => {
+    expect(aiToolOf(extracted, 'NORD', 'NordVPN')).toBeNull();
+    expect(aiToolOf(extracted, 'AV', 'NordVPN')).toBeNull();
+    expect(aiToolOf(extracted, 'OTHER', 'NordVPN')).toBeNull();
+    expect(aiToolOf(extracted, '', 'NordVPN')).toBeNull();
+    expect(aiToolOf(null, 'JULIEN20', 'NordVPN')).toBeNull();
   });
 });
 

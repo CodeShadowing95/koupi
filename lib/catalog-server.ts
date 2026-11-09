@@ -9,12 +9,20 @@ import { loadCreatorProfile, type CreatorProfile } from './creator-profile';
 import { loadCreatorFacts, type CreatorFacts } from './creator-directory';
 import type { Catalog } from './data';
 import { loadAvatarMap, loadLogoMap } from './stored-images';
+import { publicCatalog } from './universes';
 
 export const CATALOG_TAG = 'catalog';
 
-const cachedCatalog = unstable_cache(() => loadCatalog(getDb()), ['catalog-v1'], { tags: [CATALOG_TAG], revalidate: 300 });
+const cachedCatalog = unstable_cache(() => loadCatalog(getDb()), ['catalog-v2'], { tags: [CATALOG_TAG], revalidate: 300 });
 
+/** Catalogue du site public : sans les univers cachés (ADR-0046). */
 export async function getCatalog(): Promise<Catalog> {
+  await connection();
+  return publicCatalog(await cachedCatalog());
+}
+
+/** Catalogue complet, univers cachés compris : pour l'admin et l'espace créateur. */
+export async function getFullCatalog(): Promise<Catalog> {
   await connection();
   return cachedCatalog();
 }

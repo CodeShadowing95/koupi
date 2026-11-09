@@ -780,7 +780,7 @@ html:has(> body > .ct){overflow:hidden}
 
 /* Champs raffinés : même trait, hauteur et rayon que les boutons, sur toutes les pages admin. */
 .admin-root{--field-h:38px;--field-border:var(--line-strong);--field-hover:var(--muted);--field-ring:0 0 0 3px rgba(42,59,214,.16)}
-.adm-search,.adm-combo-trigger,.adm-combo-filter .adm-combo-trigger,.adm-form .field input:where(:not([type=radio],[type=checkbox],.adm-combo-native,[role=combobox])),.adm-form .field select,.adm-form .field textarea,.adm-pager-size select{
+.adm-search,.adm-combo-trigger,.adm-combo-filter .adm-combo-trigger,.adm-form .field input:where(:not([type=radio],[type=checkbox],.adm-combo-native,[role=combobox])),.adm-form .field select,.adm-form .field textarea,.adm-pager-size select,.adm-inline-select{
   min-height:var(--field-h);border:1.5px solid var(--field-border);border-radius:9px;background-color:var(--card);color:var(--ink);font-size:14px;
   transition:border-color .15s,box-shadow .15s}
 .adm-search{height:var(--field-h);padding:0 12px 0 34px;
@@ -791,10 +791,11 @@ html:has(> body > .ct){overflow:hidden}
 .adm-combo-trigger{padding:0 10px 0 12px}
 .adm-form .field input:where(:not([type=radio],[type=checkbox],.adm-combo-native,[role=combobox])),.adm-form .field select{padding:0 12px}
 .adm-form .field textarea{padding:9px 12px;line-height:1.45}
-.adm-form .field select,.adm-pager-size select{appearance:none;-webkit-appearance:none;padding-right:32px;cursor:pointer;
+.adm-form .field select,.adm-pager-size select,.adm-inline-select{appearance:none;-webkit-appearance:none;padding-right:32px;cursor:pointer;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238E92A3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 10px center;background-size:14px}
 .adm-pager-size select{height:32px;min-height:32px;font-size:13px;padding-left:10px}
+.adm-inline-select{height:34px;min-height:34px;font-size:13.5px;padding-left:10px}
 .adm-search:hover,.adm-combo-trigger:hover,.adm-form .field input:where(:not([type=radio],[type=checkbox],.adm-combo-native,[role=combobox])):hover,.adm-form .field select:hover,.adm-form .field textarea:hover,.adm-pager-size select:hover{border-color:var(--field-hover)}
 .adm-search:focus,.adm-combo-trigger:focus-visible,.adm-combo-trigger[aria-expanded="true"],.adm-form .field input:where(:not([type=radio],[type=checkbox],.adm-combo-native,[role=combobox])):focus,.adm-form .field select:focus,.adm-form .field textarea:focus,.adm-pager-size select:focus{border-color:var(--blue);box-shadow:var(--field-ring);outline:0}
 .adm-sort-dir{width:var(--field-h);min-height:var(--field-h)}
@@ -1160,6 +1161,12 @@ html:has(> body > .ct){overflow:hidden}
 .adm-vf-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .adm-vf-title .mono{font-weight:700;font-size:16px;color:var(--blue)}
 .adm-vf-fix{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:8px 0 0;font-size:13px;color:var(--muted)}
+.adm-vf-tool{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:10px 0 0;padding:8px 10px;border-radius:10px;background:var(--warn-bg);font-size:13px}
+.adm-vf-tool-label{font-weight:600;color:var(--ink)}
+.adm-vf-tool .adm-combo{min-width:200px}
+.adm-vf-tool .adm-btn{min-height:32px;padding:0 12px;font-size:13px}
+.adm-vf-tool-note,.adm-vf-tool-error{flex-basis:100%;margin:0;font-size:12.5px;color:var(--ink-soft)}
+.adm-vf-tool-error{color:var(--bad)}
 .adm-vf-chip{display:inline-flex;align-items:center;gap:4px;min-height:28px;padding:2px 10px;border:1px solid var(--line-strong);border-radius:999px;background:var(--card);color:var(--ink);font-size:13px;cursor:pointer}
 .adm-vf-chip:hover:not(:disabled),.adm-vf-chip[aria-pressed="true"]{border-color:var(--blue);color:var(--blue)}
 .adm-vf-chip .mono{font-weight:700}
@@ -1300,6 +1307,9 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-pages-table tr.is-off td{background:var(--bad-bg)}
 .adm-pages-table code{font-size:12.5px}
 .adm-admin-note{margin:-4px 0 10px;color:var(--muted);font-size:13.5px}
+.adm-admin-details{margin-top:12px}
+.adm-admin-details summary{cursor:pointer;font-weight:600;font-size:14px;padding:6px 0}
+.adm-admin-details .adm-admin-note{margin-top:6px}
 .adm-users-table tr.is-off td{background:var(--bad-bg)}
 .adm-users-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}
 .adm-page-off{display:inline-block;margin-left:8px;padding:1px 7px;border-radius:999px;background:var(--bad);color:#fff;font-size:11px;font-weight:700}
@@ -1333,6 +1343,8 @@ img.adm-pod-art,.adm-pod-art.adm-pod-noimg{width:40px;height:40px;border-radius:
 .adm-cat-finder-new .adm-btn{min-height:30px;padding:0 10px;font-size:12.5px}
 .adm-tidy-count{margin:0;font-size:13px;color:var(--ink-soft)}
 .adm-tidy-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.adm-usort-group{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.adm-usort-group h3{margin:0;font-size:14.5px}
 .adm-tidy-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:12px;align-items:start;padding:10px 14px;border-top:1px solid var(--line);font-size:13.5px}
 .adm-tidy-row:first-child{border-top:0}
 .adm-tidy-row[data-state=reading]{background:var(--blue-soft)}

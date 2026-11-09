@@ -6,6 +6,7 @@ import { categories, categoryFamilies, codes, creators, tools } from '@/db/schem
 import { slugify } from './slug';
 import { validUrl } from './codes-admin';
 import { parseCreatorBio } from './creator-bio';
+import { DEFAULT_UNIVERSE } from './universes';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 function text(value: unknown, max: number): string { return typeof value === 'string' ? value.trim().slice(0, max) : ''; }
@@ -102,23 +103,25 @@ export async function updateCreatorProfile(db: Db, id: string, input: { name?: u
 
 // ---------- Catégories ----------
 
-export type AdminCategory = { slug: string; name: string; familySlug: string | null; family: string | null; tools: number; covered: number };
-export type CategoryFamily = { slug: string; name: string; position: number };
+export type AdminCategory = { slug: string; name: string; familySlug: string | null; family: string | null; tools: number; covered: number;
+  /** Univers de sa famille (ADR-0046) ; « outils-en-ligne » sans famille. */
+  universe: string };
+export type CategoryFamily = { slug: string; name: string; position: number; universe?: string };
 
 /** Familles de catégories (ADR-0026), dans l'ordre du menu. */
 export async function listFamilies(db: Db): Promise<CategoryFamily[]> {
-  return db.select({ slug: categoryFamilies.slug, name: categoryFamilies.name, position: categoryFamilies.position })
+  return db.select({ slug: categoryFamilies.slug, name: categoryFamilies.name, position: categoryFamilies.position, universe: categoryFamilies.universeSlug })
     .from(categoryFamilies).orderBy(asc(categoryFamilies.position), asc(categoryFamilies.name));
 }
 
 export async function listCategoriesAdmin(db: Db): Promise<AdminCategory[]> {
   const toolRows = await listToolsAdmin(db);
-  const rows = await db.select({ slug: categories.slug, name: categories.name, familySlug: categories.familySlug, family: categoryFamilies.name })
+  const rows = await db.select({ slug: categories.slug, name: categories.name, familySlug: categories.familySlug, family: categoryFamilies.name, universe: categoryFamilies.universeSlug })
     .from(categories).leftJoin(categoryFamilies, eq(categories.familySlug, categoryFamilies.slug))
     .orderBy(asc(categories.createdAt), asc(categories.name));
   return rows.map(row => {
     const inCategory = toolRows.filter(tool => tool.categorySlug === row.slug && !tool.archived);
-    return { ...row, tools: inCategory.length, covered: inCategory.filter(tool => tool.visible > 0).length };
+    return { ...row, universe: row.universe ?? DEFAULT_UNIVERSE, tools: inCategory.length, covered: inCategory.filter(tool => tool.visible > 0).length };
   });
 }
 
@@ -148,6 +151,18 @@ export async function createCategory(db: Db, rawName: unknown, rawFamily?: unkno
   if (await categoryNameTaken(db, name)) return { ok: false, error: 'Cette catégorie existe déjà.' };
   const [row] = await db.insert(categories).values({ slug, name, familySlug: family.data ?? null }).onConflictDoNothing().returning({ slug: categories.slug });
   return row ? { ok: true, data: row } : { ok: false, error: 'Une catégorie a déjà cette adresse sur le site.' };
+}
+
+/** Crée une famille de catégories, placée après les autres dans le menu. Une famille du même nom est réutilisée. */
+export async function createFamily(db: Db, rawName: unknown): Promise<Parsed<{ slug: string; name: string }>> {
+  const name = text(rawName, 80), slug = slugify(name);
+  if (!name || !slug) return { ok: false, error: 'Indique le nom de la famille.' };
+  const existing = (await db.select({ slug: categoryFamilies.slug, name: categoryFamilies.name }).from(categoryFamilies))
+    .find(family => family.slug === slug || slugify(family.name) === slug);
+  if (existing) return { ok: true, data: existing };
+  const [last] = await db.select({ position: sql<number>`coalesce(max(${categoryFamilies.position}), 0)::int` }).from(categoryFamilies);
+  const [row] = await db.insert(categoryFamilies).values({ slug, name, position: (last?.position ?? 0) + 1 }).onConflictDoNothing().returning({ slug: categoryFamilies.slug, name: categoryFamilies.name });
+  return row ? { ok: true, data: row } : { ok: false, error: 'Une famille a déjà ce nom.' };
 }
 
 /** Renomme une catégorie et change sa famille (si rawFamily est donné). Son adresse sur le site (slug) reste la même. */

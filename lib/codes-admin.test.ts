@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import { loadCatalog } from './catalog-db';
-import { applyCodeAction, correctCode, createCode, parseCodeInput, toolOptions, updateCode, type CodeInput } from './codes-admin';
+import { applyCodeAction, correctCode, createCode, moveCodeToTool, parseCodeInput, toolOptions, updateCode, type CodeInput } from './codes-admin';
 import { createSubmission, listSubmissions } from './submissions';
 
 async function freshDb() {
@@ -238,5 +238,33 @@ describe('correction du code depuis Vérifications', () => {
     expect(await correctCode(db, second.data.id, { code: 'NEW 1' })).toMatchObject({ ok: false, error: expect.stringContaining('sans espace') });
     expect(await correctCode(db, second.data.id, { code: 'ytstack' })).toMatchObject({ ok: false, duplicateId: first.data.id });
     expect(await correctCode(db, '00000000-0000-0000-0000-000000000000', { code: 'X1' })).toEqual({ ok: false, error: 'Code introuvable.' });
+  });
+});
+
+describe('rattacher un code à un autre outil depuis Vérifications', () => {
+  it('change l’outil du code, garde le reste et note le changement', async () => {
+    const db = await freshDb();
+    await db.insert(schema.tools).values({ slug: 'rankerfox', name: 'Rankerfox', categorySlug: 'ia', website: 'https://rankerfox.com' });
+    const created = await createCode(db, { ...base, status: 'pending' });
+    if (!created.ok) throw new Error(created.error);
+    expect(await moveCodeToTool(db, created.data.id, 'rankerfox')).toEqual({ ok: true, data: { tool: 'Rankerfox' } });
+    const [row] = await db.select({ code: schema.codes.code, status: schema.codes.status, tool: schema.tools.slug }).from(schema.codes).innerJoin(schema.tools, eq(schema.codes.toolId, schema.tools.id)).where(eq(schema.codes.id, created.data.id));
+    expect(row).toEqual({ code: base.code, status: 'pending', tool: 'rankerfox' });
+    const logs = await db.select().from(schema.codeLogs).where(eq(schema.codeLogs.codeId, created.data.id));
+    expect(logs.at(-1)?.note).toBe('Rattaché depuis Vérifications : outil NordVPN → Rankerfox.');
+  });
+
+  it('refuse un outil inconnu ou archivé, et un code déjà présent sur l’outil choisi', async () => {
+    const db = await freshDb();
+    await db.insert(schema.tools).values([
+      { slug: 'rankerfox', name: 'Rankerfox', categorySlug: 'ia', website: 'https://rankerfox.com' },
+      { slug: 'old', name: 'Old', categorySlug: 'ia', website: 'https://old.example', archivedAt: new Date() },
+    ]);
+    const onNord = await createCode(db, base);
+    const onFox = await createCode(db, { ...base, toolSlug: 'rankerfox' });
+    if (!onNord.ok || !onFox.ok) throw new Error('setup');
+    expect(await moveCodeToTool(db, onNord.data.id, 'nope')).toEqual({ ok: false, error: 'Choisis un outil du catalogue.' });
+    expect(await moveCodeToTool(db, onNord.data.id, 'old')).toEqual({ ok: false, error: 'Choisis un outil du catalogue.' });
+    expect(await moveCodeToTool(db, onNord.data.id, 'rankerfox')).toMatchObject({ ok: false, duplicateId: onFox.data.id });
   });
 });

@@ -189,6 +189,27 @@ export async function correctCode(db: Db, id: string, body: Record<string, unkno
   return { ok: true, data: { code, discount } };
 }
 
+/**
+ * Rattache un code à un autre outil du catalogue depuis Vérifications (l'IA lit une autre marque que l'outil du code).
+ * Refuse un outil archivé ou inconnu, et un code déjà au catalogue pour l'outil choisi.
+ */
+export async function moveCodeToTool(db: Db, id: string, rawSlug: unknown): Promise<SaveResult<{ tool: string }>> {
+  const current = await currentCode(db, id);
+  if (!current) return { ok: false, error: 'Code introuvable.' };
+  const slug = text(rawSlug, 120);
+  const [target] = slug ? await db.select({ id: tools.id, name: tools.name }).from(tools).where(and(eq(tools.slug, slug), isNull(tools.archivedAt))).limit(1) : [];
+  if (!target) return { ok: false, error: 'Choisis un outil du catalogue.' };
+  if (target.id === current.toolId) return { ok: true, data: { tool: target.name } };
+  if (current.code) {
+    const duplicate = await findCatalogDuplicate(db, target.id, current.code, id);
+    if (duplicate) return duplicateError(current.code, duplicate);
+  }
+  const [previous] = await db.select({ name: tools.name }).from(tools).where(eq(tools.id, current.toolId)).limit(1);
+  await db.update(codes).set({ toolId: target.id, updatedAt: new Date() }).where(eq(codes.id, id));
+  await db.insert(codeLogs).values({ codeId: id, action: 'edit', previousStatus: current.status, nextStatus: current.status, note: `Rattaché depuis Vérifications : outil ${previous?.name ?? '?'} → ${target.name}.` });
+  return { ok: true, data: { tool: target.name } };
+}
+
 export const CODE_QUICK_ACTIONS = ['verify', 'payment_test', 'reject', 'to_test', 'pending', 'archive', 'restore'] as const;
 export type CodeQuickAction = typeof CODE_QUICK_ACTIONS[number];
 export function isQuickAction(value: unknown): value is CodeQuickAction { return (CODE_QUICK_ACTIONS as readonly unknown[]).includes(value); }

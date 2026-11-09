@@ -92,16 +92,16 @@ describe('catalogue dans l’admin', () => {
     expect(await renameCategory(db, 'vpn', 'VPN et sécurité')).toMatchObject({ ok: true });
     expect(await renameCategory(db, 'ia', 'VPN et sécurité')).toMatchObject({ ok: false });
     expect((await listCategoriesAdmin(db)).sort((a, b) => a.slug.localeCompare(b.slug))).toEqual([
-      { slug: 'creation-et-design', name: 'Création et design', familySlug: null, family: null, tools: 0, covered: 0 },
-      { slug: 'ia', name: 'IA', familySlug: null, family: null, tools: 0, covered: 0 },
-      { slug: 'vpn', name: 'VPN et sécurité', familySlug: null, family: null, tools: 1, covered: 1 },
+      { slug: 'creation-et-design', name: 'Création et design', familySlug: null, family: null, tools: 0, covered: 0, universe: 'outils-en-ligne' },
+      { slug: 'ia', name: 'IA', familySlug: null, family: null, tools: 0, covered: 0, universe: 'outils-en-ligne' },
+      { slug: 'vpn', name: 'VPN et sécurité', familySlug: null, family: null, tools: 1, covered: 1, universe: 'outils-en-ligne' },
     ]);
   });
 
   it('range une catégorie dans une famille, ou l’en sort', async () => {
     const families = await listFamilies(db);
     expect(families).toHaveLength(14);
-    expect(families[0]).toEqual({ slug: 'securite', name: 'Sécurité et vie privée', position: 1 });
+    expect(families[0]).toEqual({ slug: 'securite', name: 'Sécurité et vie privée', position: 1, universe: 'outils-en-ligne' });
     expect(await createCategory(db, 'Gestionnaires de mots de passe', 'securite')).toMatchObject({ ok: true });
     expect(await createCategory(db, 'Antivirus', 'inconnue')).toEqual({ ok: false, error: 'Cette famille n’existe pas.' });
     expect(await renameCategory(db, 'vpn', 'VPN', 'securite')).toMatchObject({ ok: true });

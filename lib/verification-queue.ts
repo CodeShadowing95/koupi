@@ -7,6 +7,8 @@ import { and, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { codes, creators, tools, verificationChecks } from '@/db/schema';
 import { verdictOf, type QueueCheck, type QueueItem } from './verification-display';
+import { notAToolName } from './podcast-codes';
+import { slugify } from './slug';
 
 export type { QueueCheck, QueueItem } from './verification-display';
 
@@ -25,10 +27,24 @@ export function aiCodesOf(extracted: unknown, current: string): string[] {
   return [...new Set(codes)].slice(0, 3);
 }
 
+/**
+ * Marque à laquelle l'IA rattache le code actuel, quand ce n'est pas l'outil du code (ni une étiquette comme
+ * « Avantages ») : l'admin peut alors rattacher le code à cet outil depuis le dossier.
+ */
+export function aiToolOf(extracted: unknown, current: string, toolName: string): string | null {
+  if (!current) return null;
+  const found = (extracted as { codes?: { code?: unknown; tool?: unknown }[] } | null)?.codes ?? [];
+  const item = found.find(entry => typeof entry?.code === 'string' && entry.code.trim().toUpperCase() === current.toUpperCase());
+  const tool = typeof item?.tool === 'string' ? item.tool.trim() : '';
+  if (!tool || notAToolName(tool)) return null;
+  const a = slugify(tool), b = slugify(toolName);
+  return a && b && (a.includes(b) || b.includes(a)) ? null : tool.slice(0, 80);
+}
+
 export async function verificationQueue(db: Db): Promise<QueueItem[]> {
   const rows = await db.select({
     id: codes.id, code: sql<string>`coalesce(${codes.code}, '')`, offerLink: codes.creatorLink, discount: codes.discount, status: codes.status,
-    tool: tools.name, creator: creators.name, sourceUrl: codes.sourceUrl, sourceTitle: codes.sourceTitle,
+    tool: tools.name, toolSlug: tools.slug, creator: creators.name, sourceUrl: codes.sourceUrl, sourceTitle: codes.sourceTitle,
     votesUp: codes.votesUp, votesDown: codes.votesDown, createdAt: codes.createdAt, expiresOn: codes.expiresOn, origin: codes.origin,
     expired: sql<boolean>`coalesce(${codes.expiresOn} < current_date and (${codes.lastTestedAt} is null or ${codes.lastTestedAt}::date <= ${codes.expiresOn}), false)`,
   }).from(codes)
@@ -48,12 +64,14 @@ export async function verificationQueue(db: Db): Promise<QueueItem[]> {
     .orderBy(desc(verificationChecks.createdAt));
   const latest = new Map<string, QueueCheck>();
   const codeOf = new Map(rows.map(row => [row.id, row.code.toUpperCase()]));
+  const toolOf = new Map(rows.map(row => [row.id, row.tool]));
   for (const check of checks) {
     if (!check.codeId || latest.has(check.codeId)) continue;
     latest.set(check.codeId, {
       score: check.score, reasons: check.reasons, evidence: check.evidence, model: check.model,
       costUsdMicros: check.costUsdMicros, createdAt: check.createdAt.toISOString(),
       aiCodes: aiCodesOf(check.extracted, codeOf.get(check.codeId) ?? ''),
+      aiTool: aiToolOf(check.extracted, codeOf.get(check.codeId) ?? '', toolOf.get(check.codeId) ?? ''),
     });
   }
 

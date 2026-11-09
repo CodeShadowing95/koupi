@@ -1,7 +1,7 @@
 import './admin.css';
 import { AdminShell } from '@/components/admin-shell';
 import { themeBootScript } from '@/lib/admin-theme';
-import { getCatalog, getMediaMap } from '@/lib/catalog-server';
+import { getFullCatalog, getMediaMap } from '@/lib/catalog-server';
 import { AvatarMapProvider } from '@/components/avatar-map';
 import { getDb } from '@/db';
 import { cookies } from 'next/headers';
@@ -12,7 +12,7 @@ import { navWaitingCounts, type NavWaiting } from '@/lib/admin-nav-counts';
 
 async function codesToTest() {
   try {
-    return (await getCatalog()).codes.filter(code => code.status === 'to_test').length;
+    return (await getFullCatalog()).codes.filter(code => code.status === 'to_test').length;
   } catch {
     return 0; // Base injoignable : le menu s'affiche quand même, sans badge.
   }

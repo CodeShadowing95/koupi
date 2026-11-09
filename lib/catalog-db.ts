@@ -1,11 +1,12 @@
 // Lecture du catalogue (catégories, outils, codes) depuis la base.
 import { and, asc, eq, isNull } from 'drizzle-orm';
 import type { Db } from '@/db';
-import { categories as categoriesTable, categoryFamilies, codes as codesTable, creatorAccounts, creators as creatorsTable, tools as toolsTable, watchedSources } from '@/db/schema';
+import { categories as categoriesTable, categoryFamilies, codes as codesTable, creatorAccounts, creators as creatorsTable, tools as toolsTable, universes as universesTable, watchedSources } from '@/db/schema';
 import { appleEpisodeRef } from './apple-podcasts';
 import { creatorLevelFromAccounts } from './creator-level';
 import type { CreatorLevel } from './verification';
-import { isPublic, successRate, type Catalog, type Category, type Code, type Family, type Tool } from './data';
+import { isPublic, successRate, type Catalog, type Category, type Code, type Family, type Tool, type Universe } from './data';
+import { DEFAULT_UNIVERSE } from './universes';
 
 function shownLevel(level: CreatorLevel | undefined): Pick<Code, 'creatorLevel'> {
   return level === 'checked' || level === 'verified' ? { creatorLevel: level } : {};
@@ -15,7 +16,7 @@ export function defaultDescription(name: string) { return `Les codes promo donn�
 
 /** includeArchived : l'admin voit aussi les codes archivés (pour les restaurer). Le site, jamais. */
 export async function loadCatalog(db: Db, options: { includeArchived?: boolean } = {}): Promise<Catalog> {
-  const [categoryRows, toolRows, codeRows, accountRows, podcastRows, familyRows] = await Promise.all([
+  const [categoryRows, toolRows, codeRows, accountRows, podcastRows, familyRows, universeRows] = await Promise.all([
     db.select().from(categoriesTable).orderBy(asc(categoriesTable.createdAt), asc(categoriesTable.name)),
     db.select().from(toolsTable).where(isNull(toolsTable.archivedAt)),
     db.select({ code: codesTable, tool: { name: toolsTable.name, slug: toolsTable.slug }, creator: { name: creatorsTable.name, slug: creatorsTable.slug } })
@@ -24,8 +25,14 @@ export async function loadCatalog(db: Db, options: { includeArchived?: boolean }
       .orderBy(asc(codesTable.createdAt), asc(codesTable.code)),
     db.select().from(creatorAccounts),
     db.select({ externalId: watchedSources.externalId, title: watchedSources.title }).from(watchedSources).where(eq(watchedSources.platform, 'podcast')),
-    db.select({ slug: categoryFamilies.slug, name: categoryFamilies.name }).from(categoryFamilies).orderBy(asc(categoryFamilies.position), asc(categoryFamilies.name)),
+    db.select({ slug: categoryFamilies.slug, name: categoryFamilies.name, universe: categoryFamilies.universeSlug }).from(categoryFamilies).orderBy(asc(categoryFamilies.position), asc(categoryFamilies.name)),
+    db.select({ slug: universesTable.slug, name: universesTable.name, visible: universesTable.visible }).from(universesTable).orderBy(asc(universesTable.position), asc(universesTable.name)),
   ]);
+  // Univers de chaque outil : celui de la famille de sa catégorie, « Outils en ligne » sans famille.
+  const universeOfFamily = new Map(familyRows.map(row => [row.slug, row.universe]));
+  const familyOfCategory = new Map(categoryRows.map(row => [row.slug, row.familySlug]));
+  const universeOfCategory = (slug: string) => universeOfFamily.get(familyOfCategory.get(slug) ?? '') ?? DEFAULT_UNIVERSE;
+  const universeOfTool = new Map(toolRows.map(row => [row.slug, universeOfCategory(row.categorySlug)]));
   // Nom du podcast suivi pour un code venu d'un épisode Apple Podcasts.
   const podcastTitle = new Map(podcastRows.map(row => [row.externalId, row.title]));
   const podcastOf = (url: string): Pick<Code, 'podcast'> => {
@@ -63,6 +70,7 @@ export async function loadCatalog(db: Db, options: { includeArchived?: boolean }
     ...(code.archivedAt ? { archived: true } : {}),
     // L'origine ne sert qu'à l'admin : le site public n'en a pas besoin.
     ...(options.includeArchived ? { origin: code.origin } : {}),
+    universe: universeOfTool.get(tool.slug) ?? DEFAULT_UNIVERSE,
   }));
   const live = codes.filter(code => !code.archived);
 
@@ -82,6 +90,7 @@ export async function loadCatalog(db: Db, options: { includeArchived?: boolean }
       priority: row.priority,
       codes: publicCount.get(row.slug) ?? 0,
       ...(familyOf.get(row.categorySlug) ? { family: familyOf.get(row.categorySlug)! } : {}),
+      universe: universeOfTool.get(row.slug) ?? DEFAULT_UNIVERSE,
     }))
     .sort((a, b) => a.priority - b.priority || a.name.localeCompare(b.name, 'fr'));
 
@@ -91,9 +100,11 @@ export async function loadCatalog(db: Db, options: { includeArchived?: boolean }
     family: row.familySlug,
     count: tools.filter(tool => tool.category === row.name).length,
     tracked: toolRows.filter(tool => tool.categorySlug === row.slug).length,
+    universe: universeOfCategory(row.slug),
   }));
 
   const families: Family[] = familyRows;
+  const universes: Universe[] = universeRows;
 
-  return { categories, families, tools, codes, tracked: toolRows.length };
+  return { categories, families, tools, codes, tracked: toolRows.length, universes };
 }

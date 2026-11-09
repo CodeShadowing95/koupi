@@ -2,6 +2,7 @@
 import type { VerificationReason } from '@/db/schema';
 import type { CodeOrigin } from './code-origin';
 import { CLEAR_SCORE, REJECT_BELOW } from './verification';
+import { slugify } from './slug';
 
 export type QueueCheck = {
   score: number;
@@ -12,6 +13,8 @@ export type QueueCheck = {
   createdAt: string;
   /** Codes que l'IA a lus dans la source, autres que le code actuel : l'admin peut en reprendre un d'un clic. */
   aiCodes: string[];
+  /** Marque à laquelle l'IA rattache ce code quand ce n'est pas l'outil du code, sinon null. */
+  aiTool: string | null;
 };
 
 export type QueueItem = {
@@ -24,6 +27,7 @@ export type QueueItem = {
   /** verified : un retest dont l'analyse n'est plus claire (onglet « Retests »). */
   status: 'pending' | 'to_test' | 'verified';
   tool: string;
+  toolSlug: string;
   creator: string;
   sourceUrl: string;
   sourceTitle: string;
@@ -92,4 +96,19 @@ export function highlightCode(excerpt: string, code: string): { text: string; ma
   }
   if (from < excerpt.length) parts.push({ text: excerpt.slice(from), match: false });
   return parts;
+}
+
+export type PickerTool = { slug: string; name: string };
+
+/** Outil du catalogue qui porte le nom lu par l'IA (« Rankerfox », « NordVPN Plus » → NordVPN), autre que l'outil actuel, sinon ''. */
+export function catalogMatch(tools: PickerTool[], aiTool: string, exceptSlug: string): string {
+  const key = slugify(aiTool);
+  if (!key) return '';
+  const candidates = tools.filter(tool => tool.slug !== exceptSlug);
+  const exact = candidates.find(tool => slugify(tool.name) === key);
+  if (exact) return exact.slug;
+  const close = candidates
+    .filter(tool => { const name = slugify(tool.name); return name.length >= 3 && (key.includes(name) || name.includes(key)); })
+    .sort((a, b) => b.name.length - a.name.length);
+  return close[0]?.slug ?? '';
 }
