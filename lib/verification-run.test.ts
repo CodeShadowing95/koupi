@@ -8,7 +8,7 @@ import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import { aiConfigFrom } from './ai-extract';
 import { CLEAR_SCORE } from './verification';
-import { createCode } from './codes-admin';
+import { correctCode, createCode } from './codes-admin';
 import { runVerification, youtubeReader, youtubeVideoId, type SourceReader } from './verification-run';
 
 const URL_OK = 'https://www.youtube.com/watch?v=abc123XYZ';
@@ -230,6 +230,29 @@ describe('runVerification', () => {
     await runVerification(ctx.db, ctx.codeId, { readSource: reader('Code ANA10 jusqu’au 31/12'), ai: { config, create } });
     [row] = await ctx.db.select().from(schema.codes).where(eq(schema.codes.id, ctx.codeId));
     expect(row.expiresOn).toBe('2027-01-15');
+  });
+
+  it('réécrit la réduction pour le visiteur sur un code en attente, jamais après une correction de l’admin', async () => {
+    const create = vi.fn(async (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => aiResponse(params.model, [{ code: 'ANA10', link: '', discount: '-35 % sur une sélection de couvertures' }]));
+    const config = aiConfigFrom({ ANTHROPIC_API_KEY: 'k' });
+    await ctx.db.update(schema.codes).set({ status: 'pending', discount: '35%' }).where(eq(schema.codes.id, ctx.codeId));
+    const check = await runVerification(ctx.db, ctx.codeId, { readSource: reader('35% off select products with code ANA10'), ai: { config, create } });
+    expect(check?.reasons.map(r => r.label)).toContain('L’IA a réécrit la réduction pour le visiteur : « -35 % sur une sélection de couvertures » (avant : « 35% »).');
+    let [row] = await ctx.db.select().from(schema.codes).where(eq(schema.codes.id, ctx.codeId));
+    expect(row.discount).toBe('-35 % sur une sélection de couvertures');
+    // L'admin corrige au crayon : la relecture suivante garde son texte.
+    await correctCode(ctx.db, ctx.codeId, { code: 'ANA10', discount: '-35 % sur les couvertures' });
+    await runVerification(ctx.db, ctx.codeId, { readSource: reader('35% off select products with code ANA10'), ai: { config, create } });
+    [row] = await ctx.db.select().from(schema.codes).where(eq(schema.codes.id, ctx.codeId));
+    expect(row.discount).toBe('-35 % sur les couvertures');
+  });
+
+  it('ne touche pas à la réduction d’un code déjà publié', async () => {
+    const create = vi.fn(async (params: Anthropic.Beta.MessageCreateParamsNonStreaming) => aiResponse(params.model, [{ code: 'ANA10', link: '', discount: '-10 % sur tout' }]));
+    await ctx.db.update(schema.codes).set({ status: 'verified', discount: '-10 %' }).where(eq(schema.codes.id, ctx.codeId));
+    await runVerification(ctx.db, ctx.codeId, { readSource: reader('code ANA10'), ai: { config: aiConfigFrom({ ANTHROPIC_API_KEY: 'k' }), create } });
+    const [row] = await ctx.db.select().from(schema.codes).where(eq(schema.codes.id, ctx.codeId));
+    expect(row.discount).toBe('-10 %');
   });
 
   it('repère un doublon', async () => {
