@@ -14,19 +14,21 @@ import { matchesSearch } from '@/lib/admin-search';
 import type { AdminToolSuggestion } from '@/lib/tool-suggestions';
 import type { ToolAnalysis } from '@/lib/tool-analysis';
 import { CREATOR_SUGGESTION_EVIDENCE } from '@/lib/code-origin';
+import { DEFAULT_UNIVERSE } from '@/lib/universes';
 
-export type CategoryOption = { slug: string; name: string };
+export type CategoryOption = { slug: string; name: string; universe: string };
+export type UniverseOption = { slug: string; name: string; visible: boolean };
 export type CatalogToolOption = { slug: string; name: string; category: string };
 
 type Mode = 'new' | 'existing';
 const isVideo = (url: string) => /^https?:\/\/(?:www\.|m\.)?(?:youtube\.com|youtu\.be)\//i.test(url);
 /** Valeur de la liste des catégories qui ouvre le champ « nouvelle catégorie ». */
 const NEW_CATEGORY = '__new';
-const emptyForm = { name: '', categorySlug: '', newCategory: '', website: '', toolSlug: '', description: '' };
+const emptyForm = { name: '', categorySlug: '', newCategory: '', universe: DEFAULT_UNIVERSE, website: '', toolSlug: '', description: '' };
 /** État de l'IA pour le bouton d'analyse : active, ou la raison affichée en bulle. */
 export type AiAvailability = { active: boolean; label: string };
 
-export function ToolSuggestionsPanel({ suggestions, categories, tools, ai }: { suggestions: AdminToolSuggestion[]; categories: CategoryOption[]; tools: CatalogToolOption[]; ai: AiAvailability }) {
+export function ToolSuggestionsPanel({ suggestions, categories, universes, tools, ai }: { suggestions: AdminToolSuggestion[]; categories: CategoryOption[]; universes: UniverseOption[]; tools: CatalogToolOption[]; ai: AiAvailability }) {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
@@ -41,9 +43,12 @@ export function ToolSuggestionsPanel({ suggestions, categories, tools, ai }: { s
   const sameTool = (item: AdminToolSuggestion) => suggestions.filter(other => item.domain ? other.domain === item.domain : !other.domain && other.name.toLowerCase() === item.name.toLowerCase()).length;
 
   const categoryName = (slug: string) => categories.find(category => category.slug === slug)?.name ?? slug;
-  // L'analyse de l'IA pré-remplit le nom et la catégorie (existante, ou nouvelle à créer).
+  const universeOf = (slug: string) => universes.find(universe => universe.slug === slug);
+  // L'analyse de l'IA pré-remplit le nom, la catégorie (existante, ou nouvelle à créer) et l'univers d'une nouvelle catégorie.
+  // Une analyse faite avant les univers n'en a pas : elle compte comme « Outils en ligne ».
   const fromAnalysis = (analysis: ToolAnalysis | null) => !analysis ? {} : {
     ...(analysis.toolName ? { name: analysis.toolName } : {}),
+    universe: analysis.universe ?? DEFAULT_UNIVERSE,
     ...(analysis.categorySlug ? { categorySlug: analysis.categorySlug, newCategory: '' } : analysis.newCategory ? { categorySlug: NEW_CATEGORY, newCategory: analysis.newCategory } : {}),
   };
 
@@ -93,6 +98,9 @@ export function ToolSuggestionsPanel({ suggestions, categories, tools, ai }: { s
     <div className="adm-sugg-analysis">
       <p>{analysis.summary}</p>
       {!analysis.isOnlineTool && <p className="adm-sugg-warn">L’IA pense que ce n’est pas un outil en ligne.</p>}
+      {(analysis.universe ?? DEFAULT_UNIVERSE) !== DEFAULT_UNIVERSE && (
+        <p className="adm-sugg-warn">Univers proposé : <b>{universeOf(analysis.universe)?.name ?? analysis.universe}</b>{universeOf(analysis.universe)?.visible === false ? ' · caché sur le site tant que tu ne l’allumes pas dans Administration' : ''}. La marque sera rangée à part, hors des outils en ligne.</p>
+      )}
       <p className="muted">{analysis.categorySlug ? <>Catégorie proposée : <b>{categoryName(analysis.categorySlug)}</b></> : analysis.newCategory ? <>Nouvelle catégorie proposée : <b>{analysis.newCategory}</b></> : 'Aucune catégorie proposée'}{analysis.reason ? ` · ${analysis.reason}` : ''}</p>
     </div>
   );
@@ -108,7 +116,7 @@ export function ToolSuggestionsPanel({ suggestions, categories, tools, ai }: { s
     if (!adding) return Promise.resolve(null);
     if (mode === 'existing') return form.toolSlug ? sendJson(`/api/admin/tool-suggestions/${adding.id}`, 'POST', { action: 'add', toolSlug: form.toolSlug }) : Promise.resolve('Choisis un outil du catalogue.');
     if (form.categorySlug === NEW_CATEGORY && !form.newCategory.trim()) return Promise.resolve('Indique le nom de la nouvelle catégorie.');
-    const newCategory = form.categorySlug === NEW_CATEGORY ? { newCategory: form.newCategory.trim() } : {};
+    const newCategory = form.categorySlug === NEW_CATEGORY ? { newCategory: form.newCategory.trim(), universe: form.universe } : {};
     return sendJson(`/api/admin/tool-suggestions/${adding.id}`, 'POST', { action: 'add', newTool: { name: form.name, categorySlug: form.categorySlug === NEW_CATEGORY ? '' : form.categorySlug, website: form.website }, ...newCategory });
   };
   const set = (key: keyof typeof emptyForm) => (event: React.ChangeEvent<HTMLInputElement>) => setForm(value => ({ ...value, [key]: event.target.value }));
@@ -177,8 +185,9 @@ export function ToolSuggestionsPanel({ suggestions, categories, tools, ai }: { s
         </div>
         {mode === 'new' ? <>
           <div className="field"><label htmlFor="sugg-name">Nom</label><input id="sugg-name" value={form.name} onChange={set('name')} required maxLength={120} /></div>
-          <div className="field"><label htmlFor="sugg-cat">Catégorie</label><AdminSelect id="sugg-cat" value={form.categorySlug} onChange={categorySlug => setForm(value => ({ ...value, categorySlug }))} options={[{ value: NEW_CATEGORY, label: '+ Nouvelle catégorie', pinned: true }, ...categories.map(category => ({ value: category.slug, label: category.name }))]} placeholder="Choisir une catégorie…" searchPlaceholder="Rechercher une catégorie…" required /></div>
+          <div className="field"><label htmlFor="sugg-cat">Catégorie</label><AdminSelect id="sugg-cat" value={form.categorySlug} onChange={categorySlug => setForm(value => ({ ...value, categorySlug }))} options={[{ value: NEW_CATEGORY, label: '+ Nouvelle catégorie', pinned: true }, ...categories.map(category => ({ value: category.slug, label: category.name, ...(category.universe !== DEFAULT_UNIVERSE ? { hint: universeOf(category.universe)?.name ?? category.universe } : {}) }))]} placeholder="Choisir une catégorie…" searchPlaceholder="Rechercher une catégorie…" required /></div>
           {form.categorySlug === NEW_CATEGORY && <div className="field adm-span-2"><label htmlFor="sugg-newcat">Nom de la nouvelle catégorie</label><input id="sugg-newcat" value={form.newCategory} onChange={event => setForm(value => ({ ...value, newCategory: event.target.value }))} required maxLength={80} placeholder="Compléments alimentaires" /><small>Elle sera créée avec l’outil. Tu pourras la renommer dans Catégories.</small></div>}
+          {form.categorySlug === NEW_CATEGORY && universes.length > 1 && <div className="field adm-span-2"><label htmlFor="sugg-universe">Univers de la nouvelle catégorie</label><select id="sugg-universe" value={form.universe} onChange={event => setForm(value => ({ ...value, universe: event.target.value }))}>{universes.map(universe => <option key={universe.slug} value={universe.slug}>{universe.name}{universe.visible ? '' : ' (caché)'}</option>)}</select><small>Hors « Outils en ligne », la catégorie rejoint la première famille de l’univers. Un univers caché ne se voit pas sur le site.</small></div>}
           <div className="field adm-span-2"><label htmlFor="sugg-site">Site officiel</label><input id="sugg-site" value={form.website} onChange={set('website')} required maxLength={300} placeholder="exemple.com" /><small>Vérifie que c’est bien le site de l’outil, pas un lien de suivi.</small></div>
           <div className="field adm-span-2">
             <label htmlFor="sugg-desc">Ce que fait l’outil <span className="muted">(facultatif)</span></label>

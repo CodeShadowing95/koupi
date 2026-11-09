@@ -3,7 +3,7 @@ import { tidyCostCents, tidyVerdict } from './category-tidy';
 import type { ToolAnalysis } from './tool-analysis';
 
 const categories = [{ slug: 'productivite', name: 'Productivité' }, { slug: 'automatisation', name: 'Automatisation' }];
-const analysis = (over: Partial<ToolAnalysis>): ToolAnalysis => ({ summary: 'Un outil.', isOnlineTool: true, categorySlug: '', newCategory: '', reason: 'parce que.', toolName: 'Outil', model: 'm', url: 'https://outil.example', ...over });
+const analysis = (over: Partial<ToolAnalysis>): ToolAnalysis => ({ summary: 'Un outil.', isOnlineTool: true, categorySlug: '', newCategory: '', reason: 'parce que.', universe: 'outils-en-ligne', toolName: 'Outil', model: 'm', url: 'https://outil.example', ...over });
 
 describe('tidyVerdict', () => {
   it('keeps a tool the AI puts back in its own category', () => {

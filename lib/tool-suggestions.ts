@@ -8,6 +8,8 @@ import { aiStatusOf, type AiConfig } from './ai-extract';
 import { createCategory, createTool, type ToolInput } from './catalog-admin';
 import { readSite, type SitePage } from './site-reader';
 import { analyzeTool, type ToolAnalysis } from './tool-analysis';
+import { DEFAULT_UNIVERSE } from './universes';
+import { analysisChoices, homeFamily } from './universes-admin';
 import { aiSpendSince, startOfMonthUtc } from './verification-store';
 import { resolveCreator } from './codes-admin';
 import { addPodcastCode } from './podcast-read';
@@ -55,8 +57,12 @@ export async function ignoreToolSuggestion(db: Db, id: string): Promise<boolean>
   return rows.length > 0;
 }
 
-/** newCategory : nom d'une catégorie à créer pour l'outil (réutilisée si elle existe déjà sous ce nom). */
-export type AcceptTarget = { newTool: ToolInput; newCategory?: string } | { toolSlug: string };
+/**
+ * newCategory : nom d'une catégorie à créer pour l'outil (réutilisée si elle existe déjà sous ce nom).
+ * universe : l'univers où créer cette nouvelle catégorie (dans sa famille d'accueil) ; sans lui, elle reste sans famille,
+ * donc dans « Outils en ligne ».
+ */
+export type AcceptTarget = { newTool: ToolInput; newCategory?: string; universe?: string } | { toolSlug: string };
 
 /**
  * Ajoute l'outil d'une suggestion (ou la relie à un outil existant) et crée en attente les codes de toutes les
@@ -74,7 +80,10 @@ export async function acceptToolSuggestion(db: Db, id: string, target: AcceptTar
       const [existing] = await db.select({ slug: categories.slug }).from(categories).where(sql`lower(${categories.name}) = lower(${name})`).limit(1);
       if (existing) input.categorySlug = existing.slug;
       else {
-        const category = await createCategory(db, name);
+        const universe = target.universe && target.universe !== DEFAULT_UNIVERSE ? target.universe : '';
+        const family = universe ? await homeFamily(db, universe) : null;
+        if (universe && !family) return { ok: false, error: 'Univers introuvable.' };
+        const category = await createCategory(db, name, family?.slug);
         if (!category.ok) return category;
         input.categorySlug = category.data.slug;
       }
@@ -156,8 +165,8 @@ export async function analyzeToolSuggestion(db: Db, id: string, deps: AnalyzeDep
     if (!site.ok) return { ok: false, error: `${site.error} ${PASTE_HINT}` };
     page = site.page;
   }
-  const list = await db.select({ slug: categories.slug, name: categories.name }).from(categories).orderBy(asc(categories.name));
-  const result = await analyzeTool(deps.ai.create, deps.ai.config.model, { name: suggestion.name, page, categories: list, pasted: Boolean(pasted) });
+  const choices = await analysisChoices(db);
+  const result = await analyzeTool(deps.ai.create, deps.ai.config.model, { name: suggestion.name, page, ...choices, pasted: Boolean(pasted) });
   await db.update(toolSuggestions).set({
     analysisCostUsdMicros: sql`${toolSuggestions.analysisCostUsdMicros} + ${result.costUsdMicros}`,
     analyzedAt: now,
