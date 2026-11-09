@@ -5,6 +5,7 @@ import { getCatalog } from '@/lib/catalog-server';
 import { parseFilters } from '@/lib/codes-board';
 import { CodesBoard } from '@/components/site/codes-board';
 import { VoteInvite } from '@/components/site/vote-invite';
+import { ExploreShell } from '@/components/site/explore-shell';
 
 export const metadata: Metadata = {
   title: 'Tous les codes promo · Merkod',
@@ -16,15 +17,15 @@ export const metadata: Metadata = {
 export default async function CodesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const [{ categories, families, codes, tools }, params] = await Promise.all([getCatalog(), searchParams]);
   const live = codes.filter(isPublic);
+  const now = Date.now();
   return (
-    <main className="k-page">
-      <div className="k-wrap">
-        <div className="k-codes-head">
-          <h1>Tous les codes promo</h1>
-          <p>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3" /><circle cx="6" cy="18" r="3" /><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12" /></svg>
-            Clique sur un talon&nbsp;: le code est copié et le site s&apos;ouvre.
-          </p>
+    <ExploreShell codes={live} tools={tools} families={families} now={now} active={{ kind: 'page', page: 'codes' }} skipLabel="Aller aux codes">
+      <main className="k-ex-feed k-ex-page" id="contenu">
+        <div className="k-ex-head">
+          <div>
+            <h1>Tous les codes promo</h1>
+            <p className="k-ex-lead">Filtre par statut, catégorie, outil, créateur ou date de fin. Clique sur un talon&nbsp;: le code est copié et le site s&apos;ouvre.</p>
+          </div>
         </div>
         <CodesBoard
           codes={live}
@@ -32,10 +33,10 @@ export default async function CodesPage({ searchParams }: { searchParams: Promis
           families={families}
           categories={categories.filter(category => category.count > 0).map(({ slug, name, family }) => ({ slug, name, family }))}
           initial={parseFilters(params)}
-          now={Date.now()}
+          now={now}
         />
-      </div>
+      </main>
       <VoteInvite trigger="copy" />
-    </main>
+    </ExploreShell>
   );
 }

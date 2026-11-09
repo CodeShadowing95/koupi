@@ -4,26 +4,18 @@
 // pastilles de catégories qui défilent, puis les coupons, trois par ligne, qui se chargent au fil du défilement.
 // En tête, une fois par navigateur, le message « Copie, essaie, reviens voter » ; le vote se fait sur le coupon même
 // (pouces à droite du nom de l'outil) et la fenêtre « Laisse un 👍 » le rappelle au retour du visiteur.
-import { SiteLogo } from '@/components/site/site-logo';
-import { ThemeToggle } from '@/components/site/theme-toggle';
-import Link, { SiteLinkItem, useIsOff } from '@/components/site/site-pages';
+import Link from '@/components/site/site-pages';
+import { ExploreShell, type ShellActive } from '@/components/site/explore-shell';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Category, Code, Family, Tool } from '@/lib/data';
 import { routes } from '@/lib/routes';
-import { isSoundEnabled, setSoundEnabled } from '@/lib/coupon-sound';
-import { usesLogoDev } from '@/lib/tool-logos';
 import { gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
 import {
-  categoryChips, closeIntro, totalVotes, DEFAULT_EXPLORE, EXPLORE_RAIL_KEY, exploreCodes, exploreTitle, exploreToParams, familyEntries, readIntroClosed, SHELVES, shortName, topCreators,
-  type ExploreState, type Shelf,
+  categoryChips, closeIntro, totalVotes, DEFAULT_EXPLORE, exploreCodes, exploreTitle, exploreToParams, readIntroClosed,
+  type ExploreState,
 } from '@/lib/explore';
 import { BoardingCoupon } from '@/components/site/boarding-coupon';
 import { CodeViewToggles, codeGridClass, useCodeViews } from '@/components/site/code-view-toggles';
-import { CreatorAvatar } from '@/components/site/creator-avatar';
-import { CreatorMark } from '@/components/site/creator-mark';
-import { CreateList, CreateMenu, CreatorButton } from '@/components/site/create-menu';
-import { FamilyIcon, ShelfIcon } from '@/components/site/explore-icons';
-import { PORTFOLIO_URL, PUBLISHER_NAME } from '@/lib/site-contact';
 import { SeasonBanner } from '@/components/site/season-banner';
 import { bannerPicks, currentSeason } from '@/lib/season-banner';
 
@@ -43,17 +35,12 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
   const [state, setState] = useState<ExploreState>(initial);
   const [query, setQuery] = useState(initial.query);
   const [limit, setLimit] = useState(PAGE);
-  const [mini, setMini] = useState(false);
-  const [drawer, setDrawer] = useState(false);
   const [intro, setIntro] = useState(false);
-  const [sound, setSound] = useState(true);
   const { cards, chooseCards } = useCodeViews();
   const feed = useRef<HTMLElement>(null);
   const sentinel = useRef<HTMLDivElement>(null);
-  const search = useRef<HTMLInputElement>(null);
   const entered = useRef(0);
   const shownState = useRef<ExploreState | null>(null);
-  const isOff = useIsOff();
 
   // Espaces insécables écrits à la main : même texte côté serveur et navigateur.
   // Bannière de saison : la date vient du serveur (now) pour que le rendu serveur et le navigateur montrent la même.
@@ -66,9 +53,6 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
   const votes = useMemo(() => new Intl.NumberFormat('fr-FR').format(totalVotes(codes)).replace(/\s/g, '\u00a0'), [codes]);
   const results = useMemo(() => exploreCodes(codes, tools, state, now), [codes, tools, state, now]);
   const visible = results.slice(0, limit);
-  const shelfCounts = useMemo(() => Object.fromEntries(SHELVES.map(({ value }) => [value, exploreCodes(codes, tools, { ...DEFAULT_EXPLORE, shelf: value }, now).length])) as Record<Shelf, number>, [codes, tools, now]);
-  const familyList = useMemo(() => familyEntries(codes, tools, families), [codes, tools, families]);
-  const creators = useMemo(() => topCreators(codes, 7), [codes]);
   const chips = useMemo(() => categoryChips(exploreCodes(codes, tools, { ...state, category: '' }, now), tools, categories, state.family), [codes, tools, categories, state, now]);
   const familyName = useMemo(() => new Map(families.map(family => [family.slug, family.name])), [families]);
   const creatorName = useMemo(() => new Map(codes.map(code => [code.creatorSlug, code.creator])), [codes]);
@@ -80,30 +64,8 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
   });
   const browsing = !state.family && !state.creator && !state.query;
 
-  // Préférences du navigateur : colonne réduite, message déjà fermé, son des coupons.
-  useEffect(() => {
-    try { setMini(window.localStorage.getItem(EXPLORE_RAIL_KEY) === 'mini'); } catch { /* stockage indisponible */ }
-    setIntro(!readIntroClosed(window.localStorage));
-    setSound(isSoundEnabled());
-    const onSound = (event: Event) => setSound((event as CustomEvent<boolean>).detail);
-    window.addEventListener('koupi-sound-change', onSound);
-    return () => window.removeEventListener('koupi-sound-change', onSound);
-  }, []);
-
-  // « / » ou Ctrl/Cmd + K place le curseur dans la recherche, comme sur les grands sites de vidéo.
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      const typing = target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
-      if ((event.key === '/' && !typing) || (event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey))) {
-        event.preventDefault();
-        search.current?.focus();
-      }
-      if (event.key === 'Escape') setDrawer(false);
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, []);
+  // Le message « Copie, essaie, reviens voter » s'affiche une fois par navigateur.
+  useEffect(() => { setIntro(!readIntroClosed(window.localStorage)); }, []);
 
   // La recherche porte sur tout le comptoir et attend une courte pause dans la frappe.
   useEffect(() => {
@@ -127,12 +89,6 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
     return () => observer.disconnect();
   }, [limit, results.length]);
 
-  // Le tiroir ouvert sur mobile bloque le défilement de la page derrière.
-  useEffect(() => {
-    document.documentElement.classList.toggle('k-menu-lock', drawer);
-    return () => document.documentElement.classList.remove('k-menu-lock');
-  }, [drawer]);
-
   // Les coupons qui viennent d'apparaître montent doucement, un par un.
   useGSAP(() => {
     if (shownState.current !== state) { shownState.current = state; entered.current = 0; }
@@ -147,155 +103,18 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
   const go = (next: Partial<ExploreState>) => {
     setQuery(next.query ?? '');
     setState({ ...DEFAULT_EXPLORE, ...next });
-    setDrawer(false);
     feed.current?.scrollIntoView({ block: 'start' });
-  };
-  const toggleRail = () => {
-    if (window.matchMedia('(max-width: 980px)').matches) { setDrawer(open => !open); return; }
-    setMini(current => {
-      try { window.localStorage.setItem(EXPLORE_RAIL_KEY, current ? 'full' : 'mini'); } catch { /* stockage indisponible */ }
-      return !current;
-    });
   };
   const hideIntro = () => { setIntro(false); closeIntro(window.localStorage); };
 
-  const Burger = ({ label }: { label: string }) => (
-    <button type="button" className="k-ex-burger" onClick={toggleRail} aria-controls="k-ex-side" aria-expanded={drawer || !mini} aria-label={label}>
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
-    </button>
-  );
-  const Logo = () => (
-    <Link className="k-ex-logo" href={routes.home} aria-label="Merkod, accueil">
-      <SiteLogo className="k-ex-logo-full" priority />
-    </Link>
-  );
+  const active: ShellActive = state.query ? null
+    : state.creator ? { kind: 'creator', slug: state.creator }
+    : state.family ? { kind: 'family', slug: state.family }
+    : browsing ? { kind: 'shelf', shelf: state.shelf } : null;
 
   return (
-    <div className={`kp k-ex${mini ? ' is-mini' : ''}${drawer ? ' is-drawer' : ''}`}>
-      <a className="k-skip" href="#contenu">Aller aux codes</a>
-
-      <aside className="k-ex-side" id="k-ex-side" aria-label="Rayons">
-        <div className="k-ex-side-top">
-          <Burger label={mini ? 'Ouvrir la colonne' : 'Réduire la colonne'} />
-          <Logo />
-        </div>
-
-        {/* Sur téléphone, la barre du haut n'a de place que pour la recherche : le menu « Créer » passe dans le tiroir. */}
-        <div className="k-ex-side-create"><CreateList onPick={() => setDrawer(false)} /><ThemeToggle row /></div>
-
-        <nav className="k-ex-nav" aria-label="Rayons du comptoir">
-          <ul className="k-ex-group">
-            {SHELVES.map(({ value, label, short }) => (shelfCounts[value] > 0 || value === 'all') && (
-              <li key={value}>
-                <button type="button" className="k-ex-item" aria-current={browsing && state.shelf === value ? 'page' : undefined} onClick={() => go({ shelf: value })} title={label}>
-                  <ShelfIcon shelf={value} />
-                  <span className="k-ex-item-label">{label}</span>
-                  <span className="k-ex-item-short" aria-hidden="true">{short}</span>
-                  <span className="k-ex-item-count">{shelfCounts[value]}</span>
-                </button>
-              </li>
-            ))}
-            {season && (
-              <li>
-                <Link className="k-ex-item k-ex-season" href={season.kind === 'christmas' ? routes.christmas : routes.blackFriday} title={season.kind === 'christmas' ? 'Codes de Noël' : 'Codes Black Friday'}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d={season.kind === 'christmas' ? 'M4 12h16v8H4zM3 8h18v4H3zM12 8v12M12 8c-2-4-6-4-6-1.5S10 8 12 8Zm0 0c2-4 6-4 6-1.5S14 8 12 8Z' : 'M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8ZM7.5 7.5h.01'} /></svg>
-                  <span className="k-ex-item-label">{season.kind === 'christmas' ? 'Noël' : 'Black Friday'}</span>
-                  <span className="k-ex-item-short" aria-hidden="true">{season.kind === 'christmas' ? 'Noël' : 'Black F.'}</span>
-                  <span className="k-ex-item-count k-ex-season-days">{season.daysLeft > 0 ? `J-${season.daysLeft}` : 'Jour J'}</span>
-                </Link>
-              </li>
-            )}
-          </ul>
-
-          {familyList.length > 0 && <>
-            <h2 className="k-ex-group-title">Familles</h2>
-            <ul className="k-ex-group">
-              {familyList.map(family => (
-                <li key={family.slug}>
-                  <button type="button" className="k-ex-item" aria-current={!state.creator && !state.query && state.family === family.slug ? 'page' : undefined} onClick={() => go({ family: family.slug })} title={family.name}>
-                    <FamilyIcon family={family.slug} />
-                    <span className="k-ex-item-label">{family.name}</span>
-                    <span className="k-ex-item-short" aria-hidden="true">{shortName(family.name)}</span>
-                    <span className="k-ex-item-count">{family.count}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </>}
-
-          {creators.length > 0 && <>
-            <h2 className="k-ex-group-title">Créateurs</h2>
-            <ul className="k-ex-group is-creators">
-              {creators.map(creator => (
-                <li key={creator.slug}>
-                  <button type="button" className="k-ex-item" aria-current={!state.query && state.creator === creator.slug ? 'page' : undefined} onClick={() => go({ creator: creator.slug })} title={creator.name}>
-                    <CreatorAvatar name={creator.name} size="xs" />
-                    <span className="k-ex-item-label">{creator.name}<CreatorMark level={creator.level} compact /></span>
-                    <span className="k-ex-item-count">{creator.count}</span>
-                  </button>
-                </li>
-              ))}
-              {!isOff(routes.creators()) && <li><Link className="k-ex-item is-more" href={routes.creators()}><span className="k-ex-more-dots" aria-hidden="true">···</span><span className="k-ex-item-label">Tous les créateurs</span></Link></li>}
-            </ul>
-          </>}
-        </nav>
-
-        {/* L'ancienne page d'accueil : pourquoi faire confiance à Merkod, pour les curieux et les créateurs. */}
-        {!isOff(routes.about) && (
-          <Link className="k-ex-item k-ex-about" href={routes.about}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7.5h.01" /></svg>
-            <span className="k-ex-item-label">Présentation de Merkod</span>
-            <span className="k-ex-item-short" aria-hidden="true">Merkod</span>
-          </Link>
-        )}
-
-        <footer className="k-ex-side-foot">
-          <ul>
-            <SiteLinkItem href={routes.codes}>Page Codes classique</SiteLinkItem>
-            <SiteLinkItem href={routes.forCreators()}>Pour les créateurs</SiteLinkItem>
-            <SiteLinkItem href={routes.feedback}>Ton avis</SiteLinkItem>
-            <SiteLinkItem href={routes.transparency}>Transparence</SiteLinkItem>
-            <SiteLinkItem href={routes.legal}>Mentions légales</SiteLinkItem>
-            <SiteLinkItem href={routes.privacy}>Confidentialité</SiteLinkItem>
-          </ul>
-          <p>
-            Made by <a href={PORTFOLIO_URL} target="_blank" rel="noopener">{PUBLISHER_NAME}</a>
-            {(usesLogoDev() || logoDev) && <> · <a href="https://logo.dev" target="_blank" rel="noopener">Logos provided by Logo.dev</a></>}
-          </p>
-        </footer>
-      </aside>
-      <button type="button" className="k-ex-scrim" aria-label="Fermer la colonne" tabIndex={drawer ? 0 : -1} onClick={() => setDrawer(false)} />
-
-      <div className="k-ex-body">
-        <header className="k-ex-bar">
-          <div className="k-ex-bar-start">
-            <Burger label="Ouvrir les rayons" />
-            <Logo />
-          </div>
-          <form className="k-ex-search" role="search" onSubmit={event => { event.preventDefault(); setState(current => ({ ...DEFAULT_EXPLORE, ...(current.query === query.trim() ? current : {}), query: query.trim() })); }}>
-            <label className="k-sr" htmlFor="k-ex-q">Chercher un code</label>
-            <input ref={search} id="k-ex-q" type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Un outil, un créateur, un code…" autoComplete="off" maxLength={80} />
-            {query
-              ? <button type="button" className="k-ex-search-clear" onClick={() => { setQuery(''); search.current?.focus(); }} aria-label="Effacer la recherche">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
-                </button>
-              : <kbd className="k-kbd" aria-hidden="true">/</kbd>}
-            <button type="submit" className="k-ex-search-go" aria-label="Chercher">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-            </button>
-          </form>
-          <div className="k-ex-bar-end">
-            <CreateMenu />
-            <button type="button" className="k-icon-btn" aria-pressed={sound} aria-label={sound ? 'Couper le son des coupons' : 'Activer le son des coupons'} onClick={() => setSoundEnabled(!sound)}>
-              {sound
-                ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z" /><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M19 5a10 10 0 0 1 0 14" /></svg>
-                : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z" /><path d="m22 9-6 6" /><path d="m16 9 6 6" /></svg>}
-            </button>
-            <ThemeToggle />
-            <CreatorButton />
-          </div>
-        </header>
-
+    <ExploreShell codes={codes} tools={tools} families={families} now={now} active={active} onGo={go} skipLabel="Aller aux codes" logoDev={logoDev}
+      search={{ value: query, onChange: setQuery, onSubmit: () => setState(current => ({ ...DEFAULT_EXPLORE, ...(current.query === query.trim() ? current : {}), query: query.trim() })) }}>
         {chips.length > 1 && (
           <nav className="k-ex-chips" aria-label="Catégories">
             <button type="button" className="k-ex-chip" aria-pressed={!state.category} onClick={() => setState(current => ({ ...current, category: '' }))}>Tout</button>
@@ -363,7 +182,6 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
             </div>
           )}
         </main>
-      </div>
-    </div>
+    </ExploreShell>
   );
 }

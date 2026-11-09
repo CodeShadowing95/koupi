@@ -4,7 +4,8 @@ import { buildDirectory, directoryOptions, parseDirectoryFilter } from '@/lib/cr
 import { routes } from '@/lib/routes';
 import { plural } from '@/lib/ui';
 import { CreatorsDirectory } from '@/components/site/creators-directory';
-import { PageHead } from '@/components/site/page-head';
+import { ExploreShell } from '@/components/site/explore-shell';
+import { isPublic } from '@/lib/data';
 import { VoteInvite } from '@/components/site/vote-invite';
 
 export const metadata: Metadata = {
@@ -20,17 +21,17 @@ export default async function Creators({ searchParams }: { searchParams: Promise
   const options = directoryOptions(all);
 
   return (
-    <main className="k-page">
-      <div className="k-wrap">
-        <PageHead
-          eyebrow="Créateurs"
-          title="Les créateurs"
-          lead={<>{plural(all.length, 'créateur donne', 'créateurs donnent')} des codes promo pour des outils en ligne. Chaque code renvoie à la vidéo ou au post d&apos;où il vient.</>}
-        />
-
+    <ExploreShell codes={catalog.codes.filter(isPublic)} tools={catalog.tools} families={catalog.families} now={Date.now()} active={{ kind: 'page', page: 'creators' }} skipLabel="Aller aux créateurs">
+      <main className="k-ex-feed k-ex-page" id="contenu">
+        <div className="k-ex-head">
+          <div>
+            <h1>Les créateurs</h1>
+            <p className="k-ex-lead">{plural(all.length, 'créateur donne', 'créateurs donnent')} des codes promo pour des outils en ligne. Chaque code renvoie à la vidéo ou au post d&apos;où il vient.</p>
+          </div>
+        </div>
         <CreatorsDirectory entries={all} options={options} families={catalog.families} initial={parseDirectoryFilter(params, options)} />
-      </div>
+      </main>
       <VoteInvite trigger="copy" />
-    </main>
+    </ExploreShell>
   );
 }

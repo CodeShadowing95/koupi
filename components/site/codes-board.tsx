@@ -1,14 +1,14 @@
 'use client';
 import Link from '@/components/site/site-pages';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { flushSync } from 'react-dom';
 import type { Code, Family, Tool } from '@/lib/data';
 import {
   activeFilters, type CodeFilters, type CodeSort, type CodeStatusFilter, DEADLINES, DEFAULT_FILTERS, facetCounts, filterCodes,
   filtersToParams, isBrowsing, browseRows, type FacetCounts, lastChanceCodes, OFFERS, relaxSuggestions, type TrustFilter, TRUSTS,
 } from '@/lib/codes-board';
 import { routes } from '@/lib/routes';
-import { Flip, gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
+import { gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
+import { CodeViewToggles, codeGridClass, useCodeViews } from '@/components/site/code-view-toggles';
 import { BoardingCoupon } from '@/components/site/boarding-coupon';
 import { TrustGlyph } from '@/components/site/trust';
 import { ToolLogo } from '@/components/site/tool-logo';
@@ -26,8 +26,7 @@ import { ChipRow } from '@/components/site/chip-row';
 // propose les filtres à retirer et invite à proposer un code. Les animations restent simples :
 // les coupons sortent en fondu quand on change un filtre, puis les nouveaux entrent.
 // Les filtres sont recopiés dans l'adresse pour pouvoir partager une recherche.
-// Deux vues : « Cartes » (coupon debout, toutes les infos) et « Liste » (un coupon couché par ligne,
-// talon à droite, l'essentiel), affichée par défaut. Au changement, chaque coupon se transforme sur place (GSAP Flip) ; le choix est retenu.
+// Les coupons sont dans la même grille que l'Explorer, en cartes détaillées ou simples (choix partagé avec l'Explorer).
 
 const PAGE = 12;
 const STATUSES: { value: CodeStatusFilter; label: string }[] = [
@@ -47,14 +46,9 @@ type Props = {
   now: number;
 };
 
-type View = 'cards' | 'list';
-const VIEW_KEY = 'koupi-codes-view';
-// Les morceaux du coupon qui glissent vers leur nouvelle place quand on change de vue.
-const FLIP_TARGETS = '.k-board-item, .k-pass, .k-pass-main, .k-pass-stub, .k-pass-logo, .k-pass-actions, .k-pass-title strong, .k-pass-who, .k-pass-discount, .k-pass-stub-code, .k-pass-action';
+const reduced = () => typeof window !== 'undefined' && !window.matchMedia(MOTION_OK).matches;
 
 const count = (value: number | undefined) => String(value ?? 0);
-
-const reduced = () => typeof window !== 'undefined' && !window.matchMedia(MOTION_OK).matches;
 
 export function CodesBoard({ codes, tools, families, categories, initial, now }: Props) {
   const root = useRef<HTMLDivElement>(null);
@@ -63,30 +57,11 @@ export function CodesBoard({ codes, tools, families, categories, initial, now }:
   const [shown, setShown] = useState<CodeFilters>(initial);
   const [limit, setLimit] = useState(PAGE);
   const entered = useRef(0);
-  const [view, setView] = useState<View>('list');
+  const { cards, chooseCards } = useCodeViews();
   // Fenêtre « Filtres » : on règle un brouillon, appliqué seulement avec « Afficher n codes ».
   const dialog = useRef<HTMLDialogElement>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [draft, setDraft] = useState<CodeFilters>(initial);
-
-  // La vue choisie la dernière fois (préférence de ce navigateur seulement).
-  useEffect(() => {
-    // La liste est affichée par défaut ; seules les cartes choisies explicitement sont retenues.
-    try { if (window.localStorage.getItem(VIEW_KEY) === 'cards') setView('cards'); } catch { /* stockage indisponible */ }
-  }, []);
-
-  const switchView = (next: View) => {
-    if (next === view) return;
-    try { window.localStorage.setItem(VIEW_KEY, next); } catch { /* stockage indisponible */ }
-    const box = root.current;
-    if (!box || reduced()) { setView(next); return; }
-    const state = Flip.getState(box.querySelectorAll(FLIP_TARGETS));
-    flushSync(() => setView(next));
-    Flip.from(state, {
-      duration: 0.7, ease: 'power3.inOut', nested: true, stagger: { amount: 0.2 },
-      onEnter: elements => gsap.fromTo(elements, { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, duration: 0.35, delay: 0.45 }),
-    });
-  };
 
   const toolBySlug = useMemo(() => new Map(tools.map(tool => [tool.slug, tool])), [tools]);
   const results = useMemo(() => filterCodes(codes, tools, shown, now), [codes, tools, shown, now]);
@@ -140,9 +115,9 @@ export function CodesBoard({ codes, tools, families, categories, initial, now }:
     window.history.replaceState(null, '', search ? `?${search}` : window.location.pathname);
 
     const swap = () => { entered.current = 0; setLimit(PAGE); setShown(filters); };
-    const cards = root.current?.querySelectorAll('.k-board-item');
-    if (!cards?.length || reduced()) { swap(); return; }
-    const tween = gsap.to(cards, { autoAlpha: 0, y: -10, duration: 0.16, stagger: 0.015, ease: 'power1.in', onComplete: swap });
+    const items = root.current?.querySelectorAll('.k-board-item');
+    if (!items?.length || reduced()) { swap(); return; }
+    const tween = gsap.to(items, { autoAlpha: 0, y: -10, duration: 0.16, stagger: 0.015, ease: 'power1.in', onComplete: swap });
     return () => { tween.kill(); };
   }, [filters, shown]);
 
@@ -165,7 +140,7 @@ export function CodesBoard({ codes, tools, families, categories, initial, now }:
   const seeRow = (patch: Partial<CodeFilters>) => { update(patch); toFilters(); };
 
   return (
-    <div className={`k-board${view === 'list' ? ' is-list' : ''}`} ref={root}>
+    <div className="k-board" ref={root}>
       {familyChips.length > 0 && (
         <nav className="k-board-cats" aria-label="Catégories">
           <ChipRow label="Familles">
@@ -266,16 +241,7 @@ export function CodesBoard({ codes, tools, families, categories, initial, now }:
       <div className="k-board-bar">
         <p role="status">{browsing && rows.length > 0 && <span className="k-board-bar-title">Tous les codes · </span>}<strong>{results.length}</strong> {results.length > 1 ? 'codes trouvés' : 'code trouvé'}</p>
         <div className="k-board-tools">
-          <div className="k-board-views" role="group" aria-label="Affichage des codes">
-            <button type="button" aria-pressed={view === 'list'} onClick={() => switchView('list')} title="Liste : un code par ligne, l'essentiel">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="6.5" rx="2" /><rect x="3" y="13.5" width="18" height="6.5" rx="2" /><path d="M15 4v6.5M15 13.5V20" strokeDasharray="1.5 2" /></svg>
-              Liste
-            </button>
-            <button type="button" aria-pressed={view === 'cards'} onClick={() => switchView('cards')} title="Cartes : toutes les infos, trois par ligne">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="7.5" height="18" rx="2" /><rect x="13.5" y="3" width="7.5" height="18" rx="2" /><path d="M3 15h7.5M13.5 15H21" strokeDasharray="1.5 2" /></svg>
-              Cartes
-            </button>
-          </div>
+          <CodeViewToggles cards={cards} onCards={chooseCards} />
         </div>
       </div>
 
@@ -349,12 +315,12 @@ export function CodesBoard({ codes, tools, families, categories, initial, now }:
           </Link>
         </div>
       ) : (
-        <ul className={`k-board-list${view === 'list' ? ' k-pass-rows' : ''}`}>
+        <ul className={codeGridClass(cards, 'k-board-grid')}>
           {visible.map(code => {
             const tool = toolBySlug.get(code.toolSlug);
             return (
               <li className="k-board-item" key={code.id}>
-                <BoardingCoupon code={code} category={tool?.category} link={code.creatorLink || tool?.website || '#'} />
+                <BoardingCoupon code={code} category={tool?.category} link={code.creatorLink || tool?.website || '#'} light={cards === 'simple'} votes={cards === 'simple'} />
               </li>
             );
           })}
