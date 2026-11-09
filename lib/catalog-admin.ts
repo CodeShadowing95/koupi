@@ -6,6 +6,7 @@ import { categories, categoryFamilies, codes, creators, tools } from '@/db/schem
 import { slugify } from './slug';
 import { validUrl } from './codes-admin';
 import { parseCreatorBio } from './creator-bio';
+import { DEFAULT_UNIVERSE } from './universes';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 function text(value: unknown, max: number): string { return typeof value === 'string' ? value.trim().slice(0, max) : ''; }
@@ -102,23 +103,25 @@ export async function updateCreatorProfile(db: Db, id: string, input: { name?: u
 
 // ---------- Catégories ----------
 
-export type AdminCategory = { slug: string; name: string; familySlug: string | null; family: string | null; tools: number; covered: number };
-export type CategoryFamily = { slug: string; name: string; position: number };
+export type AdminCategory = { slug: string; name: string; familySlug: string | null; family: string | null; tools: number; covered: number;
+  /** Univers de sa famille (ADR-0046) ; « outils-en-ligne » sans famille. */
+  universe: string };
+export type CategoryFamily = { slug: string; name: string; position: number; universe?: string };
 
 /** Familles de catégories (ADR-0026), dans l'ordre du menu. */
 export async function listFamilies(db: Db): Promise<CategoryFamily[]> {
-  return db.select({ slug: categoryFamilies.slug, name: categoryFamilies.name, position: categoryFamilies.position })
+  return db.select({ slug: categoryFamilies.slug, name: categoryFamilies.name, position: categoryFamilies.position, universe: categoryFamilies.universeSlug })
     .from(categoryFamilies).orderBy(asc(categoryFamilies.position), asc(categoryFamilies.name));
 }
 
 export async function listCategoriesAdmin(db: Db): Promise<AdminCategory[]> {
   const toolRows = await listToolsAdmin(db);
-  const rows = await db.select({ slug: categories.slug, name: categories.name, familySlug: categories.familySlug, family: categoryFamilies.name })
+  const rows = await db.select({ slug: categories.slug, name: categories.name, familySlug: categories.familySlug, family: categoryFamilies.name, universe: categoryFamilies.universeSlug })
     .from(categories).leftJoin(categoryFamilies, eq(categories.familySlug, categoryFamilies.slug))
     .orderBy(asc(categories.createdAt), asc(categories.name));
   return rows.map(row => {
     const inCategory = toolRows.filter(tool => tool.categorySlug === row.slug && !tool.archived);
-    return { ...row, tools: inCategory.length, covered: inCategory.filter(tool => tool.visible > 0).length };
+    return { ...row, universe: row.universe ?? DEFAULT_UNIVERSE, tools: inCategory.length, covered: inCategory.filter(tool => tool.visible > 0).length };
   });
 }
 

@@ -1,5 +1,5 @@
 import { getDb } from '@/db';
-import { getCatalog } from '@/lib/catalog-server';
+import { getFullCatalog } from '@/lib/catalog-server';
 import { sourceStats } from '@/lib/source-stats';
 import { parseStatsTab } from '@/lib/stats-tabs';
 import { RefreshButton } from '@/components/admin-refresh-button';
@@ -28,7 +28,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Rec
           {(tab === 'consommation' || tab === 'vitesse') && <div className="adm-head-actions"><RefreshButton /></div>}
         </div>
         <StatsTabs current={tab} />
-        {tab === 'catalogue' && <StatsView catalog={await getCatalog()} />}
+        {tab === 'catalogue' && <StatsView catalog={await getFullCatalog()} />}
         {tab === 'sources' && <SourcesTab stats={await sourceStats(getDb())} />}
         {tab === 'consommation' && <UsageTab />}
         {tab === 'vitesse' && <SpeedTab />}

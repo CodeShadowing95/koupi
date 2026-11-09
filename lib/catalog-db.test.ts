@@ -34,8 +34,10 @@ describe('catalogue en base', () => {
     expect(result.creators).toBe(new Set(files.codes.map(code => code.creator)).size);
     const catalog = await loadCatalog(db);
     expect(catalog.tracked).toBe(files.tracked);
-    expect(catalog.categories).toEqual(files.categories);
-    expect(catalog.tools).toEqual(files.tools);
+    // La base ajoute l'univers (ADR-0046) : tout ce qui vient de data/ est dans « Outils en ligne ».
+    expect(new Set([...catalog.categories, ...catalog.tools, ...catalog.codes].map(item => item.universe))).toEqual(new Set(['outils-en-ligne']));
+    expect(catalog.categories.map(({ universe: _, ...rest }) => rest)).toEqual(files.categories);
+    expect(catalog.tools.map(({ universe: _, ...rest }) => rest)).toEqual(files.tools);
     expect(catalog.codes.map(code => [code.tool, code.code, code.status, code.creator, code.discount])).toEqual(
       files.codes.map(code => [code.tool, code.code, code.status, code.creator, code.discount]));
     // Les votes sont repris en « ça marche » / « ça ne marche pas » : le taux reste le même, à l'arrondi près.

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getDb } from '@/db';
 import { isPublic, type Code } from '@/lib/data';
-import { getCatalog } from '@/lib/catalog-server';
+import { getFullCatalog } from '@/lib/catalog-server';
 import { copiesByCode } from '@/lib/creator-auth';
 import { currentCreatorAccount } from '@/lib/creator-current';
 import { creatorLevelFromAccounts } from '@/lib/creator-level';
@@ -113,7 +113,7 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
   }
 
   const creator = account.creator;
-  const [{ codes, tools }, copies, series, accounts] = await Promise.all([getCatalog(), copiesByCode(db, creator.id, now), copiesPerDay(db, creator.id, now), studioAccounts(db, creator.id)]);
+  const [{ codes, tools }, copies, series, accounts] = await Promise.all([getFullCatalog(), copiesByCode(db, creator.id, now), copiesPerDay(db, creator.id, now), studioAccounts(db, creator.id)]);
   const own = codes.filter(code => code.creatorSlug === creator.slug && (isPublic(code) || code.status === 'pending'));
   const rows = own.map(code => ({ code, copies: copies.get(code.id) ?? 0 })).sort((a, b) => b.copies - a.copies || a.code.tool.localeCompare(b.code.tool, 'fr'));
   const total = rows.reduce((sum, row) => sum + row.copies, 0);
