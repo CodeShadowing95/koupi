@@ -137,5 +137,6 @@ describe('searchCreators', () => {
     expect(searchCreators(creators, 'leacrea')).toEqual([{ name: 'Léa Créa' }]);
     expect(searchCreators(creators, 'TECH')).toEqual([{ name: 'Bob Tech' }]);
     expect(searchCreators(creators, '  ')).toEqual([]);
+    expect(searchCreators(creators, 'lea crae')).toEqual([{ name: 'Léa Créa' }]);
   });
 });

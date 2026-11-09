@@ -1,5 +1,6 @@
 import type { Code, Tool } from './data';
 import { DEFAULT_FILTERS, facetCounts, filterCodes, type CodeSort, type CodeStatusFilter } from './codes-board';
+import { fuzzyMatcher } from './fuzzy-search';
 
 // Page d'une catégorie : recherche, statut, outil et tri pour affiner les codes et les outils listés.
 // On réutilise les filtres de « Tous les codes » (lib/codes-board.ts), limités aux outils de la catégorie.
@@ -10,8 +11,6 @@ export const DEFAULT_CATEGORY_FILTERS: CategoryFilters = { query: '', status: 'a
 
 const STATUSES: CodeStatusFilter[] = ['all', 'verified', 'to_test'];
 const SORTS: CodeSort[] = ['best', 'votes', 'recent'];
-
-function normalize(value: string) { return value.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim(); }
 
 /** Lit les filtres dans l'adresse. Une valeur inconnue (outil d'une autre catégorie, statut bricolé) est ignorée. */
 export function parseCategoryFilters(params: Record<string, string | string[] | undefined>, toolSlugs: string[]): CategoryFilters {
@@ -56,9 +55,9 @@ export function browseCategory(codes: Code[], tools: Tool[], filters: CategoryFi
 
   const perTool = new Map<string, number>();
   for (const code of kept) perTool.set(code.toolSlug, (perTool.get(code.toolSlug) ?? 0) + 1);
-  const q = normalize(filters.query);
+  const hit = fuzzyMatcher(filters.query);
   // Un filtre de statut ne retire pas l'outil cherché par son nom : on cache seulement ceux sans code retenu.
-  const nameHit = (tool: Tool) => q !== '' && filters.status === 'all' && normalize(tool.name).includes(q);
+  const nameHit = (tool: Tool) => hit !== null && filters.status === 'all' && hit(tool.name);
   const shownTools = tools
     .filter(tool => (!filters.tool || tool.slug === filters.tool) && ((perTool.get(tool.slug) ?? 0) > 0 || nameHit(tool)))
     .sort((a, b) => (perTool.get(b.slug) ?? 0) - (perTool.get(a.slug) ?? 0) || a.name.localeCompare(b.name, 'fr'));
