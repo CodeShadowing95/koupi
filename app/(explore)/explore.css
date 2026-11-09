@@ -92,15 +92,15 @@
 /* Clair / sombre : les icônes suffisent (soleil, lune) ; le nom reste dans l'infobulle et pour les lecteurs d'écran. */
 .k-ex-count{flex:none;padding:4px 12px;border-radius:var(--r-pill);border:1px solid var(--line);font-family:var(--mono);font-size:var(--fs-xs);font-weight:700;color:var(--text-soft)}
 /* La grille et le « ticket de nuit » sont dans site.css (.k-code-grid), partagés avec la page d'un créateur.
-   Ici, seulement les colonnes selon la largeur du fil. */
-.k-ex-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-@container k-ex (max-width:940px){.k-ex-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@container k-ex (max-width:580px){.k-ex-grid{grid-template-columns:minmax(0,1fr)}}
+   Ici, seulement les colonnes selon la largeur du fil, sur toutes les pages de la coque (Explorer, Codes, page d'un créateur). */
+.k-ex-feed .k-code-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+@container k-ex (max-width:940px){.k-ex-feed .k-code-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container k-ex (max-width:580px){.k-ex-feed .k-code-grid{grid-template-columns:minmax(0,1fr)}}
 /* Colonne réduite (burger) : le fil gagne de la place, quatre coupons par ligne tant qu'ils restent lisibles. */
-.k-ex.is-mini .k-ex-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:24px 18px}
-@container k-ex (max-width:1240px){.k-ex.is-mini .k-ex-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@container k-ex (max-width:940px){.k-ex.is-mini .k-ex-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@container k-ex (max-width:580px){.k-ex.is-mini .k-ex-grid{grid-template-columns:minmax(0,1fr)}}
+.k-ex.is-mini .k-ex-feed .k-code-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:24px 18px}
+@container k-ex (max-width:1240px){.k-ex.is-mini .k-ex-feed .k-code-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@container k-ex (max-width:940px){.k-ex.is-mini .k-ex-feed .k-code-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container k-ex (max-width:580px){.k-ex.is-mini .k-ex-feed .k-code-grid{grid-template-columns:minmax(0,1fr)}}
 
 .k-ex-more{display:flex;justify-content:center;margin-top:36px}
 .k-ex-empty{max-width:560px;margin:40px auto;padding:32px;border-radius:var(--r-2xl);border:1px dashed var(--line-2);text-align:center;color:var(--text-soft)}
@@ -248,3 +248,41 @@
 .k-ex-season{text-decoration:none}
 .k-ex-season>svg{color:var(--coral-text)}
 .k-ex-season-days{padding:2px 7px;border-radius:var(--r-pill);background:var(--coral);color:var(--paper-ink)}
+
+/* Pages de la coque autres que l'Explorer (Codes, Créateurs, page d'un créateur) : même fil, même titre. */
+.k-ex-page .k-ex-head{align-items:flex-end}
+.k-ex-page .k-dir-bar{padding:0;border:0;background:none}
+.k-ex-lead{margin:8px 0 0;max-width:68ch;color:var(--text-soft);font-size:var(--fs-base)}
+
+/* Page d'un créateur, façon chaîne : bandeau papier, photo qui chevauche, nom, une ligne de faits, ses comptes. */
+.k-chan{margin:16px 0 28px}
+.k-chan-banner{height:132px;border-radius:var(--r-xl);
+  -webkit-mask:radial-gradient(circle 9px at 50% 100%,#0000 97%,#000) 0 0/28px 100% repeat-x;mask:radial-gradient(circle 9px at 50% 100%,#0000 97%,#000) 0 0/28px 100% repeat-x}
+:root[data-site-theme="dark"] .k-chan-banner{background:linear-gradient(165deg,#22265A 0%,#181B45 50%,#121436 100%)}
+.k-chan-id{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;gap:8px 24px;padding:0 8px}
+.kp .k-chan-av{position:relative;z-index:1;width:128px;height:128px;margin-top:-56px;border:4px solid var(--bg);box-shadow:0 0 0 1px var(--line);font-size:var(--fs-4xl)}
+.k-chan-main{display:flex;flex-direction:column;gap:8px;min-width:0;padding-top:14px}
+.k-chan-name{font-size:clamp(28px,3.2vw,40px);line-height:1.05;letter-spacing:-.03em;overflow-wrap:anywhere}
+.k-chan-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 0;margin:0;color:var(--text-soft);font-size:var(--fs-base)}
+.k-chan-meta>span+span::before,.k-chan-meta>.k-creator-mark+span::before{content:"·";margin:0 10px;color:var(--muted)}
+.k-chan-meta>.k-creator-mark+span::before{content:none}
+.k-chan-meta>.k-creator-mark{margin-right:12px}
+.k-chan-bio{margin:0;max-width:72ch;color:var(--text);font-size:var(--fs-base);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-line}
+.k-chan-actions{padding-top:18px}
+.k-chan-more{padding:4px 8px 0 160px}
+/* Quatre chiffres, en tuiles : on lit d'un coup d'œil si ça vaut le coup. */
+.k-chan-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 28px}
+.k-chan-stats>div{display:flex;flex-direction:column-reverse;gap:2px;padding:14px 16px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--card)}
+.k-chan-stats dt{color:var(--text-soft);font-size:var(--fs-sm);font-weight:600}
+.k-chan-stats dd{margin:0;font-family:var(--display);font-size:var(--fs-2xl);font-weight:800;letter-spacing:-.02em;color:var(--strong);font-variant-numeric:tabular-nums}
+/* Ses outils en pastilles, sous la barre de recherche de ses codes. */
+.k-chan-chips{display:flex;flex-wrap:wrap;gap:8px}
+@container k-ex (max-width:760px){
+  .k-chan-banner{height:96px}
+  .k-chan-id{grid-template-columns:auto minmax(0,1fr);gap:8px 16px;padding:0}
+  .kp .k-chan-av{width:88px;height:88px;margin-top:-40px;font-size:var(--fs-3xl)}
+  .k-chan-main{padding-top:8px}
+  .k-chan-actions{grid-column:1/-1;padding-top:4px}
+  .k-chan-more{padding:4px 0 0}
+  .k-chan-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+}

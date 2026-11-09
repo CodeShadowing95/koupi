@@ -14,7 +14,8 @@ import { CreatorRequest } from '@/components/site/creator-request';
 import { CreatorMore } from '@/components/site/creator-more';
 import { CreatorCodes } from '@/components/site/creator-codes';
 import { PlatformIcon } from '@/components/platform-icon';
-import { Crumbs } from '@/components/site/page-head';
+import { ExploreShell } from '@/components/site/explore-shell';
+import { totalVotes } from '@/lib/explore';
 import { JsonLd } from '@/components/json-ld';
 import { creatorProfileLd } from '@/lib/structured-data';
 import { seoMonth, siteUrl } from '@/lib/seo';
@@ -38,7 +39,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function Creator({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const { codes, tools } = await getCatalog();
+  const { codes, tools, families } = await getCatalog();
   const match = codes.find(code => code.creatorSlug === slug);
   if (!match) {
     // Anciennes adresses (avant le passage en base, le slug gardait accents et tirets en trop).
@@ -54,29 +55,35 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
   const [profile, facts, media] = await Promise.all([getCreatorProfile(match.creatorSlug), getCreatorFacts(), getMediaMap()]);
   const copies = facts[match.creatorSlug]?.copies ?? 0;
   const themes = creatorCategories(creatorCodes, tools);
+  const toolCount = new Set(creatorCodes.map(code => code.toolSlug)).size;
+  const verified = creatorCodes.filter(code => code.status === 'verified').length;
+  const votes = totalVotes(creatorCodes);
+  const accounts = profile?.accounts ?? [];
   return (
-    <main className="k-page">
-      <div className="k-wrap">
-        <Crumbs items={[{ label: 'Créateurs', href: routes.creators() }, { label: creator }]} />
-        <JsonLd data={creatorProfileLd({ name: creator, path: routes.creator(match.creatorSlug), bio: profile?.bio, accounts: (profile?.accounts ?? []).map(account => account.url), image: media.avatars[creator] }, siteUrl())} />
-        {/* L'essentiel d'abord : qui, combien de codes, où le suivre. Le reste se déplie avec « Plus d'infos ». */}
-        <header className="k-creator-head">
-          <CreatorAvatar name={creator} size="lg" />
-          <div className="k-creator-main">
-            <h1 className="k-creator-name" title={creator}>{creator}</h1>
-            <div className="k-creator-line">
-              {match.creatorLevel && <CreatorMark level={match.creatorLevel} dark />}
-              <span className="k-creator-stats">
-                <span><b>{creatorCodes.length}</b> {creatorCodes.length > 1 ? 'codes' : 'code'}</span>
-                {copies > 0 && <span><b>{formatCopies(copies)}</b> {copies > 1 ? 'copies' : 'copie'} ce mois-ci</span>}
-              </span>
-              {profile && profile.accounts.length > 0 && (
+    <ExploreShell codes={codes.filter(isPublic)} tools={tools} families={families} now={Date.now()} active={{ kind: 'creator', slug: match.creatorSlug }} skipLabel="Aller à ses codes">
+      <main className="k-ex-feed k-ex-page" id="contenu">
+        <JsonLd data={creatorProfileLd({ name: creator, path: routes.creator(match.creatorSlug), bio: profile?.bio, accounts: accounts.map(account => account.url), image: media.avatars[creator] }, siteUrl())} />
+        {/* En-tête façon chaîne : bandeau papier, photo, nom, l'essentiel en une ligne, ses comptes. Le reste se déplie. */}
+        <header className="k-chan">
+          <div className="k-chan-banner k-paper" aria-hidden="true" />
+          <div className="k-chan-id">
+            <CreatorAvatar name={creator} size="lg" className="k-chan-av" />
+            <div className="k-chan-main">
+              <h1 className="k-chan-name" title={creator}>{creator}</h1>
+              <p className="k-chan-meta">
+                {match.creatorLevel && <CreatorMark level={match.creatorLevel} dark />}
+                <span>{plural(creatorCodes.length, 'code', 'codes')}</span>
+                <span>{plural(toolCount, 'outil', 'outils')}</span>
+                {copies > 0 && <span>{formatCopies(copies)} {copies > 1 ? 'copies' : 'copie'} ce mois-ci</span>}
+              </p>
+              {profile?.bio && <p className="k-chan-bio">{profile.bio}</p>}
+              {accounts.length > 0 && (
                 <ul className="k-creator-networks" aria-label={`Comptes de ${creator}`}>
-                  {profile.accounts.map(account => (
+                  {accounts.map(account => (
                     <li key={`${account.platform}-${account.handle}`}>
                       <a href={account.url} target="_blank" rel="noopener noreferrer me" className={account.proven ? 'is-proven' : undefined}
                         title={`${account.label} · ${account.handle}${account.proven ? ' · compte prouvé par le créateur' : ''}`} aria-label={`${account.label} · ${account.handle}${account.proven ? ', compte prouvé par le créateur' : ''}`}>
-                        <PlatformIcon platform={account.platform} size={30} className="k-platform-icon" />
+                        <PlatformIcon platform={account.platform} size={28} className="k-platform-icon" />
                         {account.proven && <span className="k-chip-proof is-badge" aria-hidden="true">✓</span>}
                       </a>
                     </li>
@@ -84,11 +91,12 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
                 </ul>
               )}
             </div>
+            <div className="k-chan-actions">
+              <CopyPageLink className="k-btn k-btn-ghost k-btn-sm" label="Copier le lien de sa page" />
+            </div>
           </div>
-          <CopyPageLink className="k-btn k-btn-ghost k-creator-share" label="Copier le lien de sa page" />
-          <div className="k-creator-more-wrap">
+          <div className="k-chan-more">
             <CreatorMore>
-              {profile?.bio && <p className="k-creator-bio">{profile.bio}</p>}
               <p className="k-creator-about">{plural(creatorCodes.length, 'code partagé', 'codes partagés')}, chacun avec la vidéo ou le post d&apos;où il vient.</p>
               {themes.length > 0 && <ul className="k-creator-themes" aria-label="Thèmes">{themes.map(theme => <li key={theme} className="k-pill">{theme}</li>)}</ul>}
               {profile && profile.accounts.length > 0 && (
@@ -111,10 +119,19 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
             </CreatorMore>
           </div>
         </header>
+
+        {/* Les chiffres qui comptent pour décider : combien de codes, combien vérifiés par Merkod, les votes « ça marche ». */}
+        <dl className="k-chan-stats">
+          <div><dt>Codes actifs</dt><dd>{active.length}</dd></div>
+          <div><dt>Vérifiés par Merkod</dt><dd>{verified}</dd></div>
+          <div><dt>Votes « ça marche »</dt><dd>{votes}</dd></div>
+          <div><dt>Copies ce mois-ci</dt><dd>{formatCopies(copies)}</dd></div>
+        </dl>
+
         <CreatorCodes codes={active} expired={expired} tools={tools} creator={creator}
           expiredTitle={plural(expired.length, 'code à la date de fin passée', 'codes à la date de fin passée')} />
-      </div>
+      </main>
       <VoteInvite trigger="copy" />
-    </main>
+    </ExploreShell>
   );
 }
