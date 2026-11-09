@@ -29,7 +29,7 @@ export function robotsRules(indexable: boolean, base: string): MetadataRoute.Rob
 
 const STATIC_PATHS = [
   // /categories redirige vers /codes : seule la page d'arrivée est listée.
-  routes.home, routes.about, routes.codes, routes.blackFriday, routes.creators(), routes.submit(), routes.feedback,
+  routes.home, routes.about, routes.codes, routes.blackFriday, routes.christmas, routes.creators(), routes.submit(), routes.feedback,
   routes.transparency, routes.forCreators(), routes.legal, routes.privacy,
 ];
 
