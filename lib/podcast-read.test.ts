@@ -40,7 +40,7 @@ describe('readPodcasts', () => {
       episode(2, 'NordVPN, code VIEUX', daysAgo(90)),
       episode(3, 'Pas de sponsor'),
     ] }), { now });
-    expect(report).toEqual({ podcasts: 1, episodes: 2, found: [{ podcast: 'Silicon Carne', code: 'CARNE', tool: 'NordVPN' }], suggested: [], failed: [], aiRead: 0 });
+    expect(report).toEqual({ podcasts: 1, episodes: 2, found: [{ podcast: 'Silicon Carne', code: 'CARNE', tool: 'NordVPN' }], suggested: [], failed: [], aiRead: 0, remaining: 0 });
     const [code] = await db.select().from(schema.codes);
     const [podcast] = await listPodcasts(db);
     expect(code).toMatchObject({ code: 'CARNE', discount: '-60 %', status: 'pending', creatorId: podcast.creatorId, sourceTitle: 'Épisode 1', sourceUrl: 'https://podcasts.apple.com/fr/podcast/silicon-carne/id42?i=1' });
@@ -87,6 +87,23 @@ describe('readPodcasts', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({ name: 'Gradium', domain: 'gradium.ai', code: 'GDIY', discount: '-10 %', status: 'open', sourceTitle: 'Épisode 7' });
     expect(await db.select().from(schema.codes)).toHaveLength(0);
+  });
+
+  it('s’arrête avant la limite de temps, lit d’abord les podcasts jamais lus et reprend où il en était', async () => {
+    await followPodcast(db, { id: 43, title: 'Autre', author: '', feedUrl: '', link: '', image: '', episodeCount: 1, genre: '' });
+    await followPodcast(db, { id: 44, title: 'Bavard', author: '', feedUrl: '', link: '', image: '', episodeCount: 1, genre: '' });
+    // Silicon Carne a déjà été lu : il passe après les deux autres.
+    await db.update(schema.watchedSources).set({ lastFetchedAt: daysAgo(1) }).where(eq(schema.watchedSources.externalId, '42'));
+    const dir = directory({ 42: [], 43: [], 44: [] });
+    let time = 0;
+    const clock = () => (time += 1000);
+    const first = await readPodcasts(db, dir, { now, budgetMs: 1500, clock });
+    expect(first.podcasts).toBe(2);
+    expect(first.remaining).toBe(1);
+    expect(vi.mocked(dir.episodes).mock.calls.map(([id]) => id)).toEqual([43, 44]);
+    const second = await readPodcasts(db, dir, { now: new Date(now.getTime() + 60_000), budgetMs: 1500, clock });
+    expect(vi.mocked(dir.episodes).mock.calls.at(2)?.[0]).toBe(42);
+    expect(second.podcasts).toBe(2);
   });
 
   it('prépare le dossier de vérification de chaque code trouvé', async () => {
