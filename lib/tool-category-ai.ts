@@ -1,12 +1,12 @@
 // « Trouver la catégorie » dans la fiche d'un outil (ADR-0024) : l'IA lit la page d'accueil du site officiel et
 // propose une catégorie existante, ou le nom d'une nouvelle quand aucune ne convient. Rien n'est enregistré :
 // l'admin choisit, puis valide la fiche. L'appel compte dans le plafond mensuel de l'IA (table ai_usage).
-import { asc } from 'drizzle-orm';
 import type { Db } from '@/db';
-import { aiUsage, categories } from '@/db/schema';
+import { aiUsage } from '@/db/schema';
 import { aiStatusOf, type AiConfig } from './ai-extract';
 import { readSite } from './site-reader';
 import { analyzeTool, type ToolAnalysis } from './tool-analysis';
+import { analysisChoices } from './universes-admin';
 import { aiSpendSince, startOfMonthUtc } from './verification-store';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -26,8 +26,7 @@ export async function suggestToolCategory(db: Db, deps: CategoryDeps, input: { n
   if (status.state !== 'active' || !deps.ai.create) return { ok: false, error: status.state === 'budget_reached' ? 'Le plafond de l’IA est atteint pour ce mois.' : 'L’IA n’est pas encore activée.' };
   const site = await (deps.readSite ?? readSite)(website);
   if (!site.ok) return { ok: false, error: `${site.error} Choisis la catégorie à la main.` };
-  const list = await db.select({ slug: categories.slug, name: categories.name }).from(categories).orderBy(asc(categories.name));
-  const result = await analyzeTool(deps.ai.create, deps.ai.config.model, { name: name || site.page.title, page: site.page, categories: list });
+  const result = await analyzeTool(deps.ai.create, deps.ai.config.model, { name: name || site.page.title, page: site.page, ...await analysisChoices(db) });
   await db.insert(aiUsage).values({ purpose: 'tool_category', model: deps.ai.config.model, costUsdMicros: result.costUsdMicros, ref: site.page.url.slice(0, 500) });
   if (!result.analysis) return { ok: false, error: result.refused ? 'L’IA a refusé d’analyser ce site.' : 'L’IA n’a pas pu analyser ce site.' };
   return { ok: true, data: result.analysis };

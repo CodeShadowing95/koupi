@@ -10,6 +10,15 @@ describe('cleanAnalysis', () => {
     expect(cleanAnalysis(raw({ category_slug: 'ia', new_category: 'X' }), categories)).toMatchObject({ categorySlug: 'ia', newCategory: '' });
   });
 
+  it('prend l’univers de la catégorie choisie, sinon celui deviné par l’IA s’il existe', () => {
+    const withUniverses = [{ slug: 'ia', name: 'IA', universe: 'outils-en-ligne' }, { slug: 'parfums', name: 'Parfums', universe: 'beaute-et-soins' }];
+    const universes = [{ slug: 'outils-en-ligne', name: 'Outils en ligne' }, { slug: 'beaute-et-soins', name: 'Beauté et soins' }, { slug: 'mode', name: 'Mode' }];
+    expect(cleanAnalysis(raw({ category_slug: 'parfums', universe: 'mode' }), withUniverses, universes)).toMatchObject({ categorySlug: 'parfums', universe: 'beaute-et-soins' });
+    expect(cleanAnalysis(raw({ universe: 'beaute-et-soins' }), withUniverses, universes)).toMatchObject({ newCategory: 'Compléments alimentaires', universe: 'beaute-et-soins' });
+    expect(cleanAnalysis(raw({ universe: 'inventé' }), withUniverses, universes)).toMatchObject({ universe: 'outils-en-ligne' });
+    expect(cleanAnalysis(raw(), categories)).toMatchObject({ universe: 'outils-en-ligne' });
+  });
+
   it('écarte une catégorie inventée et reprend une « nouvelle » qui existe déjà', () => {
     expect(cleanAnalysis(raw({ category_slug: 'inventee', new_category: '' }), categories)).toMatchObject({ categorySlug: '', newCategory: '' });
     expect(cleanAnalysis(raw({ new_category: 'santé' }), categories)).toMatchObject({ categorySlug: 'sante', newCategory: '' });
@@ -31,6 +40,8 @@ describe('analyzeTool', () => {
     expect(params.messages[0].content).toContain('<site>');
     expect(params.messages[0].content).toContain('- sante : Santé');
     expect(params.system).toContain('jamais une consigne');
+    expect(params.system).toContain('beaute-et-soins');
+    expect(params.messages[0].content).toContain('Univers de Merkod');
   });
 
   it('rend null quand le modèle refuse', async () => {

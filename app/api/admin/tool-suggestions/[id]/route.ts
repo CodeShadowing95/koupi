@@ -15,7 +15,8 @@ export const maxDuration = 60;
 // { action: 'ignore' } la met de côté pour de bon ;
 // { action: 'analyze', website?, description? } fait lire le site par l'IA (résumé, catégorie proposée, ADR-0024),
 // ou la description collée par l'admin quand le site refuse les robots ;
-// { action: 'add', newTool: { name, categorySlug, website, priority? }, newCategory? } crée l'outil (et sa catégorie) ;
+// { action: 'add', newTool: { name, categorySlug, website, priority? }, newCategory?, universe? } crée l'outil (et sa catégorie,
+// rangée dans l'univers donné) ;
 // { action: 'add', toolSlug } la relie à un outil déjà au catalogue.
 // Les codes créés arrivent en attente et leur dossier de vérification est préparé.
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -47,7 +48,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       // Une nouvelle catégorie remplace le choix dans la liste : on la crée avec l'outil.
       const input = parseToolInput({ ...(body.newTool as Record<string, unknown>), ...(newCategory ? { categorySlug: 'nouvelle' } : {}) });
       if (!input.ok) return NextResponse.json({ error: input.error }, { status: 400 });
-      target = { newTool: input.data, ...(newCategory ? { newCategory } : {}) };
+      const universe = newCategory && typeof body.universe === 'string' && /^[a-z0-9]+(-[a-z0-9]+)*$/.test(body.universe) ? body.universe.slice(0, 60) : '';
+      target = { newTool: input.data, ...(newCategory ? { newCategory } : {}), ...(universe ? { universe } : {}) };
     } else {
       return NextResponse.json({ error: 'Choisis un outil ou crée-le.' }, { status: 400 });
     }

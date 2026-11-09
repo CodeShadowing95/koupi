@@ -4,6 +4,15 @@ import type { Catalog, Universe } from './data';
 
 export const DEFAULT_UNIVERSE = 'outils-en-ligne';
 
+/** Ce que contient chaque univers, pour les consignes de l'IA (« Ranger par univers », analyse d'un outil à ajouter). */
+export const UNIVERSE_GUIDE = [
+  '- outils-en-ligne : logiciels, applications, services numériques et abonnements en ligne (SaaS, IA, VPN, hébergement, banque ou paiement en ligne, cours en ligne, forfaits eSIM, plateformes de création ou de vente en ligne comme Shopify).',
+  '- beaute-et-soins : cosmétiques, soins, parfums, compléments alimentaires, bien-être.',
+  '- mode : vêtements, chaussures, bijoux, accessoires de mode, boutiques de vêtements.',
+  '- high-tech-et-maison : matériel électronique, accessoires, électroménager, literie, maison, jardin, énergie solaire, vélos électriques.',
+  '- autres : tout le reste (alimentation, jeux physiques, articles de sport, animaux, tabac…).',
+];
+
 /** Univers montrés sur le site. Sans liste (ancien catalogue), seul l'univers par défaut existe. */
 export function visibleUniverses(universes: Universe[] | undefined): Set<string> {
   if (!universes?.length) return new Set([DEFAULT_UNIVERSE]);
