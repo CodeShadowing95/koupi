@@ -146,7 +146,7 @@ export function CodesView({ codes: rows, tools, categories, copies, ai }: { code
                     <td className="adm-cell-wrap">{code.creator}</td>
                     <td className="adm-cell-muted">{code.votes}</td>
                     <td className="adm-cell-muted adm-cell-nowrap">{code.success} %</td>
-                    <td className="adm-cell-muted" title="Copies ce mois-ci">{code.copies}</td>
+                    <td className="adm-cell-muted" title="Copies ce mois-ci (clics sur le lien pour une offre sans code)">{code.copies}</td>
                     <td><span className={statusLabel[code.status].className}>{statusLabel[code.status].label}</span></td>
                     <td className="adm-cell-muted adm-cell-nowrap">{testedLabel(code.lastTestedAt)}</td>
                     <td><div className="adm-cell-actions">{actions(code)}<a href={code.source} target="_blank" rel="noopener noreferrer">Source ↗</a><button type="button" className="adm-btn" onClick={() => setEditing({ kind: 'edit', code })}>Modifier</button></div></td>

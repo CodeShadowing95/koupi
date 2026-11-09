@@ -6,6 +6,7 @@ import { and, asc, desc, eq, gt, gte, isNotNull, isNull, sql } from 'drizzle-orm
 import type { Db } from '@/db';
 import { codes, creatorAccounts, creatorRequests, creatorSignInTokens, creatorUsers, creators, dailyCounters } from '@/db/schema';
 import { monthStart } from './creator-directory';
+import { usedCode } from './audience';
 import { CONTACT_EMAIL } from './site-contact';
 import { isProvisionalPage, mergeProvisionalPage } from './creator-merge';
 
@@ -126,7 +127,7 @@ export async function copiesByCode(db: Db, creatorId: string, now = new Date()):
   const rows = await db.select({ codeId: codes.id, copies: sql<number>`sum(${dailyCounters.count})::int` })
     .from(dailyCounters)
     .innerJoin(codes, sql`${dailyCounters.key} = ${codes.id}::text`)
-    .where(and(eq(codes.creatorId, creatorId), eq(dailyCounters.metric, 'copy'), gte(dailyCounters.day, monthStart(now))))
+    .where(and(eq(codes.creatorId, creatorId), usedCode, gte(dailyCounters.day, monthStart(now))))
     .groupBy(codes.id);
   return new Map(rows.map(row => [row.codeId, row.copies]));
 }

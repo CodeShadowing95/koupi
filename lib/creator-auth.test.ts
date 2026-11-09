@@ -128,6 +128,14 @@ describe('connexion des créateurs', () => {
       { day: '2026-10-30', metric: 'copy', key: code.data.id, count: 50 },
     ]);
     expect(await copiesByCode(db, ana, now)).toEqual(new Map([[code.data.id, 7]]));
+    // Une offre sans code ne se copie pas : on compte les clics sur son lien. Les ouvertures après une copie ne comptent pas en plus.
+    const link = await createCode(db, { toolSlug: 'nordvpn', discount: '-20 %', sourceUrl: 'https://youtube.com/watch?v=2', sourceTitle: '', creatorLink: 'https://nordvpn.com/ana', note: null, status: 'verified', creatorName: 'Ana', code: '' });
+    if (!link.ok) throw new Error('setup');
+    await db.insert(schema.dailyCounters).values([
+      { day: '2026-11-02', metric: 'open', key: code.data.id, count: 6 },
+      { day: '2026-11-02', metric: 'open', key: link.data.id, count: 3 },
+    ]);
+    expect(await copiesByCode(db, ana, now)).toEqual(new Map([[code.data.id, 7], [link.data.id, 3]]));
 
     await createSignInLink(db, { email: 'ana@exemple.fr', slug: null }, context);
     await pruneSignInTokens(db, minutes(60 * 24 + 30));

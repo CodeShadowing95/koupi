@@ -3,6 +3,7 @@
 import { and, eq, gte, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { codes, creatorAccounts, creators, dailyCounters } from '@/db/schema';
+import { usedCode } from './audience';
 import type { CreatorPlatform } from './creator-accounts-display';
 import { creatorCategories } from './creator-profile';
 import { isPublic, type Code, type Tool } from './data';
@@ -22,7 +23,7 @@ export async function copiesThisMonth(db: Db, now = new Date()): Promise<Map<str
   const rows = await db.select({ creatorId: codes.creatorId, copies: sql<number>`sum(${dailyCounters.count})::int` })
     .from(dailyCounters)
     .innerJoin(codes, sql`${dailyCounters.key} = ${codes.id}::text`)
-    .where(and(eq(dailyCounters.metric, 'copy'), gte(dailyCounters.day, monthStart(now))))
+    .where(and(usedCode, gte(dailyCounters.day, monthStart(now))))
     .groupBy(codes.creatorId);
   return new Map(rows.map(row => [row.creatorId, row.copies]));
 }
@@ -31,7 +32,8 @@ export async function copiesThisMonth(db: Db, now = new Date()): Promise<Map<str
 export async function copiesByCodeThisMonth(db: Db, now = new Date()): Promise<Map<string, number>> {
   const rows = await db.select({ key: dailyCounters.key, copies: sql<number>`sum(${dailyCounters.count})::int` })
     .from(dailyCounters)
-    .where(and(eq(dailyCounters.metric, 'copy'), gte(dailyCounters.day, monthStart(now))))
+    .innerJoin(codes, sql`${dailyCounters.key} = ${codes.id}::text`)
+    .where(and(usedCode, gte(dailyCounters.day, monthStart(now))))
     .groupBy(dailyCounters.key);
   return new Map(rows.map(row => [row.key, row.copies]));
 }
@@ -41,7 +43,7 @@ export async function copiesByToolThisMonth(db: Db, now = new Date()): Promise<M
   const rows = await db.select({ toolId: codes.toolId, copies: sql<number>`sum(${dailyCounters.count})::int` })
     .from(dailyCounters)
     .innerJoin(codes, sql`${dailyCounters.key} = ${codes.id}::text`)
-    .where(and(eq(dailyCounters.metric, 'copy'), gte(dailyCounters.day, monthStart(now))))
+    .where(and(usedCode, gte(dailyCounters.day, monthStart(now))))
     .groupBy(codes.toolId);
   return new Map(rows.map(row => [row.toolId, row.copies]));
 }
