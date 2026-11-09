@@ -13,7 +13,7 @@ import { PageHead } from '@/components/site/page-head';
 import { BoardingCoupon } from '@/components/site/boarding-coupon';
 import { VoteInvite } from '@/components/site/vote-invite';
 
-/** Coupons montrés dans les résultats ; au-delà, un lien vers la page Codes filtrée. */
+/** Coupons montrés dans les résultats ; au-delà, un lien vers la page principale sur cette recherche. */
 const CODES_SHOWN = 6;
 
 export const metadata = { title: 'Recherche · Merkod', robots: { index: false, follow: true } };
@@ -41,7 +41,7 @@ export default async function SearchResults({ searchParams }: { searchParams: Pr
             <div className="k-search-codes-head">
               <h2 id="search-codes">Codes</h2>
               {codes.length > CODES_SHOWN && (
-                <Link className="k-link" href={`${routes.codes}?q=${encodeURIComponent(query)}`}>Voir les {codes.length} codes →</Link>
+                <Link className="k-link" href={routes.explore({ q: query })}>Voir les {codes.length} codes →</Link>
               )}
             </div>
             <ul className="k-pass-grid">

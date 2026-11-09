@@ -9,6 +9,7 @@ import { monthStart } from './creator-directory';
 import { usedCode } from './audience';
 import { CONTACT_EMAIL } from './site-contact';
 import { isProvisionalPage, mergeProvisionalPage } from './creator-merge';
+import { routes } from './routes';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -55,7 +56,7 @@ export async function recordClaim(db: Db, input: { email: string; slug: string; 
     accounts.sort((a, b) => PLATFORM_ORDER.indexOf(a.platform) - PLATFORM_ORDER.indexOf(b.platform));
     await db.insert(creatorRequests).values({
       creatorId: creator.id, kind: 'claim', email: input.email, ipHash: input.ipHash,
-      accountUrl: input.accountUrl ?? accounts[0]?.url ?? `${input.appUrl}/creators/${input.slug}`,
+      accountUrl: input.accountUrl ?? accounts[0]?.url ?? `${input.appUrl}${routes.creator(input.slug)}`,
       message: input.message ?? 'Revendication envoyée depuis « Pour les créateurs », avec la connexion par e-mail.',
     });
   }

@@ -1,4 +1,4 @@
-// Annuaire des créateurs (page /creators) et compteur « codes copiés ce mois-ci ».
+// Annuaire des créateurs (utilisé par la recherche) et compteur « codes copiés ce mois-ci ».
 // Les copies viennent des compteurs anonymes (ADR-0010) : un total par code et par jour, rien sur le visiteur.
 import { and, eq, gte, sql } from 'drizzle-orm';
 import type { Db } from '@/db';

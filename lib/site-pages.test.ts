@@ -7,10 +7,13 @@ describe('pageForPath', () => {
     expect(pageForPath('/categories')?.key).toBe('categories');
     expect(pageForPath('/categories/vpn')?.key).toBe('categories');
     expect(pageForPath('/creators/ana')?.key).toBe('creators');
+    expect(pageForPath('/@ana')?.key).toBe('creators');
+    expect(pageForPath('/@ana/black-friday')?.key).toBe('creators');
     expect(pageForPath('/creator/sign-in')?.key).toBe('creator-space');
     expect(pageForPath('/api/submissions')?.key).toBe('submit');
     expect(pageForPath('/about')?.key).toBe('about');
     expect(pageForPath('/codesx')).toBeNull();
+    expect(pageForPath('/codes')).toBeNull();
     expect(pageForPath('/admin')).toBeNull();
   });
   it('ne confond pas /creator et /creators', () => {
@@ -24,7 +27,8 @@ describe('isPathOff', () => {
     expect(isPathOff('/categories/vpn', ['categories'])).toBe(true);
     expect(isPathOff('/categories?x=1', ['categories'])).toBe(true);
     expect(isPathOff('/api/submissions', ['submit'])).toBe(true);
-    expect(isPathOff('/codes', ['categories'])).toBe(false);
+    expect(isPathOff('/tools/notion', ['categories'])).toBe(false);
+    expect(isPathOff('/@ana', ['creators'])).toBe(true);
   });
   it('ne coupe jamais une page verrouillée', () => {
     expect(SITE_PAGES.filter(page => page.locked).map(page => page.key)).toEqual(['home', 'legal', 'privacy']);
@@ -36,7 +40,7 @@ describe('isPathOff', () => {
 describe('siteDecision', () => {
   const on = { off: [], maintenance: false };
   it('laisse passer quand rien n’est coupé', () => {
-    expect(siteDecision('/codes', on, false)).toBe('pass');
+    expect(siteDecision('/@ana', on, false)).toBe('pass');
     expect(siteDecision('/maintenance', on, false)).toBe('not-found');
   });
   it('répond 404 pour une page coupée, même à l’admin', () => {

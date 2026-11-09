@@ -25,7 +25,7 @@ export function kitYear(kind: KitKind, now: Date): number {
   return kind === 'noel' ? christmasYear(now) : now.getUTCFullYear();
 }
 
-export const kitPath = (slug: string, kind: KitKind) => `/creators/${slug}/${kind}`;
+export const kitPath = (slug: string, kind: KitKind) => `/@${slug}/${kind}`;
 export const kitImagePath = (slug: string, kind: KitKind) => `${kitPath(slug, kind)}/story`;
 
 type KitCode = Pick<Code, 'toolSlug' | 'status' | 'expiresOn' | 'discount' | 'success'>;

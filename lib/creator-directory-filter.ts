@@ -1,4 +1,4 @@
-// Filtres, tri et compteurs de l'annuaire des créateurs (/creators).
+// Filtres, tri et compteurs de l'annuaire des créateurs.
 // Sans base ni réseau : importable par les composants client.
 import type { CreatorPlatform } from './creator-accounts-display';
 import type { Code } from './data';

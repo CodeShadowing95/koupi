@@ -45,9 +45,9 @@ describe('robotsRules', () => {
     const robots = robotsRules(true, 'https://merkod.com');
     expect(robots.sitemap).toBe('https://merkod.com/sitemap.xml');
     expect(JSON.stringify(robots.rules)).toContain('/admin');
-    // Aucune règle ne doit couper les pages créateurs publiques (/creators/…).
+    // Aucune règle ne doit couper les pages créateurs publiques (/@nom).
     const disallow = (robots.rules as { disallow: string[] }).disallow;
-    expect(disallow.some(rule => !rule.endsWith('$') && '/creators/ali'.startsWith(rule))).toBe(false);
+    expect(disallow.some(rule => !rule.endsWith('$') && '/@ali'.startsWith(rule))).toBe(false);
   });
 });
 
@@ -57,13 +57,14 @@ describe('sitemapEntries', () => {
   it('lists static pages, filled categories, tools and creators with a public code', () => {
     const list = urls();
     expect(list).toContain('https://merkod.com');
-    expect(list).toContain('https://merkod.com/codes');
+    expect(list).not.toContain('https://merkod.com/codes');
+    expect(list).not.toContain('https://merkod.com/creators');
     expect(list).toContain('https://merkod.com/categories/productivite');
     expect(list).not.toContain('https://merkod.com/categories/vide');
     expect(list).not.toContain('https://merkod.com/categories');
     expect(list).toContain('https://merkod.com/tools/notion');
-    expect(list).toContain('https://merkod.com/creators/ali');
-    expect(list).not.toContain('https://merkod.com/creators/cache');
+    expect(list).toContain('https://merkod.com/@ali');
+    expect(list).not.toContain('https://merkod.com/@cache');
     expect(list.some(url => url.includes('/search') || url.includes('/admin') || url.endsWith('/creator'))).toBe(false);
   });
 
@@ -74,8 +75,8 @@ describe('sitemapEntries', () => {
 
   it('leaves out pages switched off in the admin', () => {
     const list = urls(['tools', 'creators']);
-    expect(list.some(url => url.includes('/tools/') || url.includes('/creators'))).toBe(false);
-    expect(list).toContain('https://merkod.com/codes');
+    expect(list.some(url => url.includes('/tools/') || url.includes('/@'))).toBe(false);
+    expect(list).toContain('https://merkod.com/about');
   });
 });
 

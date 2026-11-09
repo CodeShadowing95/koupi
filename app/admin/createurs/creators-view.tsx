@@ -27,6 +27,7 @@ import {
   AUDIENCE_FILTERS, LANGUAGE_FILTERS, NO_FILTERS, PLATFORM_FILTERS, activeFilters, audienceShort, contactOrder, creatorRatings, creatorSubscribers,
   isToContact, matchesFilters, type CreatorFilters,
 } from '@/lib/creator-admin-filter';
+import { routes } from '@/lib/routes';
 
 type Creator = AdminCreator & { accounts: AdminCreatorAccount[]; level: CreatorLevel; copies: number; inTouch: boolean };
 const LEVEL_ORDER: Record<CreatorLevel, number> = { spotted: 0, checked: 1, verified: 2 };
@@ -81,7 +82,7 @@ export function CreatorsView({ creators, toLink, missingPhotos, followed, youtub
   const countOf = (value: Filter) => creators.filter(creator => matches(creator, value) && matchesFilters(creator, extra)).length;
   const open = (creator: Creator) => { setName(creator.name); setBio(creator.bio ?? ''); setEditing(creator); };
   const codesLink = (creator: Creator) => <a href={`/admin/codes?q=${encodeURIComponent(creator.name)}`}>{creator.visible} visible{creator.visible > 1 ? 's' : ''} / {creator.codes}</a>;
-  const page = (creator: Creator) => creator.visible > 0 ? <a href={`/creators/${creator.slug}`} target="_blank" rel="noopener noreferrer">Page ↗</a> : null;
+  const page = (creator: Creator) => creator.visible > 0 ? <a href={routes.creator(creator.slug)} target="_blank" rel="noopener noreferrer">Page ↗</a> : null;
 
   return (
     <main className="adm-page">
@@ -159,7 +160,7 @@ export function CreatorsView({ creators, toLink, missingPhotos, followed, youtub
                 </div>
                 <div className="adm-card-foot">
                   <span className="adm-card-meta">{codesLink(creator)}{creator.visible === 0 && ' · masqué'}{audienceShort(creator.accounts) && ` · ${audienceShort(creator.accounts)}`}{creator.copies > 0 && ` · ${creator.copies} copie${creator.copies > 1 ? 's' : ''}`}{localeShort(creatorLocale(creator.accounts)) && <span title={localeLabel(creatorLocale(creator.accounts)) ?? ''}> · {localeShort(creatorLocale(creator.accounts))}</span>}</span>
-                  {creator.visible > 0 && <IconLink icon="external" label="Page publique" href={`/creators/${creator.slug}`} external />}
+                  {creator.visible > 0 && <IconLink icon="external" label="Page publique" href={routes.creator(creator.slug)} external />}
                   <IconButton icon="edit" label="Modifier le profil" onClick={() => open(creator)} />
                 </div>
               </article>
@@ -197,7 +198,7 @@ export function CreatorsView({ creators, toLink, missingPhotos, followed, youtub
                 { label: 'Copies ce mois-ci', value: selected.copies },
                 { label: 'Audience', value: audienceShort(selected.accounts) ?? <span className="muted">Inconnue</span> },
                 { label: 'Pays et langue', value: localeLabel(creatorLocale(selected.accounts)) ?? <span className="muted">Inconnus</span> },
-                { label: 'Page publique', value: selected.visible > 0 ? <a href={`/creators/${selected.slug}`} target="_blank" rel="noopener noreferrer">/creators/{selected.slug} ↗</a> : <span className="muted">Pas encore : aucun code visible.</span> },
+                { label: 'Page publique', value: selected.visible > 0 ? <a href={routes.creator(selected.slug)} target="_blank" rel="noopener noreferrer">/@{selected.slug} ↗</a> : <span className="muted">Pas encore : aucun code visible.</span> },
               ]} />
               <div>
                 <span className="eyebrow">Présentation</span>

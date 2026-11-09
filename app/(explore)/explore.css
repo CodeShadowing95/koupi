@@ -249,10 +249,8 @@
 .k-ex-season>svg{color:var(--coral-text)}
 .k-ex-season-days{padding:2px 7px;border-radius:var(--r-pill);background:var(--coral);color:var(--paper-ink)}
 
-/* Pages de la coque autres que l'Explorer (Codes, Créateurs, page d'un créateur) : même fil, même titre. */
+/* Pages de la coque autres que l'Explorer (page d'un créateur) : même titre. */
 .k-ex-page .k-ex-head{align-items:flex-end}
-.k-ex-page .k-dir-bar{padding:0;border:0;background:none}
-.k-ex-lead{margin:8px 0 0;max-width:68ch;color:var(--text-soft);font-size:var(--fs-base)}
 
 /* Page d'un créateur, façon chaîne : bandeau papier, photo qui chevauche, nom, une ligne de faits, ses comptes. */
 .k-chan{margin:16px 0 28px}

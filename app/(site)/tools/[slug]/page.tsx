@@ -59,7 +59,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
     <main className="k-page">
       <div className="k-wrap">
         {/* Page du code choisi : ni barre du haut ni fil d'Ariane affiché, juste « Retour » (le fil reste pour Google). */}
-        <Crumbs hidden items={[{ label: tool.category, href: category ? routes.category(category.slug) : routes.codes }, { label: tool.name }]} />
+        <Crumbs hidden items={[{ label: tool.category, href: category ? routes.category(category.slug) : routes.home }, { label: tool.name }]} />
         <BackButton />
         <div className="k-tool-layout">
           <section>

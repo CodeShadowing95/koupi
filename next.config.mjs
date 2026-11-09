@@ -1,4 +1,4 @@
-import { categoryRedirects, legacyRedirects, movedRedirects } from './lib/legacy-redirects.mjs';
+import { categoryRedirects, creatorRewrites, legacyRedirects, movedRedirects } from './lib/legacy-redirects.mjs';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
@@ -33,6 +33,9 @@ const nextConfig = {
   images: { unoptimized: true },
   async redirects() {
     return [...legacyRedirects, ...categoryRedirects, ...movedRedirects].map(redirect => ({ ...redirect, permanent: true }));
+  },
+  async rewrites() {
+    return { beforeFiles: creatorRewrites, afterFiles: [], fallback: [] };
   },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
