@@ -24,6 +24,8 @@ import { CreatorMark } from '@/components/site/creator-mark';
 import { CreateList, CreateMenu, CreatorButton } from '@/components/site/create-menu';
 import { FamilyIcon, ShelfIcon } from '@/components/site/explore-icons';
 import { PORTFOLIO_URL, PUBLISHER_NAME } from '@/lib/site-contact';
+import { SeasonBanner } from '@/components/site/season-banner';
+import { bannerPicks, currentSeason } from '@/lib/season-banner';
 
 const PAGE = 12;
 
@@ -54,6 +56,13 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
   const isOff = useIsOff();
 
   // Espaces insécables écrits à la main : même texte côté serveur et navigateur.
+  // Bannière de saison : la date vient du serveur (now) pour que le rendu serveur et le navigateur montrent la même.
+  const season = useMemo(() => currentSeason(new Date(now)), [now]);
+  const seasonPicks = useMemo(() => {
+    if (!season) return [];
+    const familyOf = new Map(tools.map(tool => [tool.slug, tool.family]));
+    return bannerPicks(codes.map(code => ({ ...code, family: familyOf.get(code.toolSlug) })), 4);
+  }, [season, codes, tools]);
   const votes = useMemo(() => new Intl.NumberFormat('fr-FR').format(totalVotes(codes)).replace(/\s/g, '\u00a0'), [codes]);
   const results = useMemo(() => exploreCodes(codes, tools, state, now), [codes, tools, state, now]);
   const visible = results.slice(0, limit);
@@ -186,6 +195,16 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
                 </button>
               </li>
             ))}
+            {season && (
+              <li>
+                <Link className="k-ex-item k-ex-season" href={season.kind === 'christmas' ? routes.christmas : routes.blackFriday} title={season.kind === 'christmas' ? 'Codes de Noël' : 'Codes Black Friday'}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d={season.kind === 'christmas' ? 'M4 12h16v8H4zM3 8h18v4H3zM12 8v12M12 8c-2-4-6-4-6-1.5S10 8 12 8Zm0 0c2-4 6-4 6-1.5S14 8 12 8Z' : 'M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8ZM7.5 7.5h.01'} /></svg>
+                  <span className="k-ex-item-label">{season.kind === 'christmas' ? 'Noël' : 'Black Friday'}</span>
+                  <span className="k-ex-item-short" aria-hidden="true">{season.kind === 'christmas' ? 'Noël' : 'Black F.'}</span>
+                  <span className="k-ex-item-count k-ex-season-days">{season.daysLeft > 0 ? `J-${season.daysLeft}` : 'Jour J'}</span>
+                </Link>
+              </li>
+            )}
           </ul>
 
           {familyList.length > 0 && <>
@@ -290,6 +309,7 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
         )}
 
         <main className="k-ex-feed" id="contenu" ref={feed}>
+          {season && seasonPicks.length > 0 && <SeasonBanner season={season} picks={seasonPicks} />}
           {intro && (
             <section className="k-ex-intro" aria-labelledby="k-ex-intro-title">
               <div className="k-ex-intro-main k-paper">
