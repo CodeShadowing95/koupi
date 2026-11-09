@@ -24,7 +24,6 @@ export type ShellActive =
   | { kind: 'shelf'; shelf: Shelf }
   | { kind: 'family'; slug: string }
   | { kind: 'creator'; slug: string }
-  | { kind: 'page'; page: 'codes' | 'creators' }
   | null;
 
 type Search = { value: string; onChange: (value: string) => void; onSubmit: () => void };
@@ -166,28 +165,6 @@ export function ExploreShell({ codes, tools, families, now, active, onGo, search
                   <span className="k-ex-item-short" aria-hidden="true">{season.kind === 'christmas' ? 'Noël' : 'Black F.'}</span>
                   <span className="k-ex-item-count k-ex-season-days">{season.daysLeft > 0 ? `J-${season.daysLeft}` : 'Jour J'}</span>
                 </Link>
-              </li>
-            )}
-          </ul>
-
-          {/* Deux pages pour aller plus loin : tous les filtres, et l'annuaire des créateurs. */}
-          <ul className="k-ex-group">
-            {!isOff(routes.codes) && (
-              <li>
-                <Item onGo={onGo} onPick={closeDrawer} next={{}} href={routes.codes} current={active?.kind === 'page' && active.page === 'codes'} title="Tous les codes, avec tous les filtres">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
-                  <span className="k-ex-item-label">Filtrer les codes</span>
-                  <span className="k-ex-item-short" aria-hidden="true">Filtres</span>
-                </Item>
-              </li>
-            )}
-            {!isOff(routes.creators()) && (
-              <li>
-                <Item onGo={onGo} onPick={closeDrawer} next={{}} href={routes.creators()} current={active?.kind === 'page' && active.page === 'creators'} title="Tous les créateurs">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20c.7-3.6 3.3-5.5 6.5-5.5s5.8 1.9 6.5 5.5" /><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.8c1.7.8 2.7 2.5 3 5.2" /></svg>
-                  <span className="k-ex-item-label">Tous les créateurs</span>
-                  <span className="k-ex-item-short" aria-hidden="true">Créateurs</span>
-                </Item>
               </li>
             )}
           </ul>

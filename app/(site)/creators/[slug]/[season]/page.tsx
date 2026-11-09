@@ -53,7 +53,7 @@ export default async function CreatorSeason({ params }: Params) {
   return (
     <main className={`k-page k-season ${christmas ? 'k-season-xmas' : 'k-season-bf'}`}>
       <div className="k-wrap">
-        <Crumbs items={[{ label: 'Créateurs', href: routes.creators() }, { label: creator, href: routes.creator(slug) }, { label: KIT_LABEL[kind] }]} />
+        <Crumbs items={[{ label: creator, href: routes.creator(slug) }, { label: KIT_LABEL[kind] }]} />
         <header className="k-page-head k-season-head k-kit-head">
           <span className="k-eyebrow">{eyebrow(kind, year, now)}</span>
           <div className="k-kit-who">

@@ -9,6 +9,7 @@ import type { CreatorUserAction, CreatorUserItem } from '@/lib/creator-users-adm
 import { confirmAction } from '@/components/admin-ask';
 import type { AdminUniverse, FamilyInUniverse } from '@/lib/universes-admin';
 import { DEFAULT_UNIVERSE } from '@/lib/universes';
+import { routes } from '@/lib/routes';
 
 type Props = { off: PageKey[]; maintenance: boolean; offerLinks: boolean; rows: SiteSwitchRow[]; journal: AuditEntry[]; creatorUsers: CreatorUserItem[]; universes: AdminUniverse[]; families: FamilyInUniverse[] };
 
@@ -242,7 +243,7 @@ export function AdministrationView({ off, maintenance, offerLinks, rows, journal
                     {creatorUsers.map(user => (
                       <tr key={user.id} className={user.disabledAt ? 'is-off' : undefined}>
                         <td><b>{user.email}</b></td>
-                        <td>{user.creator ? <a href={`/creators/${user.creator.slug}`} target="_blank" rel="noreferrer">{user.creator.name}</a> : <span className="adm-cell-muted">Aucune</span>}</td>
+                        <td>{user.creator ? <a href={routes.creator(user.creator.slug)} target="_blank" rel="noreferrer">{user.creator.name}</a> : <span className="adm-cell-muted">Aucune</span>}</td>
                         <td className="adm-cell-nowrap adm-cell-muted">{user.lastSignInAt ? formatAuditDate(user.lastSignInAt) : '—'}</td>
                         <td>{user.disabledAt
                           ? <span className="adm-pill adm-pill-bad" title={`Depuis le ${formatAuditDate(user.disabledAt)}`}>Désactivé</span>

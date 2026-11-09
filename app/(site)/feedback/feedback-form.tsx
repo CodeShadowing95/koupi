@@ -64,7 +64,7 @@ export function FeedbackForm() {
         <h2>Merci, c’est bien reçu.</h2>
         <p>On lit chaque avis. Si tu as laissé ton e-mail et que ta remarque appelle une réponse, on t’écrit.</p>
         <div className="k-req-actions">
-          <Link className="k-btn k-btn-primary" href={routes.codes}>Voir les codes</Link>
+          <Link className="k-btn k-btn-primary" href={routes.home}>Voir les codes</Link>
           <button type="button" className="k-btn k-btn-ghost" onClick={() => { setMessage(''); setToken(''); setState('form'); }}>Envoyer un autre avis</button>
         </div>
       </div>

@@ -15,8 +15,7 @@ import { CreateList, CreateMenu, CreatorButton } from '@/components/site/create-
 // Sur la page Présentation, les liens deviennent des ancres vers ses sections, et celle qu'on lit est soulignée.
 
 const links = [
-  { href: routes.codes, label: 'Codes promo' },
-  { href: routes.creators(), label: 'Créateurs' },
+  { href: routes.home, label: 'Codes promo' },
   { href: routes.feedback, label: 'Ton avis' },
 ];
 
@@ -30,6 +29,7 @@ export function SiteHeader() {
   const [sound, setSound] = useState(true);
   const [open, setOpen] = useState(false);
   const onAbout = pathname === routes.about;
+  const isCurrent = (href: string) => (href === routes.home ? pathname === href : pathname.startsWith(href));
   const [section, setSection] = useState<string | null>(null);
   const header = useRef<HTMLElement>(null);
   const burger = useRef<HTMLButtonElement>(null);
@@ -96,7 +96,7 @@ export function SiteHeader() {
           {onAbout ? ABOUT_SECTIONS.map(item => (
             <a key={item.id} className={`k-nav-link${'accent' in item ? ' is-accent' : ''}`} href={`#${item.id}`} aria-current={section === item.id ? 'location' : undefined}>{item.label}</a>
           )) : shown.map(link => (
-            <Link key={link.href} className="k-nav-link" href={hrefOf(link.href)} aria-current={pathname.startsWith(link.href) ? 'page' : undefined}>{link.label}</Link>
+            <Link key={link.href} className="k-nav-link" href={hrefOf(link.href)} aria-current={isCurrent(link.href) ? 'page' : undefined}>{link.label}</Link>
           ))}
           {/* « + Créer » : proposer un code, ouvrir son espace créateur, signaler une erreur. */}
           <CreateMenu />
@@ -138,7 +138,7 @@ export function SiteHeader() {
             </a>
           ))}
           {!onAbout && shown.map(link => (
-            <Link key={link.href} className="k-menu-link" href={hrefOf(link.href)} aria-current={pathname.startsWith(link.href) ? 'page' : undefined}
+            <Link key={link.href} className="k-menu-link" href={hrefOf(link.href)} aria-current={isCurrent(link.href) ? 'page' : undefined}
               onClick={() => setOpen(false)}>
               {link.label}
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>

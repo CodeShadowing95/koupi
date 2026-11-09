@@ -9,7 +9,7 @@ describe('menu ⋮ d’un coupon', () => {
     expect(items.map(item => item.key)).toEqual(['source', 'tool', 'creator', 'share', 'report']);
     expect(items[0]).toMatchObject({ label: 'Voir la vidéo', href: 'https://youtu.be/x', external: true });
     expect(items[1]).toMatchObject({ label: 'Tous les codes Incogni', href: '/tools/incogni' });
-    expect(items[2]).toMatchObject({ label: 'Page de Phones And Drones', href: '/creators/phones-and-drones' });
+    expect(items[2]).toMatchObject({ label: 'Page de Phones And Drones', href: '/@phones-and-drones' });
   });
 
   it('adapte le libellé de la source à la plateforme', () => {

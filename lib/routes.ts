@@ -4,16 +4,17 @@ export const routes = {
   home: '/',
   /** Présentation de Merkod (l'ancienne page d'accueil) : la règle pro-créateurs, comment ça marche. */
   about: '/about',
-  codes: '/codes',
   blackFriday: '/black-friday',
   christmas: '/noel',
   categories: '/categories',
   category: (slug: string) => `/categories/${slug}`,
   tool: (slug: string) => `/tools/${slug}`,
-  creator: (slug: string) => `/creators/${slug}`,
-  creators: (filter: { platform?: string; theme?: string } = {}) => {
+  /** Page d'un créateur, à la façon des chaînes YouTube : /@son-nom. Servie par app/(explore)/creators/[slug] (réécriture). */
+  creator: (slug: string) => `/@${slug}`,
+  /** La page principale ouverte sur une famille, une recherche ou un créateur (mêmes paramètres que l'Explorer). */
+  explore: (filter: { family?: string; q?: string; creator?: string } = {}) => {
     const query = new URLSearchParams(Object.entries(filter).filter((entry): entry is [string, string] => Boolean(entry[1]))).toString();
-    return query ? `/creators?${query}` : '/creators';
+    return query ? `/?${query}` : '/';
   },
   search: (query: string) => `/search?q=${encodeURIComponent(query)}`,
   submit: (toolSlug?: string) => (toolSlug ? `/submit?tool=${encodeURIComponent(toolSlug)}` : '/submit'),

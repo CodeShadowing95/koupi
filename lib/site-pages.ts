@@ -3,7 +3,7 @@
 // Une page coupée répond 404 (elle et ses sous-pages), disparaît des menus et ses liens deviennent du texte simple.
 
 export const PAGE_KEYS = [
-  'home', 'about', 'codes', 'categories', 'tools', 'creators', 'search', 'submit',
+  'home', 'about', 'categories', 'tools', 'creators', 'search', 'submit',
   'feedback', 'transparency', 'for-creators', 'creator-space', 'legal', 'privacy',
 ] as const;
 export type PageKey = (typeof PAGE_KEYS)[number];
@@ -24,10 +24,9 @@ export type SitePage = {
 export const SITE_PAGES: SitePage[] = [
   { key: 'home', label: 'Accueil (Explorer)', paths: ['/'], locked: 'Point d’entrée du site', effect: '—' },
   { key: 'about', label: 'Présentation', paths: ['/about'], effect: 'Lien « Présentation » de la colonne et du pied de page' },
-  { key: 'codes', label: 'Codes', paths: ['/codes'], effect: 'Lien « Codes promo » du menu et « Tous les codes » du pied de page' },
-  { key: 'categories', label: 'Pages de catégorie', paths: ['/categories'], effect: 'Catégorie cliquable sur les fiches outils (les pastilles de la page Codes restent)' },
+  { key: 'categories', label: 'Pages de catégorie', paths: ['/categories'], effect: 'Catégorie cliquable sur les fiches outils (les pastilles de la page principale restent)' },
   { key: 'tools', label: 'Fiches outils', paths: ['/tools'], effect: 'Les coupons et la recherche ne mènent plus à une fiche' },
-  { key: 'creators', label: 'Créateurs', paths: ['/creators'], effect: 'Lien du menu, noms des créateurs cliquables sur les coupons' },
+  { key: 'creators', label: 'Pages créateur', paths: ['/@', '/creators'], effect: 'Noms des créateurs cliquables sur les coupons et dans la colonne' },
   { key: 'search', label: 'Recherche', paths: ['/search'], effect: 'Page de résultats ; sans fiches outils non plus, la recherche disparaît' },
   { key: 'submit', label: 'Proposer un code', paths: ['/submit'], apis: ['/api/submissions'], effect: 'Choix « Proposer un code » du menu Créer et boutons ; les envois sont refusés' },
   { key: 'feedback', label: 'Ton avis', paths: ['/feedback'], apis: ['/api/feedback'], effect: 'Lien du menu, « Signaler une erreur » du menu Créer et pied de page ; les envois sont refusés' },
@@ -47,7 +46,10 @@ export function isPageKey(value: unknown): value is PageKey {
   return typeof value === 'string' && (PAGE_KEYS as readonly string[]).includes(value);
 }
 
-const under = (pathname: string, base: string) => (base === '/' ? pathname === '/' : pathname === base || pathname.startsWith(`${base}/`));
+// « /@ » couvre toutes les pages créateur (/@nom, /@nom/black-friday…).
+const under = (pathname: string, base: string) => (base === '/' ? pathname === '/'
+  : base === '/@' ? pathname.startsWith(base)
+  : pathname === base || pathname.startsWith(`${base}/`));
 
 /** La page publique qui couvre cette adresse (ou cette route d'API), null sinon. */
 export function pageForPath(pathname: string): SitePage | null {

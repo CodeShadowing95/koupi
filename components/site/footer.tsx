@@ -17,10 +17,9 @@ export function SiteFooter({ logoDev = false }: { logoDev?: boolean }) {
           <div>
             <h3>Explorer</h3>
             <ul>
-              <SiteLinkItem href={routes.codes}>Tous les codes</SiteLinkItem>
+              <SiteLinkItem href={routes.home}>Tous les codes</SiteLinkItem>
               <SiteLinkItem href={routes.blackFriday}>Codes Black Friday</SiteLinkItem>
               <SiteLinkItem href={routes.christmas}>Codes de Noël</SiteLinkItem>
-              <SiteLinkItem href={routes.creators()}>Créateurs</SiteLinkItem>
               <SiteLinkItem href={routes.submit()}>Proposer un code</SiteLinkItem>
               <SiteLinkItem href={routes.forCreators()}>Pour les créateurs</SiteLinkItem>
             </ul>

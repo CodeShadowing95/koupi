@@ -11,6 +11,7 @@ import { StatusDot } from '@/components/admin-card';
 import { RefreshButton } from '@/components/admin-refresh-button';
 import { parisDate } from '@/lib/paris-date';
 import { confirmAction } from '@/components/admin-ask';
+import { routes } from '@/lib/routes';
 
 type Filter = CreatorRequestStatus | 'all';
 const filters: { value: Filter; label: string }[] = [
@@ -154,7 +155,7 @@ export function RequestsView({ requests, granted, proven, submitted, toLink }: {
                     <span style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                       <StatusDot tone={KIND[request.kind].tone}>{KIND[request.kind].label}</StatusDot>
                       <b>{request.creator.name}</b>
-                      <a href={`/creators/${request.creator.slug}`} target="_blank" rel="noopener noreferrer">Page publique ↗</a>
+                      <a href={routes.creator(request.creator.slug)} target="_blank" rel="noopener noreferrer">Page publique ↗</a>
                       <a href={`/admin/createurs?q=${encodeURIComponent(request.creator.name)}`}>Fiche admin</a>
                     </span>
                     <small className="muted">{dateFr(request.createdAt)} · {STATUS[request.status]}{request.handledAt ? ` le ${dateFr(request.handledAt)}` : ''}</small>
