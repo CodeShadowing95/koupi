@@ -55,3 +55,12 @@ export function sitemapEntries(catalog: Pick<Catalog, 'categories' | 'tools' | '
     .filter(entry => !isPathOff(entry.path, off))
     .map(({ path, lastModified, priority }) => ({ url: `${base}${path === '/' ? '' : path}`, ...(lastModified ? { lastModified } : {}), priority }));
 }
+
+/**
+ * Mois en cours à Paris, en toutes lettres (« novembre 2026 »), ajouté aux titres des pages : on cherche « code promo
+ * Canva novembre 2026 », et un titre daté montre que la page est tenue à jour. Les pages sont rendues à chaque visite,
+ * le mois change donc tout seul.
+ */
+export function seoMonth(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'Europe/Paris' }).format(now);
+}

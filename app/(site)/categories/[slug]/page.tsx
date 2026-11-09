@@ -7,13 +7,14 @@ import { routes } from '@/lib/routes';
 import { CategoryBrowser } from '@/components/site/category-browser';
 import { PageHead } from '@/components/site/page-head';
 import { VoteInvite } from '@/components/site/vote-invite';
+import { seoMonth } from '@/lib/seo';
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> };
 
 export async function generateMetadata({ params }: Pick<Props, 'params'>) {
   const { slug } = await params;
   const category = (await getCatalog()).categories.find(item => item.slug === slug);
-  return category ? { title: `Codes promo ${category.name} · Merkod`, description: `Les codes promo des créateurs pour les outils ${category.name}, reliés à leur source et vérifiés.`, alternates: { canonical: routes.category(category.slug) } } : {};
+  return category ? { title: `Codes promo ${category.name} ${seoMonth()} · Merkod`, description: `Les codes promo des créateurs pour les outils ${category.name}, reliés à leur source et vérifiés.`, alternates: { canonical: routes.category(category.slug) } } : {};
 }
 
 export default async function Category({ params, searchParams }: Props) {

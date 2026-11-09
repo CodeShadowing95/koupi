@@ -18,8 +18,8 @@ describe('fiche outil', () => {
   });
 
   it('titre de page : outil et réduction du meilleur code', () => {
-    expect(toolPageTitle('NordVPN', base)).toBe('Code promo NordVPN : 76 % + 4 mois offerts · Merkod');
-    expect(toolPageTitle('NordVPN', undefined)).toBe('Code promo NordVPN · Merkod');
+    expect(toolPageTitle('NordVPN', base, 'novembre 2026')).toBe('Code promo NordVPN novembre 2026 : 76 % + 4 mois offerts · Merkod');
+    expect(toolPageTitle('NordVPN', undefined, 'novembre 2026')).toBe('Code promo NordVPN novembre 2026 · Merkod');
   });
 
   it('description : créateur, réduction et niveau de vérification', () => {
