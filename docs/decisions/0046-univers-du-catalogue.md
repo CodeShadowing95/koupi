@@ -35,6 +35,9 @@ possible de l'espace créateur). Le propriétaire a validé la proposition « un
   nouvelle catégorie (« Outils en ligne » par défaut ou s'il est inconnu). L'analyse reste dans le jsonb
   `tool_suggestions.analysis`, sans changement de schéma. À l'ajout, une nouvelle catégorie hors « Outils en ligne » est
   créée dans la famille d'accueil de l'univers choisi par l'admin (pré-rempli par l'IA).
+- Vérifications : chaque dossier porte l'univers de la famille de son outil. Des onglets par univers (avec leur nombre
+  de dossiers, « (caché) » pour un univers éteint) limitent les verdicts, la recherche et « Analyser les codes non
+  analysés » à un univers, pour traiter d'abord les outils en ligne et ne pas dépenser l'IA sur les marques cachées.
 
 ## Conséquences
 - Une seule migration (0034), réversible en remettant `visible` à vrai ou les familles dans « Outils en ligne ».

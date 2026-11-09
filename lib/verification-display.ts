@@ -41,7 +41,20 @@ export type QueueItem = {
   /** Date de fin passée depuis le dernier test. */
   expired: boolean;
   check: QueueCheck | null;
+  /** Univers de la famille de l'outil (ADR-0046), « outils-en-ligne » sans famille. */
+  universe: string;
 };
+
+export type QueueUniverse = { slug: string; name: string; visible: boolean; count: number };
+
+/** Univers qui ont des dossiers dans la file, dans l'ordre des univers, avec leur nombre de dossiers. */
+export function queueUniverses(queue: Pick<QueueItem, 'universe'>[], universes: Omit<QueueUniverse, 'count'>[]): QueueUniverse[] {
+  const counts = new Map<string, number>();
+  for (const item of queue) counts.set(item.universe, (counts.get(item.universe) ?? 0) + 1);
+  const known = universes.filter(universe => counts.has(universe.slug)).map(universe => ({ ...universe, count: counts.get(universe.slug)! }));
+  const unknown = [...counts].filter(([slug]) => !universes.some(universe => universe.slug === slug)).map(([slug, count]) => ({ slug, name: slug, visible: false, count }));
+  return [...known, ...unknown];
+}
 
 export type Verdict = 'reject' | 'doubt' | 'clear' | 'none';
 
