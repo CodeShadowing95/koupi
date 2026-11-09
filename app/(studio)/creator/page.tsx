@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getDb } from '@/db';
 import { isPublic, type Code } from '@/lib/data';
-import { getFullCatalog } from '@/lib/catalog-server';
+import { getCatalog, getFullCatalog } from '@/lib/catalog-server';
 import { copiesByCode } from '@/lib/creator-auth';
 import { currentCreatorAccount } from '@/lib/creator-current';
 import { creatorLevelFromAccounts } from '@/lib/creator-level';
@@ -24,6 +24,9 @@ import { StudioSkip, VerifyRequest } from '@/components/site/studio-skip';
 import { StudioAddCode } from '@/components/site/studio-add-code';
 import { studioExpiry } from '@/lib/code-expiry';
 import { CopiesChart, RosetteRing, StudioShell, type StudioNavItem } from '@/components/site/studio';
+import { StudioSeasonKit } from '@/components/site/studio-season-kit';
+import { currentSeason } from '@/lib/season-banner';
+import { KIT_LABEL, kitCodes, kitDescription, kitImagePath, kitKindForSeason, kitPath, kitYear } from '@/lib/season-kit';
 
 export const metadata: Metadata = { title: 'Merkod Studio', robots: { index: false, follow: false } };
 export const dynamic = 'force-dynamic';
@@ -134,8 +137,23 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
   const realAsked = account.claims.find(claim => claim.slug !== creator.slug) ?? null;
   const realMatch = proven || realAsked ? null
     : bestMatch(await loadFindablePages(db), creator, new Set((await provisionalUsers(db)).map(user => user.slug)));
+  // Kit de saison (Black Friday, Noël) : seulement pendant la saison, et dès qu'un code est en ligne.
+  const season = currentSeason(now);
+  const kitKind = kitKindForSeason(season);
+  // Le catalogue public, comme la page du kit : un code d'un univers masqué n'y apparaît pas.
+  const kitPicks = kitKind ? kitCodes((await getCatalog()).codes.filter(code => code.creatorSlug === creator.slug), now) : [];
+  const kit = kitKind && season && kitPicks.length ? {
+    kind: kitKind,
+    label: KIT_LABEL[kitKind],
+    days: season.daysLeft,
+    pagePath: kitPath(creator.slug, kitKind),
+    imagePath: kitImagePath(creator.slug, kitKind),
+    description: kitDescription({ kind: kitKind, year: kitYear(kitKind, now), url: new URL(kitPath(creator.slug, kitKind), siteUrl()).toString(), codes: kitPicks }),
+    count: kitPicks.length,
+  } : null;
   const nav: StudioNavItem[] = [
     { id: 'apercu', label: 'Tableau de bord', icon: 'home' },
+    ...(kit ? [{ id: 'kit', label: `Kit ${kit.label}`, icon: 'gift' as const }] : []),
     { id: 'codes', label: 'Mes codes', icon: 'codes' },
     { id: 'page', label: 'Ma page', icon: 'page' },
     proven ? { id: 'rosette', label: 'Objectif rosette', icon: 'rosette' } : { id: 'verifier', label: 'Faire vérifier ma chaîne', icon: 'proof' },
@@ -186,6 +204,13 @@ export default async function CreatorStudio({ searchParams }: { searchParams: Pr
           </div>
         </div>
       </section>
+
+      {kit && (
+        <section id="kit" className={`k-st-section k-st-card k-st-kit-card is-${kit.kind}`}>
+          <h2 className="k-st-h2">Ton kit {kit.label}</h2>
+          <StudioSeasonKit label={kit.label} days={kit.days} pagePath={kit.pagePath} imagePath={kit.imagePath} description={kit.description} count={kit.count} />
+        </section>
+      )}
 
       <section id="codes" className="k-st-section">
         <div className="k-st-section-head">

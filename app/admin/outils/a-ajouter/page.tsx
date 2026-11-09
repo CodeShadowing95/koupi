@@ -3,6 +3,7 @@ import { aiConfigFrom, aiStatusOf } from '@/lib/ai-extract';
 import { listCategoriesAdmin } from '@/lib/catalog-admin';
 import { toolOptions } from '@/lib/codes-admin';
 import { listToolSuggestions } from '@/lib/tool-suggestions';
+import { listUniverses } from '@/lib/universes-admin';
 import { aiSpendSince, startOfMonthUtc } from '@/lib/verification-store';
 import { RefreshButton } from '@/components/admin-refresh-button';
 import { ToolSuggestionsPanel } from './tool-suggestions-panel';
@@ -15,7 +16,7 @@ export const dynamic = 'force-dynamic';
 // le relie à un outil existant, ou ignore. Avant, c'était un onglet de Podcasts suivis.
 export default async function Page() {
   const db = getDb();
-  const [suggestions, categories, tools, spent] = await Promise.all([listToolSuggestions(db), listCategoriesAdmin(db), toolOptions(db), aiSpendSince(db, startOfMonthUtc())]);
+  const [suggestions, categories, universes, tools, spent] = await Promise.all([listToolSuggestions(db), listCategoriesAdmin(db), listUniverses(db), toolOptions(db), aiSpendSince(db, startOfMonthUtc())]);
   const ai = aiStatusOf(aiConfigFrom(process.env), spent);
   return (
     <main className="adm-page">
@@ -28,7 +29,7 @@ export default async function Page() {
           </div>
           <div className="adm-head-actions"><RefreshButton /></div>
         </div>
-        <ToolSuggestionsPanel suggestions={suggestions} categories={categories.map(category => ({ slug: category.slug, name: category.name }))} tools={tools} ai={{ active: ai.state === 'active', label: ai.label }} />
+        <ToolSuggestionsPanel suggestions={suggestions} categories={categories.map(category => ({ slug: category.slug, name: category.name, universe: category.universe }))} universes={universes.map(universe => ({ slug: universe.slug, name: universe.name, visible: universe.visible }))} tools={tools} ai={{ active: ai.state === 'active', label: ai.label }} />
       </div>
     </main>
   );

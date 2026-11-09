@@ -19,6 +19,10 @@
 
 <!-- Ce qui change et pourquoi, en quelques lignes. -->
 
+## Argument
+
+<!-- Fonctionnalité visible seulement : l'argument qu'elle apporte et pour qui (visiteurs, créateurs, agences, marques). Il est reporté dans `extras/arguments.md`. Sinon, écrire « Aucun ». -->
+
 ## Comment tester
 
 <!-- Étapes pour vérifier en local (`npm run dev`). Les branches dev-* ne sont pas déployées sur Vercel. -->
@@ -31,4 +35,5 @@
 - [ ] Tests ajoutés ou mis à jour pour la logique modifiée
 - [ ] Aucun secret ajouté, nouvelles variables listées dans `.env.example`
 - [ ] Migration générée si `db/schema.ts` a changé
+- [ ] `extras/arguments.md` mis à jour (ou section « Argument » remplie) si la fonctionnalité est visible
 - [ ] ADR ajouté dans `docs/decisions/` si c'est une décision d'architecture

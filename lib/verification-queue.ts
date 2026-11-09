@@ -5,7 +5,8 @@
 // ou dont la date de fin est passée depuis le dernier test.
 import { and, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
-import { codes, creators, tools, verificationChecks } from '@/db/schema';
+import { categories, categoryFamilies, codes, creators, tools, verificationChecks } from '@/db/schema';
+import { DEFAULT_UNIVERSE } from './universes';
 import { verdictOf, type QueueCheck, type QueueItem } from './verification-display';
 import { notAToolName } from './podcast-codes';
 import { slugify } from './slug';
@@ -46,10 +47,13 @@ export async function verificationQueue(db: Db): Promise<QueueItem[]> {
     id: codes.id, code: sql<string>`coalesce(${codes.code}, '')`, offerLink: codes.creatorLink, discount: codes.discount, status: codes.status,
     tool: tools.name, toolSlug: tools.slug, creator: creators.name, sourceUrl: codes.sourceUrl, sourceTitle: codes.sourceTitle,
     votesUp: codes.votesUp, votesDown: codes.votesDown, createdAt: codes.createdAt, expiresOn: codes.expiresOn, origin: codes.origin,
+    universe: sql<string>`coalesce(${categoryFamilies.universeSlug}, ${DEFAULT_UNIVERSE})`,
     expired: sql<boolean>`coalesce(${codes.expiresOn} < current_date and (${codes.lastTestedAt} is null or ${codes.lastTestedAt}::date <= ${codes.expiresOn}), false)`,
   }).from(codes)
     .innerJoin(tools, eq(codes.toolId, tools.id))
     .innerJoin(creators, eq(codes.creatorId, creators.id))
+    .leftJoin(categories, eq(tools.categorySlug, categories.slug))
+    .leftJoin(categoryFamilies, eq(categories.familySlug, categoryFamilies.slug))
     .where(and(isNull(codes.archivedAt), or(
       inArray(codes.status, ['pending', 'to_test']),
       // Vérifié, mais relu par une analyse postérieure au dernier test (retest automatique ou manuel).

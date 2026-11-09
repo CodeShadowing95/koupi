@@ -8,7 +8,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pagination, usePagination } from '@/components/admin-pagination';
 import { useRouter } from 'next/navigation';
 import type { AiStatus } from '@/lib/ai-extract';
-import { VERDICT_LABELS, formatEur, formatUsd, highlightCode, modelLabel, verdictOf, type QueueItem, type Verdict } from '@/lib/verification-display';
+import { VERDICT_LABELS, formatEur, formatUsd, highlightCode, modelLabel, queueUniverses, verdictOf, type QueueItem, type QueueUniverse, type Verdict } from '@/lib/verification-display';
+import { DEFAULT_UNIVERSE } from '@/lib/universes';
 import { matchesSearch } from '@/lib/admin-search';
 import { Key } from '@/components/admin-guide';
 import { RETEST_DAYS } from '@/lib/admin-stats';
@@ -75,9 +76,17 @@ function Evidence({ excerpt, code }: { excerpt: string; code: string }) {
   return <blockquote className="adm-vf-evidence">{highlightCode(excerpt, code).map((part, index) => part.match ? <mark key={index}>{part.text}</mark> : <span key={index}>{part.text}</span>)}</blockquote>;
 }
 
-export function VerificationsView({ queue, ai, youtubeReady, tools }: { queue: QueueItem[]; ai: Ai; youtubeReady: boolean; tools: PickerTool[] }) {
+/** Tous les univers : la file entière. */
+const ALL_UNIVERSES = 'all';
+
+export function VerificationsView({ queue: fullQueue, universes, ai, youtubeReady, tools }: { queue: QueueItem[]; universes: Omit<QueueUniverse, 'count'>[]; ai: Ai; youtubeReady: boolean; tools: PickerTool[] }) {
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>('all');
+  // Une file par univers (ADR-0046) : les verdicts, la recherche et « Analyser » ne portent que sur l'univers choisi.
+  const [universe, setUniverse] = useState(ALL_UNIVERSES);
+  const universeTabs = queueUniverses(fullQueue, universes);
+  const queue = universe === ALL_UNIVERSES ? fullQueue : fullQueue.filter(item => item.universe === universe);
+  const universeName = (slug: string) => universes.find(choice => choice.slug === slug)?.name ?? slug;
   const [query, setQuery] = useState('');
   const [busy, setBusy] = useState<string>('');
   const [message, setMessage] = useState('');
@@ -184,7 +193,9 @@ export function VerificationsView({ queue, ai, youtubeReady, tools }: { queue: Q
     return () => window.removeEventListener('keydown', onKey);
   }, [visible.length, selected, current, busy, batch, runOne, decide, openEdit, size, page.page, goTo]);
 
-  useEffect(() => { setSelected(0); }, [filter, query]);
+  useEffect(() => { setSelected(0); }, [filter, query, universe]);
+  // L'univers choisi n'a plus de dossier (tous décidés) : retour à la file entière.
+  useEffect(() => { if (universe !== ALL_UNIVERSES && !fullQueue.some(item => item.universe === universe)) setUniverse(ALL_UNIVERSES); }, [fullQueue, universe]);
   // Le message s'efface seul après 8 secondes.
   useEffect(() => {
     if (!message) return;
@@ -211,6 +222,12 @@ export function VerificationsView({ queue, ai, youtubeReady, tools }: { queue: Q
 
         <AiBanner ai={ai} youtubeReady={youtubeReady} />
 
+        {universeTabs.length > 1 && (
+          <div className="adm-tabs" role="group" aria-label="Univers">
+            <button type="button" className="adm-tab" aria-pressed={universe === ALL_UNIVERSES} onClick={() => setUniverse(ALL_UNIVERSES)}>Tous les univers <span className="adm-tab-n">{fullQueue.length}</span></button>
+            {universeTabs.map(tab => <button key={tab.slug} type="button" className="adm-tab" aria-pressed={universe === tab.slug} title={tab.visible ? undefined : 'Univers caché sur le site : ses codes validés ne s’y voient pas tant que tu ne l’allumes pas dans Administration.'} onClick={() => setUniverse(tab.slug)}>{tab.name}{tab.visible ? '' : ' (caché)'} <span className="adm-tab-n">{tab.count}</span></button>)}
+          </div>
+        )}
         <div className="adm-tabs" role="group" aria-label="Verdict">
           {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label} {item.value === 'retest' && countOf('retest') > 0 && filter !== 'retest' ? <span className="adm-count-badge">{countOf('retest')}</span> : <span className="adm-tab-n">{countOf(item.value)}</span>}</button>)}
         </div>
@@ -249,7 +266,7 @@ export function VerificationsView({ queue, ai, youtubeReady, tools }: { queue: Q
                     </div>
                     <div className="adm-vf-id">
                       <div className="adm-vf-title">{item.code ? <span className="mono">{item.code}</span> : <LinkOfferTag />}<IconButton icon="edit" label={item.code ? `Corriger le code ${item.code}` : 'Ajouter un code à cette offre'} disabled={isBusy} onClick={() => openEdit(item)} /><span className={`adm-vf-verdict ${verdictClass[verdict]}`}>{VERDICT_LABELS[verdict]}</span></div>
-                      <p>{item.tool} · {item.discount} · par {item.creator} · <span className="adm-cell-muted">{statusLabel[item.status]} · {CODE_ORIGIN_LABELS[item.origin]}</span></p>
+                      <p>{item.tool}{item.universe !== DEFAULT_UNIVERSE && <span className="adm-cell-muted"> ({universeName(item.universe)})</span>} · {item.discount} · par {item.creator} · <span className="adm-cell-muted">{statusLabel[item.status]} · {CODE_ORIGIN_LABELS[item.origin]}</span></p>
                       <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()}>{item.sourceTitle || 'Ouvrir la source'} ↗</a>
                       {item.offerLink && <a className="adm-vf-offer" href={item.offerLink} target="_blank" rel="noopener noreferrer" onClick={event => event.stopPropagation()}>Lien de l’offre : {shortLink(item.offerLink)} ↗</a>}
                       {item.expiresOn && !item.expired && <span className="adm-vf-expiry">Valable jusqu’au {shortDay(item.expiresOn)}</span>}

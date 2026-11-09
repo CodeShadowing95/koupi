@@ -1713,3 +1713,41 @@ button.k-coupon-stub{transition:transform .3s cubic-bezier(.2,.9,.3,1.3),backgro
 
 /* Page Black Friday : l'avertissement honnête sous le titre. */
 .k-bf-note{max-width:68ch;margin:-8px 0 36px;padding:14px 16px;border-left:3px solid var(--coral);background:var(--surface);color:var(--text-soft);border-radius:0 var(--r-md) var(--r-md) 0;line-height:1.55}
+
+/* Pages saisonnières (/black-friday, /noel) : la page prend les couleurs de l'événement, sans couleurs criardes.
+   L'en-tête du site reste le même ; les coupons gardent leur papier. Même ambiance en thème clair et sombre. */
+.kp .k-season{--text:#F1EBE1;--strong:#FFF8EE;--text-soft:#D8D0C2;--muted:#AFA697;--surface:rgba(255,248,238,.07);--surface-2:rgba(255,248,238,.11);--line:rgba(255,248,238,.14);--line-2:rgba(255,248,238,.22);--blue-soft:#F2C27B;color:var(--text)}
+.k-season .k-page-head h1{color:var(--strong);text-wrap:balance}
+.k-season .k-eyebrow{align-self:flex-start;padding:6px 12px;border-radius:var(--r-pill)}
+.k-season .k-search-codes-head h2{color:var(--strong)}
+.k-season .k-link{color:var(--blue-soft)}
+.k-season .k-bf-note{background:var(--surface);color:var(--text-soft)}
+.k-season .k-empty h2{color:var(--strong)}
+
+/* Black Friday : vitrine de nuit. Anthracite chaud, rayures à peine visibles, lueur cuivrée en haut. */
+.k-season-bf{background:radial-gradient(ellipse 70% 420px at 50% 0,rgba(214,128,72,.28),transparent 70%),repeating-linear-gradient(-45deg,rgba(255,248,238,.025) 0 16px,transparent 16px 32px),#161412}
+.k-season-bf .k-eyebrow{background:#D9774A;color:#1A1410}
+.k-season-outline{color:transparent;-webkit-text-stroke:2px #F2C27B}
+.k-season-bf .k-bf-note{border-left-color:#D9774A}
+.k-season-bf .k-search-codes-head{padding-bottom:12px;border-bottom:1px solid var(--line)}
+
+/* Noël : nuit de sapin. Vert profond, bonnets, flocons et étoiles parsemés en motif léger. */
+.k-season-xmas{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320' viewBox='0 0 320 320'%3E%3Cg transform='translate(30 40) rotate(-14) scale(1)'%3E%3Cpath d='M0 34C7 13 21 3 36 9C30 13 29 21 35 31Z' fill='%23D8343A' fill-opacity='.32'/%3E%3Crect x='-3' y='30' width='42' height='10' rx='5' fill='%23FFF8EE' fill-opacity='.26'/%3E%3Ccircle cx='37' cy='9' r='5.5' fill='%23FFF8EE' fill-opacity='.26'/%3E%3C/g%3E%3Cg transform='translate(205 170) rotate(12) scale(0.8)'%3E%3Cpath d='M0 34C7 13 21 3 36 9C30 13 29 21 35 31Z' fill='%23D8343A' fill-opacity='.32'/%3E%3Crect x='-3' y='30' width='42' height='10' rx='5' fill='%23FFF8EE' fill-opacity='.26'/%3E%3Ccircle cx='37' cy='9' r='5.5' fill='%23FFF8EE' fill-opacity='.26'/%3E%3C/g%3E%3Cg transform='translate(90 250) rotate(-4) scale(0.65)'%3E%3Cpath d='M0 34C7 13 21 3 36 9C30 13 29 21 35 31Z' fill='%23D8343A' fill-opacity='.32'/%3E%3Crect x='-3' y='30' width='42' height='10' rx='5' fill='%23FFF8EE' fill-opacity='.26'/%3E%3Ccircle cx='37' cy='9' r='5.5' fill='%23FFF8EE' fill-opacity='.26'/%3E%3C/g%3E%3Cg transform='translate(250 50) scale(1)' stroke='%23FFF8EE' stroke-opacity='.2' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M0-9V9M-8-4.5 8 4.5M-8 4.5 8-4.5'/%3E%3C/g%3E%3Cg transform='translate(140 130) scale(0.7)' stroke='%23FFF8EE' stroke-opacity='.2' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M0-9V9M-8-4.5 8 4.5M-8 4.5 8-4.5'/%3E%3C/g%3E%3Cg transform='translate(285 280) scale(0.8)' stroke='%23FFF8EE' stroke-opacity='.2' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M0-9V9M-8-4.5 8 4.5M-8 4.5 8-4.5'/%3E%3C/g%3E%3Cg transform='translate(30 170) scale(0.6)' stroke='%23FFF8EE' stroke-opacity='.2' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M0-9V9M-8-4.5 8 4.5M-8 4.5 8-4.5'/%3E%3C/g%3E%3Ccircle cx='180' cy='30' r='2' fill='%23FFF8EE' fill-opacity='0.5'/%3E%3Ccircle cx='110' cy='80' r='1.5' fill='%23FFF8EE' fill-opacity='0.4'/%3E%3Ccircle cx='300' cy='140' r='2' fill='%23FFF8EE' fill-opacity='0.35'/%3E%3Ccircle cx='60' cy='300' r='1.5' fill='%23FFF8EE' fill-opacity='0.45'/%3E%3Ccircle cx='230' cy='240' r='1.2' fill='%23FFF8EE' fill-opacity='0.4'/%3E%3Ccircle cx='160' cy='300' r='2' fill='%23FFF8EE' fill-opacity='0.3'/%3E%3C/svg%3E") 0 0/460px 460px,radial-gradient(ellipse 80% 460px at 50% 0,#1E5A43,transparent 75%),#123A2C}
+.k-season-xmas .k-eyebrow{background:#D8343A;color:#FFF8EE}
+.k-season-xmas .k-bf-note{border-left-color:#D8343A;background:rgba(10,40,29,.82)}
+.k-season-hatted{position:relative;display:inline-block;color:#F2C27B}
+.k-season-hatted svg{position:absolute;right:-.3em;top:-.36em;width:.55em;height:auto;transform:rotate(16deg)}
+/* Un ruban rouge, avec son nœud, sépare les familles. */
+.k-season-xmas .k-search-codes-head{position:relative;padding-bottom:14px}
+.k-season-xmas .k-search-codes-head::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;border-radius:2px;background:linear-gradient(90deg,#D8343A,#D8343A 70%,transparent)}
+/* Kit de saison d'un créateur (/creators/[slug]/black-friday, /noel) : son nom, ses codes, aux couleurs de la saison. */
+.k-kit-who{display:flex;align-items:center;gap:18px;margin:6px 0 4px}
+.k-kit-who h1{margin:0}
+.k-kit-who>div{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0}
+.k-kit-grid{margin-bottom:32px}
+.k-kit-more{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 24px}
+.k-kit-head{margin-top:14px}
+.k-season .k-kit-more .k-btn-primary{background:#FFF8EE;color:#161412;border-color:#FFF8EE}
+.k-season .k-kit-more .k-btn-ghost{background:transparent;color:#FFF8EE;border:1px solid rgba(255,248,238,.4)}
+.k-season .k-kit-more .k-btn-ghost:hover{background:rgba(255,248,238,.1)}
+@media (max-width:640px){.k-kit-who{align-items:flex-start;gap:12px}}

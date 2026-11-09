@@ -11,7 +11,7 @@ import { SignOutButton } from '@/components/site/creator-space-actions';
 import type { CreatorLevel } from '@/lib/verification';
 import { routes } from '@/lib/routes';
 
-export type StudioIcon = 'home' | 'codes' | 'page' | 'rosette' | 'proof' | 'search';
+export type StudioIcon = 'home' | 'codes' | 'page' | 'rosette' | 'proof' | 'search' | 'gift';
 export type StudioNavItem = { id: string; label: string; icon: StudioIcon };
 
 export function StudioGlyph({ name }: { name: StudioIcon }) {
@@ -23,6 +23,7 @@ export function StudioGlyph({ name }: { name: StudioIcon }) {
     case 'rosette': return <svg {...common}><path d="M12 2.5l2.2 1.7 2.8-.3.9 2.7 2.3 1.5-.8 2.7.8 2.7-2.3 1.5-.9 2.7-2.8-.3L12 19.1l-2.2-1.7-2.8.3-.9-2.7-2.3-1.5.8-2.7-.8-2.7 2.3-1.5.9-2.7 2.8.3z" /><path d="m8.6 10.9 2.3 2.3 4.4-4.5" /></svg>;
     case 'proof': return <svg {...common}><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M8 8h8M8 12h5" /><path d="m13 17 2 2 4-4" /></svg>;
     case 'search': return <svg {...common}><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>;
+    case 'gift': return <svg {...common}><path d="M4 12h16v8H4zM3 8h18v4H3zM12 8v12" /><path d="M12 8c-2-4-6-4-6-1.5S10 8 12 8Zm0 0c2-4 6-4 6-1.5S14 8 12 8Z" /></svg>;
   }
 }
 

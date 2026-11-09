@@ -30,6 +30,14 @@ possible de l'espace créateur). Le propriétaire a validé la proposition « un
   lots de 60 (un appel court par lot, enchaînés par le navigateur), et propose un univers pour celles qui n'en sont pas.
   Rien ne bouge sans l'accord de l'admin ; les marques retenues partent dans la catégorie d'accueil de leur univers.
   Coût compté dans le plafond mensuel de l'IA (`ai_usage.purpose = 'universe_sort'`).
+- « Outils à ajouter » : l'analyse d'un outil par l'IA (`lib/tool-analysis.ts`) reçoit aussi la liste des univers et
+  l'univers de chaque catégorie, et rend `universe` : celui de la catégorie choisie, sinon celui qu'elle devine pour une
+  nouvelle catégorie (« Outils en ligne » par défaut ou s'il est inconnu). L'analyse reste dans le jsonb
+  `tool_suggestions.analysis`, sans changement de schéma. À l'ajout, une nouvelle catégorie hors « Outils en ligne » est
+  créée dans la famille d'accueil de l'univers choisi par l'admin (pré-rempli par l'IA).
+- Vérifications : chaque dossier porte l'univers de la famille de son outil. Des onglets par univers (avec leur nombre
+  de dossiers, « (caché) » pour un univers éteint) limitent les verdicts, la recherche et « Analyser les codes non
+  analysés » à un univers, pour traiter d'abord les outils en ligne et ne pas dépenser l'IA sur les marques cachées.
 
 ## Conséquences
 - Une seule migration (0034), réversible en remettant `visible` à vrai ou les familles dans « Outils en ligne ».

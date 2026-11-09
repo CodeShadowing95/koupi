@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import { applyCodeAction, createCode, type CodeInput } from './codes-admin';
-import { formatEur, formatUsd, highlightCode, modelLabel, verdictOf, type QueueItem } from './verification-display';
+import { formatEur, formatUsd, highlightCode, modelLabel, queueUniverses, verdictOf, type QueueItem } from './verification-display';
 import { aiCodesOf, aiToolOf, sortQueue, verificationQueue } from './verification-queue';
 import { recordVerificationCheck } from './verification-store';
 
@@ -30,7 +30,7 @@ async function add(db: Db, input: Partial<CodeInput>) {
 }
 
 const item = (id: string, createdAt: string, score: number | null): QueueItem => ({
-  id, code: id, offerLink: null, discount: '', status: 'pending', tool: 't', toolSlug: 't', creator: 'c', sourceUrl: '', sourceTitle: '', origin: 'manual', votesUp: 0, votesDown: 0, createdAt, expiresOn: null, expired: false,
+  id, code: id, offerLink: null, discount: '', status: 'pending', tool: 't', toolSlug: 't', creator: 'c', sourceUrl: '', sourceTitle: '', origin: 'manual', votesUp: 0, votesDown: 0, createdAt, expiresOn: null, expired: false, universe: 'outils-en-ligne',
   check: score === null ? null : { score, reasons: [], evidence: null, model: null, costUsdMicros: 0, createdAt, aiCodes: [], aiTool: null },
 });
 
@@ -116,6 +116,17 @@ describe('verificationQueue', () => {
     expect(retested).toBeTruthy();
   });
 
+  it('donne à chaque dossier l’univers de la famille de son outil', async () => {
+    const db = await freshDb();
+    await db.insert(schema.categoryFamilies).values({ slug: 'vetements', name: 'Vêtements', position: 9, universeSlug: 'mode' });
+    await db.insert(schema.categories).values({ slug: 'jeans', name: 'Jeans', familySlug: 'vetements' });
+    await db.insert(schema.tools).values({ slug: 'levis', name: 'Levis', categorySlug: 'jeans', website: 'https://levis.com' });
+    await add(db, { code: 'ANA10' });
+    await add(db, { code: 'JEAN10', toolSlug: 'levis' });
+    const byCode = Object.fromEntries((await verificationQueue(db)).map(entry => [entry.code, entry.universe]));
+    expect(byCode).toEqual({ ANA10: 'outils-en-ligne', JEAN10: 'mode' });
+  });
+
   it('rend une file vide sans requête de plus', async () => {
     expect(await verificationQueue(await freshDb())).toEqual([]);
   });
@@ -141,5 +152,17 @@ describe('aiCodesOf', () => {
     expect(aiCodesOf(extracted, 'LWS')).toEqual(['CQ410', 'A1', 'B2']);
     expect(aiCodesOf(null, 'LWS')).toEqual([]);
     expect(aiCodesOf({ codes: [{ code: 3 }] }, 'X')).toEqual([]);
+  });
+});
+
+describe('queueUniverses', () => {
+  it('compte les dossiers par univers, dans l’ordre des univers, sans les univers vides', () => {
+    const universes = [{ slug: 'outils-en-ligne', name: 'Outils en ligne', visible: true }, { slug: 'beaute-et-soins', name: 'Beauté et soins', visible: false }, { slug: 'mode', name: 'Mode', visible: false }];
+    const queue = [{ universe: 'mode' }, { universe: 'outils-en-ligne' }, { universe: 'mode' }, { universe: 'inconnu' }];
+    expect(queueUniverses(queue, universes)).toEqual([
+      { slug: 'outils-en-ligne', name: 'Outils en ligne', visible: true, count: 1 },
+      { slug: 'mode', name: 'Mode', visible: false, count: 2 },
+      { slug: 'inconnu', name: 'inconnu', visible: false, count: 1 },
+    ]);
   });
 });

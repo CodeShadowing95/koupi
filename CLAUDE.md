@@ -59,6 +59,7 @@ Avant chaque commit : `npm run typecheck && npm test && npm run build` doivent p
 - **Seul `README.md`** peut être poussé directement. Tout le reste passe par une PR que Vastolorde relit et fusionne.
 - **Une PR = une étape** : petite, avec une description de ce qui change et comment le tester (voir `.github/pull_request_template.md`).
 - **Guide de l'admin** : toute fonctionnalité ajoutée, modifiée ou retirée dans l'espace admin met à jour le guide (`/admin/guide`) dans la même PR : le chapitre concerné dans `app/admin/guide/chapters.tsx`, et `lib/admin-guide.ts` pour les objectifs ou un nouveau chapitre.
+- **Arguments commerciaux** : toute fonctionnalité visible ajoutée ou modifiée pour les visiteurs, les créateurs, les agences ou les marques met à jour `extras/arguments.md` dans la même étape : l'argument qu'elle apporte, la cible, son statut (✅ en ligne, 🔜 en préparation, 💡 idée) et une ligne dans le journal en bas du fichier. Ce fichier est privé : `extras/` reste hors du dépôt, ne jamais le committer. Quand `extras/` n'est pas accessible (session cloud), écrire l'argument dans la section « Argument » de la PR pour qu'il soit reporté dans le fichier. Seulement des faits vrais et des chiffres vérifiables, jamais de statistique inventée.
 - **Décision d'architecture** (nouvelle dépendance importante, changement de service, de schéma ou de flux) : ajouter un ADR dans `docs/decisions/`.
 
 ## Cycle d'une fonctionnalité

@@ -1,6 +1,7 @@
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
 import { migrate } from 'drizzle-orm/pglite/migrator';
+import { eq } from 'drizzle-orm';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { aiConfigFrom } from './ai-extract';
 import type { Db } from '@/db';
@@ -111,6 +112,16 @@ describe('tool suggestions', () => {
     expect(added.filter(row => row.categorySlug !== 'ia').map(row => row.name).sort()).toEqual(['Gradium', 'Vitamix']);
   });
 
+  it('range la nouvelle catégorie dans l’univers choisi, et refuse un univers inconnu', async () => {
+    const [a, b] = await db.insert(schema.toolSuggestions).values([suggestion('DOIT', { name: 'Cuure Vit', domain: 'cuurevit.fr' }), suggestion('GDIY')]).returning();
+    const tool = { name: 'Cuure Vit', categorySlug: '', website: 'https://cuurevit.fr', description: null, priority: 3 };
+    expect(await acceptToolSuggestion(db, b.id, { newTool: { ...tool, name: 'Gradium', website: 'https://gradium.ai' }, newCategory: 'Vitamines', universe: 'inconnu' })).toEqual({ ok: false, error: 'Univers introuvable.' });
+    expect(await acceptToolSuggestion(db, a.id, { newTool: tool, newCategory: 'Vitamines', universe: 'beaute-et-soins' })).toMatchObject({ ok: true });
+    const [row] = await db.select({ universe: schema.categoryFamilies.universeSlug }).from(schema.categories)
+      .innerJoin(schema.categoryFamilies, eq(schema.categories.familySlug, schema.categoryFamilies.slug)).where(eq(schema.categories.slug, 'vitamines'));
+    expect(row).toEqual({ universe: 'beaute-et-soins' });
+  });
+
   describe('analyse par l’IA', () => {
     const page = { url: 'https://gradium.ai/', title: 'Gradium', description: 'Voix par IA', text: 'Des voix de synthèse.' };
     const answer = { summary: 'Voix de synthèse par IA.', is_online_tool: true, category_slug: 'ia', new_category: '', reason: 'IA vocale.', tool_name: 'Gradium' };
@@ -136,6 +147,17 @@ describe('tool suggestions', () => {
       expect(list.analysis).toMatchObject({ toolName: 'Gradium' });
       const [stored] = await db.select().from(schema.toolSuggestions);
       expect(stored.analysisCostUsdMicros).toBe(300);
+    });
+
+    it('propose l’univers d’une nouvelle catégorie, avec les univers dans la consigne', async () => {
+      const [row] = await db.insert(schema.toolSuggestions).values(suggestion('GDIY')).returning();
+      const readSite = vi.fn(async () => ({ ok: true as const, page }));
+      const beauty = vi.fn(async () => ({ model: 'm', stop_reason: 'end_turn', usage: { input_tokens: 1, output_tokens: 1 }, content: [{ type: 'text', text: JSON.stringify({ ...answer, category_slug: '', new_category: 'Parfums', universe: 'beaute-et-soins' }) }] }));
+      const result = await analyzeToolSuggestion(db, row.id, { ai: { config: aiConfigFrom({ ANTHROPIC_API_KEY: 'k' }), create: beauty as never }, readSite });
+      expect(result).toMatchObject({ ok: true, data: { newCategory: 'Parfums', universe: 'beaute-et-soins' } });
+      const prompt = (beauty.mock.calls[0] as unknown as [{ messages: { content: string }[] }])[0].messages[0].content;
+      expect(prompt).toContain('- mode : Mode');
+      expect(prompt).toContain('- ia : IA (univers outils-en-ligne)');
     });
 
     it('lit la description collée par l’admin quand le site refuse les robots', async () => {

@@ -3,7 +3,7 @@ import type { ToolAnalysis } from './tool-analysis';
 import { applyToolAnalysis, shortDescription, toolWithSameSite, websiteDomain } from './tool-form-fill';
 
 const analysis = (extra: Partial<ToolAnalysis> = {}): ToolAnalysis => ({
-  summary: 'Automatisation de tâches entre applications.', isOnlineTool: true, categorySlug: 'automatisation', newCategory: '', reason: '', toolName: 'n8n', model: 'm', url: 'https://n8n.io/', ...extra,
+  summary: 'Automatisation de tâches entre applications.', isOnlineTool: true, categorySlug: 'automatisation', newCategory: '', reason: '', universe: 'outils-en-ligne', toolName: 'n8n', model: 'm', url: 'https://n8n.io/', ...extra,
 });
 const form = { name: 'N8N', categorySlug: '', website: 'n8n.io', description: '', priority: 3 };
 
