@@ -2,6 +2,13 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.14.0](https://github.com/CodeShadowing95/koupi/compare/v0.13.0...v0.14.0) (2026-11-09)
+
+### Nouveautés
+
+- **universes:** Keep non-tool brands in hidden universes (#285) ([0c139b6](https://github.com/CodeShadowing95/koupi/commit/0c139b63f80b6302eed50facf0c77929a3bde108))
+- **verifications:** Move a code to the tool the AI reads (#282) ([ce411fc](https://github.com/CodeShadowing95/koupi/commit/ce411fc12683b1b196a4420f4b3a9aad09f2a138))
+
 ## [0.13.0](https://github.com/CodeShadowing95/koupi/compare/v0.12.1...v0.13.0) (2026-11-08)
 
 ### Nouveautés
