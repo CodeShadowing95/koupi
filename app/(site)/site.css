@@ -1740,3 +1740,14 @@ button.k-coupon-stub{transition:transform .3s cubic-bezier(.2,.9,.3,1.3),backgro
 /* Un ruban rouge, avec son nœud, sépare les familles. */
 .k-season-xmas .k-search-codes-head{position:relative;padding-bottom:14px}
 .k-season-xmas .k-search-codes-head::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;border-radius:2px;background:linear-gradient(90deg,#D8343A,#D8343A 70%,transparent)}
+/* Kit de saison d'un créateur (/creators/[slug]/black-friday, /noel) : son nom, ses codes, aux couleurs de la saison. */
+.k-kit-who{display:flex;align-items:center;gap:18px;margin:6px 0 4px}
+.k-kit-who h1{margin:0}
+.k-kit-who>div{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0}
+.k-kit-grid{margin-bottom:32px}
+.k-kit-more{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 24px}
+.k-kit-head{margin-top:14px}
+.k-season .k-kit-more .k-btn-primary{background:#FFF8EE;color:#161412;border-color:#FFF8EE}
+.k-season .k-kit-more .k-btn-ghost{background:transparent;color:#FFF8EE;border:1px solid rgba(255,248,238,.4)}
+.k-season .k-kit-more .k-btn-ghost:hover{background:rgba(255,248,238,.1)}
+@media (max-width:640px){.k-kit-who{align-items:flex-start;gap:12px}}

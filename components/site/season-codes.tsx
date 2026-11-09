@@ -32,3 +32,8 @@ export function SeasonCodes({ groups, idPrefix }: { groups: BlackFridayGroup[]; 
     );
   });
 }
+
+/** Le bonnet posé sur le mot « Noël » des titres de saison (classe k-season-hatted). */
+export function SeasonHat() {
+  return <svg viewBox="0 0 120 100" aria-hidden="true"><path d="M14 78 C 30 30, 62 8, 96 22 C 82 30, 80 48, 92 70 Z" fill="#D8343A" /><rect x="6" y="70" width="96" height="22" rx="11" fill="#FFF8EE" /><circle cx="100" cy="24" r="13" fill="#FFF8EE" /></svg>;
+}
