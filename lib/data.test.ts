@@ -18,6 +18,18 @@ describe('searchTools', () => {
     expect(searchTools(tools, 'vpn').map(t => t.slug)).toEqual(['nordvpn', 'surfshark']);
     expect(searchTools(tools, 'securite').map(t => t.slug)).toEqual(['nordvpn', 'surfshark']);
   });
+  it('pardonne une faute de frappe, après les correspondances exactes', () => {
+    expect(searchTools(tools, 'surfhsark').map(t => t.slug)).toEqual(['surfshark']);
+    expect(searchTools(tools, 'nordvnp').map(t => t.slug)).toEqual(['nordvpn']);
+    expect(searchTools(tools, 'finnce').map(t => t.slug)).toEqual(['qonto']);
+  });
+  it("met le nom identique avant le nom qui le contient", () => {
+    const more = [tool('canva-pro', 'Affinity Canva', 'Design'), tool('canva', 'Canva', 'Design')];
+    expect(searchTools(more, 'canva').map(t => t.slug)).toEqual(['canva', 'canva-pro']);
+  });
+  it('ne devine rien sur une recherche de moins de 5 lettres', () => {
+    expect(searchTools(tools, 'qnto')).toEqual([]);
+  });
 });
 
 describe('searchCodes', () => {
@@ -38,5 +50,9 @@ describe('searchCodes', () => {
     expect(searchCodes(codes, tools, 'tutorialstack').map(c => c.id)).toEqual(['b', 'a']);
     expect(searchCodes(codes, tools, 'C10').map(c => c.id)).toEqual(['c']);
     expect(searchCodes(codes, tools, 'finance').map(c => c.id)).toEqual(['c']);
+  });
+  it('trouve malgré une faute, après les correspondances exactes', () => {
+    expect(searchCodes(codes, tools, 'silicn carne').map(c => c.id)).toEqual(['c']);
+    expect(searchCodes(codes, tools, 'surfshrak').map(c => c.id)).toEqual(['a']);
   });
 });
