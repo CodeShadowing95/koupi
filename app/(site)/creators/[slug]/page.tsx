@@ -17,7 +17,7 @@ import { PlatformIcon } from '@/components/platform-icon';
 import { Crumbs } from '@/components/site/page-head';
 import { JsonLd } from '@/components/json-ld';
 import { creatorProfileLd } from '@/lib/structured-data';
-import { siteUrl } from '@/lib/seo';
+import { seoMonth, siteUrl } from '@/lib/seo';
 import { CopyPageLink } from '@/components/site/copy-page-link';
 import { VoteInvite } from '@/components/site/vote-invite';
 
@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const own = publicCodesOf(codes, slug);
   if (!own.length) return {};
   const profile = await getCreatorProfile(slug);
-  const title = `Codes promo de ${own[0].creator} · Merkod`;
+  const title = `Codes promo de ${own[0].creator} ${seoMonth()} · Merkod`;
   const description = creatorDescription(own[0].creator, own, profile?.bio ?? null);
   return { title, description, alternates: { canonical: routes.creator(slug) }, openGraph: { title, description, type: 'profile' } };
 }

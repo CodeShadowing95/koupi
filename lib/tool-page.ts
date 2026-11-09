@@ -12,8 +12,9 @@ export function sortToolCodes(codes: Code[], now?: Date): Code[] {
   return [...codes].sort((a, b) => (isTrusted(a, now) ? 0 : 1) - (isTrusted(b, now) ? 0 : 1) || b.success - a.success);
 }
 
-export function toolPageTitle(tool: string, best: Pick<Code, 'discount'> | undefined) {
-  return best ? `Code promo ${tool} : ${best.discount} · Merkod` : `Code promo ${tool} · Merkod`;
+/** Titre de la fiche outil, daté du mois (`seoMonth`) : « Code promo Canva novembre 2026 : 25% off · Merkod ». */
+export function toolPageTitle(tool: string, best: Pick<Code, 'discount'> | undefined, month: string) {
+  return best ? `Code promo ${tool} ${month} : ${best.discount} · Merkod` : `Code promo ${tool} ${month} · Merkod`;
 }
 
 export function toolPageDescription(tool: string, best: Pick<Code, 'creator' | 'discount' | 'status' | 'expiresOn'> | undefined, count: number) {

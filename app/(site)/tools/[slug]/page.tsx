@@ -16,6 +16,7 @@ import { Crumbs } from '@/components/site/page-head';
 import { BackButton } from '@/components/site/back-button';
 import { episodeNumber } from '@/lib/source-label';
 import { VoteInvite } from '@/components/site/vote-invite';
+import { seoMonth } from '@/lib/seo';
 
 /** « GDIY, épisode #574 » pour un podcast suivi, « « titre de la vidéo » » sinon. */
 function ticketSource(code: Code): string {
@@ -40,7 +41,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const found = await toolCodes(slug);
   if (!found) return {};
-  const title = toolPageTitle(found.tool.name, found.sorted[0]);
+  const title = toolPageTitle(found.tool.name, found.sorted[0], seoMonth());
   const description = toolPageDescription(found.tool.name, found.sorted[0], found.sorted.length);
   return { title, description, alternates: { canonical: routes.tool(slug) }, openGraph: { title, description } };
 }
