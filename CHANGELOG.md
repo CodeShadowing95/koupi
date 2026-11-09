@@ -2,6 +2,14 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.16.0](https://github.com/CodeShadowing95/koupi/compare/v0.15.0...v0.16.0) (2026-11-09)
+
+### Nouveautés
+
+- **seo:** Add a Christmas page and a seasonal Explorer banner (#296) ([345dc4e](https://github.com/CodeShadowing95/koupi/commit/345dc4ee4f86d0ececf82a09e54c19df482a15f1))
+- **universes:** Split the verification queue by universe (#295) ([9bf1ade](https://github.com/CodeShadowing95/koupi/commit/9bf1ade05a5effd27b2aecd4685a0eb2c7460d8b))
+- **universes:** Guess the universe of brands to add (#294) ([b451b7b](https://github.com/CodeShadowing95/koupi/commit/b451b7b501a326c205831eeb3b75182750d00a65))
+
 ## [0.15.0](https://github.com/CodeShadowing95/koupi/compare/v0.14.0...v0.15.0) (2026-11-09)
 
 ### Nouveautés
