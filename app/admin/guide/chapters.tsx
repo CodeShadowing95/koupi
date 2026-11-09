@@ -257,7 +257,7 @@ function Codes() {
         { term: 'Note interne', meaning: 'Pour toi et les autres admins. Jamais affichée sur le site.' },
       ]} />
       <p>Pour corriger un code existant, ouvre-le et clique sur <b>Modifier</b> (ou l’icône crayon).</p>
-      <Callout tone="tip">Offre sans code : certains créateurs donnent seulement un lien (« KrispCall : try.krispcall.com/tad »). Laisse le champ <b>Code</b> vide et remplis <b>Lien de l’offre</b>. Dans les listes, l’offre porte l’étiquette <b>Lien seul</b>. Sur le site, son coupon a un bouton « Profiter de l’offre » au lieu de « Copier ». Dans Vérifications, elle est prouvée quand son lien est dans la source.</Callout>
+      <Callout tone="tip">Offre sans code : certains créateurs donnent seulement un lien (« KrispCall : try.krispcall.com/tad »). Laisse le champ <b>Code</b> vide et remplis <b>Lien de l’offre</b>. Dans les listes, l’offre porte l’étiquette <b>Lien seul</b>. Sur le site, son coupon a un bouton « Profiter de l’offre » au lieu de « Copier ». Dans Vérifications, elle est prouvée quand son lien est dans la source. Comme il n’y a rien à copier, sa colonne <b>Copies</b> compte les clics sur son lien (pareil dans l’espace créateur et l’annuaire des créateurs).</Callout>
     </Section>
     <Section id="export" title="Exporter">
       <p><b>Exporter</b> télécharge tous les codes, archives comprises, en Excel ou en CSV. Utile pour un bilan ou pour préparer un message à une marque. Voir <Link href="/admin/guide/se-reperer#exporter">Exporter une liste</Link>.</p>

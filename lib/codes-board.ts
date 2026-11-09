@@ -1,5 +1,6 @@
 import type { Code, Tool } from './data';
 import { expiryOf } from './code-expiry';
+import { fuzzyMatcher } from './fuzzy-search';
 
 // Page « Tous les codes » : filtres et tri, façon tableau des départs.
 // Fonctions pures, appelées côté client à chaque changement de filtre.
@@ -99,8 +100,8 @@ const lookups = (tools: Tool[]): Lookups => ({
 });
 
 function matches(code: Code, filters: CodeFilters, { categoryOf, familyOf }: Lookups, now: number, skip?: Facet): boolean {
-  const q = skip === 'query' ? '' : normalize(filters.query);
-  return (!q || [code.tool, code.creator, code.code].some(field => normalize(field).includes(q)))
+  const hit = skip === 'query' ? null : fuzzyMatcher(filters.query);
+  return (!hit || [code.tool, code.creator, code.code].some(hit))
     && (skip === 'family' || !filters.family || familyOf.get(code.toolSlug) === filters.family)
     && (skip === 'category' || !filters.category || categoryOf.get(code.toolSlug) === filters.category)
     && (skip === 'status' || filters.status === 'all' || code.status === filters.status)

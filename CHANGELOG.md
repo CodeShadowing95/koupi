@@ -2,6 +2,14 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.15.0](https://github.com/CodeShadowing95/koupi/compare/v0.14.0...v0.15.0) (2026-11-09)
+
+### Nouveautés
+
+- **stats:** Count link clicks for offers without a code (#291) ([075434d](https://github.com/CodeShadowing95/koupi/commit/075434d7ea7eda10e688253779a4cb26c075c42d))
+- **seo:** Add Black Friday codes page (#290) ([40bb762](https://github.com/CodeShadowing95/koupi/commit/40bb76205eb867a3152d9a1f798c183368120627))
+- **seo:** Date page titles with the current month (#289) ([38366c6](https://github.com/CodeShadowing95/koupi/commit/38366c6110d8a00155efdd7fe48a1533b7fea2bc))
+
 ## [0.14.0](https://github.com/CodeShadowing95/koupi/compare/v0.13.0...v0.14.0) (2026-11-09)
 
 ### Nouveautés

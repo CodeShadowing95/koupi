@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Code } from './data';
-import { isIndexable, robotsRules, siteUrl, sitemapEntries } from './seo';
+import { isIndexable, robotsRules, seoMonth, siteUrl, sitemapEntries } from './seo';
 
 const code = (over: Partial<Code>): Code => ({
   id: 'c1', tool: 'Notion', toolSlug: 'notion', creator: 'Ali', creatorSlug: 'ali', code: 'ALI10', discount: '-10 %', status: 'verified',
@@ -76,5 +76,13 @@ describe('sitemapEntries', () => {
     const list = urls(['tools', 'creators']);
     expect(list.some(url => url.includes('/tools/') || url.includes('/creators'))).toBe(false);
     expect(list).toContain('https://merkod.com/codes');
+  });
+});
+
+describe('seoMonth', () => {
+  it('donne le mois en cours à Paris, en toutes lettres', () => {
+    expect(seoMonth(new Date('2026-11-09T12:00:00Z'))).toBe('novembre 2026');
+    // 31 décembre 23 h 30 à Londres = 1er janvier à Paris.
+    expect(seoMonth(new Date('2026-12-31T23:30:00Z'))).toBe('janvier 2027');
   });
 });

@@ -51,6 +51,9 @@ describe('filterCodes', () => {
     expect(run(codes, { query: 'canva' })).toEqual(['b']);
     expect(run(codes, { query: 'B' })).toEqual(['b']);
   });
+  it('pardonne une faute de frappe dans la recherche', () => {
+    expect(run(codes, { query: 'canava' })).toEqual(['b']);
+  });
   it('filtre par catégorie et par statut', () => {
     expect(run(codes, { category: 'VPN' })).toEqual(['a']);
     expect(run(codes, { status: 'to_test' })).toEqual(['b']);

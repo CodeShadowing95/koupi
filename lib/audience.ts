@@ -96,3 +96,10 @@ export async function audienceStats(db: Db, period: AudiencePeriod, now = new Da
     daily, topCodes, topTools, emptySearches,
   };
 }
+
+/**
+ * Une « utilisation » d'un code par un visiteur : sa copie, ou, pour une offre sans code (lien seul, rien à copier),
+ * le clic sur son lien. Copier un code ouvre aussi son lien : compter les deux le compterait deux fois.
+ * À utiliser dans une requête qui joint `daily_counters` à `codes`.
+ */
+export const usedCode = sql`((${dailyCounters.metric} = 'copy' and ${codes.code} is not null) or (${dailyCounters.metric} = 'open' and ${codes.code} is null))`;

@@ -4,6 +4,7 @@ import { and, eq, gte, inArray, isNull, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { codes, creatorAccounts, creators, dailyCounters, type CreatorAccountRow } from '@/db/schema';
 import { cleanMetrics } from './account-metrics';
+import { usedCode } from './audience';
 import { MIN_RATINGS, MIN_SUBSCRIBERS } from './verification';
 import { accountLevelOf } from './creator-level';
 import { PLATFORM_LABELS, type CreatorPlatform } from './creator-accounts-display';
@@ -71,7 +72,7 @@ export async function copiesPerDay(db: Db, creatorId: string, now = new Date(), 
   const rows = await db.select({ day: dailyCounters.day, count: sql<number>`sum(${dailyCounters.count})::int` })
     .from(dailyCounters)
     .innerJoin(codes, sql`${dailyCounters.key} = ${codes.id}::text`)
-    .where(and(eq(codes.creatorId, creatorId), eq(dailyCounters.metric, 'copy'), gte(dailyCounters.day, dayOf(addDays(now, -days + 1)))))
+    .where(and(eq(codes.creatorId, creatorId), usedCode, gte(dailyCounters.day, dayOf(addDays(now, -days + 1)))))
     .groupBy(dailyCounters.day);
   return fillDays(rows.map(row => ({ day: String(row.day), count: row.count })), now, days);
 }

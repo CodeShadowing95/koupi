@@ -2,6 +2,7 @@
 // Les données viennent de la base (lib/catalog-db.ts), chargées côté serveur par getCatalog() (lib/catalog-server.ts).
 import type { CreatorLevel } from './verification';
 import type { CodeOrigin } from './code-origin';
+import { EXACT, foldText, matchScore } from './fuzzy-search';
 
 /** family : slug de la famille de la catégorie (ADR-0026), null si elle n'est pas rangée. */
 export type Category = {
@@ -61,30 +62,36 @@ export function isPublic(code: Pick<Code, 'status'>) { return code.status === 'v
 /** Taux de réussite en % à partir des votes « ça marche » et « ça ne marche pas ». */
 export function successRate(up: number, down: number) { return up + down === 0 ? 0 : Math.round((up / (up + down)) * 100); }
 
-function normalize(value: string) { return value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s/g, ''); }
-
-/** Outils dont le nom ou la catégorie contient la recherche (« vpn » trouve aussi Surfshark). Les noms qui correspondent passent d'abord. */
+/** Outils trouvés par leur nom puis par leur catégorie, même avec une faute (« canava » trouve Canva). Les noms exacts d'abord. */
 export function searchTools(tools: Tool[], query: string) {
-  const q = normalize(query);
-  const byName = tools.filter(tool => normalize(tool.name).includes(q));
-  const byCategory = tools.filter(tool => !byName.includes(tool) && normalize(tool.category).includes(q));
-  return [...byName, ...byCategory];
+  const q = foldText(query);
+  if (!q) return tools;
+  return ranked(tools, tool => {
+    const byName = matchScore(tool.name, q);
+    const byCategory = matchScore(tool.category, q);
+    // Nom exact > catégorie exacte > nom avec faute > catégorie avec faute.
+    if (byName >= EXACT) return byName + 100;
+    if (byCategory >= EXACT) return byCategory + 50;
+    return Math.max(byName, byCategory - 30);
+  });
 }
 
 /**
  * Codes publics qui répondent à la recherche, pour les copier tout de suite depuis les résultats.
- * Ordre : nom de l'outil, puis créateur, puis code ou réduction, puis catégorie ; à égalité, les plus fiables d'abord.
+ * Ordre : nom de l'outil, puis créateur, puis code ou réduction, puis catégorie, d'abord sans faute puis avec ;
+ * à égalité, les plus fiables d'abord.
  */
 export function searchCodes(codes: Code[], tools: Tool[], query: string): Code[] {
-  const q = normalize(query);
+  const q = foldText(query);
   if (!q) return [];
   const categoryOf = new Map(tools.map(tool => [tool.slug, tool.category]));
   const rank = (code: Code) => {
-    if (normalize(code.tool).includes(q)) return 0;
-    if (normalize(code.creator).includes(q)) return 1;
-    if (normalize(code.code).includes(q) || normalize(code.discount).includes(q)) return 2;
-    if (normalize(categoryOf.get(code.toolSlug) ?? '').includes(q)) return 3;
-    return -1;
+    const fields = [[code.tool], [code.creator], [code.code, code.discount], [categoryOf.get(code.toolSlug) ?? '']];
+    const scores = fields.map(texts => Math.max(...texts.map(text => matchScore(text, q))));
+    const exact = scores.findIndex(score => score >= EXACT);
+    if (exact >= 0) return exact;
+    const typo = scores.findIndex(score => score > 0);
+    return typo >= 0 ? fields.length + typo : -1;
   };
   return codes
     .filter(isPublic)
@@ -94,8 +101,16 @@ export function searchCodes(codes: Code[], tools: Tool[], query: string): Code[]
     .map(item => item.code);
 }
 
-/** Créateurs dont le nom contient la recherche (sans accents ni espaces). Vide si la recherche est vide. */
+/** Créateurs trouvés par leur nom, même avec une faute ; les noms exacts d'abord. Vide si la recherche est vide. */
 export function searchCreators<T extends { name: string }>(creators: T[], query: string): T[] {
-  const q = normalize(query);
-  return q ? creators.filter(creator => normalize(creator.name).includes(q)) : [];
+  const q = foldText(query);
+  return q ? ranked(creators, creator => matchScore(creator.name, q)) : [];
+}
+
+/** Garde les éléments notés au-dessus de 0, du mieux noté au moins bien, dans leur ordre d'origine à égalité. */
+function ranked<T>(items: T[], score: (item: T) => number) {
+  return items.map((item, index) => ({ item, index, score: score(item) }))
+    .filter(entry => entry.score > 0)
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .map(entry => entry.item);
 }

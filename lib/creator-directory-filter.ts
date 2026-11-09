@@ -2,6 +2,7 @@
 // Sans base ni réseau : importable par les composants client.
 import type { CreatorPlatform } from './creator-accounts-display';
 import type { Code } from './data';
+import { fuzzyMatcher } from './fuzzy-search';
 
 /** Ce que la carte du créateur montre en premier : son meilleur code, prêt à copier. */
 export type DirectoryTop = Pick<Code, 'id' | 'code' | 'tool' | 'toolSlug' | 'creator' | 'discount'> & { link: string };
@@ -20,16 +21,14 @@ export type DirectorySort = 'copies' | 'codes' | 'name';
 export type DirectoryFilter = { platform?: string; family?: string; query?: string; sort?: DirectorySort };
 export const DIRECTORY_SORTS: DirectorySort[] = ['copies', 'codes', 'name'];
 
-function normalize(value: string) { return value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim(); }
-
 type DirectoryFacet = 'platform' | 'family';
 
 function keep(entry: DirectoryEntry, filter: DirectoryFilter, skip?: DirectoryFacet): boolean {
-  const q = normalize(filter.query ?? '');
+  const hit = fuzzyMatcher(filter.query ?? '');
   return (skip === 'platform' || !filter.platform || entry.platforms.includes(filter.platform as CreatorPlatform))
     && (skip === 'family' || !filter.family || entry.families.includes(filter.family))
     // La recherche porte sur le nom du créateur et les outils dont il donne un code.
-    && (!q || [entry.name, ...entry.tools].some(field => normalize(field).includes(q)));
+    && (!hit || [entry.name, ...entry.tools].some(hit));
 }
 
 const sorters: Record<DirectorySort, (a: DirectoryEntry, b: DirectoryEntry) => number> = {

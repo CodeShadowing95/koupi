@@ -5,6 +5,7 @@ export const routes = {
   /** Présentation de Merkod (l'ancienne page d'accueil) : la règle pro-créateurs, comment ça marche. */
   about: '/about',
   codes: '/codes',
+  blackFriday: '/black-friday',
   categories: '/categories',
   category: (slug: string) => `/categories/${slug}`,
   tool: (slug: string) => `/tools/${slug}`,
