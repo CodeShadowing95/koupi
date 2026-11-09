@@ -243,3 +243,8 @@
   .k-sb-art{min-height:84px}
   .k-sb-percent{font-size:150px;right:-2%}
 }
+
+/* Raccourci de saison dans les rayons : il mène à /black-friday ou /noel. */
+.k-ex-season{text-decoration:none}
+.k-ex-season>svg{color:var(--coral-text)}
+.k-ex-season-days{padding:2px 7px;border-radius:var(--r-pill);background:var(--coral);color:var(--paper-ink)}

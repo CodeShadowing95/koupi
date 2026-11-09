@@ -8,6 +8,11 @@ export type Season = { kind: 'black-friday' | 'christmas'; year: number; /** Jou
 const DAY = 86_400_000;
 const dayStart = (date: Date) => Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
 
+/** Jours entiers avant la date (minuit UTC), 0 le jour même ou après. */
+export function daysUntil(target: Date, now: Date): number {
+  return Math.max(0, Math.round((target.getTime() - dayStart(now)) / DAY));
+}
+
 export function currentSeason(now: Date): Season | null {
   const year = now.getUTCFullYear();
   const today = dayStart(now);

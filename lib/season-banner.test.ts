@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bannerPicks, currentSeason, seasonDismissKey } from './season-banner';
+import { bannerPicks, currentSeason, daysUntil, seasonDismissKey } from './season-banner';
 
 const at = (iso: string) => new Date(iso);
 
@@ -39,5 +39,12 @@ describe('bannerPicks', () => {
 
   it('coupe une réduction trop longue', () => {
     expect(bannerPicks([code('a', 1, '20 % de réduction sur ton premier abonnement annuel')], 1)[0].discount).toBe('20 % de réduction…');
+  });
+});
+
+describe('daysUntil', () => {
+  it('compte les jours entiers jusqu’à la date, 0 ensuite', () => {
+    expect(daysUntil(new Date('2026-11-27T00:00:00Z'), new Date('2026-11-09T22:00:00Z'))).toBe(18);
+    expect(daysUntil(new Date('2026-11-27T00:00:00Z'), new Date('2026-12-01T10:00:00Z'))).toBe(0);
   });
 });

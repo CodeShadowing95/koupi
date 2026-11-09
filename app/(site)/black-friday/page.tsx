@@ -4,6 +4,7 @@ import { routes } from '@/lib/routes';
 import { bestCodesByFamily, blackFridayDate, cyberMondayDate, frenchDay } from '@/lib/black-friday';
 import { PageHead } from '@/components/site/page-head';
 import { SeasonCodes } from '@/components/site/season-codes';
+import { daysUntil } from '@/lib/season-banner';
 import { VoteInvite } from '@/components/site/vote-invite';
 
 // Page saisonnière à adresse fixe : elle reprend l'année en cours toute seule, Google garde ainsi l'historique de l'adresse.
@@ -24,11 +25,12 @@ export default async function BlackFriday() {
   const groups = bestCodesByFamily(codes, tools, families, now);
   const total = groups.reduce((sum, group) => sum + group.picks.length, 0);
   return (
-    <main className="k-page">
+    <main className="k-page k-season k-season-bf">
       <div className="k-wrap">
         <PageHead
-          eyebrow={`Black Friday ${year()}`}
-          title={`Codes promo Black Friday ${year()}`}
+          className="k-season-head"
+          eyebrow={daysUntil(friday, now) > 0 ? `J-${daysUntil(friday, now)} · ${frenchDay(friday)}` : `Black Friday ${year()}`}
+          title={<>Codes promo <span className="k-season-outline">Black</span> Friday {year()}</>}
           lead={`Le Black Friday ${passed ? 'a eu' : 'a'} lieu le ${frenchDay(friday)}, le Cyber Monday le ${frenchDay(monday)}. Voici le code de créateur le plus fiable pour ${total} outils en ligne, chacun relié à la vidéo d’où il vient.`}
         />
         <p className="k-bf-note">
