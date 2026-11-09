@@ -15,6 +15,7 @@ import type { AdminPodcast } from '@/lib/podcasts-admin';
 import { compareYield, isQuiet, QUIET_DAYS, yieldScore } from '@/lib/podcast-yield';
 import { TOP_GENRES, type PodcastFeed } from '@/lib/apple-podcasts';
 import type { PodcastReadReport } from '@/lib/podcast-read';
+import { MAX_READ_ROUNDS, mergeReports } from '@/lib/podcast-read-report';
 import { openOnClick } from '@/components/admin-drawer';
 import type { AdminCandidate } from '@/lib/podcast-candidates';
 import { CandidatesPanel } from './candidates-panel';
@@ -62,6 +63,7 @@ export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, ini
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [report, setReport] = useState<PodcastReadReport | null>(null);
+  const [progress, setProgress] = useState('');
   const followed = new Set(podcasts.map(podcast => podcast.feedId));
   const [panel, setPanel] = useState<Panel>(initialTab ?? (podcasts.length ? 'list' : 'add'));
   // Une erreur de recherche ou de classement ne suit pas l'admin dans un autre onglet.
@@ -131,14 +133,27 @@ export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, ini
     setBusy(podcast ? `${podcast.id}-read` : 'read-all');
     setError('');
     setReport(null);
+    // Le serveur lit par lots de quelques minutes (limite de temps de Vercel) et dit combien de podcasts restent :
+    // la page enchaîne les lots et additionne les comptes rendus.
+    let total: PodcastReadReport | null = null;
     try {
-      const response = await fetch('/api/admin/podcasts/read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(podcast ? { id: podcast.id } : {}) });
-      const body = await response.json().catch(() => ({})) as PodcastReadReport & { error?: string };
-      if (!response.ok) setError(body.error ?? 'La lecture a échoué.');
-      else { setReport(body); router.refresh(); }
+      for (let round = 0; round < MAX_READ_ROUNDS; round++) {
+        const response = await fetch('/api/admin/podcasts/read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(podcast ? { id: podcast.id } : {}) });
+        const body = await response.json().catch(() => ({})) as PodcastReadReport & { error?: string };
+        if (!response.ok) {
+          setError(`${body.error ?? 'La lecture a échoué.'}${total ? ` Les ${total.podcasts} podcasts déjà lus sont enregistrés.` : ''}`);
+          break;
+        }
+        total = mergeReports(total, body);
+        setReport(total);
+        setProgress(body.remaining > 0 ? `${total.podcasts} lus, ${body.remaining} restants` : '');
+        if (!body.remaining) break;
+      }
     } catch {
       setError('La lecture a échoué. Vérifie ta connexion.');
     }
+    setProgress('');
+    if (total) router.refresh();
     setBusy(null);
   }
   // Met en pause d'un coup les podcasts actifs qui ne donnent plus rien. Ils gardent leur historique et se reprennent un par un.
@@ -184,7 +199,7 @@ export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, ini
             <p>Les podcasts dont Merkod lit les nouveaux épisodes pour trouver des codes promo. Chaque code trouvé arrive dans Vérifications, où tu décides. Suivre un podcast crée aussi son créateur.</p>
           </div>
           <div className="adm-head-actions">
-            <button type="button" className="adm-btn adm-btn-pri" disabled={busy !== null || !podcasts.some(podcast => podcast.active)} onClick={() => read()}>{busy === 'read-all' ? 'Lecture des épisodes…' : 'Lire les épisodes maintenant'}</button>
+            <button type="button" className="adm-btn adm-btn-pri" disabled={busy !== null || !podcasts.some(podcast => podcast.active)} onClick={() => read()}>{busy === 'read-all' ? `Lecture des épisodes…${progress ? ` ${progress}` : ''}` : 'Lire les épisodes maintenant'}</button>
           </div>
         </div>
         {report && (
@@ -192,6 +207,7 @@ export function PodcastsView({ podcasts: unsorted, nowIso, images, starters, ini
             <p>{report.podcasts} podcast{report.podcasts > 1 ? 's' : ''} lu{report.podcasts > 1 ? 's' : ''}, {report.episodes} épisode{report.episodes > 1 ? 's' : ''} récent{report.episodes > 1 ? 's' : ''}{report.aiRead > 0 ? `, dont ${report.aiRead} relu${report.aiRead > 1 ? 's' : ''} par l’IA` : ''}. {report.found.length === 0 ? 'Aucun nouveau code trouvé.' : `${report.found.length} nouveau${report.found.length > 1 ? 'x' : ''} code${report.found.length > 1 ? 's' : ''} en attente :`}</p>
             {report.found.length > 0 && <ul>{report.found.map(item => <li key={`${item.podcast}-${item.tool}-${item.code}`}><b className="mono">{item.code}</b> pour {item.tool} <span className="muted">({item.podcast})</span></li>)}</ul>}
             {report.suggested.length > 0 && <p>{report.suggested.length} code{report.suggested.length > 1 ? 's' : ''} pour des outils absents du catalogue : {report.suggested.map(item => `${item.code} (${item.tool})`).join(', ')}. <button type="button" className="adm-link-btn" onClick={() => router.push(TOOLS_TO_ADD)}>Voir les outils à ajouter</button></p>}
+            {report.remaining > 0 && <p>{report.remaining} podcast{report.remaining > 1 ? 's restent' : ' reste'} à lire : relance la lecture, ou ils seront lus cette nuit.</p>}
             {report.failed.length > 0 && <p>Pas de réponse d’Apple pour : {report.failed.join(', ')}. Ils seront relus la prochaine fois.</p>}
             <div className="adm-pod-report-actions">
               {report.found.length > 0 && <Link href="/admin/verifications" className="adm-btn adm-btn-pri">Ouvrir les vérifications</Link>}
