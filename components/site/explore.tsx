@@ -24,6 +24,8 @@ import { CreatorMark } from '@/components/site/creator-mark';
 import { CreateList, CreateMenu, CreatorButton } from '@/components/site/create-menu';
 import { FamilyIcon, ShelfIcon } from '@/components/site/explore-icons';
 import { PORTFOLIO_URL, PUBLISHER_NAME } from '@/lib/site-contact';
+import { SeasonBanner } from '@/components/site/season-banner';
+import { bannerPicks, currentSeason } from '@/lib/season-banner';
 
 const PAGE = 12;
 
@@ -54,6 +56,13 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
   const isOff = useIsOff();
 
   // Espaces insécables écrits à la main : même texte côté serveur et navigateur.
+  // Bannière de saison : la date vient du serveur (now) pour que le rendu serveur et le navigateur montrent la même.
+  const season = useMemo(() => currentSeason(new Date(now)), [now]);
+  const seasonPicks = useMemo(() => {
+    if (!season) return [];
+    const familyOf = new Map(tools.map(tool => [tool.slug, tool.family]));
+    return bannerPicks(codes.map(code => ({ ...code, family: familyOf.get(code.toolSlug) })), 4);
+  }, [season, codes, tools]);
   const votes = useMemo(() => new Intl.NumberFormat('fr-FR').format(totalVotes(codes)).replace(/\s/g, '\u00a0'), [codes]);
   const results = useMemo(() => exploreCodes(codes, tools, state, now), [codes, tools, state, now]);
   const visible = results.slice(0, limit);
@@ -290,6 +299,7 @@ export function Explore({ codes, tools, families, categories, initial, now, logo
         )}
 
         <main className="k-ex-feed" id="contenu" ref={feed}>
+          {season && seasonPicks.length > 0 && <SeasonBanner season={season} picks={seasonPicks} />}
           {intro && (
             <section className="k-ex-intro" aria-labelledby="k-ex-intro-title">
               <div className="k-ex-intro-main k-paper">
