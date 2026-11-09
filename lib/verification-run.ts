@@ -2,7 +2,7 @@
 // Le résultat est gardé dans verification_checks ; l'admin décide ensuite dans la page Vérifications.
 import { and, eq, isNull, ne, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
-import { codes, toolSuggestions, tools, type CodeRow, type VerificationCheckRow, type VerificationReason } from '@/db/schema';
+import { codeLogs, codes, toolSuggestions, tools, type CodeRow, type VerificationCheckRow, type VerificationReason } from '@/db/schema';
 import { aiStatusOf, extractCodes, needsSecondReading, type AiConfig, type ExtractedCode, type Extraction } from './ai-extract';
 import { isValidDay } from './code-expiry';
 import { creatorLevelFor } from './creator-level';
@@ -122,6 +122,12 @@ export async function addSiblingCodes(db: Db, code: CodeRow, source: SourceRead,
   return { added, suggested };
 }
 
+/** L'admin a déjà modifié ce code (formulaire ou crayon de Vérifications ; rattacher à un autre outil ne compte pas) : l'IA ne touche plus à sa réduction. */
+async function editedByAdmin(db: Db, codeId: string): Promise<boolean> {
+  const [row] = await db.select({ id: codeLogs.id }).from(codeLogs).where(and(eq(codeLogs.codeId, codeId), eq(codeLogs.action, 'edit'), sql`coalesce(${codeLogs.note}, '') not like 'Rattaché%'`)).limit(1);
+  return Boolean(row);
+}
+
 /** Analyse un code et enregistre le résultat. null si le code n'existe pas. */
 export async function runVerification(db: Db, codeId: string, deps: RunDeps, mode: RunMode = 'standard'): Promise<VerificationCheckRow | null> {
   const [code] = await db.select().from(codes).where(eq(codes.id, codeId)).limit(1);
@@ -191,6 +197,13 @@ export async function runVerification(db: Db, codeId: string, deps: RunDeps, mod
     if (linksOn && seen?.link && !code.creatorLink) {
       await db.update(codes).set({ creatorLink: seen.link, updatedAt: new Date() }).where(eq(codes.id, code.id));
       reasons.push({ points: 0, label: `L’IA a trouvé le lien de l’offre (${shortLink(seen.link)}) et l’a ajouté au code.` });
+    }
+    // Réduction réécrite par l'IA pour le visiteur (« -35 % sur une sélection de couvertures » au lieu de « 35% ») :
+    // seulement pour un code en attente que l'admin n'a pas encore modifié à la main.
+    const aiDiscount = clip(seen?.discount.trim() ?? '', 240);
+    if (aiDiscount && code.status === 'pending' && aiDiscount.toLowerCase() !== code.discount.trim().toLowerCase() && !(await editedByAdmin(db, code.id))) {
+      await db.update(codes).set({ discount: aiDiscount, updatedAt: new Date() }).where(eq(codes.id, code.id));
+      reasons.push({ points: 0, label: `L’IA a réécrit la réduction pour le visiteur : « ${aiDiscount} » (avant : « ${clip(code.discount, 80)} »).` });
     }
     // Date de fin écrite par le créateur : l'IA pré-remplit le champ s'il est vide. L'admin peut la corriger.
     if (seen?.expiresOn && !code.expiresOn && isValidDay(seen.expiresOn)) {
