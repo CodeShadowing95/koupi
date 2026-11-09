@@ -175,71 +175,71 @@
 
 /* Bannière saisonnière (components/site/season-banner.tsx) : Black Friday en noir et corail, Noël en vert et rouge.
    Ses couleurs ne suivent pas le thème : c'est une affiche. */
-.k-sb{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);margin:6px 0 14px;border-radius:var(--r-xl);overflow:hidden;color:#FFF8EE;box-shadow:0 26px 44px -20px rgb(0 0 0 / calc(.7 * var(--shade)))}
-.k-sb-copy{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:14px;min-width:0;padding:32px 36px}
+.k-sb{position:relative;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);margin:6px 0 14px;border-radius:var(--r-xl);overflow:hidden;color:#FFF8EE;box-shadow:0 26px 44px -20px rgb(0 0 0 / calc(.7 * var(--shade)))}
+.k-sb-copy{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:10px;min-width:0;padding:22px 28px}
 .k-sb-kicker{font-family:var(--mono);font-size:var(--fs-xs);font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.92}
 .k-sb-kicker b{display:inline-block;margin-right:8px;padding:4px 9px;border-radius:var(--r-pill);font-weight:800}
-.k-sb-title{margin:0;color:#FFF8EE;font-family:var(--display);font-size:clamp(40px,5.4vw,78px);font-weight:800;line-height:.92;letter-spacing:-.045em;text-transform:uppercase;text-wrap:balance}
-.k-sb-lead{margin:0;max-width:42ch;font-size:var(--fs-md);line-height:1.5;opacity:.86}
-.k-sb-cta{display:inline-flex;align-items:center;gap:8px;height:48px;padding:0 22px;border-radius:var(--r-md);font-size:var(--fs-base);font-weight:800;text-decoration:none;transition:transform .2s,box-shadow .2s}
+.k-sb-title{margin:0;color:#FFF8EE;font-family:var(--display);font-size:clamp(30px,3.4vw,48px);font-weight:800;line-height:.95;letter-spacing:-.045em;text-transform:uppercase;text-wrap:balance}
+.k-sb-lead{margin:0;max-width:52ch;font-size:var(--fs-sm);line-height:1.45;opacity:.86}
+.k-sb-cta{display:inline-flex;align-items:center;gap:8px;height:42px;margin-top:4px;padding:0 18px;border-radius:var(--r-md);font-size:var(--fs-base);font-weight:800;text-decoration:none;transition:transform .2s,box-shadow .2s}
 .k-sb-cta:hover{transform:translateY(-2px)}
 .k-sb-cta:focus-visible,.k-sb-close:focus-visible{outline:3px solid #FFC46B;outline-offset:3px}
-.k-sb-art{position:relative;display:block;min-height:300px;overflow:hidden;text-decoration:none;color:inherit}
+.k-sb-art{position:relative;display:block;min-height:190px;overflow:hidden;text-decoration:none;color:inherit}
 .k-sb-close{position:absolute;z-index:2;top:12px;right:12px;width:36px;height:36px;display:grid;place-items:center;border:0;border-radius:var(--r-pill);background:rgba(0,0,0,.35);color:#fff;font-size:var(--fs-xl);line-height:1;cursor:pointer}
 .k-sb-close:hover{background:rgba(0,0,0,.55)}
 
 /* Les étiquettes : un vrai outil, sa réduction, posées de travers comme des coupons lâchés. */
-.k-sb-tag{position:absolute;display:flex;align-items:center;gap:10px;padding:10px 14px 10px 10px;border-radius:var(--r-lg);background:#FFF8EE;color:#17150F;box-shadow:0 18px 28px -12px rgba(0,0,0,.55);animation:k-sb-float 6s ease-in-out infinite}
-.k-sb-tag .k-tool-logo{width:40px;height:40px;border-radius:var(--r-md);font-size:var(--fs-lg)}
+.k-sb-tag{position:absolute;display:flex;align-items:center;gap:8px;padding:7px 12px 7px 8px;border-radius:var(--r-md);background:#FFF8EE;color:#17150F;box-shadow:0 18px 28px -12px rgba(0,0,0,.55);animation:k-sb-float 6s ease-in-out infinite}
+.k-sb-tag .k-tool-logo{width:30px;height:30px;border-radius:var(--r-sm);font-size:var(--fs-base)}
 .k-sb-tag-text{display:flex;flex-direction:column;min-width:0}
-.k-sb-tag-text b{font-size:var(--fs-base);font-weight:800;white-space:nowrap}
-.k-sb-tag-text small{font-family:var(--mono);font-size:var(--fs-sm);font-weight:700;white-space:nowrap}
-.k-sb-tag-1{top:13%;left:8%;--tilt:-8deg}
-.k-sb-tag-2{top:36%;right:7%;--tilt:6deg;animation-delay:-1.5s}
-.k-sb-tag-3{bottom:24%;left:14%;--tilt:4deg;animation-delay:-3s}
-.k-sb-tag-4{bottom:7%;right:16%;--tilt:-5deg;animation-delay:-4.5s}
+.k-sb-tag-text b{font-size:var(--fs-sm);font-weight:800;white-space:nowrap}
+.k-sb-tag-text small{font-family:var(--mono);font-size:var(--fs-xs);font-weight:700;white-space:nowrap}
+.k-sb-tag-1{top:12%;left:6%;--tilt:-7deg}
+.k-sb-tag-2{top:16%;right:10%;--tilt:6deg;animation-delay:-1.5s}
+.k-sb-tag-3{bottom:12%;left:16%;--tilt:4deg;animation-delay:-3s}
+.k-sb-tag-4{bottom:14%;right:6%;--tilt:-5deg;animation-delay:-4.5s}
 @keyframes k-sb-float{0%,100%{transform:rotate(var(--tilt)) translateY(0)}50%{transform:rotate(var(--tilt)) translateY(-8px)}}
 
 /* Black Friday : noir profond, lueur corail, rayures de vitrine. */
 .k-sb-bf{background:radial-gradient(circle at 78% 40%,rgba(255,106,61,.38),transparent 55%),repeating-linear-gradient(-45deg,rgba(255,255,255,.035) 0 14px,transparent 14px 28px),#0E0D0B}
 .k-sb-bf .k-sb-kicker b{background:var(--coral);color:#17150F}
-.k-sb-bf .k-sb-outline{display:block;color:transparent;-webkit-text-stroke:2px #FFF8EE}
+.k-sb-bf .k-sb-outline{display:inline;color:transparent;-webkit-text-stroke:2px #FFF8EE}
 .k-sb-bf .k-sb-title{color:var(--coral)}
 .k-sb-bf .k-sb-cta{background:var(--coral);color:#17150F;box-shadow:0 10px 24px -8px rgba(255,106,61,.7)}
 .k-sb-bf .k-sb-tag{border-left:5px dotted #0E0D0B}
 .k-sb-bf .k-sb-tag-text small{color:#D9441F}
-.k-sb-percent{position:absolute;right:-4%;top:50%;transform:translateY(-50%) rotate(-10deg);font-family:var(--display);font-size:clamp(220px,26vw,360px);font-weight:800;line-height:1;color:transparent;-webkit-text-stroke:3px rgba(255,106,61,.55)}
+.k-sb-percent{position:absolute;right:-4%;top:50%;transform:translateY(-50%) rotate(-10deg);font-family:var(--display);font-size:clamp(150px,16vw,230px);font-weight:800;line-height:1;color:transparent;-webkit-text-stroke:3px rgba(255,106,61,.55)}
 
 /* Noël : sapin profond, neige, rubans rouges et bonnet. */
 .k-sb-xmas{background:radial-gradient(circle at 75% 35%,#1F6B4C,#0F3D2E 70%)}
 /* La neige ne tombe que sur l'affiche, pour garder le texte lisible : trois couches de flocons de tailles différentes. */
 .k-sb-xmas .k-sb-art{background:radial-gradient(circle,rgba(255,255,255,.9) 2px,transparent 2.6px) 12px 18px/97px 89px,radial-gradient(circle,rgba(255,255,255,.6) 1.4px,transparent 2px) 51px 7px/61px 73px,radial-gradient(circle,rgba(255,255,255,.35) 1px,transparent 1.5px) 30px 40px/37px 41px}
 .k-sb-xmas .k-sb-kicker b{background:#E3262E;color:#fff}
-.k-sb-xmas .k-sb-title{text-transform:none;font-size:clamp(36px,4.6vw,66px)}
+.k-sb-xmas .k-sb-title{text-transform:none;font-size:clamp(28px,3vw,44px)}
 .k-sb-xmas .k-sb-title em{font-style:normal;color:#FFC46B}
 .k-sb-xmas .k-sb-cta{background:#E3262E;color:#fff;box-shadow:0 10px 24px -8px rgba(227,38,46,.7)}
-.k-sb-xmas .k-sb-tag{padding-top:20px;overflow:visible}
+.k-sb-xmas .k-sb-tag{padding-top:15px;overflow:visible}
 /* Le ruban du paquet : une bande en haut de l'étiquette et un nœud. */
-.k-sb-ribbon{position:absolute;left:0;right:0;top:0;height:9px;border-radius:var(--r-lg) var(--r-lg) 0 0;background:#E3262E}
+.k-sb-ribbon{position:absolute;left:0;right:0;top:0;height:7px;border-radius:var(--r-md) var(--r-md) 0 0;background:#E3262E}
 .k-sb-ribbon::before,.k-sb-ribbon::after{content:"";position:absolute;top:-9px;left:50%;width:18px;height:14px;border:4px solid #E3262E;border-radius:var(--r-pill) var(--r-pill) 2px var(--r-pill)}
 .k-sb-ribbon::before{margin-left:-20px;transform:rotate(-18deg)}
 .k-sb-ribbon::after{margin-left:2px;transform:scaleX(-1) rotate(-18deg)}
 .k-sb-xmas .k-sb-tag .k-tool-logo,.k-sb-xmas .k-sb-tag-text{position:relative}
 .k-sb-xmas .k-sb-tag-text small{color:#1F6B4C}
-.k-sb-hat{position:absolute;top:2%;left:34%;width:min(150px,32%);height:auto;transform:rotate(-14deg);filter:drop-shadow(0 14px 18px rgba(0,0,0,.35))}
+.k-sb-hat{position:absolute;top:28%;left:40%;width:min(96px,22%);height:auto;transform:rotate(-14deg);filter:drop-shadow(0 14px 18px rgba(0,0,0,.35))}
 
 @media (prefers-reduced-motion:reduce){.k-sb-tag{animation:none;transform:rotate(var(--tilt))}.k-sb-cta{transition:none}.k-sb-cta:hover{transform:none}}
 
 /* Écran étroit : l'affiche passe au-dessus du texte, en bande plus basse. */
 @container k-ex (max-width:760px){
   .k-sb{grid-template-columns:minmax(0,1fr)}
-  .k-sb-copy{padding:22px 20px 24px;order:2}
-  .k-sb-art{order:1}
-  .k-sb-tag{padding:8px 12px 8px 8px}
-  .k-sb-tag .k-tool-logo{width:32px;height:32px}
-  .k-sb-art{min-height:170px}
+  .k-sb-copy{padding:16px 18px 18px;order:2}
+  .k-sb-art{order:1;min-height:96px}
+  .k-sb-lead{display:none}
   .k-sb-tag-3,.k-sb-tag-4{display:none}
-  .k-sb-tag-1{top:14%;left:5%}
-  .k-sb-tag-2{top:auto;bottom:12%;right:5%}
-  .k-sb-hat{left:44%;top:8%;width:84px}
+  .k-sb-tag-1{top:18%;left:4%}
+  .k-sb-tag-2{top:auto;bottom:14%;right:16%}
+  .k-sb-hat{display:none}
+  .k-sb-art{min-height:84px}
+  .k-sb-percent{font-size:150px;right:-2%}
 }

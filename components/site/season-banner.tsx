@@ -51,8 +51,8 @@ export function SeasonBanner({ season, picks }: { season: Season; picks: BannerP
           : <h2 className="k-sb-title" id="k-sb-title"><span className="k-sb-outline">Black</span> Friday</h2>}
         <p className="k-sb-lead">
           {christmas
-            ? 'Un abonnement à offrir, ou un outil pour bien démarrer l’année : le code de créateur le plus fiable de chaque outil, vérifié.'
-            : 'Le code de créateur le plus fiable de chaque outil, vérifié. Compare-le avec la promo du vendredi et garde la meilleure.'}
+            ? 'Un abonnement à offrir ? Le code de créateur le plus fiable de chaque outil, vérifié.'
+            : 'Le code de créateur le plus fiable de chaque outil, à comparer avec la promo du vendredi.'}
         </p>
         <Link className="k-sb-cta" href={href}>{label}<span aria-hidden="true">→</span></Link>
       </div>
