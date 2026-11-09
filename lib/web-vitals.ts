@@ -19,7 +19,7 @@ export function pageGroup(path: string): VitalPage {
   if (clean === '/') return 'home';
   if (clean === '/codes') return 'codes';
   if (clean.startsWith('/tools/')) return 'tool';
-  if (clean.startsWith('/creators/')) return 'creator';
+  if (clean.startsWith('/@') || clean.startsWith('/creators/')) return 'creator';
   if (clean === '/creators') return 'creators';
   if (clean.startsWith('/categories/')) return 'category';
   return 'other';

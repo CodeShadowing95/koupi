@@ -19,6 +19,12 @@ import { runVerification, type RunDeps } from './verification-run';
 export const FIRST_READ_DAYS = 45;
 const MARGIN_DAYS = 7;
 const DAY = 24 * 60 * 60 * 1000;
+/**
+ * Une lecture s'arrête de commencer de nouveaux podcasts après 4 minutes : la requête Vercel est coupée à 5 minutes
+ * (504) et tout ce qui suivait était perdu. Les podcasts les moins récemment lus passent d'abord, et le compte rendu
+ * dit combien restent : l'admin relance (la page enchaîne seule), la nuit suivante reprend où elle s'est arrêtée.
+ */
+export const PODCAST_RUN_BUDGET_MS = 240_000;
 
 export type PodcastReadReport = {
   podcasts: number;
@@ -29,6 +35,8 @@ export type PodcastReadReport = {
   failed: string[];
   /** Épisodes dont les notes ont aussi été lues par l'IA (0 quand elle n'est pas active). */
   aiRead: number;
+  /** Podcasts pas lus cette fois, faute de temps : à lire à la prochaine lecture. */
+  remaining: number;
 };
 
 /** code '' avec link : offre donnée seulement par un lien (ADR-0040). link : lien de l'offre écrit dans la source. */
@@ -66,12 +74,13 @@ export async function addPodcastCode(db: Db, { podcastTitle, origin, ...input }:
 }
 
 /** Lit les épisodes récents des podcasts actifs (ou d'un seul, même en pause, avec onlyId). */
-export async function readPodcasts(db: Db, directory: PodcastDirectory, options: { onlyId?: string; deps?: RunDeps; now?: Date } = {}): Promise<PodcastReadReport> {
+export async function readPodcasts(db: Db, directory: PodcastDirectory, options: { onlyId?: string; deps?: RunDeps; now?: Date; budgetMs?: number; clock?: () => number } = {}): Promise<PodcastReadReport> {
   const now = options.now ?? new Date();
-  const report: PodcastReadReport = { podcasts: 0, episodes: 0, found: [], suggested: [], failed: [], aiRead: 0 };
+  const report: PodcastReadReport = { podcasts: 0, episodes: 0, found: [], suggested: [], failed: [], aiRead: 0, remaining: 0 };
   const podcasts = await db.select().from(watchedSources)
     .where(and(eq(watchedSources.platform, 'podcast'), options.onlyId ? eq(watchedSources.id, options.onlyId) : eq(watchedSources.active, true)))
-    .orderBy(asc(watchedSources.title));
+    // Jamais lus d'abord, puis les moins récemment lus : une lecture coupée faute de temps reprend où elle s'est arrêtée.
+    .orderBy(sql`${watchedSources.lastFetchedAt} asc nulls first`, asc(watchedSources.title));
   if (podcasts.length === 0) return report;
   const catalog = (await db.select({ id: tools.id, name: tools.name, website: tools.website }).from(tools).where(sql`${tools.archivedAt} is null`))
     .map(tool => ({ id: tool.id, name: tool.name, domain: domainOf(tool.website) }));
@@ -95,7 +104,14 @@ export async function readPodcasts(db: Db, directory: PodcastDirectory, options:
     }
   }
 
-  for (const podcast of podcasts) {
+  const clock = options.clock ?? Date.now;
+  const startedAt = clock();
+  const budget = options.budgetMs ?? PODCAST_RUN_BUDGET_MS;
+  for (const [index, podcast] of podcasts.entries()) {
+    if (index > 0 && clock() - startedAt > budget) {
+      report.remaining = podcasts.length - index;
+      break;
+    }
     report.podcasts++;
     const podcastId = Number(podcast.externalId);
     let episodes;

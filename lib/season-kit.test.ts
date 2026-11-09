@@ -77,6 +77,6 @@ describe('kitDescription', () => {
 describe('titres et adresses', () => {
   it('nomme la saison', () => {
     expect(kitTitle('noel', 2026)).toBe('Mes codes promo de Noël 2026');
-    expect(kitPath('lea', 'black-friday')).toBe('/creators/lea/black-friday');
+    expect(kitPath('lea', 'black-friday')).toBe('/@lea/black-friday');
   });
 });

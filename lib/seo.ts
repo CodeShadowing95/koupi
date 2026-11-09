@@ -28,8 +28,8 @@ export function robotsRules(indexable: boolean, base: string): MetadataRoute.Rob
 }
 
 const STATIC_PATHS = [
-  // /categories redirige vers /codes : seule la page d'arrivée est listée.
-  routes.home, routes.about, routes.codes, routes.blackFriday, routes.christmas, routes.creators(), routes.submit(), routes.feedback,
+  // /categories, /codes et /creators redirigent vers la page principale : seule la page d'arrivée est listée.
+  routes.home, routes.about, routes.blackFriday, routes.christmas, routes.submit(), routes.feedback,
   routes.transparency, routes.forCreators(), routes.legal, routes.privacy,
 ];
 
@@ -46,7 +46,7 @@ export function sitemapEntries(catalog: Pick<Catalog, 'categories' | 'tools' | '
   const toolDates = datesOf(code => code.toolSlug);
   const creatorDates = datesOf(code => code.creatorSlug);
   const entries: { path: string; lastModified?: string; priority: number }[] = [
-    ...STATIC_PATHS.map(path => ({ path, priority: path === routes.home ? 1 : path === routes.codes ? 0.9 : 0.5 })),
+    ...STATIC_PATHS.map(path => ({ path, priority: path === routes.home ? 1 : 0.5 })),
     ...catalog.categories.filter(category => category.count > 0).map(category => ({ path: routes.category(category.slug), priority: 0.6 })),
     ...catalog.tools.map(tool => ({ path: routes.tool(tool.slug), lastModified: latest(toolDates.get(tool.slug) ?? []), priority: 0.8 })),
     ...[...creatorDates.keys()].filter(Boolean).sort().map(slug => ({ path: routes.creator(slug), lastModified: latest(creatorDates.get(slug) ?? []), priority: 0.7 })),

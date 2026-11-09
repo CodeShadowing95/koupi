@@ -29,7 +29,7 @@ export default async function Category({ params, searchParams }: Props) {
     <main className="k-page">
       <div className="k-wrap">
         <PageHead
-          crumbs={[{ label: 'Codes', href: category.family ? `${routes.codes}?family=${category.family}` : routes.codes }, { label: category.name }]}
+          crumbs={[{ label: 'Codes', href: routes.explore({ family: category.family ?? undefined }) }, { label: category.name }]}
           eyebrow="Catégorie"
           title={category.name}
           lead="Compare les codes des créateurs pour les outils de cette catégorie."

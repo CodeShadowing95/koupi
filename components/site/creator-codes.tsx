@@ -33,8 +33,20 @@ export function CodeGrid({ codes, tools, cards }: { codes: Code[]; tools: Tool[]
 export function CreatorCodes({ codes, expired, tools, creator, expiredTitle }: { codes: Code[]; expired: Code[]; tools: Tool[]; creator: string; expiredTitle: string }) {
   const { cards, chooseCards } = useCodeViews();
   const [query, setQuery] = useState('');
+  const [tool, setTool] = useState('');
   const toolOf = useMemo(() => new Map(tools.map(tool => [tool.slug, tool])), [tools]);
-  const shown = codes.filter(code => matchesSearch([code.tool, code.code, code.discount, code.sourceTitle, toolOf.get(code.toolSlug)?.category], query));
+  // Ses outils, du plus fourni au moins fourni : une pastille par outil pour trier d'un geste, comme sur l'Explorer.
+  const toolChips = useMemo(() => {
+    const byTool = new Map<string, { slug: string; name: string; count: number }>();
+    for (const code of codes) {
+      const entry = byTool.get(code.toolSlug) ?? { slug: code.toolSlug, name: code.tool, count: 0 };
+      entry.count += 1;
+      byTool.set(code.toolSlug, entry);
+    }
+    return [...byTool.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'fr'));
+  }, [codes]);
+  const shown = codes.filter(code => (!tool || code.toolSlug === tool)
+    && matchesSearch([code.tool, code.code, code.discount, code.sourceTitle, toolOf.get(code.toolSlug)?.category], query));
 
   return (
     <>
@@ -47,13 +59,23 @@ export function CreatorCodes({ codes, expired, tools, creator, expiredTitle }: {
               <input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Outil, code, réduction…" />
             </label>
           )}
-          <p role="status">{query ? <><strong>{shown.length}</strong> sur {codes.length}</> : <><strong>{codes.length}</strong> {codes.length > 1 ? 'codes' : 'code'}</>}</p>
+          <p role="status">{query || tool ? <><strong>{shown.length}</strong> sur {codes.length}</> : <><strong>{codes.length}</strong> {codes.length > 1 ? 'codes' : 'code'}</>}</p>
           <div className="k-creator-views">
             <CodeViewToggles cards={cards} onCards={chooseCards} />
           </div>
       </div>
+      {toolChips.length > 1 && (
+        <nav className="k-chan-chips" aria-label="Ses outils">
+          <button type="button" className="k-ex-chip" aria-pressed={!tool} onClick={() => setTool('')}>Tous</button>
+          {toolChips.map(chip => (
+            <button key={chip.slug} type="button" className="k-ex-chip" aria-pressed={tool === chip.slug} onClick={() => setTool(current => (current === chip.slug ? '' : chip.slug))}>
+              {chip.name}<small>{chip.count}</small>
+            </button>
+          ))}
+        </nav>
+      )}
       {shown.length === 0
-        ? <p className="k-creator-codes-empty">Aucun code de {creator} ne correspond à « {query} ». <button type="button" className="k-link-btn" onClick={() => setQuery('')}>Effacer la recherche</button></p>
+        ? <p className="k-creator-codes-empty">Aucun code de {creator} ne correspond{query ? <> à « {query} »</> : null}. <button type="button" className="k-link-btn" onClick={() => { setQuery(''); setTool(''); }}>Tout afficher</button></p>
         : <CodeGrid codes={shown} tools={tools} cards={cards} />}
     </section>}
     {expired.length > 0 && (

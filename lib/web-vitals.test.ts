@@ -12,6 +12,7 @@ describe('pageGroup', () => {
     expect(pageGroup('/codes?tool=notion')).toBe('codes');
     expect(pageGroup('/tools/notion')).toBe('tool');
     expect(pageGroup('/creators/ali')).toBe('creator');
+    expect(pageGroup('/@ali')).toBe('creator');
     expect(pageGroup('/creators/')).toBe('creators');
     expect(pageGroup('/categories/vpn')).toBe('category');
     expect(pageGroup('/search?q=mon%20email')).toBe('other');

@@ -21,7 +21,7 @@ export function SeasonCodes({ groups, idPrefix }: { groups: BlackFridayGroup[]; 
       <section key={id} className="k-search-codes" aria-labelledby={id}>
         <div className="k-search-codes-head">
           <h2 id={id}>{group.family?.name ?? 'Autres outils'}</h2>
-          {group.family && <Link className="k-link" href={`${routes.codes}?family=${group.family.slug}`}>Tous les codes {group.family.name} →</Link>}
+          {group.family && <Link className="k-link" href={routes.explore({ family: group.family.slug })}>Tous les codes {group.family.name} →</Link>}
         </div>
         <ul className="k-pass-grid">
           {group.picks.map(({ code, tool }) => (

@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { routes } from './routes';
 import { readFileSync } from 'node:fs';
-import { categoryRedirects, legacyRedirects, movedRedirects } from './legacy-redirects.mjs';
+import { categoryRedirects, creatorRewrites, legacyRedirects, movedRedirects } from './legacy-redirects.mjs';
 import { parseCsv, slugify } from '../scripts/build-catalog.mjs';
 
 describe('routes', () => {
   it('builds English public paths', () => {
     expect(routes.tool('nordvpn')).toBe('/tools/nordvpn');
-    expect(routes.creator('tutorial-stack')).toBe('/creators/tutorial-stack');
-    expect(routes.creators()).toBe('/creators');
-    expect(routes.creators({ platform: 'youtube', theme: 'Banque & finance' })).toBe('/creators?platform=youtube&theme=Banque+%26+finance');
-    expect(routes.creators({ platform: '', theme: 'VPN' })).toBe('/creators?theme=VPN');
+    expect(routes.creator('tutorial-stack')).toBe('/@tutorial-stack');
+    expect(routes.explore()).toBe('/');
+    expect(routes.explore({ family: 'vpn', q: '' })).toBe('/?family=vpn');
+    expect(routes.explore({ q: 'eleven labs' })).toBe('/?q=eleven+labs');
     expect(routes.search('eleven labs')).toBe('/search?q=eleven%20labs');
     expect(routes.submit()).toBe('/submit');
     expect(routes.submit('o2switch')).toBe('/submit?tool=o2switch');
@@ -24,8 +24,18 @@ describe('routes', () => {
     expect(legacyRedirects).toHaveLength(9);
   });
 
-  it('envoie l’ancienne adresse de la page Explorer sur la page principale', () => {
-    expect(movedRedirects).toEqual([{ source: '/explore', destination: '/' }]);
+  it('envoie les anciennes pages Explorer, Codes et Créateurs sur la page principale', () => {
+    for (const source of ['/explore', '/codes', '/creators']) expect(movedRedirects).toContainEqual({ source, destination: '/' });
+  });
+
+  it('envoie les anciennes pages créateur sur /@nom, que la réécriture sert depuis le dossier creators', () => {
+    expect(movedRedirects).toContainEqual({ source: '/creators/:slug', destination: '/@:slug' });
+    expect(movedRedirects).toContainEqual({ source: '/creators/:slug/:rest+', destination: '/@:slug/:rest+' });
+    expect(legacyRedirects).toContainEqual({ source: '/createurs/:slug', destination: '/@:slug' });
+    for (const rewrite of creatorRewrites) {
+      const back = movedRedirects.find(redirect => redirect.source === rewrite.destination);
+      expect(back?.destination).toBe(rewrite.source);
+    }
   });
 
   it('redirige chaque ancienne catégorie vers une catégorie qui existe dans data/', () => {
