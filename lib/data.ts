@@ -4,14 +4,22 @@ import type { CreatorLevel } from './verification';
 import type { CodeOrigin } from './code-origin';
 
 /** family : slug de la famille de la catégorie (ADR-0026), null si elle n'est pas rangée. */
-export type Category = { slug: string; name: string; family: string | null; count: number; tracked: number };
+export type Category = {
+  slug: string; name: string; family: string | null; count: number; tracked: number;
+  /** Univers de sa famille (ADR-0046), absent = « Outils en ligne ». */
+  universe?: string;
+};
 export type Tool = {
   slug: string; name: string; category: string; website: string; description: string; priority: number; codes: number;
   /** Slug de la famille de sa catégorie, absent si la catégorie n'est pas rangée. */
   family?: string;
+  /** Univers de sa famille (ADR-0046), absent = « Outils en ligne ». */
+  universe?: string;
 };
 /** Famille de catégories (Sécurité, Vidéo…), dans l'ordre du menu. */
-export type Family = { slug: string; name: string };
+export type Family = { slug: string; name: string; universe?: string };
+/** Univers du catalogue (ADR-0046) : seuls les univers visibles sont montrés sur le site. */
+export type Universe = { slug: string; name: string; visible: boolean };
 export type CodeStatus = 'verified' | 'to_test' | 'pending' | 'rejected';
 export type Code = {
   id: string; tool: string; toolSlug: string; creator: string; creatorSlug: string; code: string; discount: string; status: CodeStatus;
@@ -31,6 +39,8 @@ export type Code = {
   origin?: CodeOrigin;
   /** Nom du podcast suivi d'où vient l'épisode source (« Entendu dans GDIY, épisode #574 »). */
   podcast?: string;
+  /** Univers de l'outil (ADR-0046), absent = « Outils en ligne ». */
+  universe?: string;
 };
 export type Catalog = {
   categories: Category[];
@@ -41,6 +51,8 @@ export type Catalog = {
   codes: Code[];
   /** Nombre d'outils suivis, même sans code publié. */
   tracked: number;
+  /** Univers et leur visibilité. Absent : tout est « Outils en ligne ». */
+  universes?: Universe[];
 };
 
 /** Un code est visible sur le site s'il est vérifié ou à tester. En attente et rejeté restent dans l'admin. */

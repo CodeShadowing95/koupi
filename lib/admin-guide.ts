@@ -80,8 +80,8 @@ export const guideChapters: GuideChapter[] = [
   },
   {
     slug: 'categories', part: 'catalog', title: 'Organiser les catégories', minutes: 6,
-    summary: 'Les rayons du site : familles, création, renommage, catégories vides et recherche de codes.',
-    goals: ['Comprendre la couverture d’une catégorie', 'Ranger une catégorie dans sa famille', 'Créer ou renommer une catégorie', 'Trouver les rayons vides à remplir', 'Chercher des codes sur YouTube pour une catégorie', 'Faire ramener du neuf à chaque recherche'],
+    summary: 'Les rayons du site : univers, familles, création, renommage, catégories vides et recherche de codes.',
+    goals: ['Comprendre la couverture d’une catégorie', 'Ranger les marques qui ne sont pas des outils dans leur univers', 'Ranger une catégorie dans sa famille', 'Créer ou renommer une catégorie', 'Trouver les rayons vides à remplir', 'Chercher des codes sur YouTube pour une catégorie', 'Faire ramener du neuf à chaque recherche'],
     practice: { href: '/admin/categories', label: 'Ouvrir les catégories' },
   },
   {
@@ -104,8 +104,8 @@ export const guideChapters: GuideChapter[] = [
   },
   {
     slug: 'administration', part: 'admin', title: 'Administrer le site', minutes: 7,
-    summary: 'Mettre le site en pause, couper ou rallumer une page publique, choisir si l’IA relève les liens d’affiliation, gérer les comptes créateurs, relire le journal.',
-    goals: ['Mettre tout le site en pause et le rouvrir', 'Couper une page et savoir ce qui disparaît avec elle', 'Savoir quelles pages restent toujours en ligne', 'Allumer ou couper la lecture des liens d’affiliation', 'Désactiver, retirer l’accès ou supprimer un compte créateur', 'Relire le journal de tes gestes'],
+    summary: 'Mettre le site en pause, montrer ou cacher un univers, couper ou rallumer une page publique, choisir si l’IA relève les liens d’affiliation, gérer les comptes créateurs, relire le journal.',
+    goals: ['Mettre tout le site en pause et le rouvrir', 'Montrer ou cacher un univers sur le site', 'Couper une page et savoir ce qui disparaît avec elle', 'Savoir quelles pages restent toujours en ligne', 'Allumer ou couper la lecture des liens d’affiliation', 'Désactiver, retirer l’accès ou supprimer un compte créateur', 'Relire le journal de tes gestes'],
     practice: { href: '/admin/administration', label: 'Ouvrir l’administration' },
   },
 ];

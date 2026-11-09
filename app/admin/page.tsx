@@ -1,5 +1,5 @@
 import { getDb } from '@/db';
-import { getCatalog } from '@/lib/catalog-server';
+import { getFullCatalog } from '@/lib/catalog-server';
 import { usageGauges, usageSummary } from '@/lib/api-usage-summary';
 import type { FailedSource, Gauge } from '@/lib/admin-urgent';
 import { sourceActivity } from '@/lib/source-runs';
@@ -28,6 +28,6 @@ async function urgentInputs(): Promise<{ failedSources: FailedSource[]; gauges: 
 }
 
 export default async function Page() {
-  const [catalog, urgent] = await Promise.all([getCatalog(), urgentInputs()]);
+  const [catalog, urgent] = await Promise.all([getFullCatalog(), urgentInputs()]);
   return <DashboardView catalog={catalog} urgent={urgent} nowIso={new Date().toISOString()} />;
 }

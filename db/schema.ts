@@ -58,12 +58,28 @@ export const rateLimits = pgTable('rate_limits', {
   index('rate_limits_window_start_idx').on(table.windowStart),
 ]);
 
+// Univers (ADR-0046) : le niveau au-dessus des familles. « Outils en ligne » est la promesse du site ;
+// les autres (Beauté et soins, Mode…) sont collectés dans l'admin et restent cachés tant que visible est faux.
+export const universes = pgTable('universes', {
+  slug: text('slug').primaryKey(),
+  name: text('name').notNull().unique(),
+  position: integer('position').notNull().default(0),
+  /** Montré sur le site public. Faux par défaut : un nouvel univers reste dans l'admin. */
+  visible: boolean('visible').notNull().default(false),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  check('universes_slug_format', sql`${table.slug} ~ '^[a-z0-9]+(-[a-z0-9]+)*$'`),
+  check('universes_name_len', sql`char_length(trim(${table.name})) between 1 and 60`),
+]);
+
 // Catégories d'outils (Hébergement web, VPN et sécurité…).
 // Familles de catégories (ADR-0026) : le niveau au-dessus des catégories, qui sert de menu (Sécurité, Vidéo…).
 export const categoryFamilies = pgTable('category_families', {
   slug: text('slug').primaryKey(),
   name: text('name').notNull().unique(),
   position: integer('position').notNull().default(0),
+  /** Univers de la famille ; ses catégories et ses outils en héritent. */
+  universeSlug: text('universe_slug').notNull().default('outils-en-ligne').references(() => universes.slug, { onUpdate: 'cascade' }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, table => [
   check('category_families_slug_format', sql`${table.slug} ~ '^[a-z0-9]+(-[a-z0-9]+)*$'`),

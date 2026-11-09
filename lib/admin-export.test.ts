@@ -47,7 +47,7 @@ describe('export helpers', () => {
   });
 
   it('renders CSV as text and Excel as a zip archive', () => {
-    const sheet = categoriesSheet([{ slug: 'vpn', name: 'VPN', familySlug: 'securite', family: 'Sécurité et vie privée', tools: 4, covered: 3 }]);
+    const sheet = categoriesSheet([{ slug: 'vpn', name: 'VPN', familySlug: 'securite', family: 'Sécurité et vie privée', tools: 4, covered: 3, universe: 'outils-en-ligne' }]);
     const csv = renderExport(sheet, 'csv');
     expect(csv.contentType).toContain('text/csv');
     expect(String(csv.body)).toContain('VPN;Sécurité et vie privée;4;3;75');
@@ -74,6 +74,6 @@ describe('catalogue sheets', () => {
   });
 
   it('gives a 0 % coverage to an empty category', () => {
-    expect(categoriesSheet([{ slug: 'x', name: 'X', familySlug: null, family: null, tools: 0, covered: 0 }]).rows[0][4]).toBe(0);
+    expect(categoriesSheet([{ slug: 'x', name: 'X', familySlug: null, family: null, tools: 0, covered: 0, universe: 'outils-en-ligne' }]).rows[0][4]).toBe(0);
   });
 });
