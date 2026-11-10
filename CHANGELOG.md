@@ -2,6 +2,16 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.18.0](https://github.com/CodeShadowing95/koupi/compare/v0.17.1...v0.18.0) (2026-11-10)
+
+### Nouveautés
+
+- **season:** Blend header and footer into seasonal pages (#309) ([c6e3241](https://github.com/CodeShadowing95/koupi/commit/c6e3241c49a6a438e16078f26f811bccac605675))
+
+### Corrections
+
+- **tool-suggestions:** Add a tool in one click and prepare checks in the background (#310) ([1fc6b6d](https://github.com/CodeShadowing95/koupi/commit/1fc6b6d3fdd0aa86ac455ded6f3d72841e75ec6c))
+
 ## [0.17.1](https://github.com/CodeShadowing95/koupi/compare/v0.17.0...v0.17.1) (2026-11-09)
 
 Maintenance uniquement, aucun changement visible.

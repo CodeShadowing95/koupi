@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { getDb } from '@/db';
 import { isAdminRequest, UUID_PATTERN } from '@/lib/admin-guard';
 import { parseToolInput } from '@/lib/catalog-admin';
@@ -9,7 +9,8 @@ import { MAX_DESCRIPTION, acceptToolSuggestion, analyzeToolSuggestion, ignoreToo
 import { runVerification } from '@/lib/verification-run';
 import { verificationDeps } from '@/lib/verification-deps';
 
-export const maxDuration = 60;
+// L'ajout répond tout de suite ; les dossiers de vérification se préparent ensuite (after), dans la même limite de temps.
+export const maxDuration = 300;
 
 // Outil à ajouter :
 // { action: 'ignore' } la met de côté pour de bon ;
@@ -57,8 +58,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const result = await acceptToolSuggestion(db, id, target);
     if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });
     revalidateCatalog();
-    const deps = verificationDeps();
-    for (const codeId of result.data.codeIds) await runVerification(db, codeId, deps).catch(error => console.error('suggested code verification failed', error));
+    // Lire la source et passer l'IA prend plusieurs secondes par code : l'admin n'attend pas, le dossier arrive dans Vérifications.
+    const { codeIds } = result.data;
+    after(async () => {
+      const deps = verificationDeps();
+      for (const codeId of codeIds) await runVerification(db, codeId, deps).catch(error => console.error('suggested code verification failed', error));
+    });
     return NextResponse.json({ ok: true, ...result.data });
   } catch (error) {
     console.error('tool suggestion failed', error);
