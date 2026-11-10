@@ -122,6 +122,8 @@ export async function readPodcasts(db: Db, directory: PodcastDirectory, options:
     const fresh = episodes.filter(episode => episode.publishedAt && episode.publishedAt.getTime() >= since);
     report.episodes += fresh.length;
     const creatorId = podcast.creatorId ?? await resolveCreator(db, podcast.title);
+    // Podcast d'un créateur retiré à sa demande (ADR-0050) : rien n'est ajouté à son nom.
+    if (!creatorId) continue;
 
     for (const episode of fresh) {
       const sourceUrl = appleEpisodeRef(episode.link) ? episode.link : applePodcastUrl(podcastId, episode.id);

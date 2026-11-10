@@ -6,12 +6,13 @@ import { OFFER_LINKS_KEY, SITE_PAGES, pageSettingKey, type PageKey, type SitePag
 import { auditLabel, formatAuditDate } from '@/lib/admin-audit';
 import type { AuditEntry, SiteSwitchRow } from '@/lib/site-settings';
 import type { CreatorUserAction, CreatorUserItem } from '@/lib/creator-users-admin';
+import type { RemovedCreator } from '@/lib/removed-creators';
 import { confirmAction } from '@/components/admin-ask';
 import type { AdminUniverse, FamilyInUniverse } from '@/lib/universes-admin';
 import { DEFAULT_UNIVERSE } from '@/lib/universes';
 import { routes } from '@/lib/routes';
 
-type Props = { off: PageKey[]; maintenance: boolean; offerLinks: boolean; rows: SiteSwitchRow[]; journal: AuditEntry[]; creatorUsers: CreatorUserItem[]; universes: AdminUniverse[]; families: FamilyInUniverse[] };
+type Props = { off: PageKey[]; maintenance: boolean; offerLinks: boolean; rows: SiteSwitchRow[]; journal: AuditEntry[]; creatorUsers: CreatorUserItem[]; universes: AdminUniverse[]; families: FamilyInUniverse[]; removed: RemovedCreator[] };
 
 const USER_QUESTIONS: Record<CreatorUserAction, (user: CreatorUserItem) => string> = {
   disable: user => `Désactiver le compte ${user.email} ? Sa session s’arrête tout de suite et il ne pourra plus se connecter tant que tu ne le réactives pas.`,
@@ -30,7 +31,7 @@ function Switch({ on, label, disabled, onChange }: { on: boolean; label: string;
   );
 }
 
-export function AdministrationView({ off, maintenance, offerLinks, rows, journal, creatorUsers, universes, families }: Props) {
+export function AdministrationView({ off, maintenance, offerLinks, rows, journal, creatorUsers, universes, families, removed }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -62,6 +63,22 @@ export function AdministrationView({ off, maintenance, offerLinks, rows, journal
       const response = await fetch('/api/admin/creator-users', {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: user.id, action }),
       });
+      const body = await response.json().catch(() => ({})) as { error?: string };
+      if (!response.ok) setError(body.error || 'Le changement n’a pas pu être enregistré.');
+      else router.refresh();
+    } catch {
+      setError('Le changement n’a pas pu être enregistré. Vérifie ta connexion.');
+    }
+    setBusy(null);
+  }
+
+  async function unremove(item: RemovedCreator) {
+    const question = `Sortir ${item.name} de la liste des créateurs retirés ? Merkod pourra de nouveau créer sa page à partir de ses vidéos, des imports ou des propositions. Fais-le seulement s’il t’a écrit qu’il est d’accord.`;
+    if (!(await confirmAction(question, { confirmLabel: 'Sortir de la liste', danger: true }))) return;
+    setBusy(item.id);
+    setError('');
+    try {
+      const response = await fetch(`/api/admin/removed-creators/${item.id}`, { method: 'DELETE' });
       const body = await response.json().catch(() => ({})) as { error?: string };
       if (!response.ok) setError(body.error || 'Le changement n’a pas pu être enregistré.');
       else router.refresh();
@@ -257,6 +274,33 @@ export function AdministrationView({ off, maintenance, offerLinks, rows, journal
                             <button type="button" className="adm-btn adm-btn-danger" disabled={busy !== null} onClick={() => userAction(user, 'delete')}>Supprimer</button>
                           </div>
                         </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+        </section>
+
+        <section className="adm-admin-block" aria-labelledby="removed-title">
+          <div className="adm-admin-block-head">
+            <h2 id="removed-title">Créateurs retirés</h2>
+            <span className="muted">{removed.length === 0 ? 'Personne' : `${removed.length} créateur${removed.length > 1 ? 's' : ''}`}</span>
+          </div>
+          <p className="adm-admin-note">Les créateurs supprimés à leur demande (bouton « Supprimer » d’une fiche créateur). Merkod ne recrée jamais leur page tout seul : ni les chaînes suivies, ni la recherche YouTube, ni les compilations, ni les imports, ni les propositions. On ne garde que leur nom, l’identifiant de leur chaîne et la date. S’ils s’inscrivent et prouvent leur chaîne par la bio, ils sortent de la liste tout seuls.</p>
+          {removed.length === 0
+            ? <p className="muted">Aucun créateur n’a demandé à être retiré.</p>
+            : (
+              <div className="adm-table-wrap">
+                <table className="adm-table">
+                  <thead><tr><th scope="col">Créateur</th><th scope="col">Chaînes bloquées</th><th scope="col">Retiré le</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
+                  <tbody>
+                    {removed.map(item => (
+                      <tr key={item.id}>
+                        <td><b>{item.name}</b></td>
+                        <td className="adm-cell-muted">{item.channels || '—'}</td>
+                        <td className="adm-cell-nowrap adm-cell-muted">{formatAuditDate(item.removedAt)}</td>
+                        <td><div className="adm-users-actions"><button type="button" className="adm-btn" disabled={busy !== null} onClick={() => unremove(item)}>Sortir de la liste</button></div></td>
                       </tr>
                     ))}
                   </tbody>

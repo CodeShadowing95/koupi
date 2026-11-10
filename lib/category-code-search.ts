@@ -205,13 +205,16 @@ export async function searchCategoryCodes(db: Db, youtube: YoutubeSearch, option
       const scan = { found: forVideo(merged.found), unknown: forVideo(merged.unknown) };
       let codesForVideo = 0;
       if (scan.found.length > 0 || scan.unknown.length > 0) {
-        const creatorId = await resolveCreator(db, video.channelTitle || 'Chaîne YouTube');
+        const creatorId = await resolveCreator(db, video.channelTitle || 'Chaîne YouTube', video.channelId);
         for (const found of scan.found) {
           // Code attribué à un autre créateur que la chaîne (vidéo « compilation ») : crédité à ce créateur.
           const other = await creditedCreator(db, options.creators ?? null, found.creator, video.channelTitle, credited, now);
           if (other) report.units += other.units;
+          // Créateur retiré à sa demande (ADR-0050), la chaîne ou celui que la compilation crédite : rien à son nom.
+          const target = other ? other.creatorId : creatorId;
+          if (!target) continue;
           const codeId = await addPendingCode(db, {
-            toolId: found.toolId, creatorId: other?.creatorId ?? creatorId, code: found.code, link: found.link, discount: found.discount, sourceUrl, sourceTitle: video.title,
+            toolId: found.toolId, creatorId: target, code: found.code, link: found.link, discount: found.discount, sourceUrl, sourceTitle: video.title,
             note: other ? compilationNote(video.channelTitle, other.name, found.evidence) : `Trouvé par la recherche « ${query} » : « ${found.evidence} »`,
             expiresOn: found.expiresOn, origin: 'youtube_search',
           }, `${origin} : ${label}`);
@@ -223,6 +226,7 @@ export async function searchCategoryCodes(db: Db, youtube: YoutubeSearch, option
         for (const item of scan.unknown) {
           const other = await creditedCreator(db, options.creators ?? null, item.creator, video.channelTitle, credited, now);
           if (other) report.units += other.units;
+          if (other ? !other.creatorId : !creatorId) continue;
           const inserted = await db.insert(toolSuggestions).values({
             name: clip(item.name, 120), domain: item.domain, code: item.code || null, link: item.link || null, discount: item.discount, evidence: item.evidence,
             sourceUrl, sourceTitle: clip(video.title, 300), creatorId: other?.creatorId ?? creatorId,

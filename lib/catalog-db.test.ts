@@ -8,7 +8,7 @@ import type { Db } from '@/db';
 import * as schema from '@/db/schema';
 import { loadCatalog } from './catalog-db';
 import { importCatalog } from './catalog-import';
-import { buildCatalog } from '../scripts/build-catalog.mjs';
+import { buildCatalog, slugify } from '../scripts/build-catalog.mjs';
 
 const input = {
   toolsCsv: readFileSync('data/outils-v0.csv', 'utf8'),
@@ -58,6 +58,15 @@ describe('catalogue en base', () => {
     expect(catalog.codes.find(code => code.id === first.id)?.discount).toBe('-50 % (corrigé)');
     expect(catalog.codes.some(code => code.id === second.id)).toBe(false);
     expect(catalog.codes).toHaveLength(files.codes.length - 1);
+  });
+
+  it('ne recrée ni la page ni les codes d’un créateur retiré à sa demande', async () => {
+    const victim = files.codes[0];
+    await db.insert(schema.removedCreators).values({ name: victim.creator, slug: slugify(victim.creator), importKeys: [victim.id] });
+    await importCatalog(db, input);
+    const catalog = await loadCatalog(db);
+    expect(catalog.codes.some(code => code.creator === victim.creator)).toBe(false);
+    expect((await db.select().from(schema.creators)).some(row => row.name === victim.creator)).toBe(false);
   });
 
   it('ne publie un outil que s’il a un code visible', async () => {

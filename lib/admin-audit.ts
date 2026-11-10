@@ -12,6 +12,8 @@ const LABELS: Record<string, string> = {
   creator_access_removed: 'Accès à la page retiré :',
   creator_deleted: 'Compte créateur supprimé :',
   creator_link_invite: 'Invitation à relier sa page envoyée :',
+  creator_delete: 'Créateur supprimé à sa demande :',
+  creator_unremove: 'Sorti de la liste des créateurs retirés :',
   universe_on: 'Univers allumé sur le site :',
   universe_off: 'Univers éteint sur le site :',
   universe_sorted: 'Rangées dans leur univers :',

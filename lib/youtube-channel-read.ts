@@ -203,7 +203,9 @@ export async function readYoutubeChannels(db: Db, youtube: YoutubeChannels, opti
       continue;
     }
     report.videos += videos.length;
-    const creatorId = channel.creatorId ?? await resolveCreator(db, channel.title);
+    const creatorId = channel.creatorId ?? await resolveCreator(db, channel.title, channel.externalId);
+    // Chaîne d'un créateur retiré à sa demande (ADR-0050) : rien n'est ajouté à son nom.
+    if (!creatorId) continue;
 
     const readVideo = async (video: FoundVideo) => {
       const sourceUrl = `https://www.youtube.com/watch?v=${video.id}`;
@@ -214,6 +216,7 @@ export async function readYoutubeChannels(db: Db, youtube: YoutubeChannels, opti
         // Code attribué à un autre créateur que la chaîne (vidéo « compilation ») : crédité à ce créateur.
         const other = await creditedCreator(db, options.creators ?? null, found.creator, channel.title, credited, now);
         if (other) report.units += other.units;
+        if (other && !other.creatorId) continue;
         const codeId = await addPendingCode(db, {
           toolId: found.toolId, creatorId: other?.creatorId ?? creatorId, code: found.code, link: found.link, discount: found.discount, sourceUrl, sourceTitle: video.title,
           note: other ? compilationNote(channel.title, other.name, found.evidence) : `Trouvé dans une vidéo de la chaîne suivie ${channel.title} : « ${found.evidence} »`,
@@ -227,6 +230,7 @@ export async function readYoutubeChannels(db: Db, youtube: YoutubeChannels, opti
       for (const item of scan.unknown) {
         const other = await creditedCreator(db, options.creators ?? null, item.creator, channel.title, credited, now);
         if (other) report.units += other.units;
+        if (other && !other.creatorId) continue;
         const inserted = await db.insert(toolSuggestions).values({
           name: clip(item.name, 120), domain: item.domain, code: item.code || null, link: item.link || null, discount: item.discount, evidence: item.evidence,
           sourceUrl, sourceTitle: clip(video.title, 300), creatorId: other?.creatorId ?? creatorId,

@@ -4,6 +4,7 @@
 import type { Db } from '@/db';
 import { categories, codes, creators, tools } from '@/db/schema';
 import { buildCatalog, parseCsv, slugify } from '../scripts/build-catalog.mjs';
+import { loadRemovedSet } from './removed-creators';
 
 export type ImportInput = Parameters<typeof buildCatalog>[0];
 export type ImportResult = { categories: number; tools: number; creators: number; codes: number };
@@ -39,14 +40,17 @@ export async function importCatalog(db: Db, input: ImportInput): Promise<ImportR
     ? await db.insert(tools).values(toolValues).onConflictDoNothing().returning({ id: tools.id })
     : [];
 
-  const creatorNames = [...new Map(built.codes.map(code => [slugify(code.creator), code.creator])).entries()].filter(([slug]) => slug);
+  // Créateurs retirés à leur demande (ADR-0050) : ni leur page ni leurs codes ne reviennent par l'import.
+  const removed = await loadRemovedSet(db);
+  const kept = built.codes.filter(code => !removed.importKeys.has(code.id) && !removed.slugs.has(slugify(code.creator)));
+  const creatorNames = [...new Map(kept.map(code => [slugify(code.creator), code.creator])).entries()].filter(([slug]) => slug);
   const insertedCreators = creatorNames.length
     ? await db.insert(creators).values(creatorNames.map(([slug, name], i) => ({ slug, name, ...at(i) }))).onConflictDoNothing().returning({ id: creators.id })
     : [];
   const creatorIds = new Map((await db.select({ id: creators.id, slug: creators.slug }).from(creators)).map(row => [row.slug, row.id]));
 
   const toolIds = new Map((await db.select({ id: tools.id, name: tools.name }).from(tools)).map(row => [row.name.toLowerCase(), row.id]));
-  const codeValues = built.codes.flatMap(code => {
+  const codeValues = kept.flatMap(code => {
     const toolId = toolIds.get(code.tool.toLowerCase());
     const creatorId = creatorIds.get(slugify(code.creator));
     if (!toolId || !creatorId || !isHttp(code.source)) return [];

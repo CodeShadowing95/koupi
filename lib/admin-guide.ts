@@ -105,7 +105,7 @@ export const guideChapters: GuideChapter[] = [
   {
     slug: 'administration', part: 'admin', title: 'Administrer le site', minutes: 7,
     summary: 'Mettre le site en pause, montrer ou cacher un univers, couper ou rallumer une page publique, choisir si l’IA relève les liens d’affiliation, gérer les comptes créateurs, relire le journal.',
-    goals: ['Mettre tout le site en pause et le rouvrir', 'Montrer ou cacher un univers sur le site', 'Couper une page et savoir ce qui disparaît avec elle', 'Savoir quelles pages restent toujours en ligne', 'Allumer ou couper la lecture des liens d’affiliation', 'Désactiver, retirer l’accès ou supprimer un compte créateur', 'Relire le journal de tes gestes'],
+    goals: ['Mettre tout le site en pause et le rouvrir', 'Montrer ou cacher un univers sur le site', 'Couper une page et savoir ce qui disparaît avec elle', 'Savoir quelles pages restent toujours en ligne', 'Allumer ou couper la lecture des liens d’affiliation', 'Désactiver, retirer l’accès ou supprimer un compte créateur', 'Comprendre la liste des créateurs retirés', 'Relire le journal de tes gestes'],
     practice: { href: '/admin/administration', label: 'Ouvrir l’administration' },
   },
 ];

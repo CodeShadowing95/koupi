@@ -1,13 +1,14 @@
 // Supprimer un créateur (ADR-0048) : quand un créateur demande à ne plus figurer sur Merkod, l'admin efface
 // sa page et tout ce qui la concerne. Contrairement à l'archivage, rien n'est gardé : codes, historique des codes,
 // liens d'offre, propositions liées, comptes reliés, chaînes suivies, photo, accès au studio.
-// Les outils restent : ils appartiennent aux marques et d'autres créateurs peuvent y avoir des codes.
-import { eq, inArray, or } from 'drizzle-orm';
+// Le créateur entre dans la liste des créateurs retirés (ADR-0050). Les outils restent : ils appartiennent aux marques et d'autres créateurs peuvent y avoir des codes.
+import { and, eq, inArray, or } from 'drizzle-orm';
 import type { Db } from '@/db';
 import {
-  codeLogs, codes, creatorSignInTokens, creatorUsers, creators, submissions, toolSuggestions, verificationChecks, watchedSources,
+  codeLogs, codes, creatorAccounts, creatorSignInTokens, creatorUsers, creators, submissions, toolSuggestions, verificationChecks, watchedSources,
 } from '@/db/schema';
 import { logAdminAction } from './site-settings';
+import { rememberRemoval } from './removed-creators';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -29,9 +30,16 @@ export async function deleteCreator(db: Db, id: string, confirmName: unknown): P
   if (!creator) return { ok: false, error: 'Créateur introuvable.' };
   if (!confirmsCreatorName(confirmName, creator.name)) return { ok: false, error: 'Tape le nom exact du créateur pour confirmer.' };
 
-  const own = await db.select({ id: codes.id, submissionId: codes.submissionId }).from(codes).where(eq(codes.creatorId, id));
+  const own = await db.select({ id: codes.id, submissionId: codes.submissionId, importKey: codes.importKey }).from(codes).where(eq(codes.creatorId, id));
   const codeIds = own.map(code => code.id);
   const submissionIds = own.map(code => code.submissionId).filter((value): value is string => Boolean(value));
+
+  // D'abord la liste des créateurs retirés (ADR-0050) : même si la suite échoue, Merkod ne le recrée plus tout seul.
+  const channels = [
+    ...(await db.select({ externalId: creatorAccounts.externalId }).from(creatorAccounts).where(and(eq(creatorAccounts.creatorId, id), eq(creatorAccounts.platform, 'youtube')))),
+    ...(await db.select({ externalId: watchedSources.externalId }).from(watchedSources).where(and(eq(watchedSources.creatorId, id), eq(watchedSources.platform, 'youtube')))),
+  ].map(row => row.externalId).filter((value): value is string => Boolean(value));
+  await rememberRemoval(db, { name: creator.name, slug: creator.slug, channelIds: channels, importKeys: own.map(code => code.importKey).filter((value): value is string => Boolean(value)) });
 
   if (codeIds.length) {
     await db.delete(codeLogs).where(inArray(codeLogs.codeId, codeIds));

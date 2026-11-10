@@ -233,7 +233,7 @@ export function CreatorsView({ creators, toLink, missingPhotos, followed, youtub
           </>}
         </AdminDrawer>
         <FormDialog open={removing !== null} title={`Supprimer ${removing?.name ?? ''}`} submitLabel="Supprimer pour de bon"
-          intro={<>Quand un créateur demande à ne plus figurer sur Merkod. Tout est effacé, sans retour possible : sa page et sa page Black Friday, ses {removing?.codes ?? 0} code{(removing?.codes ?? 0) > 1 ? 's' : ''} et leur historique, ses liens d’offre, ses comptes reliés, sa photo, les chaînes suivies pour lui et son accès au studio. Les outils restent, car d’autres créateurs peuvent y avoir des codes.</>}
+          intro={<>Quand un créateur demande à ne plus figurer sur Merkod. Tout est effacé, sans retour possible : sa page et sa page Black Friday, ses {removing?.codes ?? 0} code{(removing?.codes ?? 0) > 1 ? 's' : ''} et leur historique, ses liens d’offre, ses comptes reliés, sa photo, les chaînes suivies pour lui et son accès au studio. Les outils restent, car d’autres créateurs peuvent y avoir des codes. Il entre dans la liste des créateurs retirés (Administration) : Merkod ne recréera plus sa page tout seul.</>}
           danger onClose={() => setRemoving(null)}
           onSubmit={() => sendJson(`/api/admin/creators/${removing?.id}`, 'DELETE', { confirmName })}>
           <div className="field adm-span-2">
