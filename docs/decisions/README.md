@@ -47,5 +47,6 @@ Chaque décision importante est notée ici dans un fichier numéroté. On ne sup
 | [0044](0044-relier-la-page-provisoire.md) | Une page provisoire est fusionnée dans la vraie page une fois celle-ci prouvée | Acceptée |
 | [0045](0045-design-accessible-clair-sombre.md) | Site public « Comptoir clair » accessible, clair par défaut et sombre au choix | Proposée |
 | [0046](0046-univers-du-catalogue.md) | Univers du catalogue : les marques hors outils gardées dans l’admin et cachées sur le site | Proposée |
+| [0049](0049-regle-des-30-jours-youtube.md) | Règle des 30 jours de l’API YouTube : relire chaque semaine, effacer ce qui est périmé | Acceptée |
 
 Modèle : copier [`template.md`](template.md).

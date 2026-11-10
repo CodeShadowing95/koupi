@@ -17,7 +17,7 @@ const EXTENSIONS: Record<StoredImageType, string> = { 'image/jpeg': 'jpg', 'imag
 /** Les photos de chaînes YouTube sont servies par ces domaines de Google. */
 export const YOUTUBE_IMAGE_HOSTS = ['ggpht.com', 'googleusercontent.com', 'ytimg.com'];
 
-function hostAllowed(url: string, hosts: string[]): boolean {
+export function hostAllowed(url: string, hosts: string[]): boolean {
   try {
     const parsed = new URL(url);
     const host = parsed.hostname.toLowerCase();
