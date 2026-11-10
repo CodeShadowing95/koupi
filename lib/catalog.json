@@ -977,19 +977,6 @@
    "note": "site de comparatif"
   },
   {
-   "id": "indy-lamicrobyflo",
-   "tool": "Indy",
-   "creator": "La Micro by Flo",
-   "code": "LAMICROBYFLO",
-   "discount": "Offre du créateur",
-   "status": "pending",
-   "source": "https://www.youtube.com/watch?v=iQ8NDLy9gi0",
-   "sourceTitle": "Indy : compte pro et facturation 100 % gratuits en 2026 ✅",
-   "votes": 0,
-   "success": 0,
-   "note": "outil exact à confirmer"
-  },
-  {
    "id": "jetbrains-king",
    "tool": "JetBrains",
    "creator": "AICodeKing",
