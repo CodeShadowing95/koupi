@@ -77,7 +77,8 @@ export async function setToolArchived(db: Db, id: string, archived: boolean): Pr
 
 // ---------- Créateurs ----------
 
-export type AdminCreator = { id: string; slug: string; name: string; bio: string | null; codes: number; visible: number; tools: string[] };
+/** createdAt : ajout du créateur ; lastCodeAt : son code le plus récent (dates ISO, pour trier la liste). */
+export type AdminCreator = { id: string; slug: string; name: string; bio: string | null; codes: number; visible: number; tools: string[]; createdAt: string; lastCodeAt: string | null };
 
 export async function listCreatorsAdmin(db: Db): Promise<AdminCreator[]> {
   const rows = await db.select({
@@ -85,9 +86,12 @@ export async function listCreatorsAdmin(db: Db): Promise<AdminCreator[]> {
     codes: sql<number>`count(${codes.id}) filter (where ${codes.archivedAt} is null)::int`,
     visible: sql<number>`count(${codes.id}) filter (where ${visible})::int`,
     tools: sql<string[]>`coalesce(array_agg(distinct ${tools.name}) filter (where ${tools.name} is not null and ${codes.archivedAt} is null), '{}')`,
+    createdAt: creators.createdAt,
+    lastCodeAt: sql<string | Date | null>`max(${codes.createdAt}) filter (where ${codes.archivedAt} is null)`,
   }).from(creators).leftJoin(codes, eq(codes.creatorId, creators.id)).leftJoin(tools, eq(codes.toolId, tools.id))
     .groupBy(creators.id).orderBy(asc(creators.name));
-  return rows;
+  // Neon rend les dates de sql`` en texte, PGlite en Date : on les remet toutes en ISO.
+  return rows.map(row => ({ ...row, createdAt: row.createdAt.toISOString(), lastCodeAt: row.lastCodeAt ? new Date(row.lastCodeAt).toISOString() : null }));
 }
 
 /** Modifie le profil d'un créateur : nom (orthographe, nom de chaîne) et présentation. Son adresse sur le site reste la même. */
