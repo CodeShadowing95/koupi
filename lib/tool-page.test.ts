@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Code } from './data';
-import { sortToolCodes, toolPageDescription, toolPageTitle, votesSummary } from './tool-page';
+import { searchableDiscount, sortToolCodes, toolPageDescription, toolPageTitle, votesSummary } from './tool-page';
 
 const base: Code = {
   id: '1', tool: 'NordVPN', toolSlug: 'nordvpn', creator: 'Tutorial Stack', creatorSlug: 'tutorial-stack', code: 'YTSTACK',
@@ -20,6 +20,20 @@ describe('fiche outil', () => {
   it('titre de page : outil et réduction du meilleur code', () => {
     expect(toolPageTitle('NordVPN', base, 'novembre 2026')).toBe('Code promo NordVPN novembre 2026 : 76 % + 4 mois offerts · Merkod');
     expect(toolPageTitle('NordVPN', undefined, 'novembre 2026')).toBe('Code promo NordVPN novembre 2026 · Merkod');
+  });
+
+  it('ne met pas un texte de remplacement dans le titre ni la description', () => {
+    expect(toolPageTitle('Lemfi', { discount: 'Offre du créateur' }, 'novembre 2026')).toBe('Code promo Lemfi novembre 2026 · Merkod');
+    expect(toolPageTitle('Holy', { discount: 'Voir la vidéo' }, 'novembre 2026')).toBe('Code promo Holy novembre 2026 · Merkod');
+    expect(toolPageDescription('Lemfi', { ...base, discount: 'Offre du créateur' }, 3)).toBe('Code promo Lemfi de Tutorial Stack, et 2 autres codes de créateurs. Chaque code est relié à la vidéo d’où il vient.');
+  });
+
+  it('garde une réduction qui dit ce qu’on gagne, si elle tient dans un titre', () => {
+    expect(searchableDiscount('-20 %')).toBe('-20 %');
+    expect(searchableDiscount('3 mois offerts')).toBe('3 mois offerts');
+    expect(searchableDiscount('Essai gratuit prolongé')).toBe('Essai gratuit prolongé');
+    expect(searchableDiscount('Offre partenaire')).toBeNull();
+    expect(searchableDiscount('20 % sur tous les plans annuels et mensuels, sans engagement')).toBeNull();
   });
 
   it('description : créateur, réduction et niveau de vérification', () => {

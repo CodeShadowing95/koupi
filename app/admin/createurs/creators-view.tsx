@@ -83,6 +83,8 @@ export function CreatorsView({ creators, toLink, missingPhotos, followed, youtub
   // Onglet du panneau : on revient sur l'aperçu à chaque créateur ouvert.
   const [tab, setTab] = useState<CreatorTab>('overview');
   useEffect(() => { setTab('overview'); }, [selectedId]);
+  const [removing, setRemoving] = useState<Creator | null>(null);
+  const [confirmName, setConfirmName] = useState('');
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
   const [extra, setExtra] = useState<CreatorFilters>(NO_FILTERS);
@@ -190,6 +192,7 @@ export function CreatorsView({ creators, toLink, missingPhotos, followed, youtub
           aside={selected && (selected.visible > 0 ? <StatusDot tone="ok">Sur le site</StatusDot> : <StatusDot tone="muted">Masqué</StatusDot>)}
           actions={selected && <>
             <a className="adm-btn" href={`/admin/codes?q=${encodeURIComponent(selected.name)}`}>Voir ses codes</a>
+            <button type="button" className="adm-btn adm-btn-danger" onClick={() => { setConfirmName(''); setRemoving(selected); }}>Supprimer</button>
             <span style={{ flex: 1 }} />
             <button type="button" className="adm-btn adm-btn-pri" onClick={() => open(selected)}>Modifier le profil</button>
           </>}>
@@ -229,6 +232,15 @@ export function CreatorsView({ creators, toLink, missingPhotos, followed, youtub
               extra={<div className="adm-ca-photo"><span className="muted">Photo du créateur : celle de sa chaîne YouTube, ou la pochette de son podcast.</span><RefreshAvatarButton creatorId={selected.id} source={selected.accounts.some(account => account.platform === 'youtube' && Boolean(account.externalId)) ? 'youtube' : selected.accounts.some(account => account.platform === 'podcast' && Boolean(account.externalId)) ? 'podcast' : null} youtubeReady={youtubeReady} /></div>} />}
           </>}
         </AdminDrawer>
+        <FormDialog open={removing !== null} title={`Supprimer ${removing?.name ?? ''}`} submitLabel="Supprimer pour de bon"
+          intro={<>Quand un créateur demande à ne plus figurer sur Merkod. Tout est effacé, sans retour possible : sa page et sa page Black Friday, ses {removing?.codes ?? 0} code{(removing?.codes ?? 0) > 1 ? 's' : ''} et leur historique, ses liens d’offre, ses comptes reliés, sa photo, les chaînes suivies pour lui et son accès au studio. Les outils restent, car d’autres créateurs peuvent y avoir des codes.</>}
+          danger onClose={() => setRemoving(null)}
+          onSubmit={() => sendJson(`/api/admin/creators/${removing?.id}`, 'DELETE', { confirmName })}>
+          <div className="field adm-span-2">
+            <label htmlFor="creator-delete-name">Tape <b>{removing?.name}</b> pour confirmer</label>
+            <input id="creator-delete-name" value={confirmName} onChange={event => setConfirmName(event.target.value)} required autoComplete="off" spellCheck={false} />
+          </div>
+        </FormDialog>
         <FormDialog open={editing !== null} title={`Profil de ${editing?.name ?? ''}`} intro="Le nom et la présentation s’affichent en haut de sa page publique. L’adresse de sa page ne change pas."
           onClose={() => setEditing(null)} onSubmit={() => sendJson(`/api/admin/creators/${editing?.id}`, 'PATCH', { name, bio })}>
           <div className="field adm-span-2"><label htmlFor="creator-name">Nom</label><input id="creator-name" value={name} onChange={event => setName(event.target.value)} required maxLength={160} /></div>
