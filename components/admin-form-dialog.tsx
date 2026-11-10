@@ -17,8 +17,10 @@ export async function sendJson(url: string, method: string, body: unknown): Prom
   }
 }
 
-export function FormDialog({ open, title, intro, submitLabel = 'Enregistrer', onClose, onSubmit, extra, children }: {
+export function FormDialog({ open, title, intro, submitLabel = 'Enregistrer', danger = false, onClose, onSubmit, extra, children }: {
   open: boolean; title: string; intro?: React.ReactNode; submitLabel?: string; onClose: () => void;
+  /** Action sans retour (suppression) : bouton rouge. */
+  danger?: boolean;
   onSubmit: () => Promise<string | null>; extra?: React.ReactNode; children: React.ReactNode;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -55,7 +57,7 @@ export function FormDialog({ open, title, intro, submitLabel = 'Enregistrer', on
             {extra}
             <span style={{ flex: 1 }} />
             <button type="button" className="adm-btn" onClick={() => dialog.current?.close()}>Annuler</button>
-            <button type="submit" className="adm-btn adm-btn-pri" disabled={saving}>{saving ? 'Enregistrement…' : submitLabel}</button>
+            <button type="submit" className={danger ? 'adm-btn adm-btn-danger-solid' : 'adm-btn adm-btn-pri'} disabled={saving}>{saving ? 'Enregistrement…' : submitLabel}</button>
           </div>
         </form>
       )}
