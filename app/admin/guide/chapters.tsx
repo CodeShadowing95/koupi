@@ -813,6 +813,7 @@ function Administration() {
     </Section>
     <Section id="retires" title="Les créateurs retirés">
       <p>Un créateur supprimé à sa demande (bouton <b>Supprimer</b> de sa fiche, dans <Link href="/admin/createurs">Créateurs</Link>) arrive dans <b>Créateurs retirés</b>. Tant qu’il y est, Merkod ne recrée jamais sa page tout seul : ni par les chaînes suivies, ni par la recherche YouTube, ni par une compilation, ni par l’import, et un code proposé à son nom est refusé.</p>
+      <p>Un créateur qui n’a pas (ou plus) de page mais demande à ne jamais y figurer s’ajoute à la main : son nom, et si tu l’as l’identifiant de sa chaîne (il commence par « UC », visible dans l’adresse de la chaîne ou dans sa fiche), puis <b>Ajouter à la liste</b>.</p>
       <p>Il en sort tout seul s’il s’inscrit et prouve sa chaîne par la bio. <b>Sortir de la liste</b> le fait à la main : seulement s’il t’a écrit qu’il est d’accord.</p>
     </Section>
     <Section id="journal" title="Le journal">

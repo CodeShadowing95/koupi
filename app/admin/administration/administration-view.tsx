@@ -72,6 +72,23 @@ export function AdministrationView({ off, maintenance, offerLinks, rows, journal
     setBusy(null);
   }
 
+  const [removedName, setRemovedName] = useState('');
+  const [removedChannel, setRemovedChannel] = useState('');
+  async function addRemoved(event: React.FormEvent) {
+    event.preventDefault();
+    setBusy('removed-add');
+    setError('');
+    try {
+      const response = await fetch('/api/admin/removed-creators', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: removedName, channelId: removedChannel }) });
+      const body = await response.json().catch(() => ({})) as { error?: string };
+      if (!response.ok) setError(body.error || 'Le changement n’a pas pu être enregistré.');
+      else { setRemovedName(''); setRemovedChannel(''); router.refresh(); }
+    } catch {
+      setError('Le changement n’a pas pu être enregistré. Vérifie ta connexion.');
+    }
+    setBusy(null);
+  }
+
   async function unremove(item: RemovedCreator) {
     const question = `Sortir ${item.name} de la liste des créateurs retirés ? Merkod pourra de nouveau créer sa page à partir de ses vidéos, des imports ou des propositions. Fais-le seulement s’il t’a écrit qu’il est d’accord.`;
     if (!(await confirmAction(question, { confirmLabel: 'Sortir de la liste', danger: true }))) return;
@@ -288,6 +305,13 @@ export function AdministrationView({ off, maintenance, offerLinks, rows, journal
             <span className="muted">{removed.length === 0 ? 'Personne' : `${removed.length} créateur${removed.length > 1 ? 's' : ''}`}</span>
           </div>
           <p className="adm-admin-note">Les créateurs supprimés à leur demande (bouton « Supprimer » d’une fiche créateur). Merkod ne recrée jamais leur page tout seul : ni les chaînes suivies, ni la recherche YouTube, ni les compilations, ni les imports, ni les propositions. On ne garde que leur nom, l’identifiant de leur chaîne et la date. S’ils s’inscrivent et prouvent leur chaîne par la bio, ils sortent de la liste tout seuls.</p>
+          <form className="adm-removed-add" onSubmit={addRemoved}>
+            <label htmlFor="removed-name" className="sr-only">Nom du créateur</label>
+            <input id="removed-name" value={removedName} onChange={event => setRemovedName(event.target.value)} placeholder="Nom du créateur" required maxLength={160} autoComplete="off" />
+            <label htmlFor="removed-channel" className="sr-only">Identifiant de sa chaîne YouTube (facultatif)</label>
+            <input id="removed-channel" value={removedChannel} onChange={event => setRemovedChannel(event.target.value)} placeholder="Identifiant de chaîne UC… (facultatif)" maxLength={24} autoComplete="off" spellCheck={false} />
+            <button type="submit" className="adm-btn" disabled={busy !== null || !removedName.trim()}>Ajouter à la liste</button>
+          </form>
           {removed.length === 0
             ? <p className="muted">Aucun créateur n’a demandé à être retiré.</p>
             : (

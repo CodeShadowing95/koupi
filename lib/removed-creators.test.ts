@@ -8,7 +8,7 @@ import { createTool } from './catalog-admin';
 import { createCode, resolveCreator } from './codes-admin';
 import { deleteCreator } from './creator-delete';
 import { creditedCreator } from './compilation-creator';
-import { isRemovedCreator, liftRemovalForAccount, listRemovedCreators, REMOVED_CREATOR_ERROR, unremoveCreator } from './removed-creators';
+import { addRemovedCreator, isRemovedCreator, liftRemovalForAccount, listRemovedCreators, REMOVED_CREATOR_ERROR, unremoveCreator } from './removed-creators';
 
 describe('créateurs retirés à leur demande', () => {
   let db: Db;
@@ -61,5 +61,17 @@ describe('créateurs retirés à leur demande', () => {
     expect(await db.select().from(schema.removedCreators)).toHaveLength(0);
     const log = await db.select().from(schema.adminAuditLog);
     expect(log.map(entry => entry.action)).toContain('creator_unremove');
+  });
+});
+
+describe('ajout à la main', () => {
+  it('ajoute un créateur déjà effacé, refuse un identifiant de chaîne invalide', async () => {
+    const db = drizzle(new PGlite(), { schema }) as unknown as Db;
+    await migrate(db as never, { migrationsFolder: 'db/migrations' });
+    expect(await addRemovedCreator(db, 'Zoé', 'pas-une-chaine')).toMatchObject({ ok: false });
+    expect(await addRemovedCreator(db, '  Zoé  ', 'UCabcdefghijklmnopqrstuv')).toEqual({ ok: true });
+    expect(await isRemovedCreator(db, { name: 'zoe' })).toBe(true);
+    expect(await isRemovedCreator(db, { channelId: 'UCabcdefghijklmnopqrstuv' })).toBe(true);
+    expect((await db.select().from(schema.adminAuditLog)).map(entry => entry.action)).toEqual(['creator_remove']);
   });
 });
