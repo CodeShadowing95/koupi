@@ -1,9 +1,10 @@
-// Bannière saisonnière d'Explorer : Black Friday du 1er novembre au Cyber Monday, puis Noël jusqu'au 25 décembre.
-// Elle mène à la page de la saison (/black-friday, /noel) et montre quelques vrais outils avec leur réduction.
+// Bannière saisonnière d'Explorer : Black Friday du 1er novembre au Cyber Monday, Noël jusqu'au 25 décembre, puis les
+// soldes d'hiver jusqu'à leur dernier jour. Elle mène à la page de la saison (/black-friday, /noel, /soldes) et montre quelques vrais outils avec leur réduction.
 import { blackFridayDate, cyberMondayDate } from './black-friday';
 import { christmasDate } from './christmas';
+import { winterSalesEnd, winterSalesStart } from './sales';
 
-export type Season = { kind: 'black-friday' | 'christmas'; year: number; /** Jours avant le jour J, 0 le jour même ou après. */ daysLeft: number };
+export type Season = { kind: 'black-friday' | 'christmas' | 'sales'; year: number; /** Jours avant le jour J, 0 le jour même ou après. */ daysLeft: number };
 
 const DAY = 86_400_000;
 const dayStart = (date: Date) => Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
@@ -22,6 +23,9 @@ export function currentSeason(now: Date): Season | null {
   const daysLeft = (target: number) => Math.max(0, Math.round((target - today) / DAY));
   if (today >= Date.UTC(year, 10, 1) && today <= monday) return { kind: 'black-friday', year, daysLeft: daysLeft(friday) };
   if (today > monday && today <= christmas) return { kind: 'christmas', year, daysLeft: daysLeft(christmas) };
+  // Les soldes de janvier : annoncés dès le lendemain de Noël, montrés jusqu'à leur dernier jour.
+  const sales = today > christmas ? year + 1 : year;
+  if (today > christmas || today <= winterSalesEnd(sales).getTime()) return { kind: 'sales', year: sales, daysLeft: daysLeft(winterSalesStart(sales).getTime()) };
   return null;
 }
 

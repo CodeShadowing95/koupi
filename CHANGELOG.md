@@ -2,6 +2,13 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.19.0](https://github.com/CodeShadowing95/koupi/compare/v0.18.0...v0.19.0) (2026-11-10)
+
+### Nouveautés
+
+- **season:** Add a winter sales page (#314) ([7c2941e](https://github.com/CodeShadowing95/koupi/commit/7c2941e84c0d454bcf9951b95ac44df59eb1eb45))
+- **creators:** Separate unchecked creators and sort the list by date (#313) ([cb1a2c9](https://github.com/CodeShadowing95/koupi/commit/cb1a2c96d24cdb7afb3636c3a7cc5cea2b061b08))
+
 ## [0.18.0](https://github.com/CodeShadowing95/koupi/compare/v0.17.1...v0.18.0) (2026-11-10)
 
 ### Nouveautés

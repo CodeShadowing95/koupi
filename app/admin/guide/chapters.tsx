@@ -502,7 +502,7 @@ function Createurs() {
         { term: <StatusDot tone="ok">{CREATOR_LEVEL_LABELS.checked}</StatusDot>, meaning: `Tu as contrôlé un de ses comptes et il a au moins ${MIN_SUBSCRIBERS} abonnés (ou, pour un podcast, au moins ${MIN_RATINGS} notes sur Apple Podcasts), ou ce compte a le badge certifié du réseau.` },
         { term: <StatusDot tone="info">{CREATOR_LEVEL_LABELS.verified}</StatusDot>, meaning: 'Le créateur a prouvé lui-même, avec un code dans sa bio (voir plus bas), qu’un compte « Contrôlé par Merkod » est à lui. La preuve sur un compte sous le seuil d’audience ne compte pas.' },
       ]} />
-      <p>Le filtre <b>À contrôler</b> liste les créateurs déjà sur le site mais encore repérés : commence par eux.</p>
+      <p>Le filtre <b>À contrôler</b> liste les créateurs déjà sur le site dont aucun compte n’a encore la case <b>J’ai contrôlé ce compte</b> cochée : commence par eux. Ceux que tu as déjà contrôlés mais dont l’audience reste sous le seuil (ils restent « Repéré » sur le site) sont à part, dans <b>Contrôlés, sous le seuil</b>. Pour trier par date, choisis <b>Date d’ajout</b> ou <b>Dernier code</b> dans le tri (en tableau : la colonne <b>Ajouté le</b>).</p>
       <p>Sur le site, un créateur contrôlé ou vérifié porte une coche verte à côté de son nom, et la mention <b>✓ Contrôlé par Merkod</b> (ou <b>✓ Créateur vérifié</b>) sur sa page. Un créateur repéré n’a aucune marque.</p>
     </Section>
     <Section id="comptes" title="Relier et contrôler un compte">

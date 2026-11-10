@@ -6,6 +6,7 @@ export const routes = {
   about: '/about',
   blackFriday: '/black-friday',
   christmas: '/noel',
+  sales: '/soldes',
   categories: '/categories',
   category: (slug: string) => `/categories/${slug}`,
   tool: (slug: string) => `/tools/${slug}`,

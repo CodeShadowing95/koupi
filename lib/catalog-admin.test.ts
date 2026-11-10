@@ -72,6 +72,9 @@ describe('catalogue dans l’admin', () => {
     const [creator] = await listCreatorsAdmin(db);
     expect(creator).toMatchObject({ name: 'Ana', slug: 'ana', codes: 1, visible: 1, tools: ['NordVPN'] });
     expect(creator.bio).toBeNull();
+    // Dates en ISO pour trier la liste par date d'ajout ou de dernier code.
+    expect(creator.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(creator.lastCodeAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(await updateCreatorProfile(db, creator.id, { name: 'Ana Créa', bio: '  Tests d’outils  IA.  ' })).toMatchObject({ ok: true });
     expect((await listCreatorsAdmin(db))[0]).toMatchObject({ name: 'Ana Créa', slug: 'ana', bio: 'Tests d’outils IA.' });
     expect(await updateCreatorProfile(db, creator.id, { name: '  ' })).toMatchObject({ ok: false });

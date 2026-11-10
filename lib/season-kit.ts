@@ -16,7 +16,7 @@ export function kitKindOf(value: string): KitKind | null {
 
 /** Le kit de la saison en cours, ou rien hors saison. */
 export function kitKindForSeason(season: Pick<Season, 'kind'> | null): KitKind | null {
-  if (!season) return null;
+  if (!season || season.kind === 'sales') return null;
   return season.kind === 'christmas' ? 'noel' : 'black-friday';
 }
 

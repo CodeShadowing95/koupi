@@ -20,6 +20,7 @@ export function SiteFooter({ logoDev = false }: { logoDev?: boolean }) {
               <SiteLinkItem href={routes.home}>Tous les codes</SiteLinkItem>
               <SiteLinkItem href={routes.blackFriday}>Codes Black Friday</SiteLinkItem>
               <SiteLinkItem href={routes.christmas}>Codes de Noël</SiteLinkItem>
+              <SiteLinkItem href={routes.sales}>Codes des soldes</SiteLinkItem>
               <SiteLinkItem href={routes.submit()}>Proposer un code</SiteLinkItem>
               <SiteLinkItem href={routes.forCreators()}>Pour les créateurs</SiteLinkItem>
             </ul>

@@ -14,7 +14,13 @@ describe('currentSeason', () => {
   it('passe à Noël après le Cyber Monday, jusqu’au 25 décembre', () => {
     expect(currentSeason(at('2026-12-01T08:00:00Z'))).toEqual({ kind: 'christmas', year: 2026, daysLeft: 24 });
     expect(currentSeason(at('2026-12-25T20:00:00Z'))).toEqual({ kind: 'christmas', year: 2026, daysLeft: 0 });
-    expect(currentSeason(at('2026-12-26T08:00:00Z'))).toBeNull();
+  });
+
+  it('passe aux soldes d’hiver le lendemain de Noël, jusqu’à leur dernier jour', () => {
+    expect(currentSeason(at('2026-12-26T08:00:00Z'))).toEqual({ kind: 'sales', year: 2027, daysLeft: 11 });
+    expect(currentSeason(at('2027-01-06T08:00:00Z'))).toEqual({ kind: 'sales', year: 2027, daysLeft: 0 });
+    expect(currentSeason(at('2027-02-02T20:00:00Z'))).toMatchObject({ kind: 'sales', daysLeft: 0 });
+    expect(currentSeason(at('2027-02-03T08:00:00Z'))).toBeNull();
   });
 
   it('se ferme par saison et par année', () => {
