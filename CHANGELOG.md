@@ -2,6 +2,16 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.20.0](https://github.com/CodeShadowing95/koupi/compare/v0.19.0...v0.20.0) (2026-11-10)
+
+### Nouveautés
+
+- **admin:** Add a delete button for creators who ask to be removed (#320) ([7dc06ae](https://github.com/CodeShadowing95/koupi/commit/7dc06ae6a91ce31d6cdb4813c67ee4a60915db0e))
+
+### Corrections
+
+- **seo:** Keep placeholder offers out of tool page titles (#318) ([1d6c40f](https://github.com/CodeShadowing95/koupi/commit/1d6c40f45e93a4812c165479aa3cc2bf8c82a39f))
+
 ## [0.19.0](https://github.com/CodeShadowing95/koupi/compare/v0.18.0...v0.19.0) (2026-11-10)
 
 ### Nouveautés
