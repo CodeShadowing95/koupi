@@ -17,6 +17,7 @@ describe('kitKindForSeason', () => {
   it('relie la saison du site au kit', () => {
     expect(kitKindForSeason({ kind: 'black-friday' })).toBe('black-friday');
     expect(kitKindForSeason({ kind: 'christmas' })).toBe('noel');
+    expect(kitKindForSeason({ kind: 'sales' })).toBeNull();
     expect(kitKindForSeason(null)).toBeNull();
   });
 });

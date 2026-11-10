@@ -228,6 +228,15 @@
 .k-sb-xmas .k-sb-tag-text small{color:#1F6B4C}
 .k-sb-hat{position:absolute;top:28%;left:40%;width:min(96px,22%);height:auto;transform:rotate(-14deg);filter:drop-shadow(0 14px 18px rgba(0,0,0,.35))}
 
+/* Soldes d'hiver : bordeaux profond et étiquettes de prix rouges. */
+.k-sb-sales{background:radial-gradient(circle at 78% 40%,rgba(232,71,59,.4),transparent 55%),repeating-linear-gradient(90deg,rgba(255,248,238,.03) 0 2px,transparent 2px 22px),#2A0E14}
+.k-sb-sales .k-sb-kicker b{background:#E8473B;color:#FFF8EE}
+.k-sb-sales .k-sb-title em{font-style:normal;color:#FFC46B}
+.k-sb-sales .k-sb-cta{background:#E8473B;color:#FFF8EE;box-shadow:0 10px 24px -8px rgba(232,71,59,.7)}
+.k-sb-sales .k-sb-tag{border-left:5px solid #E8473B}
+.k-sb-sales .k-sb-tag-text small{color:#B42318}
+.k-sb-sales .k-sb-percent{-webkit-text-stroke-color:rgba(255,196,107,.5)}
+
 @media (prefers-reduced-motion:reduce){.k-sb-tag{animation:none;transform:rotate(var(--tilt))}.k-sb-cta{transition:none}.k-sb-cta:hover{transform:none}}
 
 /* Écran étroit : l'affiche passe au-dessus du texte, en bande plus basse. */

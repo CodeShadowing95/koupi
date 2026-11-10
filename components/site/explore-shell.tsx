@@ -44,6 +44,13 @@ type Props = {
   children: ReactNode;
 };
 
+// Le raccourci de la saison en cours, en haut de la colonne.
+const SEASON_ITEM = {
+  'black-friday': { href: routes.blackFriday, title: 'Codes Black Friday', label: 'Black Friday', short: 'Black F.' },
+  christmas: { href: routes.christmas, title: 'Codes de Noël', label: 'Noël', short: 'Noël' },
+  sales: { href: routes.sales, title: 'Codes des soldes', label: 'Soldes', short: 'Soldes' },
+} as const;
+
 const exploreHref = (next: Partial<ExploreState>) => {
   const params = exploreToParams({ ...DEFAULT_EXPLORE, ...next }).toString();
   return params ? `${routes.home}?${params}` : routes.home;
@@ -159,10 +166,10 @@ export function ExploreShell({ codes, tools, families, now, active, onGo, search
             ))}
             {season && (
               <li>
-                <Link className="k-ex-item k-ex-season" href={season.kind === 'christmas' ? routes.christmas : routes.blackFriday} title={season.kind === 'christmas' ? 'Codes de Noël' : 'Codes Black Friday'}>
+                <Link className="k-ex-item k-ex-season" href={SEASON_ITEM[season.kind].href} title={SEASON_ITEM[season.kind].title}>
                   <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d={season.kind === 'christmas' ? 'M4 12h16v8H4zM3 8h18v4H3zM12 8v12M12 8c-2-4-6-4-6-1.5S10 8 12 8Zm0 0c2-4 6-4 6-1.5S14 8 12 8Z' : 'M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8ZM7.5 7.5h.01'} /></svg>
-                  <span className="k-ex-item-label">{season.kind === 'christmas' ? 'Noël' : 'Black Friday'}</span>
-                  <span className="k-ex-item-short" aria-hidden="true">{season.kind === 'christmas' ? 'Noël' : 'Black F.'}</span>
+                  <span className="k-ex-item-label">{SEASON_ITEM[season.kind].label}</span>
+                  <span className="k-ex-item-short" aria-hidden="true">{SEASON_ITEM[season.kind].short}</span>
                   <span className="k-ex-item-count k-ex-season-days">{season.daysLeft > 0 ? `J-${season.daysLeft}` : 'Jour J'}</span>
                 </Link>
               </li>
