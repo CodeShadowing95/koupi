@@ -1,13 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { SITE_THEME_ATTR, nextSiteTheme, readSiteTheme, saveSiteTheme, type SiteTheme } from '@/lib/site-theme';
+import { SITE_THEME_ATTR, applySiteThemeColor, nextSiteTheme, readSiteTheme, saveSiteTheme, type SiteTheme } from '@/lib/site-theme';
 
 /** Bouton clair / sombre du site public. Le thème est posé sur <html> (voir SITE_THEME_SCRIPT). */
 /** row : version ligne avec son nom, pour les tiroirs du téléphone. */
 export function ThemeToggle({ className = 'k-icon-btn', row = false }: { className?: string; row?: boolean }) {
   const [theme, setTheme] = useState<SiteTheme>('light');
-  useEffect(() => { setTheme(readSiteTheme(window.localStorage)); }, []);
+  useEffect(() => {
+    const saved = readSiteTheme(window.localStorage);
+    setTheme(saved);
+    applySiteThemeColor(document, saved);
+  }, []);
 
   const toggle = () => {
     const next = nextSiteTheme(theme);
@@ -15,6 +19,7 @@ export function ThemeToggle({ className = 'k-icon-btn', row = false }: { classNa
     saveSiteTheme(window.localStorage, next);
     if (next === 'dark') document.documentElement.setAttribute(SITE_THEME_ATTR, 'dark');
     else document.documentElement.removeAttribute(SITE_THEME_ATTR);
+    applySiteThemeColor(document, next);
   };
 
   const dark = theme === 'dark';

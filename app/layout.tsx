@@ -1,7 +1,8 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
 import { isIndexable, siteUrl } from '@/lib/seo';
 import { SITE_THEME_SCRIPT } from '@/lib/site-theme';
+import './mobile.css';
 
 // Polices hébergées dans app/fonts (voir app/fonts/README.md) : le build ne dépend pas de Google Fonts
 // et le visiteur ne fait aucun appel à Google.
@@ -19,6 +20,15 @@ export const metadata: Metadata = {
   title: 'Merkod · Le code du créateur, vérifié.',
   description: 'Trouve les codes promo partagés par les créateurs, avec leur source et les votes de la communauté.',
   icons: { icon: '/merkod-icone-512.png' },
+};
+
+// Téléphone : la page peint jusque sous l'encoche (les feuilles repoussent le contenu avec env(safe-area-inset-*)),
+// et le clavier rétrécit la page sur Android comme sur iPhone. Le zoom reste toujours permis (accessibilité).
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  interactiveWidget: 'resizes-content',
 };
 
 // Mise en page racine : seulement les polices. Le site public (app/(site)) et le back-office (app/admin)
