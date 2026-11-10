@@ -2,6 +2,17 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.21.0](https://github.com/CodeShadowing95/koupi/compare/v0.20.0...v0.21.0) (2026-11-10)
+
+### Nouveautés
+
+- **creators:** Block automatic re-creation of removed creators (#324) ([3c1ae30](https://github.com/CodeShadowing95/koupi/commit/3c1ae30191a70ad20e4ba56f4657a1714fd867c3))
+- **creators:** Refresh YouTube data weekly and purge it after 30 days (#321) ([dc932dc](https://github.com/CodeShadowing95/koupi/commit/dc932dc267487d183da1662d8e6eb8cf27742876))
+
+### Corrections
+
+- **mobile:** Make the public site feel native on phones (#325) ([efa3ae2](https://github.com/CodeShadowing95/koupi/commit/efa3ae215607cae0372b432bae0d0b464bbcd08e))
+
 ## [0.20.0](https://github.com/CodeShadowing95/koupi/compare/v0.19.0...v0.20.0) (2026-11-10)
 
 ### Nouveautés
