@@ -507,6 +507,7 @@ function Createurs() {
     </Section>
     <Section id="comptes" title="Relier et contrôler un compte">
       <Steps>
+        <Step title="Laisse l’IA chercher ses réseaux">Dans l’onglet <b>Comptes</b> du panneau, <b>✦ Trouver ses réseaux</b> : l’IA part de la description de sa chaîne YouTube, de ses comptes déjà reliés et des sources de ses codes, puis cherche sur le web ses autres comptes publics (Instagram, TikTok, YouTube, podcast, site…). Elle les propose avec l’indice qui les relie au créateur (<b>Lien officiel</b> ou <b>Probable</b>) et la page où elle les a vus. Clique <b>Relier</b> sur les bons, <b>Ignorer</b> sur les autres.</Step>
         <Step title="Relie sa chaîne">Dans le panneau du créateur, <b>Relier un compte</b>, choisis YouTube et colle le lien de la chaîne (youtube.com/@pseudo). Merkod lit son identifiant, son nom et ses abonnés. Pour TikTok, Instagram, X, Twitch et Snapchat, écris le pseudo <i>ou</i> colle le lien du profil : l’autre se remplit tout seul. Recopie aussi les abonnés affichés sur le profil.</Step>
         <Step title="Contrôle-le">Ouvre le compte : il est actif, il publie sous ce nom, ce n’est pas une copie. Coche alors <b>J’ai contrôlé ce compte</b>.</Step>
         <Step title="Coche le badge s’il y en a un">Si la chaîne affiche la coche grise de compte certifié, coche <b>Badge certifié du réseau</b>. Ce badge suffit pour passer « Contrôlé par Merkod ».</Step>
@@ -515,6 +516,7 @@ function Createurs() {
       <p><b>Les photos</b> suivent les comptes : dès qu’une chaîne YouTube est reliée, Merkod récupère sa photo de profil, la garde en base et l’affiche partout sur le site et dans l’admin. Un créateur qui n’a qu’un podcast prend la <b>pochette de son podcast</b> (Apple Podcasts), dès que tu suis le podcast ou que tu le relies. Le bouton <b>Récupérer les photos</b> en haut de la page le fait pour les créateurs qui ont une chaîne ou un podcast mais pas encore de photo (le nombre sur le bouton). Si un créateur change d’avatar, ouvre sa fiche et clique <b>Actualiser la photo</b>. Chaque lot de 50 chaînes coûte 1 unité du quota YouTube ; les pochettes sont gratuites. Les visiteurs ne contactent jamais Google : c’est Merkod qui sert l’image.</p>
       <p><b>Pays et langue</b> : pour cibler ta communication (francophones, anglophones…), chaque créateur affiche un drapeau et sa langue dans la liste, et « Pays et langue » dans sa fiche. YouTube donne le pays quand le créateur l’a rempli sur sa chaîne, et souvent la langue ; un podcast donne sa langue dans son flux. Sinon, Merkod devine la langue sur la description. Le pays d’un podcast n’est jamais public : corrige-le avec <b>Pays et langue</b> sur le compte (codes à deux lettres, ex. « BE fr ») ; une correction à la main n’est plus jamais remplacée. <b>Actualiser les comptes</b> en haut de la page relit d’un coup les abonnés, l’audience, le pays et la langue de toutes les chaînes (1 unité du quota par lot de 50) et de 15 podcasts à la fois (reclique pour les suivants).</p>
       <p><b>Actualiser</b> relit un compte à sa source. Pour une chaîne YouTube : ses abonnés, ses vues et son nombre de vidéos (1 unité du quota YouTube, sur 10 000 par jour). Pour un podcast, qui n’a pas d’abonnés publics : sa <b>note sur 5</b> et son <b>nombre de notes</b> sur Apple Podcasts, et son <b>nombre d’épisodes</b> (gratuit). Une note avec beaucoup de notes est un bon signe d’audience. Les autres réseaux se corrigent à la main avec <b>Modifier les abonnés</b>. <b>Retirer</b> enlève le compte, pas le créateur ni ses codes.</p>
+      <Callout tone="why">« Trouver ses réseaux » coûte quelques centimes par créateur (au plus 3 recherches web à 1 centime, plus la lecture par l’IA : environ 4 centimes), comptés dans le plafond du mois. Merkod ne lit jamais les pages Instagram ou TikTok elles-mêmes, leurs règles l’interdisent : les abonnés affichés viennent des résultats de recherche et sont repris tels quels quand tu relies le compte, vérifie-les sur le profil avant de cocher <b>J’ai contrôlé ce compte</b>. Un compte relié par l’IA n’est jamais contrôlé d’office.</Callout>
       <Callout tone="warn">Un même compte ne peut être relié qu’à un seul créateur. Si Merkod refuse, il te dit à qui il est déjà relié : c’est souvent un doublon de nom à corriger.</Callout>
     </Section>
     <Section id="suivre" title="Suivre les vidéos d’une chaîne">
@@ -562,6 +564,16 @@ function Createurs() {
       </Steps>
       <Callout tone="warn">Une revendication ne prouve rien à elle seule : n’importe qui peut écrire « je suis MrBeast ». Ne change jamais le niveau d’un créateur sur la seule foi d’un e-mail : demande-lui la preuve par la bio.</Callout>
       <Callout tone="why">Une revendication, c’est un créateur qui vient de lui-même. C’est le meilleur moment pour lui répondre vite et lui montrer ce que Merkod fait pour lui.</Callout>
+    </Section>
+    <Section id="supprimer" title="Supprimer un créateur qui le demande">
+      <p>Un créateur peut te demander de ne plus figurer sur Merkod et d’effacer ce qui le concerne. Réponds-lui vite, sans discuter : c’est son nom et son image.</p>
+      <Steps>
+        <Step title="Ouvre sa fiche">Dans la liste, clique sur son nom, puis <b>Supprimer</b> en bas de la fiche.</Step>
+        <Step title="Confirme avec son nom">Tape son nom exact, puis <b>Supprimer pour de bon</b>. Sa page, sa page Black Friday, ses codes et leur historique, ses liens d’offre, ses comptes reliés, sa photo, les chaînes suivies pour lui et son accès au studio sont effacés. Les outils restent : d’autres créateurs y ont des codes.</Step>
+        <Step title="Confirme-lui par e-mail">Une fois la suppression faite, écris-lui que c’est fait et que rien ne sera publié à son nom sans son accord.</Step>
+      </Steps>
+      <Callout tone="warn">Il n’y a pas de retour possible. Pour masquer un créateur un temps, archive plutôt ses codes : sa page disparaît du site, et tout revient si tu les restaures.</Callout>
+      <p>La suppression est notée dans le journal de l’Administration.</p>
     </Section>
     <Section id="exporter" title="Exporter les créateurs">
       <p><b>Exporter</b> donne tous les créateurs en Excel ou en CSV, avec leurs codes, les outils qu’ils recommandent et leur présentation. Utile pour préparer une prise de contact ou repérer ceux à suivre.</p>

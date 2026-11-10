@@ -35,7 +35,11 @@ export function youtubeChannelRef(raw: string): ChannelRef | null {
   return null;
 }
 
-export type YoutubeChannel = { externalId: string; title: string; handle: string; url: string; subscribers: number | null; metrics?: AccountMetrics };
+export type YoutubeChannel = {
+  externalId: string; title: string; handle: string; url: string; subscribers: number | null; metrics?: AccountMetrics;
+  /** Description de la chaîne (ses liens vers les autres réseaux), absente si vide. */
+  description?: string;
+};
 export type ChannelReader = (ref: ChannelRef) => Promise<YoutubeChannel | null>;
 
 /** Pays et langue d'une chaîne : ceux que le créateur a remplis sur YouTube, sinon la langue devinée sur sa description. */
@@ -66,6 +70,7 @@ export function youtubeChannelReader(apiKey: string | undefined, fetchFn: typeof
       subscribers: item.statistics?.hiddenSubscriberCount || !Number.isFinite(count) ? null : count,
       // Vues et vidéos viennent avec les abonnés, sans coût en plus (1 unité de quota).
       metrics: cleanMetrics({ views: Number(item.statistics?.viewCount), videos: Number(item.statistics?.videoCount), ...channelLocale(item.snippet) }),
+      ...(item.snippet?.description?.trim() ? { description: item.snippet.description.trim().slice(0, 5000) } : {}),
     };
   };
 }

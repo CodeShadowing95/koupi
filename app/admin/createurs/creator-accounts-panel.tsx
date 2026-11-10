@@ -9,6 +9,7 @@ import { InfoTip } from '@/components/admin-info-tip';
 import { PlatformIcon } from '@/components/platform-icon';
 import { CREATOR_LEVEL_LABELS, MIN_RATINGS, MIN_SUBSCRIBERS, type CreatorLevel } from '@/lib/verification';
 import { AccountClaim } from './account-claim';
+import { NetworksFinder } from './networks-finder';
 import { audienceLine } from '@/lib/account-metrics';
 import { localeLabel } from '@/lib/creator-locale';
 import { PLATFORM_LABELS, formatSubscribers, handleFromProfileUrl, profileUrlFor, type AdminCreatorAccount, type CreatorPlatform } from '@/lib/creator-accounts-display';
@@ -37,8 +38,9 @@ function nextStep(account: AdminCreatorAccount): string | null {
   return 'Contrôle le compte pour le passer « Contrôlé par Merkod ».';
 }
 
-export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtubeReady, mode, extra }: {
+export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtubeReady, ai, mode, extra }: {
   creatorId: string; creatorName: string; accounts: AdminCreatorAccount[]; youtubeReady: boolean; mode: 'accounts' | 'trust';
+  ai: { active: boolean; label: string };
   /** Actions en plus sous la liste des comptes (photo du créateur). */
   extra?: React.ReactNode;
 }) {
@@ -144,6 +146,7 @@ export function CreatorAccountsPanel({ creatorId, creatorName, accounts, youtube
             })}
           </ul>
         )}
+        <NetworksFinder key={creatorId} creatorId={creatorId} ai={ai} />
         {extra}
       </> : <>
         <p className="adm-ca-intro">Trois niveaux : <b>Repéré</b> (on a ses codes), <b>Contrôlé par Merkod</b> (tu as vérifié qu’un de ses comptes est réel et assez suivi), <b>Créateur vérifié</b> (il a prouvé que le compte est à lui). Le niveau du créateur est le meilleur de ses comptes.</p>
