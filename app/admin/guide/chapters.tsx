@@ -565,6 +565,16 @@ function Createurs() {
       <Callout tone="warn">Une revendication ne prouve rien à elle seule : n’importe qui peut écrire « je suis MrBeast ». Ne change jamais le niveau d’un créateur sur la seule foi d’un e-mail : demande-lui la preuve par la bio.</Callout>
       <Callout tone="why">Une revendication, c’est un créateur qui vient de lui-même. C’est le meilleur moment pour lui répondre vite et lui montrer ce que Merkod fait pour lui.</Callout>
     </Section>
+    <Section id="supprimer" title="Supprimer un créateur qui le demande">
+      <p>Un créateur peut te demander de ne plus figurer sur Merkod et d’effacer ce qui le concerne. Réponds-lui vite, sans discuter : c’est son nom et son image.</p>
+      <Steps>
+        <Step title="Ouvre sa fiche">Dans la liste, clique sur son nom, puis <b>Supprimer</b> en bas de la fiche.</Step>
+        <Step title="Confirme avec son nom">Tape son nom exact, puis <b>Supprimer pour de bon</b>. Sa page, sa page Black Friday, ses codes et leur historique, ses liens d’offre, ses comptes reliés, sa photo, les chaînes suivies pour lui et son accès au studio sont effacés. Les outils restent : d’autres créateurs y ont des codes.</Step>
+        <Step title="Confirme-lui par e-mail">Une fois la suppression faite, écris-lui que c’est fait et que rien ne sera publié à son nom sans son accord.</Step>
+      </Steps>
+      <Callout tone="warn">Il n’y a pas de retour possible. Pour masquer un créateur un temps, archive plutôt ses codes : sa page disparaît du site, et tout revient si tu les restaures.</Callout>
+      <p>La suppression est notée dans le journal de l’Administration.</p>
+    </Section>
     <Section id="exporter" title="Exporter les créateurs">
       <p><b>Exporter</b> donne tous les créateurs en Excel ou en CSV, avec leurs codes, les outils qu’ils recommandent et leur présentation. Utile pour préparer une prise de contact ou repérer ceux à suivre.</p>
     </Section>
