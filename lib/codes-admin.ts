@@ -4,6 +4,7 @@ import { and, eq, isNull, ne, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { categories, codeLogs, codes, creators, moderationLogs, submissions, tools, CODE_STATUSES, type CodeRow } from '@/db/schema';
 import { slugify } from './slug';
+import { isRemovedCreator, REMOVED_CREATOR_ERROR } from './removed-creators';
 import { isValidDay, todayInParis } from './code-expiry';
 import { codeFormatError, normalizeCode } from './code-format';
 
@@ -83,9 +84,15 @@ async function resolveTool(db: Db, input: Pick<CodeInput, 'toolSlug' | 'newTool'
   return tool ? { ok: true, data: tool.id } : { ok: false, error: 'Outil introuvable.' };
 }
 
-/** Le créateur du même nom (même slug), créé s'il n'existe pas encore. */
-export async function resolveCreator(db: Db, name: string): Promise<string> {
+/**
+ * Le créateur du même nom (même slug), créé s'il n'existe pas encore. null si ce nom (ou cette chaîne YouTube) est
+ * dans la liste des créateurs retirés (ADR-0050) : Merkod ne recrée jamais leur page tout seul.
+ */
+export async function resolveCreator(db: Db, name: string, channelId?: string | null): Promise<string | null> {
   const slug = slugify(name);
+  const [existing] = await db.select({ id: creators.id }).from(creators).where(eq(creators.slug, slug)).limit(1);
+  if (existing) return existing.id;
+  if (await isRemovedCreator(db, { name, channelId })) return null;
   await db.insert(creators).values({ slug, name }).onConflictDoNothing();
   const [creator] = await db.select({ id: creators.id }).from(creators).where(eq(creators.slug, slug)).limit(1);
   return creator.id;
@@ -130,6 +137,7 @@ export async function createCode(db: Db, input: CodeInput, options: { submission
     if (submission.createdCodeId) return { ok: false, error: 'Cette proposition a déjà donné un code.' };
   }
   const creatorId = await resolveCreator(db, input.creatorName);
+  if (!creatorId) return { ok: false, error: REMOVED_CREATOR_ERROR };
   const [created] = await db.insert(codes).values({
     toolId: tool.data, creatorId, code: input.code || null, discount: input.discount, sourceUrl: input.sourceUrl, sourceTitle: input.sourceTitle,
     creatorLink: input.creatorLink, status: input.status, note: input.note, submissionId: options.submissionId ?? null, expiresOn: input.expiresOn ?? null,
@@ -160,6 +168,7 @@ export async function updateCode(db: Db, id: string, input: CodeInput): Promise<
   const duplicate = await findCatalogDuplicate(db, tool.data, input.code, id, input.creatorLink);
   if (duplicate) return duplicateError(input.code, duplicate);
   const creatorId = await resolveCreator(db, input.creatorName);
+  if (!creatorId) return { ok: false, error: REMOVED_CREATOR_ERROR };
   await db.update(codes).set({
     toolId: tool.data, creatorId, code: input.code || null, discount: input.discount, sourceUrl: input.sourceUrl, sourceTitle: input.sourceTitle,
     creatorLink: input.creatorLink, status: input.status, note: input.note, updatedAt: new Date(),

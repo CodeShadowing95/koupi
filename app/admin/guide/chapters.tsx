@@ -574,7 +574,8 @@ function Createurs() {
         <Step title="Confirme-lui par e-mail">Une fois la suppression faite, écris-lui que c’est fait et que rien ne sera publié à son nom sans son accord.</Step>
       </Steps>
       <Callout tone="warn">Il n’y a pas de retour possible. Pour masquer un créateur un temps, archive plutôt ses codes : sa page disparaît du site, et tout revient si tu les restaures.</Callout>
-      <p>La suppression est notée dans le journal de l’Administration.</p>
+      <p>Le créateur entre aussi dans la liste des <b>Créateurs retirés</b> (<Link href="/admin/administration">Administration</Link>) : Merkod ne recrée plus jamais sa page tout seul, ni par les chaînes suivies, ni par la recherche YouTube, ni par une compilation, ni par l’import, et un code proposé à son nom est refusé. On ne garde que son nom, l’identifiant de sa chaîne et la date.</p>
+      <p>S’il change d’avis, il s’inscrit et prouve sa chaîne par la bio : il sort de la liste tout seul. S’il te l’écrit par e-mail, <b>Sortir de la liste</b> dans l’Administration fait la même chose. La suppression et la sortie de la liste sont notées dans le journal.</p>
     </Section>
     <Section id="exporter" title="Exporter les créateurs">
       <p><b>Exporter</b> donne tous les créateurs en Excel ou en CSV, avec leurs codes, les outils qu’ils recommandent et leur présentation. Utile pour préparer une prise de contact ou repérer ceux à suivre.</p>
@@ -810,8 +811,13 @@ function Administration() {
       ]} />
       <Callout tone="rule">Quand un créateur te demande d’effacer ses données (droit à l’effacement du RGPD), c’est <b>Supprimer</b> : tu as un mois pour le faire. S’il se reconnecte plus tard, un nouveau compte vide naît ; pour le bloquer, désactive-le plutôt.</Callout>
     </Section>
+    <Section id="retires" title="Les créateurs retirés">
+      <p>Un créateur supprimé à sa demande (bouton <b>Supprimer</b> de sa fiche, dans <Link href="/admin/createurs">Créateurs</Link>) arrive dans <b>Créateurs retirés</b>. Tant qu’il y est, Merkod ne recrée jamais sa page tout seul : ni par les chaînes suivies, ni par la recherche YouTube, ni par une compilation, ni par l’import, et un code proposé à son nom est refusé.</p>
+      <p>Un créateur qui n’a pas (ou plus) de page mais demande à ne jamais y figurer s’ajoute à la main : son nom, et si tu l’as l’identifiant de sa chaîne (il commence par « UC », visible dans l’adresse de la chaîne ou dans sa fiche), puis <b>Ajouter à la liste</b>.</p>
+      <p>Il en sort tout seul s’il s’inscrit et prouve sa chaîne par la bio. <b>Sortir de la liste</b> le fait à la main : seulement s’il t’a écrit qu’il est d’accord.</p>
+    </Section>
     <Section id="journal" title="Le journal">
-      <p>Chaque geste fait ici (page coupée ou rallumée, pause, réouverture, liens d’affiliation allumés ou coupés, compte désactivé, réactivé ou supprimé) est noté avec sa date et son heure. Le journal garde 12 mois, puis s’efface tout seul chaque nuit. Il ne contient aucune donnée sur les visiteurs.</p>
+      <p>Chaque geste fait ici (page coupée ou rallumée, pause, réouverture, liens d’affiliation allumés ou coupés, compte désactivé, réactivé ou supprimé, créateur supprimé ou sorti de la liste des retirés) est noté avec sa date et son heure. Le journal garde 12 mois, puis s’efface tout seul chaque nuit. Il ne contient aucune donnée sur les visiteurs.</p>
     </Section>
   </>;
 }

@@ -109,6 +109,8 @@ export async function acceptToolSuggestion(db: Db, id: string, target: AcceptTar
   for (const { row, podcastTitle } of group) {
     const podcast = podcastTitle ?? 'inconnu';
     const creatorId = row.creatorId ?? await resolveCreator(db, podcast);
+    // Créateur retiré à sa demande (ADR-0050) : la suggestion est écartée, rien n'est ajouté à son nom.
+    if (!creatorId) { await db.update(toolSuggestions).set({ status: 'ignored', resolvedAt: now }).where(eq(toolSuggestions.id, row.id)); continue; }
     // Offre donnée par le créateur depuis son Studio (ADR-0043) : elle garde son origin « Donné par le créateur ».
     const fromStudio = row.evidence === CREATOR_SUGGESTION_EVIDENCE;
     const codeId = await addPodcastCode(db, {
