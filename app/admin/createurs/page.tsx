@@ -1,5 +1,6 @@
 import { and, eq, isNotNull } from 'drizzle-orm';
 import { getDb } from '@/db';
+import { aiConfigFrom, aiStatusOf } from '@/lib/ai-extract';
 import { creatorRequests, creatorUsers } from '@/db/schema';
 import { listCreatorsAdmin } from '@/lib/catalog-admin';
 import { creatorsToLink } from '@/lib/creator-account-link';
@@ -8,6 +9,7 @@ import { copiesThisMonth } from '@/lib/creator-directory';
 import { bestLevel } from '@/lib/creator-level';
 import { creatorsWithoutImage } from '@/lib/stored-images';
 import { channelWatches } from '@/lib/youtube-channel-read';
+import { aiSpendSince, startOfMonthUtc } from '@/lib/verification-store';
 import { CreatorsView } from './creators-view';
 
 export const metadata = { title: 'Créateurs · Admin Merkod' };
@@ -16,12 +18,13 @@ export const dynamic = 'force-dynamic';
 
 export default async function Page() {
   const db = getDb();
-  const [creators, accounts, toLink, missingPhotos, copies, spaces, claims, watches] = await Promise.all([
+  const [creators, accounts, toLink, missingPhotos, copies, spaces, claims, watches, spent] = await Promise.all([
     listCreatorsAdmin(db), accountsByCreator(db), creatorsToLink(db), creatorsWithoutImage(db), copiesThisMonth(db),
     db.select({ creatorId: creatorUsers.creatorId }).from(creatorUsers).where(isNotNull(creatorUsers.creatorId)),
     db.select({ creatorId: creatorRequests.creatorId }).from(creatorRequests).where(and(eq(creatorRequests.kind, 'claim'), eq(creatorRequests.status, 'new'))),
-    channelWatches(db),
+    channelWatches(db), aiSpendSince(db, startOfMonthUtc()),
   ]);
+  const ai = aiStatusOf(aiConfigFrom(process.env), spent);
   // Il a son espace ou attend une réponse : pas besoin de le contacter.
   const inTouch = new Set([...spaces, ...claims].map(row => row.creatorId));
   const withAccounts = creators.map(creator => {
@@ -32,5 +35,5 @@ export default async function Page() {
     return { ...creator, accounts: own, level: bestLevel(own.map(account => account.level)), copies: copies.get(creator.id) ?? 0, inTouch: inTouch.has(creator.id) };
   });
   const followed = [...watches.values()].filter(watch => watch.active).length;
-  return <CreatorsView creators={withAccounts} toLink={toLink} missingPhotos={missingPhotos} followed={followed} youtubeReady={Boolean(process.env.YOUTUBE_API_KEY)} />;
+  return <CreatorsView creators={withAccounts} toLink={toLink} missingPhotos={missingPhotos} followed={followed} youtubeReady={Boolean(process.env.YOUTUBE_API_KEY)} ai={{ active: ai.state === 'active', label: ai.label }} />;
 }

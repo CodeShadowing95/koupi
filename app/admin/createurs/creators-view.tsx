@@ -67,7 +67,11 @@ const sortFields: SortField<Creator>[] = [
   { key: 'lastCode', label: 'Dernier code', value: creator => creator.lastCodeAt ? Date.parse(creator.lastCodeAt) : null },
 ];
 
-export function CreatorsView({ creators, toLink, missingPhotos, followed, youtubeReady }: { creators: Creator[]; toLink: number; missingPhotos: number; followed: number; youtubeReady: boolean }) {
+export function CreatorsView({ creators, toLink, missingPhotos, followed, youtubeReady, ai }: {
+  creators: Creator[]; toLink: number; missingPhotos: number; followed: number; youtubeReady: boolean;
+  /** État de l'IA, pour « ✦ Trouver ses réseaux ». */
+  ai: { active: boolean; label: string };
+}) {
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
   // Les liens des autres pages ouvrent la liste déjà filtrée (?q=…).
@@ -221,7 +225,7 @@ export function CreatorsView({ creators, toLink, missingPhotos, followed, youtub
                 {selected.tools.length ? <div className="adm-chips" style={{ marginTop: 8 }}>{selected.tools.map(tool => <a key={tool} href={`/admin/outils?q=${encodeURIComponent(tool)}`}>{tool}</a>)}</div> : <p className="muted">Aucun outil pour l’instant.</p>}
               </div>
             </>}
-            {tab !== 'overview' && <CreatorAccountsPanel creatorId={selected.id} creatorName={selected.name} accounts={selected.accounts} youtubeReady={youtubeReady} mode={tab}
+            {tab !== 'overview' && <CreatorAccountsPanel creatorId={selected.id} creatorName={selected.name} accounts={selected.accounts} youtubeReady={youtubeReady} ai={ai} mode={tab}
               extra={<div className="adm-ca-photo"><span className="muted">Photo du créateur : celle de sa chaîne YouTube, ou la pochette de son podcast.</span><RefreshAvatarButton creatorId={selected.id} source={selected.accounts.some(account => account.platform === 'youtube' && Boolean(account.externalId)) ? 'youtube' : selected.accounts.some(account => account.platform === 'podcast' && Boolean(account.externalId)) ? 'podcast' : null} youtubeReady={youtubeReady} /></div>} />}
           </>}
         </AdminDrawer>
