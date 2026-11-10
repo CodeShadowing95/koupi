@@ -7,6 +7,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { IconButton } from '@/components/admin-card';
+import { openOnClick } from '@/components/admin-drawer';
 import { FormDialog, sendJson } from '@/components/admin-form-dialog';
 import { Pagination, usePagination } from '@/components/admin-pagination';
 import { AdminSelect } from '@/components/admin-select';
@@ -65,6 +66,24 @@ export function ToolSuggestionsPanel({ suggestions, categories, universes, tools
     setBusy(item.id);
     setError('');
     const failure = await sendJson(`/api/admin/tool-suggestions/${item.id}`, 'POST', { action: 'add', toolSlug: slug });
+    setBusy(null);
+    if (failure) setError(failure);
+    else router.refresh();
+  }
+  // Ajout direct depuis la carte : possible quand on connaît le site et une catégorie (proposée par l'IA).
+  // Sinon le bouton ouvre le panneau pour compléter.
+  const quickTarget = (item: AdminToolSuggestion) => {
+    const analysis = item.analysis;
+    if (!item.domain || !analysis || (!analysis.categorySlug && !analysis.newCategory)) return null;
+    const newTool = { name: analysis.toolName || item.name, categorySlug: analysis.categorySlug ?? '', website: `https://${item.domain}` };
+    return analysis.categorySlug ? { newTool } : { newTool, newCategory: analysis.newCategory, universe: analysis.universe ?? DEFAULT_UNIVERSE };
+  };
+  async function quickAdd(item: AdminToolSuggestion) {
+    const target = quickTarget(item);
+    if (!target) { open(item); return; }
+    setBusy(item.id);
+    setError('');
+    const failure = await sendJson(`/api/admin/tool-suggestions/${item.id}`, 'POST', { action: 'add', ...target });
     setBusy(null);
     if (failure) setError(failure);
     else router.refresh();
@@ -135,7 +154,7 @@ export function ToolSuggestionsPanel({ suggestions, categories, universes, tools
         {visible.length === 0 ? <div className="adm-empty">Aucune suggestion ne correspond.</div> : (
           <div className="adm-grid adm-page-enter" key={`sugg-${current.page}`}>
             {current.items.map(item => (
-              <article className="adm-card adm-sugg" key={item.id}>
+              <article className="adm-card adm-sugg" key={item.id} data-open onClick={openOnClick(() => { if (!item.existing?.archived) open(item); })}>
                 <div className="adm-card-row">
                   <div className="adm-sugg-tool">
                     <b title={item.name}>{item.name}</b>
@@ -156,7 +175,9 @@ export function ToolSuggestionsPanel({ suggestions, categories, universes, tools
                 <div className="adm-card-foot">
                   {item.existing && !item.existing.archived
                     ? <button type="button" className="adm-btn adm-btn-pri" disabled={busy !== null} title={`${item.code ? `Le code ${item.code}` : 'L’offre par lien'} part en attente dans Vérifications, sur ${item.existing.name}`} onClick={() => link(item, item.existing!.slug)}>{busy === item.id ? 'Liaison…' : `Relier à ${item.existing.name}`}</button>
-                    : <button type="button" className="adm-btn adm-btn-pri" disabled={busy !== null || Boolean(item.existing?.archived)} onClick={() => open(item)}>Ajouter l’outil</button>}
+                    : <button type="button" className="adm-btn adm-btn-pri" disabled={busy !== null || Boolean(item.existing?.archived)}
+                      title={quickTarget(item) ? `Ajoute ${item.analysis?.toolName || item.name} dans la catégorie proposée ; ${item.code ? `le code ${item.code}` : 'l’offre'} part en attente dans Vérifications` : 'Il manque le site ou la catégorie : le panneau s’ouvre pour compléter'}
+                      onClick={() => quickAdd(item)}>{busy === item.id ? 'Ajout…' : quickTarget(item) ? 'Ajouter l’outil' : 'Compléter et ajouter'}</button>}
                   {!item.existing && aiButton(item)}
                   <span className="adm-card-push"><IconButton icon="cross" tone="bad" label={`Ignorer ${item.code ? `le code ${item.code}` : 'l’offre par lien'} de ${item.name}`} disabled={busy !== null} onClick={() => ignore(item)} /></span>
                 </div>
