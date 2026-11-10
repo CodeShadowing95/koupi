@@ -30,17 +30,26 @@ import {
 import { routes } from '@/lib/routes';
 
 type Creator = AdminCreator & { accounts: AdminCreatorAccount[]; level: CreatorLevel; copies: number; inTouch: boolean };
+const dayFormat = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/Paris' });
+const day = (iso: string) => dayFormat.format(new Date(iso));
 const LEVEL_ORDER: Record<CreatorLevel, number> = { spotted: 0, checked: 1, verified: 2 };
 
-type Filter = 'all' | 'visible' | 'hidden' | 'tocheck' | 'tocontact';
-const filters: { value: Filter; label: string }[] = [
-  { value: 'all', label: 'Tous' }, { value: 'visible', label: 'Sur le site' }, { value: 'hidden', label: 'Sans code visible' }, { value: 'tocheck', label: 'À contrôler' }, { value: 'tocontact', label: 'À contacter' },
+type Filter = 'all' | 'visible' | 'hidden' | 'tocheck' | 'belowthreshold' | 'tocontact';
+const filters: { value: Filter; label: string; hint?: string }[] = [
+  { value: 'all', label: 'Tous' }, { value: 'visible', label: 'Sur le site' }, { value: 'hidden', label: 'Sans code visible' },
+  { value: 'tocheck', label: 'À contrôler', hint: 'Sur le site, et aucun de ses comptes n’a encore la case « J’ai contrôlé ce compte » cochée.' },
+  { value: 'belowthreshold', label: 'Contrôlés, sous le seuil', hint: 'Tu as déjà contrôlé un de ses comptes, mais son audience reste sous le seuil : il reste « Repéré » sur le site. Rien à faire de plus pour l’instant.' },
+  { value: 'tocontact', label: 'À contacter' },
 ];
+/** Au moins un compte coché « J'ai contrôlé ce compte ». */
+const adminChecked = (creator: Creator) => creator.accounts.some(account => account.adminCheckedAt);
 function matches(creator: Creator, filter: Filter): boolean {
   if (filter === 'visible') return creator.visible > 0;
   if (filter === 'hidden') return creator.visible === 0;
-  // Sur le site, mais encore « repéré » : c'est eux qu'il faut contrôler en premier.
-  if (filter === 'tocheck') return creator.visible > 0 && creator.level === 'spotted';
+  // Sur le site, et aucun compte contrôlé par l'admin : c'est eux qu'il faut regarder en premier.
+  if (filter === 'tocheck') return creator.visible > 0 && creator.level === 'spotted' && !adminChecked(creator);
+  // Déjà contrôlés à la main, mais restés « repérés » faute d'audience (seuil d'abonnés ou de notes).
+  if (filter === 'belowthreshold') return creator.visible > 0 && creator.level === 'spotted' && adminChecked(creator);
   // Sur le site sans nous connaître encore : à qui proposer de revendiquer sa page.
   if (filter === 'tocontact') return isToContact(creator);
   return true;
@@ -54,6 +63,8 @@ const sortFields: SortField<Creator>[] = [
   { key: 'audience', label: 'Abonnés', value: creator => creatorSubscribers(creator.accounts) ?? -1 },
   { key: 'ratings', label: 'Notes (podcast)', value: creator => creatorRatings(creator.accounts) ?? -1 },
   { key: 'copies', label: 'Copies du mois', value: creator => creator.copies },
+  { key: 'created', label: 'Date d’ajout', value: creator => Date.parse(creator.createdAt) },
+  { key: 'lastCode', label: 'Dernier code', value: creator => creator.lastCodeAt ? Date.parse(creator.lastCodeAt) : null },
 ];
 
 export function CreatorsView({ creators, toLink, missingPhotos, followed, youtubeReady }: { creators: Creator[]; toLink: number; missingPhotos: number; followed: number; youtubeReady: boolean }) {
@@ -106,7 +117,7 @@ export function CreatorsView({ creators, toLink, missingPhotos, followed, youtub
           </div>
         </section>
         <div className="adm-tabs" role="group" aria-label="Filtre">
-          {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label} <span className="adm-tab-n">{countOf(item.value)}</span></button>)}
+          {filters.map(item => <button key={item.value} type="button" className="adm-tab" aria-pressed={filter === item.value} title={item.hint} onClick={() => setFilter(item.value)}>{item.label} <span className="adm-tab-n">{countOf(item.value)}</span></button>)}
         </div>
         <div className="adm-toolbar">
           <label htmlFor="creator-search" className="sr-only">Rechercher un créateur</label>
@@ -133,7 +144,7 @@ export function CreatorsView({ creators, toLink, missingPhotos, followed, youtub
         {visible.length === 0 ? <div className="adm-empty">Aucun créateur ne correspond.</div> : view === 'table' ? (
           <div className="adm-table-wrap adm-page-enter" key={`table-${current.page}`}>
             <table className="adm-table">
-              <thead><tr><SortHeader sort={sort} field="name">Créateur</SortHeader><SortHeader sort={sort} field="level">Niveau</SortHeader><SortHeader sort={sort} field="codes">Codes</SortHeader><SortHeader sort={sort} field="audience">Audience</SortHeader><SortHeader sort={sort} field="copies">Copies</SortHeader><th scope="col">Langue</th><th scope="col">Outils</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
+              <thead><tr><SortHeader sort={sort} field="name">Créateur</SortHeader><SortHeader sort={sort} field="level">Niveau</SortHeader><SortHeader sort={sort} field="codes">Codes</SortHeader><SortHeader sort={sort} field="audience">Audience</SortHeader><SortHeader sort={sort} field="copies">Copies</SortHeader><SortHeader sort={sort} field="created">Ajouté le</SortHeader><th scope="col">Langue</th><th scope="col">Outils</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>
               <tbody>
                 {current.items.map(creator => (
                   <tr key={creator.id} data-open onClick={openOnClick(() => setSelectedId(creator.id))}>
@@ -142,6 +153,7 @@ export function CreatorsView({ creators, toLink, missingPhotos, followed, youtub
                     <td className="adm-cell-nowrap">{codesLink(creator)}</td>
                     <td className="adm-cell-nowrap">{audienceShort(creator.accounts) ?? <span className="muted">—</span>}</td>
                     <td className="adm-cell-nowrap" title="Copies de ses codes ce mois-ci">{creator.copies}</td>
+                    <td className="adm-cell-nowrap" title={creator.lastCodeAt ? `Dernier code le ${day(creator.lastCodeAt)}` : 'Aucun code'}>{day(creator.createdAt)}</td>
                     <td className="adm-cell-nowrap" title={localeLabel(creatorLocale(creator.accounts)) ?? 'Inconnue'}>{localeShort(creatorLocale(creator.accounts)) ?? <span className="muted">—</span>}</td>
                     <td className="adm-cell-wrap adm-cell-muted">{creator.tools.join(', ') || '—'}</td>
                     <td><div className="adm-cell-actions">{page(creator)}<button type="button" className="adm-btn" onClick={() => open(creator)}>Modifier</button></div></td>
