@@ -1,0 +1,12 @@
+/* Socle « natif » sur téléphone, pour tout le site (public et back-office).
+   Chaque ligne corrige un défaut que l'on ne voit que sur un vrai téléphone, pas dans l'émulation de Chrome. */
+
+/* Pas de voile gris ou bleu sur ce qu'on touche : chaque bouton a son propre état :active.
+   Pas de grossissement automatique du texte quand le téléphone passe en paysage. */
+html{-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+
+/* Le clic part tout de suite : le navigateur n'attend plus un éventuel double appui pour zoomer. */
+a,button,summary,label,[role="button"],[role="tab"],[role="switch"],input,select,textarea{touch-action:manipulation}
+
+/* Un appui long sur un bouton ne sélectionne pas son texte. Les liens et le texte du contenu restent sélectionnables. */
+button,summary,[role="button"],[role="tab"],[role="switch"]{-webkit-user-select:none;user-select:none}

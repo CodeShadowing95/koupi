@@ -18,8 +18,8 @@
 .k-st-nav{display:grid;gap:2px}
 .k-st-link{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:var(--r-md);color:var(--text-soft);font-size:var(--fs-md);font-weight:600;transition:background .2s,color .2s}
 .k-st-link>svg{flex:none;color:var(--muted);transition:color .2s}
-.k-st-link:hover{background:var(--surface-2);color:var(--strong)}
-.k-st-link:hover>svg{color:var(--blue-soft)}
+@media (hover: hover) and (pointer: fine){.k-st-link:hover{background:var(--surface-2);color:var(--strong)}}
+@media (hover: hover) and (pointer: fine){.k-st-link:hover>svg{color:var(--blue-soft)}}
 .k-st-link{position:relative}
 .k-st-nav .k-st-link[aria-current]{background:var(--surface-2);color:var(--strong);font-weight:700}
 .k-st-nav .k-st-link[aria-current]::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:2px;background:var(--blue-soft)}
@@ -86,7 +86,7 @@
 .k-st-code{font-family:var(--mono);font-weight:800;color:var(--strong);overflow-wrap:anywhere}
 .k-st-tool{display:grid;gap:2px;min-width:0}
 .k-st-tool a{color:var(--text);font-weight:600}
-.k-st-tool a:hover{text-decoration:underline;text-underline-offset:3px}
+@media (hover: hover) and (pointer: fine){.k-st-tool a:hover{text-decoration:underline;text-underline-offset:3px}}
 .k-st-tool small{color:var(--muted);font-size:var(--fs-sm)}
 .k-st-end{display:inline-flex;align-items:center;gap:5px;justify-self:start;color:var(--muted);font-size:var(--fs-xs);line-height:1.3}
 .k-st-end svg{flex:none;opacity:.8}
@@ -169,7 +169,7 @@
 
 /* Page non vérifiée : pastille sous le bonjour et encart « Fais vérifier ta chaîne ». */
 .k-st-unverified{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:var(--r-pill);border:1px dashed var(--line-2);color:var(--muted);font-size:var(--fs-sm);text-decoration:none}
-.k-st-unverified:hover{color:var(--text);border-color:var(--blue-soft)}
+@media (hover: hover) and (pointer: fine){.k-st-unverified:hover{color:var(--text);border-color:var(--blue-soft)}}
 .k-st-verify{margin-top:24px}
 .k-st-perks{list-style:none;margin:14px 0 18px;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .k-st-perks li{display:grid;gap:4px;padding:14px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface)}
@@ -214,9 +214,11 @@
 
 /* Bulle d'aide « i » au bout d'un libellé (survol ou focus). */
 .k-st-info{position:relative;margin:-4px -4px -4px auto;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;padding:0;border:0;border-radius:var(--r-pill);background:none;color:var(--muted);cursor:help}
-.k-st-info:hover,.k-st-info:focus-visible{color:var(--strong)}
+.k-st-info:focus-visible{color:var(--strong)}
+@media (hover: hover) and (pointer: fine){.k-st-info:hover{color:var(--strong)}}
 .k-st-info-tip{position:absolute;z-index:30;right:0;bottom:calc(100% + 8px);width:min(300px,80vw);padding:10px 12px;border:1px solid var(--line-2);border-radius:var(--r-md);background:var(--bg-2);box-shadow:0 14px 34px rgb(0 0 0 / calc(.45 * var(--shade)));color:var(--text-soft);font-size:var(--fs-sm);font-weight:400;line-height:1.45;text-align:left;white-space:normal;opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .15s,transform .15s,visibility .15s;pointer-events:none}
-.k-st-info:hover .k-st-info-tip,.k-st-info:focus-visible .k-st-info-tip,.k-st-info:focus .k-st-info-tip{opacity:1;visibility:visible;transform:none}
+.k-st-info:focus-visible .k-st-info-tip,.k-st-info:focus .k-st-info-tip{opacity:1;visibility:visible;transform:none}
+@media (hover: hover) and (pointer: fine){.k-st-info:hover .k-st-info-tip{opacity:1;visibility:visible;transform:none}}
 @media (prefers-reduced-motion:reduce){.k-st-info-tip{transition:none}}
 
 /* Kit de saison (Black Friday, Noël) : l'image story à gauche, les trois choses à copier à droite. */
@@ -234,3 +236,7 @@
 .k-st-kit-steps .k-st-row{margin-top:6px}
 .k-st-kit-text{width:100%;margin-top:6px;padding:10px 12px;border:1px solid var(--field-line,var(--line-2));border-radius:var(--r-md);background:var(--card);color:var(--text);font:inherit;font-size:var(--fs-sm);line-height:1.5;resize:vertical}
 @media (max-width:640px){.k-st-kit{grid-template-columns:minmax(0,1fr)}.k-st-kit-preview{justify-self:center}}
+
+/* Téléphone : contenu hors de l'encoche en paysage (voir site.css), retour au toucher dès que le doigt se pose. */
+.k-st{padding-inline:env(safe-area-inset-left,0px) env(safe-area-inset-right,0px)}
+.k-st-link:active{background:var(--surface-2)}

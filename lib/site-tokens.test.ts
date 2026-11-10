@@ -20,4 +20,27 @@ describe('jetons de design du site public', () => {
     const raw = [...css.matchAll(/border-radius:([^;}]+)/g)].flatMap(match => [...match[1].matchAll(/(\d+)px/g)].map(px => Number(px[1]))).filter(px => px > 2);
     expect(raw).toEqual([]);
   });
+
+  // Sur téléphone, un :hover reste collé après un appui : il ne vaut que pour une souris (voir app/mobile.css).
+  it('réserve chaque :hover aux appareils qui survolent vraiment', () => {
+    const loose: string[] = [];
+    const stack: boolean[] = [];
+    let prelude = '';
+    for (const char of css.replace(/\/\*[\s\S]*?\*\//g, '')) {
+      if (char === '{') {
+        const head = prelude.trim();
+        const gated = stack.includes(true) || (head.startsWith('@media') && head.includes('hover: hover') && head.includes('pointer: fine'));
+        if (!head.startsWith('@') && head.includes(':hover') && !stack.includes(true)) loose.push(head);
+        stack.push(gated);
+        prelude = '';
+      } else if (char === '}') { stack.pop(); prelude = ''; }
+      else if (char === ';') prelude = '';
+      else prelude += char;
+    }
+    expect(loose).toEqual([]);
+  });
+
+  it('n’utilise pas 100vh, trop haut sur téléphone quand la barre du navigateur est visible', () => {
+    expect(css.match(/\b100vh\b/g) ?? []).toEqual([]);
+  });
 });

@@ -11,7 +11,7 @@
   border-right:1px solid var(--line);background:var(--bg);scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
 .k-ex-side-top{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;height:var(--bar);margin:0 -12px;padding:0 16px;background:var(--bg)}
 .k-ex-burger{display:inline-flex;align-items:center;justify-content:center;flex:none;width:44px;height:44px;border:0;border-radius:var(--r-pill);background:transparent;color:var(--text-soft);transition:background .2s,color .2s}
-.k-ex-burger:hover{background:var(--surface-2);color:var(--strong)}
+@media (hover: hover) and (pointer: fine){.k-ex-burger:hover{background:var(--surface-2);color:var(--strong)}}
 .k-ex-logo{display:flex;align-items:center;min-width:0}
 .k-ex-logo img{display:block;height:26px;width:auto}
 .k-ex-side .k-ex-side-create{display:none;margin:0 0 12px;padding:0 0 10px;border-bottom:1px solid var(--line)}
@@ -21,8 +21,8 @@
 .k-ex-group-title{margin:8px 0 2px;padding:0 12px;font-family:var(--mono);font-size:var(--fs-2xs);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .k-ex-item{position:relative;display:flex;align-items:center;gap:12px;width:100%;min-height:42px;padding:0 12px;border:0;border-radius:var(--r-md);background:transparent;color:var(--text-soft);font-size:var(--fs-md);font-weight:500;text-align:left;transition:background .2s,color .2s}
 .k-ex-item>svg{flex:none;color:var(--muted);transition:color .2s}
-.k-ex-item:hover{background:var(--surface-2);color:var(--strong)}
-.k-ex-item:hover>svg{color:var(--blue-soft)}
+@media (hover: hover) and (pointer: fine){.k-ex-item:hover{background:var(--surface-2);color:var(--strong)}}
+@media (hover: hover) and (pointer: fine){.k-ex-item:hover>svg{color:var(--blue-soft)}}
 .k-ex-item-label{flex:1;min-width:0;display:flex;align-items:center;gap:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .k-ex-item-short{display:none}
 .k-ex-item-count{flex:none;font-family:var(--mono);font-size:var(--fs-2xs);font-weight:700;color:var(--muted)}
@@ -38,7 +38,7 @@
 .k-ex-about{flex:none;margin-top:10px}
 .k-ex-side-foot{margin-top:6px;padding:14px 12px 0;border-top:1px solid var(--line);font-size:var(--fs-xs);color:var(--muted)}
 .k-ex-side-foot ul{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-wrap:wrap;gap:4px 12px}
-.k-ex-side-foot a:hover{color:var(--strong)}
+@media (hover: hover) and (pointer: fine){.k-ex-side-foot a:hover{color:var(--strong)}}
 .k-ex-side-foot p a{color:var(--text-soft)}
 
 /* Colonne réduite : seulement les icônes des rayons et des familles, avec leur nom en tout petit. */
@@ -66,9 +66,9 @@
 .k-ex-search input::-webkit-search-cancel-button{display:none}
 .kp .k-ex-search input:focus-visible{outline:0}
 .k-ex-search-clear{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;margin-right:4px;border:0;border-radius:var(--r-pill);background:transparent;color:var(--muted)}
-.k-ex-search-clear:hover{color:var(--strong);background:var(--surface-2)}
+@media (hover: hover) and (pointer: fine){.k-ex-search-clear:hover{color:var(--strong);background:var(--surface-2)}}
 .k-ex-search-go{display:inline-flex;align-items:center;justify-content:center;width:60px;height:100%;border:0;border-left:1px solid var(--line-2);border-radius:0 var(--r-pill) var(--r-pill) 0;background:var(--surface);color:var(--text)}
-.k-ex-search-go:hover{color:var(--strong);background:var(--surface-2)}
+@media (hover: hover) and (pointer: fine){.k-ex-search-go:hover{color:var(--strong);background:var(--surface-2)}}
 
 /* Pastilles de catégories : de petits tickets qui défilent sous la barre. */
 .k-ex-chips{position:sticky;top:var(--bar);z-index:20;display:flex;gap:10px;padding:10px 24px 12px;overflow-x:auto;scrollbar-width:none;
@@ -77,7 +77,7 @@
 .k-ex-chips::-webkit-scrollbar{display:none}
 .k-ex-chip{flex:none;display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border:1px solid var(--line-2);border-radius:var(--r-pill);background:var(--bg);color:var(--text);font-size:var(--fs-md);font-weight:600;white-space:nowrap;transition:background .2s,color .2s,border-color .2s}
 .k-ex-chip small{font-family:var(--mono);font-size:var(--fs-2xs);color:var(--muted)}
-.k-ex-chip:hover{background:var(--surface-2);border-color:var(--field-line)}
+@media (hover: hover) and (pointer: fine){.k-ex-chip:hover{background:var(--surface-2);border-color:var(--field-line)}}
 /* Pastille choisie : inversée (fond foncé, texte clair) et cochée, lisible sans voir les couleurs. */
 .k-ex-chip[aria-pressed="true"]{background:var(--btn);border-color:var(--btn);color:var(--btn-ink)}
 .k-ex-chip[aria-pressed="true"]::before{content:"✓";font-weight:800}
@@ -122,8 +122,8 @@
 .k-ex-intro-count{position:absolute;left:20px;bottom:18px;display:flex;align-items:baseline;gap:6px;padding:8px 12px;border-radius:var(--r-md);background:var(--paper-ink);color:var(--paper);font-size:var(--fs-sm)}
 .k-ex-intro-count b{font-family:var(--display);font-size:var(--fs-2xl);line-height:1;color:#FFC46B}
 .k-ex-intro-ok{position:absolute;right:18px;bottom:18px;height:44px;padding:0 18px;border:0;border-radius:var(--r-md);background:#fff;color:var(--paper-ink);font-size:var(--fs-base);font-weight:800;transition:transform .2s}
-.k-ex-intro-ok:hover{transform:translateY(-2px)}
-@media (prefers-reduced-motion:reduce){.k-ex-intro-ok{transition:none}.k-ex-intro-ok:hover{transform:none}}
+@media (hover: hover) and (pointer: fine){.k-ex-intro-ok:hover{transform:translateY(-2px)}}
+@media (prefers-reduced-motion:reduce){.k-ex-intro-ok{transition:none}@media (hover: hover) and (pointer: fine){.k-ex-intro-ok:hover{transform:none}}}
 /* Sur écran étroit, la moitié corail devient une bande sous le titre : pouce, total et bouton sur une ligne. */
 @container k-ex (max-width:760px){
   .k-ex-intro{grid-template-columns:minmax(0,1fr)}
@@ -182,11 +182,11 @@
 .k-sb-title{margin:0;color:#FFF8EE;font-family:var(--display);font-size:clamp(30px,3.4vw,48px);font-weight:800;line-height:.95;letter-spacing:-.045em;text-transform:uppercase;text-wrap:balance}
 .k-sb-lead{margin:0;max-width:52ch;font-size:var(--fs-sm);line-height:1.45;opacity:.86}
 .k-sb-cta{display:inline-flex;align-items:center;gap:8px;height:42px;margin-top:4px;padding:0 18px;border-radius:var(--r-md);font-size:var(--fs-base);font-weight:800;text-decoration:none;transition:transform .2s,box-shadow .2s}
-.k-sb-cta:hover{transform:translateY(-2px)}
+@media (hover: hover) and (pointer: fine){.k-sb-cta:hover{transform:translateY(-2px)}}
 .k-sb-cta:focus-visible,.k-sb-close:focus-visible{outline:3px solid #FFC46B;outline-offset:3px}
 .k-sb-art{position:relative;display:block;min-height:190px;overflow:hidden;text-decoration:none;color:inherit}
 .k-sb-close{position:absolute;z-index:2;top:12px;right:12px;width:36px;height:36px;display:grid;place-items:center;border:0;border-radius:var(--r-pill);background:rgba(0,0,0,.35);color:#fff;font-size:var(--fs-xl);line-height:1;cursor:pointer}
-.k-sb-close:hover{background:rgba(0,0,0,.55)}
+@media (hover: hover) and (pointer: fine){.k-sb-close:hover{background:rgba(0,0,0,.55)}}
 
 /* Les étiquettes : un vrai outil, sa réduction, posées de travers comme des coupons lâchés. */
 .k-sb-tag{position:absolute;display:flex;align-items:center;gap:8px;padding:7px 12px 7px 8px;border-radius:var(--r-md);background:#FFF8EE;color:#17150F;box-shadow:0 18px 28px -12px rgba(0,0,0,.55);animation:k-sb-float 6s ease-in-out infinite}
@@ -237,7 +237,7 @@
 .k-sb-sales .k-sb-tag-text small{color:#B42318}
 .k-sb-sales .k-sb-percent{-webkit-text-stroke-color:rgba(255,196,107,.5)}
 
-@media (prefers-reduced-motion:reduce){.k-sb-tag{animation:none;transform:rotate(var(--tilt))}.k-sb-cta{transition:none}.k-sb-cta:hover{transform:none}}
+@media (prefers-reduced-motion:reduce){.k-sb-tag{animation:none;transform:rotate(var(--tilt))}.k-sb-cta{transition:none}@media (hover: hover) and (pointer: fine){.k-sb-cta:hover{transform:none}}}
 
 /* Écran étroit : l'affiche passe au-dessus du texte, en bande plus basse. */
 @container k-ex (max-width:760px){
@@ -293,3 +293,14 @@
   .k-chan-more{padding:4px 0 0}
   .k-chan-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+/* Téléphone : contenu hors de l'encoche en paysage et de la barre d'accueil (voir site.css). */
+.k-ex{padding-inline:env(safe-area-inset-left,0px) env(safe-area-inset-right,0px)}
+@media (max-width:980px){
+  .k-ex-side,.k-ex.is-mini .k-ex-side{padding-left:calc(12px + env(safe-area-inset-left,0px));padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+}
+
+/* Retour au toucher, dès que le doigt se pose. */
+.k-ex-burger:active,.k-ex-item:active,.k-ex-chip:active,.k-ex-search-clear:active,.k-ex-search-go:active,.k-ex-side-foot a:active{background:var(--surface-2)}
+.k-ex-chip:active,.k-ex-burger:active{transform:scale(.96)}
+@media (prefers-reduced-motion:reduce){.k-ex-chip:active,.k-ex-burger:active{transform:none}}
