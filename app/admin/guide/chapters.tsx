@@ -448,6 +448,7 @@ function Outils() {
     <Section id="archiver" title="Archiver plutôt que supprimer">
       <p>Un outil fermé ou hors sujet s’<b>archive</b> depuis son panneau. Il disparaît du site avec ses codes, mais rien n’est perdu : l’onglet <b>Archivés</b> permet de le <b>restaurer</b>.</p>
       <Callout tone="warn">On ne supprime jamais un outil : il serait réimporté au prochain déploiement. L’archive est la bonne façon de le retirer.</Callout>
+      <p><b>Deux fiches pour la même marque</b> (par exemple « Coupon » créée par erreur à la place d’ExpressVPN) : ouvre la fiche en trop et clique <b>Fusionner dans…</b>, puis choisis le bon outil. Tous ses codes passent sur le bon outil, avec leur statut et leurs votes ; un code que le bon outil a déjà est archivé au lieu d’être copié deux fois. Les propositions et les recherches YouTube suivent aussi. La fiche en trop est ensuite archivée. Chaque code déplacé le note dans son historique.</p>
     </Section>
     <Section id="exporter" title="Exporter les outils">
       <p><b>Exporter</b> donne la liste complète en Excel ou en CSV : catégorie, site, priorité, nombre de codes, présence sur le site. Pratique pour trier les P1 sans code dans un tableur et se faire une liste de chasse.</p>
