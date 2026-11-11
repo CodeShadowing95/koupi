@@ -22,4 +22,4 @@ Pas de transaction (pilote Neon HTTP) : les lignes liées s'effacent d'abord, le
 
 ## Conséquences
 - Une demande d'effacement se traite en une minute, sans toucher à la base à la main.
-- Un code supprimé n'est plus protégé contre l'import des fichiers de `data/` : si le code y figure, il faut l'en retirer dans la même foulée (sinon `npm run db:import` le recrée au prochain déploiement). L'IA et les sources pourraient aussi recréer le créateur s'il republie un code ; une liste des créateurs retirés, qui bloquerait ce retour, est à décider (changement de schéma).
+- Un code supprimé n'est plus protégé par son archivage contre l'import des fichiers de `data/` : la liste des créateurs retirés (ADR-0050) garde ses identifiants pour que l'import le saute. La liste des créateurs retirés (ADR-0050) empêche ensuite les sources et les imports de recréer le créateur.

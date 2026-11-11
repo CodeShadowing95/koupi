@@ -5,6 +5,7 @@ import type { Db } from '@/db';
 import { codes, creatorAccounts, creators, dailyCounters, watchedSources } from '@/db/schema';
 import { monthStart } from './creator-directory';
 import { resolveCreator } from './codes-admin';
+import { REMOVED_CREATOR_ERROR } from './removed-creators';
 import type { PodcastFeed } from './apple-podcasts';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
@@ -73,6 +74,7 @@ export async function followPodcast(db: Db, feed: PodcastFeed): Promise<Parsed<{
   const [account] = await db.select({ creatorId: creatorAccounts.creatorId }).from(creatorAccounts)
     .where(and(eq(creatorAccounts.platform, 'podcast'), eq(creatorAccounts.externalId, feedId))).limit(1);
   const creatorId = account?.creatorId ?? await resolveCreator(db, feed.title.slice(0, 160));
+  if (!creatorId) return { ok: false, error: REMOVED_CREATOR_ERROR };
   if (!account) {
     const url = feed.link || applePodcastUrl(feed.id);
     await db.insert(creatorAccounts).values({

@@ -8,6 +8,7 @@ import { accountControlled } from './creator-level';
 import { MIN_RATINGS, MIN_SUBSCRIBERS } from './verification';
 import { CLAIM_CODE_DAYS } from './creator-accounts-display';
 import { youtubeFetch } from './api-usage';
+import { liftRemovalForAccount } from './removed-creators';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -63,6 +64,8 @@ export async function runClaimAction(db: Db, accountId: string, action: ClaimAct
     db.update(creatorAccounts).set({ ...values, updatedAt: now }).where(eq(creatorAccounts.id, accountId));
   const verify = async (): Promise<Parsed<ClaimResult>> => {
     await set({ claimStatus: 'verified', claimMethod: 'bio_code', claimedAt: now, claimCode: null, claimCodeAt: null, lastRecheckedAt: now });
+    // Un créateur retiré à sa demande qui revient de lui-même : il sort de la liste (ADR-0050).
+    await liftRemovalForAccount(db, account);
     return { ok: true, data: { status: 'verified', code: null, found: true } };
   };
   const pending = account.claimStatus === 'pending' && account.claimCode && account.claimCodeAt;

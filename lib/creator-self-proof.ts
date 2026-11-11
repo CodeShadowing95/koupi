@@ -10,6 +10,7 @@ import { creatorAccounts, creatorClaimCodes, creatorRequests, creators, creatorU
 import { bioContainsCode, claimCodeExpired, newClaimCode, type DescriptionReader } from './creator-claim';
 import { CLAIM_CODE_DAYS, PLATFORM_LABELS, type CreatorPlatform } from './creator-accounts-display';
 import { isProvisionalPage, mergeProvisionalPage } from './creator-merge';
+import { liftRemovalForAccount } from './removed-creators';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -120,6 +121,8 @@ async function proveFor(db: Db, userId: string, account: CreatorAccountRow, now:
     .where(eq(creatorAccounts.id, account.id));
   // Les codes des autres personnes sur ce compte ne valent plus rien.
   await db.delete(creatorClaimCodes).where(eq(creatorClaimCodes.accountId, account.id));
+  // Un créateur retiré à sa demande qui revient de lui-même : il sort de la liste (ADR-0050).
+  await liftRemovalForAccount(db, account);
   // Il avait ouvert son studio sur une page provisoire (ADR-0043) : elle est fusionnée dans la vraie page (ADR-0044).
   const [before] = await db.select({ creatorId: creatorUsers.creatorId }).from(creatorUsers).where(eq(creatorUsers.id, userId)).limit(1);
   if (before?.creatorId && before.creatorId !== account.creatorId && await isProvisionalPage(db, before.creatorId)) {

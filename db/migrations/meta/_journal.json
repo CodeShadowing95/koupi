@@ -246,6 +246,13 @@
       "when": 1794200599897,
       "tag": "0034_remarkable_union_jack",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1794328107725,
+      "tag": "0035_exotic_fat_cobra",
+      "breakpoints": true
     }
   ]
 }

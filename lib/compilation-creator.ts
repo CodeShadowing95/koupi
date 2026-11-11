@@ -52,7 +52,8 @@ export function sameCreator(credited: string, channelTitle: string): boolean {
   return a === b || (Math.min(a.length, b.length) >= 4 && Math.abs(a.length - b.length) <= 4 && (a.includes(b) || b.includes(a)));
 }
 
-export type CreditedCreator = { creatorId: string; name: string; units: number };
+/** creatorId null : ce créateur a demandé à ne plus figurer sur Merkod (ADR-0050), son code n'est pas ajouté. */
+export type CreditedCreator = { creatorId: string | null; name: string; units: number };
 
 /**
  * Le créateur à créditer pour un code d'une vidéo dont l'auteur est channelTitle. null quand le code n'est pas
@@ -82,7 +83,8 @@ export async function creditedCreator(db: Db, finder: CreatorFinder | null, cred
           .where(and(eq(creatorAccounts.platform, 'youtube'), eq(creatorAccounts.externalId, channel.id))).limit(1);
         if (owner) return done({ creatorId: owner.id, name: owner.name, units: CHANNEL_SEARCH_UNITS });
         // Le nom exact de la chaîne, tel que YouTube le donne.
-        const creatorId = await resolveCreator(db, channel.title);
+        const creatorId = await resolveCreator(db, channel.title, channel.id);
+        if (!creatorId) return done({ creatorId: null, name: channel.title, units: CHANNEL_SEARCH_UNITS });
         const info = (await finder.channels([channel.id])).get(channel.id);
         if (info) {
           await db.insert(creatorAccounts).values({

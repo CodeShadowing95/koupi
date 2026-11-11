@@ -134,6 +134,22 @@ export const creators = pgTable('creators', {
   check('creators_bio_len', sql`${table.bio} is null or char_length(${table.bio}) between 1 and 400`),
 ]);
 
+// Créateurs retirés à leur demande (ADR-0050) : le strict minimum pour que Merkod ne recrée pas leur page tout seul
+// (sources, IA, imports, propositions). Le créateur reste libre de s'inscrire : sa preuve par la bio le sort de la liste.
+export const removedCreators = pgTable('removed_creators', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  /** Adresse de sa page, aussi la clé de son nom (slugify) pour reconnaître le nom écrit autrement. */
+  slug: text('slug').notNull().unique(),
+  /** Identifiants de ses chaînes YouTube. */
+  channelIds: jsonb('channel_ids').$type<string[]>().notNull().default([]),
+  /** Identifiants de ses codes dans les fichiers de data/ (import), pour qu'un déploiement ne les recrée pas. */
+  importKeys: jsonb('import_keys').$type<string[]>().notNull().default([]),
+  removedAt: timestamp('removed_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  check('removed_creators_name_len', sql`char_length(trim(${table.name})) between 1 and 160`),
+]);
+
 export const CODE_STATUSES = ['pending', 'to_test', 'verified', 'rejected'] as const;
 
 // Codes promo. On n'efface jamais un code : on l'archive (archived_at), pour garder l'historique
