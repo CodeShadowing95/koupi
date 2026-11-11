@@ -2,6 +2,13 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.22.0](https://github.com/CodeShadowing95/koupi/compare/v0.21.0...v0.22.0) (2026-11-11)
+
+### Nouveautés
+
+- **tools:** Merge a duplicate tool into another one (#330) ([24af3a5](https://github.com/CodeShadowing95/koupi/commit/24af3a5f23e53b906eeec882d59802c7a85567d5))
+- **explore:** Collapse the phone search bar into a search button (#329) ([94ef955](https://github.com/CodeShadowing95/koupi/commit/94ef955e102dd58661761c2b60ec27d75e081d68))
+
 ## [0.21.0](https://github.com/CodeShadowing95/koupi/compare/v0.20.0...v0.21.0) (2026-11-10)
 
 ### Nouveautés
