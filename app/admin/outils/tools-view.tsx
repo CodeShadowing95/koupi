@@ -62,6 +62,9 @@ export function ToolsView({ tools, categories, missingLogos, youtubeReady, ai }:
   const [view, setView] = useAdminView();
   const [editing, setEditing] = useState<AdminTool | 'new' | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // « Fusionner dans… » : l'outil en double et celui qui garde ses codes.
+  const [merging, setMerging] = useState<AdminTool | null>(null);
+  const [mergeInto, setMergeInto] = useState('');
   const selected = tools.find(tool => tool.id === selectedId) ?? null;
   const [form, setForm] = useState<Form>({ name: '', categorySlug: '', website: '', description: '', priority: 3 });
   const filtered = tools.filter(tool => matches(tool, filter) && (!category || tool.categorySlug === category) && matchesSearch([tool.name, tool.category, tool.website, tool.description], query));
@@ -164,6 +167,7 @@ export function ToolsView({ tools, categories, missingLogos, youtubeReady, ai }:
           aside={selected && statusDot(selected)}
           actions={selected && <>
             <button type="button" className="adm-btn adm-btn-danger" onClick={() => archive(selected)}>{selected.archived ? 'Restaurer' : 'Archiver'}</button>
+            {!selected.archived && <button type="button" className="adm-btn" title="Deux fiches pour la même marque : ses codes passent sur l’autre outil, puis celui-ci est archivé" onClick={() => { setMergeInto(''); setMerging(selected); }}>Fusionner dans…</button>}
             <span style={{ flex: 1 }} />
             <RefreshLogoButton toolId={selected.id} />
             <a className="adm-btn" href={`/admin/codes?q=${encodeURIComponent(selected.name)}`}>Voir ses codes</a>
@@ -183,6 +187,20 @@ export function ToolsView({ tools, categories, missingLogos, youtubeReady, ai }:
             ]} />
           </>}
         </AdminDrawer>
+        <FormDialog open={merging !== null} title={`Fusionner ${merging?.name ?? ''} dans un autre outil`} submitLabel="Fusionner" danger
+          intro={<>Pour deux fiches de la même marque. Les codes de <b>{merging?.name}</b> passent sur l’outil choisi (un code qu’il a déjà est archivé, pas copié deux fois), puis <b>{merging?.name}</b> est archivé. Tu pourras le restaurer, mais ses codes resteront sur l’autre outil.</>}
+          onClose={() => setMerging(null)}
+          onSubmit={async () => {
+            if (!merging) return null;
+            const failure = await sendJson(`/api/admin/tools/${merging.id}/merge`, 'POST', { into: mergeInto });
+            if (!failure) setSelectedId(mergeInto);
+            return failure;
+          }}>
+          <div className="field adm-span-2"><label htmlFor="tool-merge-into">Outil qui garde les codes</label>
+            <AdminSelect id="tool-merge-into" value={mergeInto} onChange={setMergeInto} required placeholder="Choisir un outil…" searchPlaceholder="Rechercher un outil…"
+              options={tools.filter(tool => !tool.archived && tool.id !== merging?.id).map(tool => ({ value: tool.id, label: `${tool.name} · ${tool.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}` }))} />
+          </div>
+        </FormDialog>
         <FormDialog
           open={editing !== null}
           title={editing === 'new' ? 'Nouvel outil' : `Modifier ${editing?.name ?? ''}`}
