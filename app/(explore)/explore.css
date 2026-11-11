@@ -69,6 +69,10 @@
 @media (hover: hover) and (pointer: fine){.k-ex-search-clear:hover{color:var(--strong);background:var(--surface-2)}}
 .k-ex-search-go{display:inline-flex;align-items:center;justify-content:center;width:60px;height:100%;border:0;border-left:1px solid var(--line-2);border-radius:0 var(--r-pill) var(--r-pill) 0;background:var(--surface);color:var(--text)}
 @media (hover: hover) and (pointer: fine){.k-ex-search-go:hover{color:var(--strong);background:var(--surface-2)}}
+/* Loupe et flèche de retour : seulement sur téléphone (voir plus bas). */
+.k-ex-search-open,.k-ex-search-back{display:none;align-items:center;justify-content:center;flex:none;width:44px;height:44px;border:0;border-radius:var(--r-pill);background:transparent;color:var(--text);cursor:pointer}
+@media (hover: hover) and (pointer: fine){.k-ex-search-open:hover,.k-ex-search-back:hover{background:var(--surface-2);color:var(--strong)}}
+.k-ex-search-open:active,.k-ex-search-back:active{background:var(--surface-2)}
 
 /* Pastilles de catégories : de petits tickets qui défilent sous la barre. */
 .k-ex-chips{position:sticky;top:var(--bar);z-index:20;display:flex;gap:10px;padding:10px 24px 12px;overflow-x:auto;scrollbar-width:none;
@@ -167,6 +171,14 @@
   .k-ex-head h1{font-size:var(--fs-2xl)}
   .k-ex-head{flex-wrap:wrap;align-items:center}
   .k-ex-views span{display:none}
+  /* Téléphone : rayons, logo et une loupe. La loupe ouvre la recherche sur toute la largeur, la flèche ramène au style de base. */
+  .k-ex-bar{grid-template-columns:minmax(0,1fr) auto}
+  .k-ex-search-open{display:inline-flex;grid-column:2}
+  .k-ex-bar:not(.is-searching) .k-ex-search{display:none}
+  .k-ex-bar.is-searching{grid-template-columns:auto minmax(0,1fr);padding-left:4px}
+  .k-ex-bar.is-searching .k-ex-bar-start,.k-ex-bar.is-searching .k-ex-search-open{display:none}
+  .k-ex-bar.is-searching .k-ex-search-back{display:inline-flex;grid-column:1}
+  .k-ex-bar.is-searching .k-ex-search{grid-column:2}
 }
 @media (prefers-reduced-motion:reduce){
   .k-ex-side,.k-ex-scrim{transition:none}
