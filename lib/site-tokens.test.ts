@@ -43,4 +43,11 @@ describe('jetons de design du site public', () => {
   it('n’utilise pas 100vh, trop haut sur téléphone quand la barre du navigateur est visible', () => {
     expect(css.match(/\b100vh\b/g) ?? []).toEqual([]);
   });
+
+  // Une colonne « 1fr » ne descend pas sous la largeur de son contenu : un nom de créateur long élargissait la fiche outil
+  // au-delà de l'écran du téléphone. minmax(0, 1fr) laisse la colonne rétrécir.
+  it('laisse rétrécir chaque colonne de grille en fr', () => {
+    const loose = [...css.matchAll(/grid-template-columns:([^;}]*)/g)].map(match => match[1]).filter(value => /(?<![,(\d.])\d*\.?\d+fr/.test(value));
+    expect(loose).toEqual([]);
+  });
 });
