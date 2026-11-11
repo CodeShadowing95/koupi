@@ -74,6 +74,10 @@ export function ExploreShell({ codes, tools, families, now, active, onGo, search
   const [sound, setSound] = useState(true);
   const [localQuery, setLocalQuery] = useState('');
   const input = useRef<HTMLInputElement>(null);
+  const searchOpenButton = useRef<HTMLButtonElement>(null);
+  // Téléphone : la barre ne montre qu'une loupe ; elle s'ouvre sur toute la largeur, avec une flèche pour revenir.
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchWasOpen = useRef(false);
   const isOff = useIsOff();
 
   const season = useMemo(() => currentSeason(new Date(now)), [now]);
@@ -93,6 +97,16 @@ export function ExploreShell({ codes, tools, families, now, active, onGo, search
     return () => window.removeEventListener('koupi-sound-change', onSound);
   }, []);
 
+  // Une recherche déjà en cours (lien partagé, retour arrière) garde la barre ouverte sur téléphone.
+  useEffect(() => { if (query.trim()) setSearchOpen(true); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // La barre ouverte reçoit le curseur ; refermée, la main revient à la loupe.
+  useEffect(() => {
+    if (searchOpen) input.current?.focus();
+    else if (searchWasOpen.current) searchOpenButton.current?.focus();
+    searchWasOpen.current = searchOpen;
+  }, [searchOpen]);
+
   // « / » ou Ctrl/Cmd + K place le curseur dans la recherche, comme sur les grands sites de vidéo.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -100,6 +114,7 @@ export function ExploreShell({ codes, tools, families, now, active, onGo, search
       const typing = target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
       if ((event.key === '/' && !typing) || (event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey))) {
         event.preventDefault();
+        setSearchOpen(true);
         input.current?.focus();
       }
       if (event.key === 'Escape') setDrawer(false);
@@ -122,6 +137,11 @@ export function ExploreShell({ codes, tools, families, now, active, onGo, search
     });
   };
   const closeDrawer = () => setDrawer(false);
+  // Retour au style de base (rayons, logo, loupe) : la recherche en cours est effacée.
+  const closeSearch = () => {
+    setSearchOpen(false);
+    if (query) setQuery('');
+  };
   const submit = () => {
     if (search) { search.onSubmit(); return; }
     const words = localQuery.trim();
@@ -235,12 +255,15 @@ export function ExploreShell({ codes, tools, families, now, active, onGo, search
       <button type="button" className="k-ex-scrim" aria-label="Fermer la colonne" tabIndex={drawer ? 0 : -1} onClick={() => setDrawer(false)} />
 
       <div className="k-ex-body">
-        <header className="k-ex-bar">
+        <header className={`k-ex-bar${searchOpen ? ' is-searching' : ''}`}>
           <div className="k-ex-bar-start">
             <Burger label="Ouvrir les rayons" />
             <Logo />
           </div>
-          <form className="k-ex-search" role="search" onSubmit={event => { event.preventDefault(); submit(); }}>
+          <button type="button" className="k-ex-search-back" onClick={closeSearch} aria-label="Fermer la recherche">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6" /></svg>
+          </button>
+          <form id="k-ex-search" className="k-ex-search" role="search" onSubmit={event => { event.preventDefault(); submit(); }}>
             <label className="k-sr" htmlFor="k-ex-q">Chercher un code</label>
             <input ref={input} id="k-ex-q" type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Un outil, un créateur, un code…" autoComplete="off" maxLength={80} />
             {query
@@ -252,6 +275,10 @@ export function ExploreShell({ codes, tools, families, now, active, onGo, search
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
             </button>
           </form>
+          <button ref={searchOpenButton} type="button" className="k-ex-search-open" onClick={() => setSearchOpen(true)}
+            aria-label="Rechercher" aria-expanded={searchOpen} aria-controls="k-ex-search">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+          </button>
           <div className="k-ex-bar-end">
             <CreateMenu />
             <button type="button" className="k-icon-btn" aria-pressed={sound} aria-label={sound ? 'Couper le son des coupons' : 'Activer le son des coupons'} onClick={() => setSoundEnabled(!sound)}>
