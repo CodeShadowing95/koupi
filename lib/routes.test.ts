@@ -3,6 +3,19 @@ import { routes } from './routes';
 import { readFileSync } from 'node:fs';
 import { categoryRedirects, creatorRewrites, legacyRedirects, movedRedirects } from './legacy-redirects.mjs';
 import { parseCsv, slugify } from '../scripts/build-catalog.mjs';
+import { getPathMatch } from 'next/dist/shared/lib/router/utils/path-match';
+import { sitemapEntries } from './seo';
+
+const allRedirects = [...legacyRedirects, ...categoryRedirects, ...movedRedirects];
+
+/** Adresse d'arrivée d'une redirection de next.config.mjs, avec le même moteur que Next (path-to-regexp). */
+function redirectOf(path: string): string | undefined {
+  for (const redirect of allRedirects) {
+    const params = getPathMatch(redirect.source, { removeUnnamedParams: true })(path);
+    if (params) return redirect.destination.replace(/:(\w+)\+?/g, (_, key: string) => [params[key]].flat().join('/'));
+  }
+  return undefined;
+}
 
 describe('routes', () => {
   it('builds English public paths', () => {
@@ -30,11 +43,18 @@ describe('routes', () => {
 
   it('envoie les anciennes pages créateur sur /@nom, que la réécriture sert depuis le dossier creators', () => {
     expect(movedRedirects).toContainEqual({ source: '/creators/:slug', destination: '/@:slug' });
-    expect(movedRedirects).toContainEqual({ source: '/creators/:slug/:rest+', destination: '/@:slug/:rest+' });
     expect(legacyRedirects).toContainEqual({ source: '/createurs/:slug', destination: '/@:slug' });
-    for (const rewrite of creatorRewrites) {
-      const back = movedRedirects.find(redirect => redirect.source === rewrite.destination);
-      expect(back?.destination).toBe(rewrite.source);
+    expect(redirectOf('/creators/ali')).toBe('/@ali');
+    expect(redirectOf('/creators/ali/black-friday')).toBe('/@ali/black-friday');
+    expect(redirectOf('/creators/ali/black-friday/story')).toBe('/@ali/black-friday/story');
+    // Chaque adresse servie par la réécriture /@nom a son ancienne adresse redirigée vers elle.
+    expect(creatorRewrites.map(rewrite => rewrite.destination)).toEqual(['/creators/:slug', '/creators/:slug/:rest+']);
+  });
+
+  it('sert les images de partage des pages créateur sans redirection', () => {
+    // Next écrit l'adresse de ces images avec le dossier interne /creators/… dans les balises og:image.
+    for (const path of ['/creators/ali/opengraph-image-gzwta0', '/creators/ali/twitter-image', '/creators/ali/black-friday/opengraph-image-1x2y3z']) {
+      expect(redirectOf(path)).toBeUndefined();
     }
   });
 
@@ -45,5 +65,18 @@ describe('routes', () => {
       expect(current.has(redirect.source.replace('/categories/', ''))).toBe(false);
       expect(current.has(redirect.destination.replace('/categories/', ''))).toBe(true);
     }
+  });
+
+  it('ne met dans le sitemap aucune adresse qui redirige', () => {
+    const code = { id: 'c1', tool: 'Notion', toolSlug: 'notion', creator: 'Ali', creatorSlug: 'ali', code: 'ALI10', discount: '-10 %', status: 'verified' as const,
+      source: 'https://youtube.com/watch?v=1', sourceTitle: 'Vidéo', votes: 0, success: 0, lastTestedAt: null, paymentTestedAt: null, expiresOn: null, createdAt: '2026-10-01T10:00:00.000Z' };
+    const catalog = {
+      categories: [{ slug: 'vpn', name: 'VPN', family: null, count: 1, tracked: 1 }],
+      tools: [{ slug: 'notion', name: 'Notion', category: 'VPN', website: 'https://notion.so', description: '', priority: 1, codes: 1 }],
+      codes: [code],
+    };
+    const paths = sitemapEntries(catalog, [], '').map(entry => entry.url || '/');
+    expect(paths.length).toBeGreaterThan(10);
+    for (const path of paths) expect(redirectOf(path), path).toBeUndefined();
   });
 });
