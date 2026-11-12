@@ -2,6 +2,12 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.22.1](https://github.com/CodeShadowing95/koupi/compare/v0.22.0...v0.22.1) (2026-11-12)
+
+### Corrections
+
+- **seo:** Serve creator share images without a redirect ([9a41fdd](https://github.com/CodeShadowing95/koupi/commit/9a41fdd43064d614bf79d3a9d8a0e1f312468682))
+
 ## [0.22.0](https://github.com/CodeShadowing95/koupi/compare/v0.21.0...v0.22.0) (2026-11-11)
 
 ### Nouveautés
