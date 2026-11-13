@@ -64,7 +64,7 @@ export function CodesView({ codes: rows, tools, categories, copies, ai }: { code
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = codes.find(code => code.id === selectedId) ?? null;
   const [busy, setBusy] = useState('');
-  const creators = [...new Set(codes.map(code => code.creator))].sort((a, b) => a.localeCompare(b, 'fr'));
+  const creators = [...new Set(codes.filter(code => !code.foundByMerkod).map(code => code.creator))].sort((a, b) => a.localeCompare(b, 'fr'));
   async function quick(code: Code, action: 'verify' | 'reject' | 'restore') {
     setBusy(code.id);
     const response = await fetch(`/api/admin/codes/${code.id}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action }) }).catch(() => null);

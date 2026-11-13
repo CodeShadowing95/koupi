@@ -7,6 +7,7 @@ import { slugify } from './slug';
 import { validUrl } from './codes-admin';
 import { parseCreatorBio } from './creator-bio';
 import { DEFAULT_UNIVERSE } from './universes';
+import { MERKOD_FOUND_SLUG } from './merkod-found';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 function text(value: unknown, max: number): string { return typeof value === 'string' ? value.trim().slice(0, max) : ''; }
@@ -89,7 +90,7 @@ export async function listCreatorsAdmin(db: Db): Promise<AdminCreator[]> {
     createdAt: creators.createdAt,
     lastCodeAt: sql<string | Date | null>`max(${codes.createdAt}) filter (where ${codes.archivedAt} is null)`,
   }).from(creators).leftJoin(codes, eq(codes.creatorId, creators.id)).leftJoin(tools, eq(codes.toolId, tools.id))
-    .groupBy(creators.id).orderBy(asc(creators.name));
+    .where(ne(creators.slug, MERKOD_FOUND_SLUG)).groupBy(creators.id).orderBy(asc(creators.name));
   // Neon rend les dates de sql`` en texte, PGlite en Date : on les remet toutes en ISO.
   return rows.map(row => ({ ...row, createdAt: row.createdAt.toISOString(), lastCodeAt: row.lastCodeAt ? new Date(row.lastCodeAt).toISOString() : null }));
 }

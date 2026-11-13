@@ -84,6 +84,7 @@ export function categoryChips(codes: Code[], tools: Tool[], categories: Pick<Cat
 export function topCreators(codes: Code[], limit = 6): (Counted & { level: Code['creatorLevel'] })[] {
   const byCreator = new Map<string, Counted & { level: Code['creatorLevel'] }>();
   for (const code of codes) {
+    if (!code.creatorSlug) continue; // code trouvé par Merkod : pas de créateur
     const entry = byCreator.get(code.creatorSlug) ?? { slug: code.creatorSlug, name: code.creator, count: 0, level: code.creatorLevel };
     entry.count += 1;
     byCreator.set(code.creatorSlug, entry);

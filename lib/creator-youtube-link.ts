@@ -3,7 +3,7 @@
 // de la même chaîne et que cette chaîne n'est pas déjà reliée à quelqu'un d'autre. Sinon on n'invente rien,
 // on le signale. Le compte relié reste « non contrôlé » : le contrôle reste un geste de l'admin.
 // Coût en quota YouTube : 1 unité par lot de 50 vidéos + 1 unité par lot de 50 chaînes.
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull, ne } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { codes, creatorAccounts, creators } from '@/db/schema';
 import { refreshCreatorAvatars } from './stored-images';
@@ -12,6 +12,7 @@ import { youtubeFetch } from './api-usage';
 import { cleanMetrics, type AccountMetrics } from './account-metrics';
 import { channelLocale } from './creator-accounts';
 import { isCompilationNote } from './compilation-note';
+import { MERKOD_FOUND_SLUG } from './merkod-found';
 
 const API = 'https://www.googleapis.com/youtube/v3';
 const BATCH = 50;
@@ -81,7 +82,7 @@ export async function linkYoutubeChannels(db: Db, youtube: YoutubeBatch, options
   const report: LinkReport = { linked: [], skipped: [] };
   const only = options.onlyCreatorId;
   const [creatorRows, codeRows, youtubeAccounts] = await Promise.all([
-    db.select({ id: creators.id, name: creators.name }).from(creators).where(only ? eq(creators.id, only) : undefined),
+    db.select({ id: creators.id, name: creators.name }).from(creators).where(and(ne(creators.slug, MERKOD_FOUND_SLUG), only ? eq(creators.id, only) : undefined)),
     db.select({ creatorId: codes.creatorId, sourceUrl: codes.sourceUrl, note: codes.note }).from(codes).where(only ? and(isNull(codes.archivedAt), eq(codes.creatorId, only)) : isNull(codes.archivedAt)),
     db.select({ creatorId: creatorAccounts.creatorId, externalId: creatorAccounts.externalId, handle: creatorAccounts.handle })
       .from(creatorAccounts).where(eq(creatorAccounts.platform, 'youtube')),
@@ -162,6 +163,6 @@ export async function linkChannelForCode(db: Db, codeId: string, youtube: Youtub
 export async function creatorsWithoutChannel(db: Db): Promise<number> {
   const rows = await db.select({ id: creators.id }).from(creators)
     .leftJoin(creatorAccounts, and(eq(creatorAccounts.creatorId, creators.id), eq(creatorAccounts.platform, 'youtube')))
-    .where(isNull(creatorAccounts.id));
+    .where(and(isNull(creatorAccounts.id), ne(creators.slug, MERKOD_FOUND_SLUG)));
   return rows.length;
 }
