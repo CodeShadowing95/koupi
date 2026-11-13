@@ -7,6 +7,7 @@ import { creatorLevelFromAccounts } from './creator-level';
 import type { CreatorLevel } from './verification';
 import { isPublic, successRate, type Catalog, type Category, type Code, type Family, type Tool, type Universe } from './data';
 import { DEFAULT_UNIVERSE } from './universes';
+import { isMerkodFoundSlug } from './merkod-found';
 
 function shownLevel(level: CreatorLevel | undefined): Pick<Code, 'creatorLevel'> {
   return level === 'checked' || level === 'verified' ? { creatorLevel: level } : {};
@@ -50,8 +51,7 @@ export async function loadCatalog(db: Db, options: { includeArchived?: boolean }
     id: code.id,
     tool: tool.name,
     toolSlug: tool.slug,
-    creator: creator.name,
-    creatorSlug: creator.slug,
+    ...(isMerkodFoundSlug(creator.slug) ? { creator: 'Merkod', creatorSlug: '', foundByMerkod: true as const } : { creator: creator.name, creatorSlug: creator.slug }),
     code: code.code ?? '',
     discount: code.discount,
     status: code.status,

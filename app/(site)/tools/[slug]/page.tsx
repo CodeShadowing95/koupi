@@ -75,7 +75,9 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
               {best ? (
                 <p className="k-tool-proof">
                   <CodeBadge code={best} dark />
-                  <span>donné par <Link href={routes.creator(best.creatorSlug)}>{best.creator}</Link><CreatorMark level={best.creatorLevel} compact /></span>
+                  {best.foundByMerkod
+                    ? <span>trouvé par Merkod</span>
+                    : <span>donné par <Link href={routes.creator(best.creatorSlug)}>{best.creator}</Link><CreatorMark level={best.creatorLevel} compact /></span>}
                 </p>
               ) : (
                 <p>Pas encore de code donné par un créateur pour {tool.name}.</p>
@@ -90,8 +92,13 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
                 <div className="k-ticket-who">
                   <CreatorAvatar name={best.creator} className="k-ticket-avatar" />
                   <span>
-                    <strong><Link href={routes.creator(best.creatorSlug)}>{best.creator}</Link><CreatorMark level={best.creatorLevel} compact /></strong>
-                    <span className="k-ticket-source">l&apos;a donné dans {ticketSource(best)}</span>
+                    {best.foundByMerkod ? <>
+                      <strong>Trouvé par Merkod</strong>
+                      <span className="k-ticket-source">sans créateur à créditer</span>
+                    </> : <>
+                      <strong><Link href={routes.creator(best.creatorSlug)}>{best.creator}</Link><CreatorMark level={best.creatorLevel} compact /></strong>
+                      <span className="k-ticket-source">l&apos;a donné dans {ticketSource(best)}</span>
+                    </>}
                   </span>
                 </div>
                 <span className="k-ticket-discount">{best.discount}</span>

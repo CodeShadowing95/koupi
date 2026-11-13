@@ -47,11 +47,11 @@ function HeroCoupon({ slot, code, toolSlug, website }: { slot: number; code: Cod
 
   return (
     <div className={`k-coupon k-float k-float-${slot + 1}${copied ? ' is-copied' : ''}`}>
-      <Link href={routes.tool(toolSlug)} className="k-coupon-main k-paper" aria-label={`Voir la fiche ${code.tool} : ${code.discount}, code de ${code.creator}`}>
+      <Link href={routes.tool(toolSlug)} className="k-coupon-main k-paper" aria-label={`Voir la fiche ${code.tool} : ${code.discount}, ${code.foundByMerkod ? 'code trouvé par Merkod' : `code de ${code.creator}`}`}>
         <ToolSeal key={code.id} tool={toolSlug} name={code.tool} />
         <span className="k-coupon-text">
           <strong>{code.tool}, {code.discount}</strong>
-          <span><span className="k-by"><CreatorAvatar name={code.creator} size="xs" />de {code.creator}</span></span>
+          <span><span className="k-by"><CreatorAvatar name={code.creator} size="xs" />{code.foundByMerkod ? 'trouvé par Merkod' : `de ${code.creator}`}</span></span>
         </span>
       </Link>
       <button type="button" className="k-coupon-stub" onClick={copy} aria-label={`Copier le code ${code.code} et ouvrir le lien du créateur`}>

@@ -18,7 +18,7 @@ export function nextRotation(current: number, length: number): number {
 /** Chaînes distinctes ayant au moins un code public, la mieux notée en premier. */
 export function rotationCreators(codes: readonly { creator: string; creatorSlug: string }[], first?: string): { name: string; slug: string }[] {
   const seen = new Map<string, { name: string; slug: string }>();
-  for (const code of codes) if (!seen.has(code.creatorSlug)) seen.set(code.creatorSlug, { name: code.creator, slug: code.creatorSlug });
+  for (const code of codes) if (code.creatorSlug && !seen.has(code.creatorSlug)) seen.set(code.creatorSlug, { name: code.creator, slug: code.creatorSlug });
   const list = [...seen.values()];
   const head = list.findIndex(creator => creator.slug === first);
   if (head > 0) list.unshift(...list.splice(head, 1));

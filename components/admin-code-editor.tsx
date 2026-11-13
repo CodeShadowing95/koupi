@@ -32,7 +32,7 @@ function initialValues(target: EditorTarget, tools: ToolOption[], categories: Ca
   const empty: Initial = { toolSlug: '', newToolName: '', newToolCategory: '', newToolWebsite: '', creatorName: '', code: '', discount: '', sourceUrl: '', sourceTitle: '', creatorLink: '', status: 'to_test', note: '', expiresOn: '' };
   if (target.kind === 'edit') {
     const { code } = target;
-    return { ...empty, toolSlug: code.toolSlug, creatorName: code.creator, code: code.code, discount: code.discount, sourceUrl: code.source, sourceTitle: code.sourceTitle, creatorLink: code.creatorLink ?? '', status: code.status, note: code.note ?? '', expiresOn: code.expiresOn ?? '' };
+    return { ...empty, toolSlug: code.toolSlug, creatorName: code.foundByMerkod ? '' : code.creator, code: code.code, discount: code.discount, sourceUrl: code.source, sourceTitle: code.sourceTitle, creatorLink: code.creatorLink ?? '', status: code.status, note: code.note ?? '', expiresOn: code.expiresOn ?? '' };
   }
   if (target.kind === 'submission') {
     const { submission } = target;
@@ -154,7 +154,7 @@ export function CodeEditor({ target, tools, categories, creators, existing = [],
           </div>
           <div className="field">
             <label htmlFor="ce-creator">Créateur</label>
-            <input id="ce-creator" list="ce-creators" value={values.creatorName} onChange={set('creatorName')} required maxLength={160} placeholder="Nom de la chaîne ou du compte" />
+            <input id="ce-creator" list="ce-creators" value={values.creatorName} onChange={set('creatorName')} maxLength={160} placeholder="Vide : « Trouvé par Merkod »" />
             <datalist id="ce-creators">{creators.map(name => <option key={name} value={name} />)}</datalist>
           </div>
           {isNewTool && (
@@ -190,7 +190,7 @@ export function CodeEditor({ target, tools, categories, creators, existing = [],
             )}
           </div>
           <div className="field"><label htmlFor="ce-discount">Réduction</label><input id="ce-discount" value={values.discount} onChange={set('discount')} required maxLength={240} placeholder="-20 %, 3 mois offerts…" /></div>
-          <div className="field adm-span-2"><label htmlFor="ce-source">Lien de la source</label><input id="ce-source" type="url" value={values.sourceUrl} onChange={set('sourceUrl')} required maxLength={1000} placeholder="https://… (vidéo, post, story)" /><small>Là où le créateur donne le code. C’est la preuve qu’il est public.</small></div>
+          <div className="field adm-span-2"><label htmlFor="ce-source">Lien de la source</label><input id="ce-source" type="url" value={values.sourceUrl} onChange={set('sourceUrl')} maxLength={1000} placeholder="https://… (vidéo, post, story)" /><small>Là où le créateur donne le code. C’est la preuve qu’il est public. Vide : le site de l’outil (pour un code trouvé par Merkod).</small></div>
           <div className="field"><label htmlFor="ce-source-title">Titre de la source</label><input id="ce-source-title" value={values.sourceTitle} onChange={set('sourceTitle')} maxLength={300} /></div>
           <div className="field"><label htmlFor="ce-expires">Valable jusqu’au (facultatif)</label><input id="ce-expires" type="date" value={values.expiresOn} onChange={set('expiresOn')} /><small>Seulement si le créateur donne une date de fin. Le site l’affiche.</small></div>
           <div className="field"><label htmlFor="ce-link">Lien de l’offre{values.code.trim() ? ' (facultatif)' : ''}</label><input id="ce-link" type="url" value={values.creatorLink} onChange={set('creatorLink')} required={!values.code.trim()} maxLength={1000} placeholder="https://…" /><small>Le lien d’affiliation du créateur, ouvert tel quel. Seul moyen d’en profiter s’il n’y a pas de code.</small></div>

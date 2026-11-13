@@ -1,5 +1,6 @@
 'use client';
 import Link from '@/components/site/site-pages';
+import { MERKOD_FOUND_LABEL } from '@/lib/merkod-found';
 import { useState } from 'react';
 import type { Code } from '@/lib/data';
 import { routes } from '@/lib/routes';
@@ -80,7 +81,7 @@ export function BoardingCoupon({ code, category, link, compact = false, light = 
               ? <Link href={routes.tool(code.toolSlug)} className="k-pass-tool" aria-label={`Voir la fiche ${code.tool}`}><strong>{code.tool}</strong></Link>
               : <strong>{code.tool}</strong>}
             {light
-              ? <small className="k-pass-light-by">par {code.creator}<CreatorMark level={code.creatorLevel} compact /></small>
+              ? <small className="k-pass-light-by">{code.foundByMerkod ? MERKOD_FOUND_LABEL : <>par {code.creator}<CreatorMark level={code.creatorLevel} compact /></>}</small>
               : category && <small>{category}</small>}
           </span>
           {!light && (
@@ -99,7 +100,10 @@ export function BoardingCoupon({ code, category, link, compact = false, light = 
         {/* Le créateur (avatar et nom) et, tout à droite, le badge de confiance du code (point de couleur ET mot).
             La source, le partage et le signalement sont dans le menu ⋮. */}
         <p className="k-pass-by">
-          <Link href={routes.creator(code.creatorSlug)} className="k-pass-who"><CreatorAvatar name={code.creator} size="xs" /><span className="k-pass-who-name">{code.creator}</span><CreatorMark level={code.creatorLevel} compact /></Link>
+          {code.foundByMerkod
+            // Code trouvé par Merkod (sur le site de l'outil…) : aucun créateur à créditer, pas de page à ouvrir.
+            ? <span className="k-pass-who" title="Merkod a trouvé ce code lui-même, sans créateur à créditer"><span className="k-pass-who-name">{MERKOD_FOUND_LABEL}</span></span>
+            : <Link href={routes.creator(code.creatorSlug)} className="k-pass-who"><CreatorAvatar name={code.creator} size="xs" /><span className="k-pass-who-name">{code.creator}</span><CreatorMark level={code.creatorLevel} compact /></Link>}
           <span className={`k-pass-trust is-${badge.seal}`} title={badge.title}>{badge.label}</span>
         </p>
 

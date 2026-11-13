@@ -43,7 +43,7 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
   const match = codes.find(code => code.creatorSlug === slug);
   if (!match) {
     // Anciennes adresses (avant le passage en base, le slug gardait accents et tirets en trop).
-    const legacy = codes.find(code => creatorSlug(code.creator) === slug);
+    const legacy = codes.find(code => code.creatorSlug && creatorSlug(code.creator) === slug);
     if (legacy) permanentRedirect(routes.creator(legacy.creatorSlug));
     notFound();
   }

@@ -3,6 +3,7 @@
 import { count, desc, eq } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { CREATOR_REQUEST_STATUSES, creatorRequests, creators } from '@/db/schema';
+import { isMerkodFoundSlug } from './merkod-found';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 export type CreatorRequestKind = 'claim' | 'report';
@@ -43,7 +44,7 @@ export function parseCreatorRequest(body: Record<string, unknown>): Parsed<Creat
 
 export async function createCreatorRequest(db: Db, input: CreatorRequestInput, ipHash: string): Promise<Parsed<{ id: string }>> {
   const [creator] = await db.select({ id: creators.id }).from(creators).where(eq(creators.slug, input.slug)).limit(1);
-  if (!creator) return { ok: false, error: 'Créateur inconnu.' };
+  if (!creator || isMerkodFoundSlug(input.slug)) return { ok: false, error: 'Créateur inconnu.' };
   const [row] = await db.insert(creatorRequests).values({
     creatorId: creator.id, kind: input.kind, email: input.email, accountUrl: input.accountUrl, message: input.message, ipHash,
   }).returning({ id: creatorRequests.id });
