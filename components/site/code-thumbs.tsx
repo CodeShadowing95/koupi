@@ -1,15 +1,16 @@
 'use client';
 // Le vote d'un code, le même partout : 👍 avec le nombre de votes positifs, 👎 à côté.
-// Le pouce choisi reste coloré ; un vote tout juste donné ajoute +1 au compteur. dark : sur le fond de la page.
+// Le pouce choisi reste coloré, jamais à côté d'un 0 ; un vote tout juste donné ajoute +1 au compteur. dark : sur le fond de la page.
 import type { Code } from '@/lib/data';
 import { useCodeVote } from '@/components/site/use-code-vote';
+import { thumbsUpCount } from '@/lib/vote-outcome';
 
 type Props = { code: Pick<Code, 'id' | 'code' | 'votes' | 'success'>; dark?: boolean };
 
 export function CodeThumbs({ code, dark = false }: Props) {
   const { voted, fresh, message, sending, vote } = useCodeVote(code.id);
-  // Votes positifs déjà comptés (taux de réussite × votes), plus le vôtre s'il vient d'être donné.
-  const ups = Math.round((code.votes * code.success) / 100) + (voted === 'up' && fresh ? 1 : 0);
+  // Votes positifs déjà comptés (taux de réussite × votes), plus le vôtre (voir thumbsUpCount).
+  const ups = thumbsUpCount(code.votes, code.success, voted, fresh);
   return (
     <div className={`k-pass-thumbs${dark ? ' is-dark' : ''}`} role="group" aria-label={code.code ? `Le code ${code.code} a-t-il marché ?` : 'L’offre a-t-elle marché ?'}>
       <button type="button" className={`is-up${voted === 'up' && fresh ? ' is-new' : ''}${sending && !voted ? ' is-sending' : ''}`} aria-pressed={voted === 'up'}

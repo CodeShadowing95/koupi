@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb } from '@/db';
 import { recordVote } from '@/lib/audience';
+import { revalidateCatalog } from '@/lib/catalog-server';
 import { clientHash } from '@/lib/client';
 import { readJsonBody } from '@/lib/http';
 import { publicSalt } from '@/lib/public-salt';
@@ -25,6 +26,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (!once.allowed) return NextResponse.json({ error: 'Tu as déjà voté pour ce code aujourd’hui. Merci !' }, { status: 409 });
     const votes = await recordVote(db, id, parsed.data.worked);
     if (!votes) return NextResponse.json({ error: 'Code introuvable.' }, { status: 404 });
+    // Le site lit les votes dans le catalogue en cache (5 min) : on le rafraîchit pour que le vote s'y voie tout de suite.
+    revalidateCatalog();
     if (Math.random() < 0.02) await pruneRateLimits(db).catch(error => console.error('rate limit prune failed', error));
     return NextResponse.json({ ok: true, ...votes });
   } catch (error) {
