@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { VOTE_FAILED, VOTE_THANKS, voteOutcome } from './vote-outcome';
+import { thumbsUpCount, VOTE_FAILED, VOTE_THANKS, voteOutcome } from './vote-outcome';
 
 describe('voteOutcome', () => {
   it('keeps the thumb lit when the server records the vote', () => {
@@ -18,5 +18,18 @@ describe('voteOutcome', () => {
 
   it('turns it off again when the request never got through', () => {
     expect(voteOutcome(null)).toEqual({ kept: false, message: VOTE_FAILED });
+  });
+});
+
+describe('thumbsUpCount', () => {
+  it('counts the catalog votes, plus a vote just given', () => {
+    expect(thumbsUpCount(4, 75, null, false)).toBe(3);
+    expect(thumbsUpCount(4, 75, 'up', true)).toBe(4);
+    expect(thumbsUpCount(0, 0, 'down', true)).toBe(0);
+  });
+
+  it('never shows 0 next to a thumb this browser already lit, even while the catalog cache lags', () => {
+    expect(thumbsUpCount(0, 0, 'up', false)).toBe(1);
+    expect(thumbsUpCount(3, 100, 'up', false)).toBe(3);
   });
 });

@@ -2,6 +2,12 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.23.1](https://github.com/CodeShadowing95/koupi/compare/v0.23.0...v0.23.1) (2026-11-13)
+
+### Corrections
+
+- **votes:** Show a new vote on the site right away ([0c42199](https://github.com/CodeShadowing95/koupi/commit/0c42199419c0d1661666ab7b8cc1e701be74d7c9))
+
 ## [0.23.0](https://github.com/CodeShadowing95/koupi/compare/v0.22.1...v0.23.0) (2026-11-13)
 
 ### Nouveautés
