@@ -3,7 +3,7 @@
 // - épisode Apple Podcasts : le podcast de l'épisode (identifiant dans le lien, titre lu dans l'annuaire Apple).
 // Pour les créateurs qui restent sans aucun compte, on dit d'où viennent leurs codes (Instagram, Spotify, aucun code…)
 // pour que l'admin sache quoi relier à la main. Un créateur qui a déjà un compte n'est pas signalé.
-import { eq, isNull } from 'drizzle-orm';
+import { eq, isNull, ne } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { codes, creatorAccounts, creators } from '@/db/schema';
 import type { PodcastDirectory } from './apple-podcasts';
@@ -12,6 +12,7 @@ import { linkYoutubeChannels, type YoutubeBatch } from './creator-youtube-link';
 import { applePodcastUrl } from './podcasts-admin';
 import { sourcePlatform } from './source-platform';
 import { youtubeVideoId } from './verification-run';
+import { MERKOD_FOUND_SLUG } from './merkod-found';
 
 export type AccountsReport = LinkReport;
 
@@ -100,7 +101,7 @@ export async function linkCreatorAccounts(db: Db, deps: { youtube: YoutubeBatch 
   }
 
   const [creatorRows, codeRows] = await Promise.all([
-    db.select({ id: creators.id, name: creators.name }).from(creators),
+    db.select({ id: creators.id, name: creators.name }).from(creators).where(ne(creators.slug, MERKOD_FOUND_SLUG)),
     db.select({ creatorId: codes.creatorId, sourceUrl: codes.sourceUrl }).from(codes).where(isNull(codes.archivedAt)),
   ]);
   const nameOf = new Map(creatorRows.map(row => [row.id, row.name]));
@@ -127,7 +128,7 @@ export async function linkCreatorAccounts(db: Db, deps: { youtube: YoutubeBatch 
  */
 export async function creatorsToLink(db: Db): Promise<number> {
   const [creatorRows, codeRows, accountRows] = await Promise.all([
-    db.select({ id: creators.id }).from(creators),
+    db.select({ id: creators.id }).from(creators).where(ne(creators.slug, MERKOD_FOUND_SLUG)),
     db.select({ creatorId: codes.creatorId, sourceUrl: codes.sourceUrl }).from(codes).where(isNull(codes.archivedAt)),
     db.select({ creatorId: creatorAccounts.creatorId, platform: creatorAccounts.platform }).from(creatorAccounts),
   ]);

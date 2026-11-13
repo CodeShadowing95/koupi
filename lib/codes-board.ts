@@ -167,7 +167,7 @@ export function facetCounts(codes: Code[], tools: Tool[], filters: CodeFilters, 
     allFamilies: codes.filter(code => matches(code, { ...filters, family: '', category: '' }, maps, now)).length,
     category: tally(without('category'), code => categoryOf.get(code.toolSlug)),
     tool: tally(without('tool'), code => code.toolSlug),
-    creator: tally(without('creator'), code => code.creatorSlug),
+    creator: tally(without('creator'), code => code.creatorSlug || undefined),
     trust: {
       payment: byTrust.filter(code => trustTests.payment(code, now)).length,
       recent: byTrust.filter(code => trustTests.recent(code, now)).length,
@@ -321,6 +321,7 @@ export function browseRows(codes: Code[], tools: Tool[], families: { slug: strin
 
   const perCreator = new Map<string, { name: string; count: number }>();
   for (const code of codes) {
+    if (!code.creatorSlug) continue; // code trouvé par Merkod : pas de créateur
     const entry = perCreator.get(code.creatorSlug) ?? { name: code.creator, count: 0 };
     entry.count += 1;
     perCreator.set(code.creatorSlug, entry);

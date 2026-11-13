@@ -8,6 +8,7 @@ import * as schema from '@/db/schema';
 import { loadCatalog } from './catalog-db';
 import { applyCodeAction, correctCode, createCode, moveCodeToTool, parseCodeInput, toolOptions, updateCode, type CodeInput } from './codes-admin';
 import { createSubmission, listSubmissions } from './submissions';
+import { listCreatorsAdmin } from './catalog-admin';
 
 async function freshDb() {
   const db = drizzle(new PGlite(), { schema });
@@ -266,5 +267,25 @@ describe('rattacher un code à un autre outil depuis Vérifications', () => {
     expect(await moveCodeToTool(db, onNord.data.id, 'nope')).toEqual({ ok: false, error: 'Choisis un outil du catalogue.' });
     expect(await moveCodeToTool(db, onNord.data.id, 'old')).toEqual({ ok: false, error: 'Choisis un outil du catalogue.' });
     expect(await moveCodeToTool(db, onNord.data.id, 'rankerfox')).toMatchObject({ ok: false, duplicateId: onFox.data.id });
+  });
+});
+
+describe('code trouvé par Merkod, sans créateur ni source', () => {
+  it('accepte un créateur et une source vides', () => {
+    expect(parseCodeInput({ toolSlug: 'nordvpn', creatorName: '', code: 'HUMEET', discount: '-10 %', sourceUrl: '' }))
+      .toMatchObject({ ok: true, data: { creatorName: '', sourceUrl: '' } });
+  });
+
+  it('range le code sous « Trouvé par Merkod », avec le site de l’outil pour source, et le montre ainsi sur le site', async () => {
+    const db = await freshDb();
+    const first = await createCode(db, { ...base, creatorName: '', sourceUrl: '', status: 'verified' });
+    const second = await createCode(db, { ...base, code: 'AUTRE', creatorName: '', sourceUrl: '', status: 'verified' });
+    if (!first.ok || !second.ok) throw new Error('setup');
+    const rows = await db.select({ source: schema.codes.sourceUrl, creator: schema.creators.slug }).from(schema.codes).innerJoin(schema.creators, eq(schema.codes.creatorId, schema.creators.id));
+    expect(rows).toEqual([{ source: 'https://nordvpn.com', creator: 'trouve-par-merkod' }, { source: 'https://nordvpn.com', creator: 'trouve-par-merkod' }]);
+    expect(await db.select().from(schema.creators)).toHaveLength(1);
+    const catalog = await loadCatalog(db);
+    expect(catalog.codes.find(code => code.code === 'YTSTACK')).toMatchObject({ creator: 'Merkod', creatorSlug: '', foundByMerkod: true });
+    expect(await listCreatorsAdmin(db)).toEqual([]);
   });
 });

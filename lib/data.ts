@@ -34,6 +34,8 @@ export type Code = {
   createdAt: string;
   /** Niveau du créateur, absent tant qu'il est seulement « repéré ». */
   creatorLevel?: Exclude<CreatorLevel, 'spotted'>;
+  /** Code trouvé par Merkod, sans créateur (lib/merkod-found.ts) : creatorSlug est vide, creator vaut « Merkod ». */
+  foundByMerkod?: true;
   /** Seulement dans l'admin : code retiré du site et des statistiques. */
   archived?: boolean;
   /** Seulement dans l'admin : comment Merkod a trouvé le code (lib/code-origin.ts). */

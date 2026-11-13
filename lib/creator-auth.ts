@@ -10,6 +10,7 @@ import { usedCode } from './audience';
 import { CONTACT_EMAIL } from './site-contact';
 import { isProvisionalPage, mergeProvisionalPage } from './creator-merge';
 import { routes } from './routes';
+import { isMerkodFoundSlug } from './merkod-found';
 
 type Parsed<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -47,7 +48,7 @@ export type SignInLink = { link: string; creatorName: string | null };
  */
 export async function recordClaim(db: Db, input: { email: string; slug: string; ipHash: string; appUrl: string; message?: string; accountUrl?: string }): Promise<Parsed<{ creatorName: string }>> {
   const [creator] = await db.select({ id: creators.id, name: creators.name }).from(creators).where(eq(creators.slug, input.slug)).limit(1);
-  if (!creator) return { ok: false, error: 'Créateur inconnu.' };
+  if (!creator || isMerkodFoundSlug(input.slug)) return { ok: false, error: 'Créateur inconnu.' };
   const [open] = await db.select({ id: creatorRequests.id }).from(creatorRequests)
     .where(and(eq(creatorRequests.creatorId, creator.id), eq(creatorRequests.kind, 'claim'), eq(creatorRequests.email, input.email), eq(creatorRequests.status, 'new')))
     .limit(1);

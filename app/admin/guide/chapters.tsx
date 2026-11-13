@@ -41,6 +41,7 @@ function Introduction() {
         <li>Une offre officielle de la marque (sur sa propre page) n’est <b>pas</b> un code créateur. On la refuse.</li>
         <li>Un code « trouvé quelque part » sans lien vérifiable reste en attente ou est refusé.</li>
       </ul>
+      <p>Une exception : un code que <b>tu</b> as vu toi-même chez la marque (dans un formulaire d’inscription, une page d’accueil), sans créateur derrière. Ajoute-le à la main en laissant le créateur vide : il porte « Trouvé par Merkod » (voir <Link href="/admin/guide/codes#ajouter">Ajouter un code</Link>).</p>
     </Section>
     <Section id="suite" title="Comment lire ce guide">
       <p>Chaque chapitre commence par ce que tu sauras faire, se termine par un bouton pour <b>mettre en pratique</b> dans la vraie page, et tient en quelques minutes. Lis-les dans l’ordre la première fois, puis reviens-y comme à une notice quand tu as un doute.</p>
@@ -250,7 +251,8 @@ function Codes() {
       <p>Le bouton <b>Nouveau code</b> ouvre le formulaire. Les champs importants :</p>
       <Legend rows={[
         { term: 'Code', meaning: 'Lettres, chiffres, tirets et tirets bas, sans espace, avec au plus un % collé à la fin (« SOLARFLOWTECH5% »), 40 caractères au plus. Il est rangé en majuscules : « merci20 » devient « MERCI20 ». Si l’outil a déjà ce code, même archivé, le formulaire te prévient avec un lien et refuse d’en créer un deuxième.' },
-        { term: 'Lien de la source', meaning: 'Obligatoire. La vidéo, l’épisode ou le post où le créateur donne le code.' },
+        { term: 'Créateur', meaning: 'Qui donne le code. Laisse vide pour un code que tu as trouvé toi-même chez la marque : il est crédité « Trouvé par Merkod ».' },
+        { term: 'Lien de la source', meaning: 'La vidéo, l’épisode ou le post où le créateur donne le code. Laisse vide si le code n’a pas de page publique : le site de l’outil devient sa source.' },
         { term: 'Réduction', meaning: 'Court et concret : « -20 % », « 3 mois offerts », « 50 € offerts ».' },
         { term: 'Lien de l’offre', meaning: 'Le lien d’affiliation du créateur, ouvert tel quel quand le visiteur clique. Facultatif avec un code, obligatoire sans.' },
         { term: 'Valable jusqu’au', meaning: 'Facultatif. Seulement si le créateur donne une date de fin (« jusqu’au 31/12 »). Le site l’affiche, et prévient quand elle approche. La plupart des codes n’en ont pas : laisse vide.' },
@@ -258,6 +260,7 @@ function Codes() {
       ]} />
       <p>Pour corriger un code existant, ouvre-le et clique sur <b>Modifier</b> (ou l’icône crayon).</p>
       <Callout tone="tip">Offre sans code : certains créateurs donnent seulement un lien (« KrispCall : try.krispcall.com/tad »). Laisse le champ <b>Code</b> vide et remplis <b>Lien de l’offre</b>. Dans les listes, l’offre porte l’étiquette <b>Lien seul</b>. Sur le site, son coupon a un bouton « Profiter de l’offre » au lieu de « Copier ». Dans Vérifications, elle est prouvée quand son lien est dans la source. Comme il n’y a rien à copier, sa colonne <b>Copies</b> compte les clics sur son lien (pareil dans l’espace créateur).</Callout>
+      <Callout tone="tip">Code trouvé par Merkod : tu vois un code chez la marque elle-même, par exemple dans le formulaire d’inscription de Humeet, sans créateur pour le donner. Choisis l’outil, tape le code et la réduction, et laisse <b>Créateur</b> vide (et <b>Lien de la source</b> s’il n’y a pas de page à montrer). Sur le site, le coupon dit « Trouvé par Merkod », sans lien vers une page créateur. Ces codes n’ont pas de page créateur et n’apparaissent ni dans la liste Créateurs ni dans l’annuaire du site.</Callout>
     </Section>
     <Section id="export" title="Exporter">
       <p><b>Exporter</b> télécharge tous les codes, archives comprises, en Excel ou en CSV. Utile pour un bilan ou pour préparer un message à une marque. Voir <Link href="/admin/guide/se-reperer#exporter">Exporter une liste</Link>.</p>

@@ -73,7 +73,7 @@ function rankCodes(own: Code[]): Code[] {
 /** Créateurs qui ont au moins un code visible, le plus copié ce mois-ci d'abord, puis le plus de codes. */
 export function buildDirectory(catalog: { codes: Code[]; tools: Tool[] }, facts: Record<string, CreatorFacts>): DirectoryEntry[] {
   const bySlug = new Map<string, Code[]>();
-  for (const code of catalog.codes) if (isPublic(code)) bySlug.set(code.creatorSlug, [...(bySlug.get(code.creatorSlug) ?? []), code]);
+  for (const code of catalog.codes) if (isPublic(code) && code.creatorSlug) bySlug.set(code.creatorSlug, [...(bySlug.get(code.creatorSlug) ?? []), code]);
   const toolOf = new Map(catalog.tools.map(tool => [tool.slug, tool]));
   return [...bySlug].map(([slug, unranked]) => {
     const fact = facts[slug];

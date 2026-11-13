@@ -14,6 +14,7 @@ import { CreatorAvatar } from '@/components/site/creator-avatar';
 import { ClaimPageButton } from '@/components/site/claim-page-button';
 import { CreatorSignIn } from '@/components/site/creator-sign-in';
 import { PlatformIcon } from '@/components/platform-icon';
+import { isMerkodFoundSlug } from '@/lib/merkod-found';
 
 export const metadata: Metadata = {
   title: 'Pour les créateurs · Merkod',
@@ -28,7 +29,7 @@ export default async function ForCreators({ searchParams }: { searchParams: Prom
   const [{ codes }, account] = await Promise.all([getCatalog(), currentCreatorAccount()]);
   const fromCode = typeof c === 'string' ? codes.find(code => code.creatorSlug === c) : undefined;
   // Une page sans code publié (créée à la main par l'admin avec ses comptes) se revendique aussi.
-  const bare = !fromCode && typeof c === 'string' && SLUG.test(c)
+  const bare = !fromCode && typeof c === 'string' && SLUG.test(c) && !isMerkodFoundSlug(c)
     ? (await getDb().select({ slug: creators.slug, name: creators.name }).from(creators).where(eq(creators.slug, c)).limit(1))[0]
     : undefined;
   const match = fromCode ?? (bare ? { creatorSlug: bare.slug, creator: bare.name } : undefined);

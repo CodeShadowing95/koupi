@@ -1,6 +1,6 @@
 // Merkod Studio : le tableau de bord du créateur connecté (espace créateur, ADR-0021).
 // Fonctions pures pour l'affichage (courbe des 30 jours, tendance, objectif rosette) et une requête des copies par jour.
-import { and, eq, gte, inArray, isNull, sql } from 'drizzle-orm';
+import { and, eq, gte, inArray, isNull, ne, sql } from 'drizzle-orm';
 import type { Db } from '@/db';
 import { codes, creatorAccounts, creators, dailyCounters, type CreatorAccountRow } from '@/db/schema';
 import { cleanMetrics } from './account-metrics';
@@ -8,6 +8,7 @@ import { usedCode } from './audience';
 import { MIN_RATINGS, MIN_SUBSCRIBERS } from './verification';
 import { accountLevelOf } from './creator-level';
 import { PLATFORM_LABELS, type CreatorPlatform } from './creator-accounts-display';
+import { MERKOD_FOUND_SLUG } from './merkod-found';
 
 export const STUDIO_DAYS = 30;
 
@@ -110,7 +111,7 @@ export function matchCreatorPages(pages: FoundPage[], query: string, limit = 8):
 /** Toutes les pages avec leurs comptes et leur nombre de codes publiés, pour la recherche du Studio. */
 export async function loadFindablePages(db: Db): Promise<FoundPage[]> {
   const [rows, accounts, counts] = await Promise.all([
-    db.select({ id: creators.id, slug: creators.slug, name: creators.name }).from(creators),
+    db.select({ id: creators.id, slug: creators.slug, name: creators.name }).from(creators).where(ne(creators.slug, MERKOD_FOUND_SLUG)),
     db.select({ creatorId: creatorAccounts.creatorId, platform: creatorAccounts.platform, handle: creatorAccounts.handle }).from(creatorAccounts),
     db.select({ creatorId: codes.creatorId, count: sql<number>`count(*)::int` }).from(codes)
       .where(and(isNull(codes.archivedAt), inArray(codes.status, ['verified', 'to_test']))).groupBy(codes.creatorId),
