@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { BarChart, ChartCard, Legend, type Series } from '@/components/admin-charts';
 import type { Catalog } from '@/lib/data';
 import { coverageByCategory, overview, reliabilityBuckets, topTools } from '@/lib/admin-stats';
+import { isShown, visibleUniverses } from '@/lib/universes';
 import { PERIODS, type Insights, type Period } from '@/lib/admin-insights';
 import { AUDIENCE_PERIODS, type Audience, type AudiencePeriod } from '@/lib/audience';
 
@@ -105,10 +106,14 @@ const COVERAGE_PREVIEW = 10;
 export function StatsView({ catalog }: { catalog: Catalog }) {
   const [allCoverage, setAllCoverage] = useState(false);
   const stats = overview(catalog);
-  const coverage = coverageByCategory(catalog.categories);
+  // Les catégories les moins couvertes d'abord : les 10 premières barres montrent où chercher, pas celles déjà pleines.
+  const coverage = coverageByCategory(catalog.categories, { weakestFirst: true });
   const top = topTools(catalog.codes, 8);
   const reliability = reliabilityBuckets(catalog.codes);
-  const mostTracked = [...coverage].sort((a, b) => b.tracked - a.tracked)[0];
+  // Le conseil ne vise que les catégories montrées sur le site : chercher des codes pour un univers caché ne sert pas les visiteurs.
+  const shownUniverses = visibleUniverses(catalog.universes);
+  const shownSlugs = new Set(catalog.categories.filter(category => isShown(category, shownUniverses)).map(category => category.slug));
+  const mostTracked = coverage.filter(item => shownSlugs.has(item.slug) && item.covered < item.tracked).sort((a, b) => (b.tracked - b.covered) - (a.tracked - a.covered))[0];
 
   const statusSeries: Series[] = [
     { label: 'En attente', data: [stats.counts.pending], color: '--st-pending' },
@@ -147,7 +152,7 @@ export function StatsView({ catalog }: { catalog: Catalog }) {
   return (
     <>
         <div className="adm-row adm-row-4" style={{ marginTop: 0 }}>
-          <div className="adm-stat-tile"><span>Codes visibles</span><strong>{stats.visible}</strong><span>{stats.counts.verified} vérifiés, {stats.counts.to_test} à tester</span></div>
+          <div className="adm-stat-tile"><span>Codes visibles sur le site</span><strong>{stats.visible}</strong><span>{stats.hiddenUniverse > 0 ? `+ ${stats.hiddenUniverse} publiés dans les univers cachés` : `${stats.counts.verified} vérifiés, ${stats.counts.to_test} à tester`}</span></div>
           <div className="adm-stat-tile"><span>Outils couverts</span><strong>{stats.coveredTools} <small>/ {stats.tracked}</small></strong><span>au moins un code visible</span></div>
           <div className="adm-stat-tile"><span>Créateurs crédités</span><strong>{stats.creators}</strong><span>avec un code visible</span></div>
           <div className="adm-stat-tile"><span>Votes des visiteurs</span><strong>{stats.success.votes}</strong><span>sur {stats.success.votedCodes} codes</span></div>
@@ -164,15 +169,15 @@ export function StatsView({ catalog }: { catalog: Catalog }) {
         </div>
 
         <div className="adm-row adm-row-2">
-          <ChartCard id="coverage" title="Couverture par catégorie" sub="Part des outils suivis qui ont un code visible"
+          <ChartCard id="coverage" title="Couverture par catégorie" sub="Part des outils suivis qui ont un code visible, les moins couvertes d’abord"
             table={{ head: ['Catégorie', 'Couverture', 'Outils couverts', 'Outils suivis'], rows: coverage.map(item => [item.name, `${item.rate} %`, item.covered, item.tracked]) }}
-            learn={mostTracked ? <>« {mostTracked.name} » est la catégorie la plus suivie ({mostTracked.tracked} outils) avec {mostTracked.covered} outil{mostTracked.covered > 1 ? 's' : ''} couvert{mostTracked.covered > 1 ? 's' : ''}. C’est là qu’un nouveau créateur à suivre rapporterait le plus.</> : 'Aucune catégorie pour l’instant.'}>
+            learn={mostTracked ? <>« {mostTracked.name} » est la catégorie du site où il manque le plus de codes : {mostTracked.tracked - mostTracked.covered} outil{mostTracked.tracked - mostTracked.covered > 1 ? 's' : ''} suivi{mostTracked.tracked - mostTracked.covered > 1 ? 's' : ''} sans code sur {mostTracked.tracked}. C’est là qu’un nouveau créateur à suivre rapporterait le plus.</> : 'Toutes les catégories du site ont un code pour chaque outil suivi.'}>
             <BarChart className="adm-chart adm-chart-tall" horizontal labels={coverageLabels} series={coverageSeries} max={100} format={coverageFormat}
               height={Math.max(300, shownCoverage.length * 26 + 40)}
               summary={shownCoverage.map(item => `${item.name} ${item.rate} %`).join(', ')} />
             {coverage.length > COVERAGE_PREVIEW && (
               <button type="button" className="adm-link-btn adm-chart-more" aria-expanded={allCoverage} onClick={() => setAllCoverage(value => !value)}>
-                {allCoverage ? `Voir les ${COVERAGE_PREVIEW} premières` : `Voir les ${coverage.length} catégories`}
+                {allCoverage ? `Voir les ${COVERAGE_PREVIEW} moins couvertes` : `Voir les ${coverage.length} catégories`}
               </button>
             )}
           </ChartCard>

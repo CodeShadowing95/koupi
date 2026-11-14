@@ -526,7 +526,7 @@ function Createurs() {
     </Section>
     <Section id="suivre" title="Suivre les vidéos d’une chaîne">
       <p>Un créateur qui a déjà donné un code en redonnera. Coche <b>Suivre ses vidéos</b> sur son compte YouTube : chaque nuit, Merkod lit les nouvelles vidéos de la chaîne et cherche des codes dans leur description, comme pour les podcasts. Les codes trouvés arrivent « En attente » dans Vérifications, crédités à ce créateur. La case n’apparaît que pour une chaîne lue par Merkod (avec son identifiant) ; décoche-la pour mettre la chaîne en pause, elle garde sa date de lecture.</p>
-      <p><b>Suivre les chaînes</b>, en haut de la page, suit d’un coup les chaînes reliées de tous les créateurs qui ont au moins un code. Une chaîne que tu as mise en pause reste en pause. <b>Lire les chaînes suivies</b> lance la lecture tout de suite, sans attendre la nuit. Une lecture s’arrête d’elle-même au bout de 4 minutes, pour ne pas être coupée par l’hébergeur : le message dit combien de chaînes restent, reclique pour continuer (ou laisse la nuit s’en charger). Une vidéo illisible est notée et n’arrête plus les autres.</p>
+      <p><b>Suivre les chaînes</b>, en haut de la page, suit d’un coup les chaînes reliées de tous les créateurs qui ont au moins un code. Une chaîne que tu as mise en pause reste en pause. <b>Lire les chaînes suivies</b> lance la lecture tout de suite, sans attendre la nuit. Une lecture s’arrête d’elle-même au bout de 4 minutes, entre deux vidéos, pour ne pas être coupée par l’hébergeur : les vidéos déjà lues sont gardées, le message dit combien de chaînes restent, reclique pour continuer (ou laisse la nuit s’en charger). Une vidéo illisible est notée et n’arrête plus les autres.</p>
       <Callout tone="why">Lire une chaîne coûte environ 1 unité du quota YouTube, contre 100 pour une recherche : 100 chaînes suivies coûtent moins qu’une seule recherche. Les vidéos déjà lues (par une recherche ou une lecture précédente) sont écartées. La première lecture remonte 45 jours, les suivantes reprennent depuis la dernière.</Callout>
     </Section>
     <Section id="preuve" title="Faire prouver un compte par la bio">
@@ -771,7 +771,7 @@ function Routine() {
         <div><dt>Source</dt><dd>La vidéo, l’épisode ou le post où le créateur donne le code. La preuve.</dd></div>
         <div><dt>Code mort</dt><dd>Code expiré ou désactivé. L’ennemi numéro 1 de la confiance.</dd></div>
         <div><dt>Doublon</dt><dd>Le même code, pour le même outil, déjà dans le catalogue.</dd></div>
-        <div><dt>Couverture</dt><dd>Part des outils qui ont au moins un code visible. Dans Statistiques, le graphique « Couverture par catégorie » montre les 10 premières catégories ; « Voir les … catégories » les affiche toutes.</dd></div>
+        <div><dt>Couverture</dt><dd>Part des outils qui ont au moins un code visible. Dans Statistiques, le graphique « Couverture par catégorie » montre d’abord les 10 catégories les moins couvertes, là où il faut chercher ; « Voir les … catégories » les affiche toutes. La case « Codes visibles sur le site » ne compte que les univers allumés dans Administration ; les codes publiés dans un univers caché sont indiqués à part.</dd></div>
         <div><dt>Taux de conversion</dt><dd>Part des visiteurs qui font l’action voulue : copier un code, aller sur l’outil.</dd></div>
         <div><dt>Modération</dt><dd>Décider ce qui est publié et ce qui ne l’est pas.</dd></div>
         <div><dt>B2B</dt><dd>« Business to business » : l’offre future de Merkod pour les marques.</dd></div>

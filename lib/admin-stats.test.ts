@@ -33,6 +33,13 @@ describe('indicateurs du catalogue', () => {
     expect(stats.emptyCategories.map(category => category.slug)).toEqual(['ia']);
   });
 
+  it('ne compte comme visibles que les codes des univers montrés sur le site', () => {
+    const withHidden = { ...catalog, codes: [...codes, code({ code: 'M1', tool: 'Asos', status: 'verified', universe: 'mode' })],
+      universes: [{ slug: 'outils-en-ligne', name: 'Outils en ligne', visible: true }, { slug: 'mode', name: 'Mode', visible: false }] };
+    const stats = overview(withHidden);
+    expect(stats).toMatchObject({ published: 4, visible: 3, hiddenUniverse: 1 });
+  });
+
   it('pondère la réussite par le nombre de votes', () => {
     // (10×90 + 2×0 + 4×75 + 1×0) / 17 = 70,6
     expect(weightedSuccess(codes)).toEqual({ rate: 71, votes: 17, votedCodes: 4 });
@@ -54,6 +61,7 @@ describe('indicateurs du catalogue', () => {
 
   it('classe les catégories de la mieux couverte à la moins couverte', () => {
     expect(coverageByCategory(categories).map(item => [item.slug, item.rate])).toEqual([['finance', 50], ['marketing', 25], ['ia', 0]]);
+    expect(coverageByCategory(categories, { weakestFirst: true }).map(item => item.slug)).toEqual(['ia', 'marketing', 'finance']);
   });
 
   it('classe les outils par nombre de codes visibles', () => {
