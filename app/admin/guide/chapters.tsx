@@ -771,7 +771,7 @@ function Routine() {
         <div><dt>Source</dt><dd>La vidéo, l’épisode ou le post où le créateur donne le code. La preuve.</dd></div>
         <div><dt>Code mort</dt><dd>Code expiré ou désactivé. L’ennemi numéro 1 de la confiance.</dd></div>
         <div><dt>Doublon</dt><dd>Le même code, pour le même outil, déjà dans le catalogue.</dd></div>
-        <div><dt>Couverture</dt><dd>Part des outils qui ont au moins un code visible. Dans Statistiques, le graphique « Couverture par catégorie » montre les 10 premières catégories ; « Voir les … catégories » les affiche toutes.</dd></div>
+        <div><dt>Couverture</dt><dd>Part des outils qui ont au moins un code visible. Dans Statistiques, le graphique « Couverture par catégorie » montre d’abord les 10 catégories les moins couvertes, là où il faut chercher ; « Voir les … catégories » les affiche toutes. La case « Codes visibles sur le site » ne compte que les univers allumés dans Administration ; les codes publiés dans un univers caché sont indiqués à part.</dd></div>
         <div><dt>Taux de conversion</dt><dd>Part des visiteurs qui font l’action voulue : copier un code, aller sur l’outil.</dd></div>
         <div><dt>Modération</dt><dd>Décider ce qui est publié et ce qui ne l’est pas.</dd></div>
         <div><dt>B2B</dt><dd>« Business to business » : l’offre future de Merkod pour les marques.</dd></div>

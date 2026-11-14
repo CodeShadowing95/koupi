@@ -15,7 +15,7 @@ import { CreatorMore } from '@/components/site/creator-more';
 import { CreatorCodes } from '@/components/site/creator-codes';
 import { PlatformIcon } from '@/components/platform-icon';
 import { ExploreShell } from '@/components/site/explore-shell';
-import { totalVotes } from '@/lib/explore';
+import { workedVotes } from '@/lib/explore';
 import { JsonLd } from '@/components/json-ld';
 import { creatorProfileLd } from '@/lib/structured-data';
 import { seoMonth, siteUrl } from '@/lib/seo';
@@ -57,7 +57,7 @@ export default async function Creator({ params }: { params: Promise<{ slug: stri
   const themes = creatorCategories(creatorCodes, tools);
   const toolCount = new Set(creatorCodes.map(code => code.toolSlug)).size;
   const verified = creatorCodes.filter(code => code.status === 'verified').length;
-  const votes = totalVotes(creatorCodes);
+  const votes = workedVotes(creatorCodes);
   const accounts = profile?.accounts ?? [];
   return (
     <ExploreShell codes={codes.filter(isPublic)} tools={tools} families={families} now={Date.now()} active={{ kind: 'creator', slug: match.creatorSlug }} skipLabel="Aller à ses codes">
