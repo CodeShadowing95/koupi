@@ -237,7 +237,7 @@ export function DashboardView({ catalog, urgent, nowIso }: { catalog: Catalog; u
               targetLabel={`Objectif lancement : ${TARGETS.coverage} %`} tone={coverageOk ? 'ok' : 'neutral'}>
               Part des outils suivis qui ont au moins un code visible. Un visiteur qui cherche un outil sans code repart les mains vides.
             </Kpi>
-            <Kpi label="Codes vérifiés" value={`${stats.verifiedRate ?? 0} %`} detail={`${stats.counts.verified} / ${stats.visible} visibles`} rate={stats.verifiedRate} target={TARGETS.verified}
+            <Kpi label="Codes vérifiés" value={`${stats.verifiedRate ?? 0} %`} detail={`${stats.counts.verified} / ${stats.published} publiés`} rate={stats.verifiedRate} target={TARGETS.verified}
               targetLabel={`Objectif : ${TARGETS.verified} %`} tone={verifiedOk ? 'ok' : 'bad'} note={verifiedOk ? `Objectif de ${TARGETS.verified} % atteint` : `Sous l’objectif de ${TARGETS.verified} %`}>
               Ta promesse, c’est des codes qui marchent. Plus ce chiffre est haut, plus le site inspire confiance.
             </Kpi>

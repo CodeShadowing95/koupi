@@ -170,9 +170,10 @@ describe('compactCount', () => {
     expect(compactCount(31)).toBe('31');
     expect(compactCount(99)).toBe('99');
   });
-  it('écrit +99 de 100 à 999', () => {
-    expect(compactCount(100)).toBe('+99');
-    expect(compactCount(999)).toBe('+99');
+  it('arrondit à la centaine de 100 à 999', () => {
+    expect(compactCount(100)).toBe('+100');
+    expect(compactCount(533)).toBe('+500');
+    expect(compactCount(999)).toBe('+900');
   });
   it('arrondit aux milliers puis aux millions, vers le bas', () => {
     expect(compactCount(1000)).toBe('+1K');

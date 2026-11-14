@@ -130,6 +130,14 @@ export function totalVotes(codes: Pick<Code, 'votes'>[]): number {
   return codes.reduce((sum, code) => sum + Math.max(0, code.votes || 0), 0);
 }
 
+/**
+ * Votes « ça marche » seulement (pouces en haut), pour la case de la page créateur. Même arrondi que le pouce
+ * de chaque coupon (votes × réussite), pour que les deux chiffres concordent.
+ */
+export function workedVotes(codes: Pick<Code, 'votes' | 'success'>[]): number {
+  return codes.reduce((sum, code) => sum + Math.round((Math.max(0, code.votes || 0) * (code.success || 0)) / 100), 0);
+}
+
 /** Message « Copie, essaie, reviens voter » en tête de page : montré tant qu'il n'a pas été fermé. */
 export const EXPLORE_INTRO_KEY = 'merkod-explore-intro';
 

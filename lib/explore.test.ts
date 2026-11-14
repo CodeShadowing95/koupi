@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Code, Tool } from './data';
 import {
-  categoryChips, closeIntro, totalVotes, readCardView, saveCardView, shortName, DEFAULT_EXPLORE, exploreCodes, exploreFilters, exploreTitle, exploreToParams, familyEntries, parseExplore, readIntroClosed, topCreators,
+  categoryChips, closeIntro, totalVotes, workedVotes, readCardView, saveCardView, shortName, DEFAULT_EXPLORE, exploreCodes, exploreFilters, exploreTitle, exploreToParams, familyEntries, parseExplore, readIntroClosed, topCreators,
 } from './explore';
 
 const NOW = Date.parse('2026-11-06T12:00:00Z');
@@ -124,5 +124,12 @@ describe('bandeau de vote', () => {
   it('additionne les votes des codes affichés', () => {
     expect(totalVotes([{ votes: 10 }, { votes: 0 }, { votes: 32 }])).toBe(42);
     expect(totalVotes([])).toBe(0);
+  });
+
+  it('ne compte que les votes « ça marche » pour la page créateur', () => {
+    // 17 pouces en haut sur 18 votes (94 %) : la case affiche 17, comme le pouce du coupon.
+    expect(workedVotes([{ votes: 18, success: 94 }, { votes: 0, success: 0 }])).toBe(17);
+    expect(workedVotes([{ votes: 4, success: 50 }, { votes: 3, success: 100 }])).toBe(5);
+    expect(workedVotes([])).toBe(0);
   });
 });
