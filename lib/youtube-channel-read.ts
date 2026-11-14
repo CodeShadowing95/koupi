@@ -27,7 +27,9 @@ export const UPLOADS_PER_CHANNEL = 20;
 export const MAX_CHANNELS_PER_RUN = 200;
 /**
  * Temps de lecture d'un passage. Vercel coupe une fonction à 300 s (maxDuration) : au-delà de 4 minutes, on s'arrête
- * proprement après la chaîne en cours. Les chaînes restantes, les moins récemment lues, passent en tête au passage suivant.
+ * proprement, entre deux vidéos. Une chaîne a jusqu'à 20 vidéos lues chacune par l'IA puis vérifiées : attendre la fin de la
+ * chaîne faisait dépasser les 300 s, et Vercel coupait le passage sans rien noter au journal. Les vidéos déjà lues sont
+ * gardées ; la chaîne en cours et les suivantes, les moins récemment lues, passent en tête au passage suivant.
  */
 export const RUN_BUDGET_MS = 240_000;
 /** Requête notée pour une vidéo lue depuis une chaîne suivie (table des vidéos déjà lues). */
@@ -242,7 +244,12 @@ export async function readYoutubeChannels(db: Db, youtube: YoutubeChannels, opti
       }).onConflictDoNothing();
     };
 
+    let outOfTime = false;
     for (const video of videos) {
+      if (clock() - startedAt > budget) {
+        outOfTime = true;
+        break;
+      }
       // Une vidéo en erreur (texte refusé par la base, IA indisponible…) ne doit pas arrêter les autres ni les chaînes suivantes.
       try {
         await readVideo(video);
@@ -250,6 +257,11 @@ export async function readYoutubeChannels(db: Db, youtube: YoutubeChannels, opti
         console.error('youtube channel video failed', video.id, error);
         report.failed.push(`${channel.title} (vidéo ${video.id})`);
       }
+    }
+    // Chaîne pas finie : sa date de lecture ne bouge pas, elle reste en tête et ses vidéos déjà lues sont sautées.
+    if (outOfTime) {
+      report.remaining += channels.length - index;
+      break;
     }
     await db.update(watchedSources).set({ lastFetchedAt: now, ...(channel.creatorId ? {} : { creatorId }) }).where(eq(watchedSources.id, channel.id));
   }
