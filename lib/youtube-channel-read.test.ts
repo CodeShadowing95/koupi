@@ -122,6 +122,27 @@ describe('chaînes suivies en base', () => {
     expect(new Set(vi.mocked(youtube.uploads).mock.calls.map(call => call[0]))).toEqual(new Set([CHANNEL, OTHER]));
   });
 
+  it('s’arrête entre deux vidéos d’une chaîne quand le temps manque, et reprend là où il s’est arrêté', async () => {
+    await setChannelWatch(db, accountId, true);
+    const uploads = [{ videoId: 'v1', publishedAt: daysAgo(1) }, { videoId: 'v2', publishedAt: daysAgo(2) }];
+    const videos = [
+      { id: 'v1', title: 'Avis', description: 'rien', channelTitle: 'Geek', channelId: CHANNEL },
+      { id: 'v2', title: 'Test', description: 'rien', channelTitle: 'Geek', channelId: CHANNEL },
+    ];
+    const youtube = fake(uploads, videos);
+    let time = 0;
+    // Chaque lecture de l'horloge avance d'une minute : la première vidéo passe, la deuxième dépasse le budget de 90 s.
+    const report = await readYoutubeChannels(db, youtube, { now, budgetMs: 90_000, clock: () => (time += 60_000) });
+    expect(report).toMatchObject({ channels: 1, remaining: 1 });
+    expect((await db.select().from(schema.youtubeSeenVideos)).map(row => row.videoId)).toEqual(['v1']);
+    const [watch] = await db.select().from(schema.watchedSources).where(eq(schema.watchedSources.externalId, CHANNEL));
+    expect(watch.lastFetchedAt).toBeNull();
+    // Passage suivant avec du temps : la vidéo déjà lue est sautée, la chaîne est marquée lue.
+    const next = await readYoutubeChannels(db, fake(uploads, videos), { now });
+    expect(next).toMatchObject({ channels: 1, skipped: 1, remaining: 0 });
+    expect((await db.select().from(schema.youtubeSeenVideos)).map(row => row.videoId).sort()).toEqual(['v1', 'v2']);
+  });
+
   it('garde un emoji entier dans la preuve, même coupée au milieu', async () => {
     await setChannelWatch(db, accountId, true);
     const description = `${'y'.repeat(73)}🔗 Stylevana code SARA10 https://stylevana.com`;
