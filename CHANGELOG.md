@@ -2,6 +2,13 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.23.2](https://github.com/CodeShadowing95/koupi/compare/v0.23.1...v0.23.2) (2026-11-14)
+
+### Corrections
+
+- **stats:** Show the same vote and code counts everywhere (#344) ([c14bf1f](https://github.com/CodeShadowing95/koupi/commit/c14bf1f4256a3980116d6ec979ec5bb395199f1f))
+- **youtube:** Stop the channel read between two videos when time runs out (#343) ([0ba1c6e](https://github.com/CodeShadowing95/koupi/commit/0ba1c6e416e21d1d7fc3fd874cb16e91657d3666))
+
 ## [0.23.1](https://github.com/CodeShadowing95/koupi/compare/v0.23.0...v0.23.1) (2026-11-13)
 
 ### Corrections
