@@ -1,8 +1,9 @@
 // Indicateurs du back-office calculés à partir du catalogue lu en base (lib/catalog-db.ts).
 // Fonctions pures : l'accueil, la page Statistiques et les tests les partagent.
-import type { Category, Code, CodeStatus, Tool } from './data';
+import type { Category, Code, CodeStatus, Tool, Universe } from './data';
+import { isShown, visibleUniverses } from './universes';
 
-export type CatalogInput = { codes: Code[]; tools: Tool[]; categories: Category[]; tracked: number };
+export type CatalogInput = { codes: Code[]; tools: Tool[]; categories: Category[]; tracked: number; universes?: Universe[] };
 
 export const STATUS_ORDER: CodeStatus[] = ['pending', 'to_test', 'verified', 'rejected'];
 
@@ -60,13 +61,19 @@ export function flaggedCodes(codes: Code[], now = new Date()): Code[] {
 
 export function overview(catalog: CatalogInput, now = new Date()) {
   const counts = statusCounts(catalog.codes);
+  // Publiés : vérifiés ou à tester, tous univers confondus. Visibles : ceux que le site montre vraiment (univers allumés).
   const visible = catalog.codes.filter(isVisible);
+  const shown = visibleUniverses(catalog.universes);
+  const onSite = visible.filter(code => isShown(code, shown)).length;
   const coveredTools = new Set(visible.map(code => code.tool.toLowerCase())).size;
   const success = weightedSuccess(catalog.codes);
   return {
     total: catalog.codes.length,
     counts,
-    visible: visible.length,
+    published: visible.length,
+    visible: onSite,
+    /** Codes publiés dans un univers caché : comptés dans l'admin, absents du site. */
+    hiddenUniverse: visible.length - onSite,
     coveredTools,
     tracked: catalog.tracked,
     coverage: percent(coveredTools, catalog.tracked),
@@ -78,11 +85,16 @@ export function overview(catalog: CatalogInput, now = new Date()) {
   };
 }
 
-/** Couverture par catégorie, de la mieux couverte à la moins couverte. */
-export function coverageByCategory(categories: Category[]) {
-  return categories
-    .map(category => ({ name: category.name, slug: category.slug, covered: category.count, tracked: category.tracked, rate: percent(category.count, category.tracked) ?? 0 }))
-    .sort((a, b) => b.rate - a.rate || b.tracked - a.tracked || a.name.localeCompare(b.name, 'fr'));
+/**
+ * Couverture par catégorie, de la mieux couverte à la moins couverte. `weakestFirst` met en tête les catégories
+ * où il manque le plus de codes (les plus suivies d'abord à taux égal) : c'est là qu'il faut chercher.
+ */
+export function coverageByCategory(categories: Category[], { weakestFirst = false } = {}) {
+  const rows = categories
+    .map(category => ({ name: category.name, slug: category.slug, covered: category.count, tracked: category.tracked, rate: percent(category.count, category.tracked) ?? 0 }));
+  return weakestFirst
+    ? rows.sort((a, b) => a.rate - b.rate || b.tracked - a.tracked || a.name.localeCompare(b.name, 'fr'))
+    : rows.sort((a, b) => b.rate - a.rate || b.tracked - a.tracked || a.name.localeCompare(b.name, 'fr'));
 }
 
 /** Outils qui ont le plus de codes visibles. */

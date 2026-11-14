@@ -13,6 +13,10 @@ import { copyText, openCreatorLink } from '@/lib/copy';
 import { track } from '@/lib/track';
 import { playCouponSnip } from '@/lib/coupon-sound';
 import { CODE_COPIED_EVENT, type CopiedCode } from '@/lib/vote-invite';
+import { weightedSuccess } from '@/lib/admin-stats';
+
+/** Votes minimum pour afficher la réussite des visiteurs dans le haut de page. */
+const MIN_HERO_VOTES = 10;
 
 /** Temps entre deux coupons qui se retournent, et durée d'un demi-tour (axe horizontal). */
 const FLIP_EVERY = 4.2;
@@ -78,11 +82,13 @@ export function Hero({ codes: all, tools }: { codes: Code[]; tools: Tool[] }) {
   const [slots, setSlots] = useState(() => pool.slice(0, 4));
   const flipState = useRef<FlipState<Code>>({ slots: pool.slice(0, 4), queue: pool.slice(4) });
   const slugOf = (name: string) => tools.find(tool => tool.name === name)?.slug ?? '';
-  const verified = codes.filter(code => code.status === 'verified');
-  const verifiedCount = verified.length;
-  // Tant que peu de codes sont vérifiés, la pastille met en avant ce que chaque code a : sa source.
-  const publicCount = codes.filter(isPublic).length;
-  const successRate = Math.round(verified.reduce((sum, code) => sum + code.success, 0) / Math.max(1, verifiedCount));
+  // Le nombre de la pastille compte tout ce que l'Explorer montre, offres sans code comprises : le même chiffre partout.
+  const live = all.filter(isPublic);
+  const publicCount = live.length;
+  // Réussite pondérée par les votes, sur les seuls codes votés : un code sans vote ne compte pas comme un échec.
+  // Avec trop peu de votes, le chiffre ne veut rien dire : la pastille ne s'affiche pas.
+  const success = weightedSuccess(live);
+  const showSuccess = success.rate !== null && success.votes >= MIN_HERO_VOTES;
 
   // Les logos de la réserve sont chargés à l'avance : le nouveau logo est prêt quand le coupon se retourne.
   useEffect(() => {
@@ -213,10 +219,12 @@ export function Hero({ codes: all, tools }: { codes: Code[]; tools: Tool[] }) {
         </div>
 
         <div className="k-hero-stage" aria-label="Codes du moment" role="region">
-          <div className="k-stage-badge" aria-hidden="true">
-            <span className="k-dot" />
-            <span><strong>{successRate} %</strong> de réussite<br />selon les votes</span>
-          </div>
+          {showSuccess && (
+            <div className="k-stage-badge" aria-hidden="true">
+              <span className="k-dot" />
+              <span><strong>{success.rate} %</strong> de réussite<br />selon {success.votes} votes</span>
+            </div>
+          )}
           <div className="k-hero-stack">
             {slots.map((code, index) => (
               // La clé suit la place, pas le code : le coupon reste le même élément quand il se retourne.
