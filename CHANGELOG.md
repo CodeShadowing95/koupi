@@ -2,6 +2,12 @@
 
 Toutes les versions de Merkod. Ce fichier est mis à jour par `npm run release` à partir des commits (voir `docs/release.md`).
 
+## [0.23.3](https://github.com/CodeShadowing95/koupi/compare/v0.23.2...v0.23.3) (2026-11-19)
+
+### Corrections
+
+- **db:** Let the database sleep between visits ([92cc965](https://github.com/CodeShadowing95/koupi/commit/92cc965fc3c9fec458d337e1026c30b99d7070c8))
+
 ## [0.23.2](https://github.com/CodeShadowing95/koupi/compare/v0.23.1...v0.23.2) (2026-11-14)
 
 ### Corrections
