@@ -50,5 +50,6 @@ Chaque décision importante est notée ici dans un fichier numéroté. On ne sup
 | [0048](0048-supprimer-un-createur.md) | Supprimer un créateur à sa demande, avec tout ce qui le concerne | Acceptée |
 | [0049](0049-regle-des-30-jours-youtube.md) | Règle des 30 jours de l’API YouTube : relire chaque semaine, effacer ce qui est périmé | Acceptée |
 | [0050](0050-liste-des-createurs-retires.md) | Liste des créateurs retirés : Merkod ne recrée jamais la page d’un créateur qui a demandé à être retiré | Acceptée |
+| [0051](0051-laisser-dormir-la-base.md) | Laisser dormir la base entre les visites : plus de lecture de la base à chaque requête, caches plus longs, mesures de vitesse échantillonnées | Acceptée |
 
 Modèle : copier [`template.md`](template.md).

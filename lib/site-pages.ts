@@ -71,6 +71,16 @@ export function bypassesMaintenance(pathname: string): boolean {
 export type SiteState = { off: PageKey[]; maintenance: boolean };
 export const DEFAULT_SITE_STATE: SiteState = { off: [], maintenance: false };
 
+/** Route qui donne l'état du site au middleware, depuis le cache de Next (ADR-0051). */
+export const SITE_STATE_PATH = '/api/site-state';
+
+/** État reçu de SITE_STATE_PATH : seules les clés de page connues sont gardées, le reste retombe sur le défaut. */
+export function parseSiteState(value: unknown): SiteState {
+  if (!value || typeof value !== 'object') return DEFAULT_SITE_STATE;
+  const { off, maintenance } = value as { off?: unknown; maintenance?: unknown };
+  return { off: Array.isArray(off) ? off.filter(isPageKey) : [], maintenance: maintenance === true };
+}
+
 /** Que faire d'une requête : la laisser passer, répondre 404, ou montrer la page de maintenance. */
 export function siteDecision(pathname: string, state: SiteState, isAdmin: boolean): 'pass' | 'not-found' | 'maintenance' {
   if (state.maintenance && !isAdmin && !bypassesMaintenance(pathname)) return 'maintenance';

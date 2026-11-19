@@ -723,7 +723,7 @@ function Indicateurs() {
       <p>Statistiques se lit en quatre onglets : <b>Catalogue et audience</b> (l’état des codes et ce que font les visiteurs), <b>Sources et outils</b> (d’où viennent les codes et ce que les visiteurs copient), <b>Consommation</b> (quota YouTube et dépense IA) et <b>Vitesse</b> (ce que les visiteurs ressentent en chargeant les pages).</p>
     </Section>
     <Section id="vitesse" title="La vitesse ressentie">
-      <p>L’onglet <b>Vitesse</b> montre, sur les 28 derniers jours, la part des visites où la page a été rapide, par type de page et par appareil (téléphone ou ordinateur). Les mesures viennent des vrais visiteurs, sans cookie ni identifiant : seulement un compteur par jour.</p>
+      <p>L’onglet <b>Vitesse</b> montre, sur les 28 derniers jours, la part des visites où la page a été rapide, par type de page et par appareil (téléphone ou ordinateur). Les mesures viennent des vrais visiteurs, sans cookie ni identifiant : seulement un compteur par jour. Un chargement de page sur dix est mesuré, pour ne pas réveiller la base à chaque visite : les pourcentages restent justes, les nombres de mesures sont dix fois plus petits.</p>
       <Legend rows={[
         { term: 'Affichage', meaning: 'Le temps pour que le gros du contenu apparaisse (LCP). Bon sous 2,5 secondes.' },
         { term: 'Réactivité', meaning: 'Le délai entre un clic et la réponse de la page (INP). Bon sous 200 millisecondes.' },

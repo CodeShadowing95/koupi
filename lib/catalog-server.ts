@@ -12,8 +12,14 @@ import { loadAvatarMap, loadLogoMap } from './stored-images';
 import { publicCatalog } from './universes';
 
 export const CATALOG_TAG = 'catalog';
+/**
+ * Durée du cache du catalogue. Toute modification faite dans l'admin le vide aussitôt (revalidateCatalog) ; ce délai
+ * ne rattrape que les votes et les copies des visiteurs. 5 minutes réveillaient la base sans cesse et épuisaient
+ * les heures de calcul du plan gratuit de Neon : une heure suffit pour des compteurs (ADR-0051).
+ */
+export const CATALOG_TTL = 3_600;
 
-const cachedCatalog = unstable_cache(() => loadCatalog(getDb()), ['catalog-v2'], { tags: [CATALOG_TAG], revalidate: 300 });
+const cachedCatalog = unstable_cache(() => loadCatalog(getDb()), ['catalog-v2'], { tags: [CATALOG_TAG], revalidate: CATALOG_TTL });
 
 /** Catalogue du site public : sans les univers cachés (ADR-0046). */
 export async function getCatalog(): Promise<Catalog> {
@@ -27,7 +33,7 @@ export async function getFullCatalog(): Promise<Catalog> {
   return cachedCatalog();
 }
 
-const cachedCreatorProfile = unstable_cache((slug: string) => loadCreatorProfile(getDb(), slug), ['creator-profile-v1'], { tags: [CATALOG_TAG], revalidate: 300 });
+const cachedCreatorProfile = unstable_cache((slug: string) => loadCreatorProfile(getDb(), slug), ['creator-profile-v1'], { tags: [CATALOG_TAG], revalidate: CATALOG_TTL });
 
 /** Présentation et comptes d'un créateur, rafraîchis avec le catalogue. */
 export async function getCreatorProfile(slug: string): Promise<CreatorProfile | null> {
@@ -35,8 +41,8 @@ export async function getCreatorProfile(slug: string): Promise<CreatorProfile | 
   return cachedCreatorProfile(slug);
 }
 
-// Les copies bougent toute la journée : 5 minutes de retard suffisent pour un total du mois.
-const cachedCreatorFacts = unstable_cache(() => loadCreatorFacts(getDb()), ['creator-facts-v1'], { tags: [CATALOG_TAG], revalidate: 300 });
+// Les copies bougent toute la journée : une heure de retard suffit pour un total du mois.
+const cachedCreatorFacts = unstable_cache(() => loadCreatorFacts(getDb()), ['creator-facts-v1'], { tags: [CATALOG_TAG], revalidate: CATALOG_TTL });
 
 /** Présentation, réseaux et copies du mois de chaque créateur, par slug. */
 export async function getCreatorFacts(): Promise<Record<string, CreatorFacts>> {
