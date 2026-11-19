@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bypassesMaintenance, isPathOff, pageForPath, SITE_PAGES, siteDecision } from './site-pages';
+import { bypassesMaintenance, DEFAULT_SITE_STATE, isPathOff, pageForPath, parseSiteState, SITE_PAGES, siteDecision } from './site-pages';
 
 describe('pageForPath', () => {
   it('trouve la page d’une adresse et de ses sous-pages', () => {
@@ -57,5 +57,17 @@ describe('siteDecision', () => {
     expect(siteDecision('/maintenance', paused, false)).toBe('pass');
     expect(bypassesMaintenance('/logos/nordvpn.png')).toBe(true);
     expect(bypassesMaintenance('/api/cron/retest')).toBe(true);
+  });
+});
+
+describe('parseSiteState', () => {
+  it('garde les pages connues et la maintenance', () => {
+    expect(parseSiteState({ off: ['about', 'inconnue', 3], maintenance: true })).toEqual({ off: ['about'], maintenance: true });
+  });
+
+  it('retombe sur un site ouvert si la réponse est illisible', () => {
+    expect(parseSiteState(null)).toEqual(DEFAULT_SITE_STATE);
+    expect(parseSiteState('oups')).toEqual(DEFAULT_SITE_STATE);
+    expect(parseSiteState({ off: 'about', maintenance: 'oui' })).toEqual(DEFAULT_SITE_STATE);
   });
 });
